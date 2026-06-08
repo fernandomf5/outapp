@@ -413,7 +413,8 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               .from("organization_table_cells")
               .update({ 
                 value: cellData.value,
-                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color
+                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color,
+                is_bold: cellData.is_bold || false
               })
               .eq("id", existing.id);
           } else {
