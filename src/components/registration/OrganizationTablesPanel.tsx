@@ -1209,13 +1209,42 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="logo">URL da Imagem ou Logo (Opcional)</Label>
-              <Input 
-                id="logo" 
-                placeholder="https://exemplo.com/imagem.png" 
-                value={newTable.logo_url}
-                onChange={(e) => setNewTable({...newTable, logo_url: e.target.value})}
-              />
+              <Label htmlFor="logo">Logo da Tabela (Upload)</Label>
+              <div className="flex items-center gap-4">
+                {newTable.logo_url && (
+                  <div className="w-12 h-12 rounded-lg border overflow-hidden bg-muted flex-shrink-0">
+                    <img src={newTable.logo_url} alt="Logo preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <Label 
+                    htmlFor="logo-upload" 
+                    className={cn(
+                      "flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
+                      uploadingLogo && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      {uploadingLogo ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      ) : (
+                        <>
+                          <Upload className="h-6 w-6 text-muted-foreground mb-2" />
+                          <p className="text-xs text-muted-foreground">Clique para fazer upload</p>
+                        </>
+                      )}
+                    </div>
+                    <Input 
+                      id="logo-upload" 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                    />
+                  </Label>
+                </div>
+              </div>
             </div>
             <div className="grid gap-2">
               <Label>Cor de Identificação</Label>
