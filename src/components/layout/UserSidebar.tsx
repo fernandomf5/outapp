@@ -186,7 +186,7 @@ export function UserSidebar() {
 
   const financialItems: MenuItem[] = [
     { title: t('financial_management'), icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
-    { title: "Registros Personalizados", icon: Settings2, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
+    { title: "Registros Personalizados", icon: Settings2, path: "/dashboard", tab: "registros-personalizados", moduleKey: "financial" },
     { title: "Gerador de Recibos", icon: FileCheck, path: "/dashboard", tab: "recibos", hideForTeamMember: true },
   ];
 
