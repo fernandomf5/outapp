@@ -189,7 +189,7 @@ export const CustomFinancialRecordsPanel = () => {
         .insert({
           structure_id: selectedStructure.id,
           name: newRecordName
-        })
+        } as any)
         .select()
         .single();
 
