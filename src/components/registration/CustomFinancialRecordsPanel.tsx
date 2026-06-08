@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings2, Table as TableIcon, LayoutDashboard, Search, Filter, MoreHorizontal, Pencil, Trash2, Calendar, DollarSign, User, Phone, Mail, FileText, CheckCircle2, Clock, AlertCircle, XCircle, Handshake, Info } from "lucide-react";
+import { Plus, Settings2, Table as TableIcon, LayoutDashboard, Search, Filter, MoreHorizontal, Pencil, Trash2, Calendar, DollarSign, User, Phone, Mail, FileText, CheckCircle2, Clock, AlertCircle, XCircle, Handshake, Info, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
