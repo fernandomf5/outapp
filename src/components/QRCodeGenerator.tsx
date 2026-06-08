@@ -902,17 +902,19 @@ export function QRCodeGenerator() {
             </div>
 
             {/* Preview */}
-            <div className="relative flex flex-col items-center justify-start min-h-[600px]">
-              <div className="sticky top-24 flex flex-col items-center space-y-4">
+            <div className="relative flex flex-col items-center justify-start h-full min-h-[500px]">
+              <div className="fixed top-24 right-4 lg:sticky lg:top-24 lg:right-0 z-10 flex flex-col items-center space-y-4">
                 <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
                 <div 
                   ref={printRef}
-                  className="flex flex-col items-center shadow-lg transition-all duration-300"
+                  className="flex flex-col items-center shadow-xl transition-all duration-300 ring-1 ring-primary/20"
                   style={{
                     padding: `${padding}px`,
                     backgroundColor: bgColor,
                     border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
                     borderRadius: `${cornerRadius}px`,
+                    maxWidth: '100%',
+                    width: 'fit-content'
                   }}
                 >
                   {businessName && (
