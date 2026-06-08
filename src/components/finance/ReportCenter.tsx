@@ -2,14 +2,38 @@ import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { format, startOfMonth, addMonths } from "date-fns";
+import { 
+  format, 
+  startOfMonth, 
+  addMonths, 
+  startOfWeek, 
+  endOfWeek, 
+  eachDayOfInterval, 
+  subWeeks, 
+  subMonths, 
+  subYears, 
+  isWithinInterval,
+  parseISO,
+  startOfQuarter,
+  endOfQuarter,
+  subDays,
+  startOfYear,
+  endOfYear
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Download, Save, FolderOpen, Trash2, FileText, Loader2 } from "lucide-react";
+import { Download, Save, FolderOpen, Trash2, FileText, Loader2, Calendar } from "lucide-react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Transaction {
   amount: number;
@@ -34,32 +58,117 @@ export const ReportCenter = ({ transactions }: ReportCenterProps) => {
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
+  const [period, setPeriod] = useState<'week' | 'month' | 'semester' | 'year' | 'projection'>('projection');
 
-  const cashFlowData = useMemo(() => {
-    const months = Array.from({ length: 6 }).map((_, i) => {
-      const date = addMonths(startOfMonth(new Date()), i);
-      return {
-        key: format(date, 'yyyy-MM'),
-        label: format(date, 'MMM/yy', { locale: ptBR }),
+  const filteredData = useMemo(() => {
+    const now = new Date();
+    let start: Date;
+    let end: Date = now;
+    let dataPoints: { key: string; label: string; income: number; expense: number }[] = [];
+
+    if (period === 'week') {
+      start = startOfWeek(now, { weekStartsOn: 0 });
+      end = endOfWeek(now, { weekStartsOn: 0 });
+      dataPoints = eachDayOfInterval({ start, end }).map(date => ({
+        key: format(date, 'yyyy-MM-dd'),
+        label: format(date, 'EEE', { locale: ptBR }),
         income: 0,
         expense: 0
-      };
-    });
+      }));
+    } else if (period === 'month') {
+      start = startOfMonth(now);
+      end = now;
+      // Group by week of month or chunks of days
+      dataPoints = Array.from({ length: 4 }).map((_, i) => {
+        const d = subDays(now, (3 - i) * 7);
+        return {
+          key: `week-${i}`,
+          label: `Semana ${i + 1}`,
+          income: 0,
+          expense: 0
+        };
+      });
+    } else if (period === 'semester') {
+      start = subMonths(now, 6);
+      dataPoints = Array.from({ length: 6 }).map((_, i) => {
+        const date = addMonths(start, i + 1);
+        return {
+          key: format(date, 'yyyy-MM'),
+          label: format(date, 'MMM/yy', { locale: ptBR }),
+          income: 0,
+          expense: 0
+        };
+      });
+    } else if (period === 'year') {
+      start = startOfYear(now);
+      end = endOfYear(now);
+      dataPoints = Array.from({ length: 12 }).map((_, i) => {
+        const date = new Date(now.getFullYear(), i, 1);
+        return {
+          key: format(date, 'yyyy-MM'),
+          label: format(date, 'MMM', { locale: ptBR }),
+          income: 0,
+          expense: 0
+        };
+      });
+    } else {
+      // Default projection (original behavior)
+      dataPoints = Array.from({ length: 6 }).map((_, i) => {
+        const date = addMonths(startOfMonth(now), i);
+        return {
+          key: format(date, 'yyyy-MM'),
+          label: format(date, 'MMM/yy', { locale: ptBR }),
+          income: 0,
+          expense: 0
+        };
+      });
+    }
 
     transactions.forEach(t => {
-      const monthKey = t.due_date.substring(0, 7);
-      const monthData = months.find(m => m.key === monthKey);
-      if (monthData) {
-        if (t.type === 'income') monthData.income += t.amount;
-        else monthData.expense += t.amount;
+      const tDate = parseISO(t.due_date);
+      if (period === 'projection') {
+        const monthKey = t.due_date.substring(0, 7);
+        const point = dataPoints.find(p => p.key === monthKey);
+        if (point) {
+          if (t.type === 'income') point.income += t.amount;
+          else point.expense += t.amount;
+        }
+      } else if (period === 'week') {
+        if (isWithinInterval(tDate, { start, end })) {
+          const key = format(tDate, 'yyyy-MM-dd');
+          const point = dataPoints.find(p => p.key === key);
+          if (point) {
+            if (t.type === 'income') point.income += t.amount;
+            else point.expense += t.amount;
+          }
+        }
+      } else if (period === 'month') {
+        if (isWithinInterval(tDate, { start: startOfMonth(now), end: now })) {
+          // Simple logic: divide month into 4 weeks
+          const day = tDate.getDate();
+          const weekIdx = Math.min(Math.floor((day - 1) / 7), 3);
+          const point = dataPoints[weekIdx];
+          if (t.type === 'income') point.income += t.amount;
+          else point.expense += t.amount;
+        }
+      } else {
+        // Semester or Year
+        const monthKey = t.due_date.substring(0, 7);
+        const point = dataPoints.find(p => p.key === monthKey);
+        if (point) {
+          if (t.type === 'income') point.income += t.amount;
+          else point.expense += t.amount;
+        }
       }
     });
 
-    return months.map(m => ({
-      ...m,
-      balance: m.income - m.expense
+    return dataPoints.map(p => ({
+      ...p,
+      balance: p.income - p.expense
     }));
-  }, [transactions]);
+  }, [transactions, period]);
+
+  const cashFlowData = filteredData; // Keep original variable name for compatibility with existing code
 
   useEffect(() => {
     loadSavedReports();
@@ -89,15 +198,23 @@ export const ReportCenter = ({ transactions }: ReportCenterProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const reportName = `Fluxo de Caixa - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
+      const periodLabels = {
+        week: 'Semanal',
+        month: 'Mensal',
+        semester: 'Semestral',
+        year: 'Anual',
+        projection: 'Projeção 6 Meses'
+      };
+
+      const reportName = `Relatório ${periodLabels[period]} - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
       
       const { error } = await supabase
         .from('financial_reports')
         .insert({
           user_id: user.id,
           name: reportName,
-          type: 'cash_flow',
-          data: { cashFlowData }
+          type: period,
+          data: { cashFlowData, period }
         });
 
       if (error) throw error;
@@ -170,7 +287,26 @@ export const ReportCenter = ({ transactions }: ReportCenterProps) => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl font-semibold">Central de Relatórios</h2>
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold">Central de Relatórios</h2>
+          {!showSaved && (
+            <div className="flex items-center gap-2">
+              <Select value={period} onValueChange={(v: any) => setPeriod(v)}>
+                <SelectTrigger className="w-[180px] h-8 text-xs">
+                  <Calendar className="h-3 w-3 mr-2" />
+                  <SelectValue placeholder="Selecione o período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">Esta Semana</SelectItem>
+                  <SelectItem value="month">Este Mês</SelectItem>
+                  <SelectItem value="semester">Último Semestre</SelectItem>
+                  <SelectItem value="year">Este Ano</SelectItem>
+                  <SelectItem value="projection">Projeção 6 Meses</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button 
             variant="outline" 
