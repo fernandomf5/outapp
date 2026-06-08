@@ -490,7 +490,7 @@ export function QRCodeGenerator() {
   };
 
   const realtimePreview = (
-    <div className="fixed right-4 top-20 z-[9999] flex w-[300px] max-w-[calc(100vw-2rem)] flex-col items-center space-y-3 overflow-y-auto rounded-2xl border-2 border-primary bg-background/95 p-4 shadow-2xl backdrop-blur-md max-h-[calc(100vh-6rem)] sm:right-6 lg:right-10 lg:top-24 lg:w-[340px] animate-in fade-in zoom-in duration-300">
+    <div className="fixed right-2 sm:right-4 md:right-6 top-20 z-[9999] flex w-[280px] sm:w-[320px] lg:w-[360px] max-w-[calc(100vw-1rem)] flex-col items-center space-y-3 overflow-y-auto rounded-2xl border-2 border-primary bg-background/95 p-3 sm:p-4 shadow-2xl backdrop-blur-md max-h-[calc(100vh-6rem)] lg:top-24 animate-in fade-in zoom-in duration-300">
       <div className="flex items-center justify-between w-full mb-2">
         <h3 className="font-bold text-primary flex items-center gap-2">
           <Eye className="w-5 h-5" />
