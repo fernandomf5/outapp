@@ -1408,32 +1408,37 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       <CardDescription className="line-clamp-1">{table.description || "Sem descrição"}</CardDescription>
                     </div>
                   </div>
-                  <Popover>
-                    <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-40 p-1" align="end">
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start text-xs h-8 px-2" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingTable(table);
-                        }}
-                      >
-                        <Edit2 className="mr-2 h-3 w-3" /> Editar
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive" 
-                        onClick={(e) => handleDeleteTable(e, table)}
-                      >
-                        <Trash2 className="mr-2 h-3 w-3" /> Excluir
-                      </Button>
-                    </PopoverContent>
-                  </Popover>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-40 p-1" align="end" onClick={(e) => e.stopPropagation()}>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-start text-xs h-8 px-2" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingTable(table);
+                          }}
+                        >
+                          <Edit2 className="mr-2 h-3 w-3" /> Editar
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTable(e, table);
+                          }}
+                        >
+                          <Trash2 className="mr-2 h-3 w-3" /> Excluir
+                        </Button>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
