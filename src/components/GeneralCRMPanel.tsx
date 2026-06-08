@@ -840,7 +840,7 @@ export function GeneralCRMPanel() {
 
       {/* Dialog de Gerenciamento de Categorias */}
       <Dialog open={categoriesDialogOpen} onOpenChange={setCategoriesDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md z-[60]">
           <DialogHeader>
             <DialogTitle>Gerenciar Categorias de Leads</DialogTitle>
           </DialogHeader>
@@ -931,7 +931,7 @@ export function GeneralCRMPanel() {
 
       {/* Confirmação de exclusão de categoria */}
       <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="z-[70]">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Categoria</AlertDialogTitle>
             <AlertDialogDescription>
