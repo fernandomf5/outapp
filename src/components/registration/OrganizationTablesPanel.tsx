@@ -23,11 +23,13 @@ interface TableColumn {
   type: ColumnType;
   options?: any;
   order_index: number;
+  header_text_color?: string;
 }
 
 interface TableRow {
   id: string;
   cells: Record<string, string>; // columnId -> value
+  row_background_color?: string;
 }
 
 export const OrganizationTablesPanel = () => {
@@ -44,7 +46,7 @@ export const OrganizationTablesPanel = () => {
   
   // Column State
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
-  const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType });
+  const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#000000" });
   const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
 
   const { toast } = useToast();
@@ -90,6 +92,7 @@ export const OrganizationTablesPanel = () => {
       .from("organization_table_rows")
       .select(`
         id,
+        row_background_color,
         organization_table_cells (
           column_id,
           value
@@ -104,7 +107,11 @@ export const OrganizationTablesPanel = () => {
       r.organization_table_cells.forEach((c: any) => {
         cells[c.column_id] = c.value;
       });
-      return { id: r.id, cells };
+      return { 
+        id: r.id, 
+        cells, 
+        row_background_color: r.row_background_color 
+      };
     });
 
     setRows(formattedRows);
@@ -144,7 +151,8 @@ export const OrganizationTablesPanel = () => {
       .insert({
         table_id: selectedTable.id,
         name: newColumn.name,
-        type: newColumn.type,
+        type: 'text', // Default to text as requested
+        header_text_color: newColumn.header_text_color,
         order_index: columns.length,
       });
 
@@ -152,7 +160,7 @@ export const OrganizationTablesPanel = () => {
       toast({ title: "Erro ao adicionar coluna", variant: "destructive" });
     } else {
       setIsColumnModalOpen(false);
-      setNewColumn({ name: "", type: 'text' });
+      setNewColumn({ name: "", type: 'text', header_text_color: "#000000" });
       fetchTableDetails(selectedTable.id);
     }
   };
@@ -164,7 +172,7 @@ export const OrganizationTablesPanel = () => {
       .from("organization_table_columns")
       .update({
         name: editingColumn.name,
-        type: editingColumn.type,
+        header_text_color: editingColumn.header_text_color,
       })
       .eq("id", editingColumn.id);
 
@@ -245,6 +253,19 @@ export const OrganizationTablesPanel = () => {
     }
   };
 
+  const handleUpdateRowColor = async (rowId: string, color: string) => {
+    const { error } = await supabase
+      .from("organization_table_rows")
+      .update({ row_background_color: color })
+      .eq("id", rowId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar cor da linha", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+    }
+  };
+
   const handleDeleteTable = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const { error } = await supabase.from("organization_tables").delete().eq("id", id);
@@ -291,13 +312,14 @@ export const OrganizationTablesPanel = () => {
               <tr className="border-b">
                 <th className="w-12 px-4 py-3 text-left font-medium text-muted-foreground border-r">#</th>
                 {columns.map((col) => (
-                  <th key={col.id} className="min-w-[180px] px-4 py-3 text-left font-medium text-muted-foreground border-r group">
+                  <th 
+                    key={col.id} 
+                    className="min-w-[180px] px-4 py-3 text-left font-medium border-r group"
+                    style={{ color: col.header_text_color || 'inherit' }}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 overflow-hidden">
                         <span className="truncate">{col.name}</span>
-                        <Badge variant="outline" className="text-[9px] font-normal py-0 px-1 opacity-70">
-                          {col.type}
-                        </Badge>
                       </div>
                       
                       <Popover>
@@ -331,13 +353,48 @@ export const OrganizationTablesPanel = () => {
             </thead>
             <tbody>
               {rows.map((row, idx) => (
-                <tr key={row.id} className="border-b hover:bg-muted/30 transition-colors group">
-                  <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs">{idx + 1}</td>
+                <tr 
+                  key={row.id} 
+                  className="border-b hover:bg-muted/30 transition-colors group"
+                  style={{ 
+                    backgroundColor: row.row_background_color || 'transparent',
+                    color: row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit'
+                  }}
+                >
+                  <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs relative">
+                    {idx + 1}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Palette className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48 p-2" side="right">
+                        <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor do Registro</p>
+                        <div className="grid grid-cols-5 gap-1">
+                          {['transparent', '#fef2f2', '#f0f9ff', '#f0fdf4', '#fffbeb', '#faf5ff', '#fdf2f8', '#f8fafc', '#f1f5f9', '#e2e8f0'].map(c => (
+                            <button
+                              key={c}
+                              className={cn(
+                                "w-6 h-6 rounded-md border transition-all hover:scale-110",
+                                row.row_background_color === c ? "border-primary ring-1 ring-primary/30" : "border-muted"
+                              )}
+                              style={{ backgroundColor: c === 'transparent' ? 'white' : c }}
+                              onClick={() => handleUpdateRowColor(row.id, c)}
+                            >
+                              {c === 'transparent' && <X className="h-3 w-3 mx-auto text-muted-foreground" />}
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </td>
                   {columns.map((col) => (
                     <td key={col.id} className="px-0 py-0 border-r min-w-[150px]">
                       <input
-                        type={col.type === 'number' ? 'number' : 'text'}
+                        type="text"
                         className="w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+                        style={{ color: row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined }}
                         value={row.cells[col.id] || ""}
                         onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
                         placeholder="..."
@@ -386,22 +443,20 @@ export const OrganizationTablesPanel = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Tipo de Dado</Label>
-                <Select 
-                  value={newColumn.type} 
-                  onValueChange={(val: ColumnType) => setNewColumn({...newColumn, type: val})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="text">Texto</SelectItem>
-                    <SelectItem value="number">Número</SelectItem>
-                    <SelectItem value="date">Data</SelectItem>
-                    <SelectItem value="currency">Moeda</SelectItem>
-                    <SelectItem value="status">Status</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Cor do Texto da Coluna</Label>
+                <div className="flex gap-2 flex-wrap">
+                  {['#000000', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#64748b'].map(c => (
+                    <button
+                      key={c}
+                      className={cn(
+                        "w-8 h-8 rounded-full border-2 transition-all",
+                        newColumn.header_text_color === c ? "border-primary scale-110" : "border-transparent"
+                      )}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setNewColumn({...newColumn, header_text_color: c})}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -428,22 +483,20 @@ export const OrganizationTablesPanel = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Tipo de Dado</Label>
-                  <Select 
-                    value={editingColumn.type} 
-                    onValueChange={(val: ColumnType) => setEditingColumn({...editingColumn, type: val})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="text">Texto</SelectItem>
-                      <SelectItem value="number">Número</SelectItem>
-                      <SelectItem value="date">Data</SelectItem>
-                      <SelectItem value="currency">Moeda</SelectItem>
-                      <SelectItem value="status">Status</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Cor do Texto da Coluna</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {['#000000', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#64748b'].map(c => (
+                      <button
+                        key={c}
+                        className={cn(
+                          "w-8 h-8 rounded-full border-2 transition-all",
+                          editingColumn.header_text_color === c ? "border-primary scale-110" : "border-transparent"
+                        )}
+                        style={{ backgroundColor: c }}
+                        onClick={() => setEditingColumn({...editingColumn, header_text_color: c})}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
