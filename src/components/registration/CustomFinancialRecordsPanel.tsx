@@ -40,7 +40,12 @@ export const CustomFinancialRecordsPanel = () => {
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateStructureOpen, setIsCreateStructureOpen] = useState(false);
+  const [isAddRecordOpen, setIsAddRecordOpen] = useState(false);
   
+  // New record form state
+  const [newRecordName, setNewRecordName] = useState("");
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+
   // New structure form state
   const [newStructure, setNewStructure] = useState({ name: "", description: "" });
   const [customFields, setCustomFields] = useState<Partial<Field>[]>([
@@ -169,6 +174,66 @@ export const CustomFinancialRecordsPanel = () => {
       loadStructures();
     } catch (error: any) {
       toast.error("Erro ao criar estrutura: " + error.message);
+    }
+  };
+
+  const handleAddRecord = async () => {
+    if (!selectedStructure || !newRecordName) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
+
+    try {
+      const { data: record, error: recordError } = await supabase
+        .from('custom_financial_records')
+        .insert({
+          structure_id: selectedStructure.id,
+          name: newRecordName
+        } as any)
+        .select()
+        .single();
+
+      if (recordError) throw recordError;
+
+      // Insert field values
+      const valuesToInsert = Object.entries(fieldValues).map(([fieldId, value]) => ({
+        record_id: record.id,
+        field_id: fieldId,
+        value: value
+      }));
+
+      if (valuesToInsert.length > 0) {
+        const { error: valuesError } = await supabase
+          .from('custom_financial_field_values')
+          .insert(valuesToInsert as any);
+        
+        if (valuesError) throw valuesError;
+      }
+
+      toast.success("Registro adicionado com sucesso!");
+      setIsAddRecordOpen(false);
+      setNewRecordName("");
+      setFieldValues({});
+      loadStructureData(selectedStructure.id);
+    } catch (error: any) {
+      toast.error("Erro ao adicionar registro: " + error.message);
+    }
+  };
+
+  const handleDeleteRecord = async (recordId: string) => {
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+
+    try {
+      const { error } = await supabase
+        .from('custom_financial_records')
+        .delete()
+        .eq('id', recordId);
+
+      if (error) throw error;
+      toast.success("Registro excluído!");
+      if (selectedStructure) loadStructureData(selectedStructure.id);
+    } catch (error: any) {
+      toast.error("Erro ao excluir: " + error.message);
     }
   };
 
@@ -421,10 +486,49 @@ export const CustomFinancialRecordsPanel = () => {
                         <Search className="h-4 w-4" />
                         <span className="hidden sm:inline">Buscar</span>
                       </Button>
-                      <Button size="sm" className="flex-1 md:flex-none flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        <span className="whitespace-nowrap">Adicionar {selectedStructure.name}</span>
-                      </Button>
+                      
+                      <Dialog open={isAddRecordOpen} onOpenChange={setIsAddRecordOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" className="flex-1 md:flex-none flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            <span className="whitespace-nowrap">Adicionar {selectedStructure.name}</span>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px]">
+                          <DialogHeader>
+                            <DialogTitle>Adicionar {selectedStructure.name}</DialogTitle>
+                            <DialogDescription>
+                              Preencha os dados abaixo para cadastrar um novo registro.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="record-name">Nome / Identificação</Label>
+                              <Input 
+                                id="record-name" 
+                                placeholder="Ex: João Silva" 
+                                value={newRecordName}
+                                onChange={(e) => setNewRecordName(e.target.value)}
+                              />
+                            </div>
+                            {fields.map((field) => (
+                              <div key={field.id} className="grid gap-2">
+                                <Label htmlFor={field.id}>{field.label}</Label>
+                                <Input 
+                                  id={field.id}
+                                  type={field.field_type === 'number' ? 'number' : field.field_type === 'date' ? 'date' : 'text'}
+                                  value={fieldValues[field.id] || ""}
+                                  onChange={(e) => setFieldValues({...fieldValues, [field.id]: e.target.value})}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsAddRecordOpen(false)}>Cancelar</Button>
+                            <Button onClick={handleAddRecord}>Salvar Registro</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
 
@@ -433,12 +537,12 @@ export const CustomFinancialRecordsPanel = () => {
                       <div className="min-w-full inline-block align-middle">
                       <Table>
                         <TableHeader>
-                          <TableRow>
-                            <TableHead>Nome</TableHead>
+                          <TableRow className="bg-muted/30">
+                            <TableHead className="w-[300px] text-xs font-bold uppercase tracking-wider">Identificação</TableHead>
                             {fields.slice(0, 3).map(field => (
-                              <TableHead key={field.id} className="hidden md:table-cell">{field.label}</TableHead>
+                              <TableHead key={field.id} className="hidden md:table-cell text-xs font-bold uppercase tracking-wider">{field.label}</TableHead>
                             ))}
-                            <TableHead className="text-right">Ações</TableHead>
+                            <TableHead className="text-right text-xs font-bold uppercase tracking-wider">Ações</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -451,19 +555,36 @@ export const CustomFinancialRecordsPanel = () => {
                           ) : (
                             records.map(record => (
                               <TableRow key={record.id}>
-                                <TableCell className="font-medium">{record.name}</TableCell>
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                      {record.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold text-sm">{record.name}</p>
+                                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">#{record.id.slice(0, 8)}</p>
+                                    </div>
+                                  </div>
+                                </TableCell>
                                 {fields.slice(0, 3).map(field => {
                                   const val = record.field_values.find((v: any) => v.field_id === field.id)?.value;
                                   return (
                                     <TableCell key={field.id} className="hidden md:table-cell">
-                                      {val || "-"}
+                                      <span className="text-sm text-muted-foreground">{val || "-"}</span>
                                     </TableCell>
                                   );
                                 })}
                                 <TableCell className="text-right">
-                                  <div className="flex justify-end gap-2">
-                                    <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                                    <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                  <div className="flex justify-end gap-1">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => handleDeleteRecord(record.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
                                   </div>
                                 </TableCell>
                               </TableRow>
