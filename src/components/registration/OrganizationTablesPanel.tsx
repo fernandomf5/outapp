@@ -841,13 +841,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                   >
                     <FileText className="mr-2 h-3 w-3 text-red-500" /> Baixar PDF
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-xs h-8 px-2"
-                    onClick={handleDownloadPNG}
-                  >
-                    <ImageIcon className="mr-2 h-3 w-3 text-blue-500" /> Baixar PNG
-                  </Button>
                 </PopoverContent>
               </Popover>
             )}
