@@ -252,35 +252,88 @@ export function QRCodeGenerator() {
               ${showBorder ? `border: ${borderWidth}px solid ${borderColor}; border-radius: ${cornerRadius}px;` : ''}
               background-color: ${bgColor};
             }
-            .business-name {
-              font-size: 24px;
-              font-weight: bold;
-              margin-bottom: 16px;
-              color: ${fgColor};
-            }
-            .qr-wrapper {
+            .business-name-container {
               display: flex;
               flex-direction: column;
               align-items: center;
-              justify-content: center;
+              margin-bottom: 24px;
+              width: 100%;
             }
-            .logo-top {
-              margin-bottom: 8px;
+            .business-name {
+              font-size: 32px;
+              font-weight: 900;
+              text-align: center;
+              color: ${fgColor};
+              text-transform: uppercase;
+              letter-spacing: -1px;
+              line-height: 1;
+              margin: 0;
+            }
+            .name-underline {
+              height: 6px;
+              width: 60px;
+              background-color: ${fgColor};
+              margin-top: 8px;
+              border-radius: 10px;
+            }
+            .qr-wrapper {
+              position: relative;
+              background: white;
+              padding: 16px;
+              border-radius: 20px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+              border: 1px solid #f0f0f0;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+            .logo-center {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: white;
+              padding: 4px;
+              border-radius: 8px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              z-index: 10;
               display: flex;
               align-items: center;
               justify-content: center;
+              border: 1px solid #f0f0f0;
             }
-            .logo-top img {
-              width: ${logoSize}px;
-              height: ${logoSize}px;
+            .logo-center img {
+              width: ${Math.min(logoSize, 50)}px;
+              height: ${Math.min(logoSize, 50)}px;
               object-fit: contain;
+            }
+            .socials-container {
+              width: 100%;
+              margin-top: auto;
+              padding-top: 24px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
             }
             .socials {
               display: flex;
               flex-wrap: wrap;
-              gap: 12px;
-              margin-top: 16px;
+              gap: 24px;
               justify-content: center;
+              background-color: ${fgColor}15;
+              padding: 16px;
+              border-radius: 16px;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .scan-text {
+              margin-top: 12px;
+              font-size: 10px;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 2px;
+              color: ${fgColor};
+              opacity: 0.6;
             }
             @media print {
               body {
@@ -292,18 +345,26 @@ export function QRCodeGenerator() {
         </head>
         <body>
           <div class="container">
-            ${businessName ? `<div class="business-name">${businessName}</div>` : ''}
+            ${businessName ? `
+              <div class="business-name-container">
+                <div class="business-name">${businessName}</div>
+                <div class="name-underline"></div>
+              </div>
+            ` : ''}
             <div class="qr-wrapper">
               ${showLogo && logoUrl ? `
-                <div class="logo-top">
+                <div class="logo-center">
                   <img src="${logoUrl}" alt="Logo" />
                 </div>
               ` : ''}
               ${svgData}
             </div>
             ${showSocialMedia && activeSocials.length > 0 ? `
-              <div class="socials">
-                ${socialIconsHtml}
+              <div class="socials-container">
+                <div class="socials">
+                  ${socialIconsHtml}
+                </div>
+                <div class="scan-text">Escaneie para nos seguir</div>
               </div>
             ` : ''}
           </div>
