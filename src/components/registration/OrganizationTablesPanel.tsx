@@ -45,6 +45,7 @@ export const OrganizationTablesPanel = () => {
   // Column State
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType });
+  const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
 
   const { toast } = useToast();
 
