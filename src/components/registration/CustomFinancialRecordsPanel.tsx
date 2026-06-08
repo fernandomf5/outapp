@@ -224,11 +224,11 @@ export const CustomFinancialRecordsPanel = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto max-w-7xl space-y-6 px-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Registros Personalizados</h2>
-          <p className="text-muted-foreground">Crie e gerencie estruturas financeiras adaptadas ao seu negócio.</p>
+          <p className="text-sm text-muted-foreground">Crie e gerencie estruturas financeiras adaptadas ao seu negócio.</p>
         </div>
         
         <Dialog open={isCreateStructureOpen} onOpenChange={setIsCreateStructureOpen}>
@@ -337,8 +337,8 @@ export const CustomFinancialRecordsPanel = () => {
           <Button onClick={() => setIsCreateStructureOpen(true)}>Criar minha primeira estrutura</Button>
         </Card>
       ) : (
-        <div className="flex flex-col lg:flex-row gap-6">
-          <Card className="lg:w-64 shrink-0 h-fit">
+        <div className="flex flex-col xl:flex-row gap-6">
+          <Card className="xl:w-64 shrink-0 h-fit">
             <CardHeader className="p-4">
               <CardTitle className="text-sm font-medium">Minhas Estruturas</CardTitle>
             </CardHeader>
