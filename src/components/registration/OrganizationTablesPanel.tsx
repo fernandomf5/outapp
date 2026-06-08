@@ -443,7 +443,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           <div className="flex items-center gap-2">
             {!isFullPage && (
               <Button variant="outline" size="sm" onClick={() => window.open(`/tabela-completa/${selectedTable.id}`, '_blank')}>
-                <ExternalLink className="mr-2 h-4 w-4" /> Abrir Completa
+                <ExternalLink className="mr-2 h-4 w-4" /> Abrir Completo
               </Button>
             )}
             {isFullPage && (
