@@ -434,8 +434,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
   const parseValueToNumber = (val: string) => {
     const trimmedVal = val.trim();
-    // Check if it looks like a date (DD/MM/YYYY or DD/MM/YY)
-    if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(trimmedVal)) return null;
+    
+    // Check if it matches exactly "R$ X" or "R$ X,XX"
+    // Allowing for optional spaces after R$
+    const currencyRegex = /^R\$\s*\d+([.,]\d{2})?$/;
+    
+    if (!currencyRegex.test(trimmedVal)) return null;
 
     let cleanVal = trimmedVal.replace(/[^\d,.-]/g, '');
     
@@ -453,12 +457,17 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   };
 
   const toggleCellSelection = (rowId: string, colId: string) => {
+    // If not in selection mode, do nothing
     if (!isSelectionMode) return;
+    
     setSelectedCells(prev => {
       const rowCols = prev[rowId] || [];
-      const newCols = rowCols.includes(colId) 
+      const isCurrentlySelected = rowCols.includes(colId);
+      
+      const newCols = isCurrentlySelected 
         ? rowCols.filter(id => id !== colId) 
         : [...rowCols, colId];
+      
       return { ...prev, [rowId]: newCols };
     });
   };
@@ -705,23 +714,22 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           "px-0 py-0 border-r min-w-[150px] transition-colors relative",
                           isSelected && "bg-primary/20 ring-1 ring-inset ring-primary"
                         )}
-                        onClick={() => toggleCellSelection(row.id, col.id)}
                       >
+                        <div 
+                          className="absolute inset-0 z-10 cursor-pointer"
+                          style={{ display: isSelectionMode ? 'block' : 'none' }}
+                          onClick={() => toggleCellSelection(row.id, col.id)}
+                        />
                         <input
                           type="text"
                           className={cn(
-                            "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30",
-                            isSelectionMode && "cursor-pointer"
+                            "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
                           )}
-                          readOnly={isSelectionMode}
                           style={{ color: row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined }}
                           value={row.cells[col.id] || ""}
                           onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
                           placeholder="..."
                         />
-                        {isSelectionMode && (
-                          <div className="absolute inset-0 z-10" />
-                        )}
                       </td>
                     );
                   })}
