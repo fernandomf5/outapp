@@ -32,6 +32,11 @@ interface TableRow {
   row_background_color?: string;
 }
 
+const COLOR_PALETTE = [
+  '#000000', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b',
+  '#2563eb', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#db2777', '#475569', '#0891b2'
+];
+
 export const OrganizationTablesPanel = () => {
   const [tables, setTables] = useState<any[]>([]);
   const [selectedTable, setSelectedTable] = useState<any>(null);
@@ -50,6 +55,7 @@ export const OrganizationTablesPanel = () => {
   const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
 
   const { toast } = useToast();
+
 
   useEffect(() => {
     fetchTables();
@@ -371,8 +377,8 @@ export const OrganizationTablesPanel = () => {
                       </PopoverTrigger>
                       <PopoverContent className="w-48 p-2" side="right">
                         <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor do Registro</p>
-                        <div className="grid grid-cols-5 gap-1">
-                          {['transparent', '#fef2f2', '#f0f9ff', '#f0fdf4', '#fffbeb', '#faf5ff', '#fdf2f8', '#f8fafc', '#f1f5f9', '#e2e8f0'].map(c => (
+                        <div className="grid grid-cols-5 gap-1 mb-3">
+                          {['transparent', '#fef2f2', '#f0f9ff', '#f0fdf4', '#fffbeb', '#faf5ff', '#fdf2f8', '#f8fafc', '#f1f5f9', '#e2e8f0', '#fee2e2', '#e0f2fe', '#dcfce7', '#fef3c7', '#f3e8ff'].map(c => (
                             <button
                               key={c}
                               className={cn(
@@ -386,6 +392,16 @@ export const OrganizationTablesPanel = () => {
                             </button>
                           ))}
                         </div>
+                        <div className="flex items-center gap-2 pt-2 border-t">
+                          <Input 
+                            type="color" 
+                            className="w-8 h-8 p-0 border-none cursor-pointer overflow-hidden rounded-md"
+                            value={row.row_background_color && row.row_background_color !== 'transparent' ? row.row_background_color : '#ffffff'}
+                            onChange={(e) => handleUpdateRowColor(row.id, e.target.value)}
+                          />
+                          <span className="text-[10px] text-muted-foreground uppercase">Personalizada</span>
+                        </div>
+
                       </PopoverContent>
                     </Popover>
                   </td>
@@ -445,19 +461,29 @@ export const OrganizationTablesPanel = () => {
               <div className="space-y-2">
                 <Label>Cor do Texto da Coluna</Label>
                 <div className="flex gap-2 flex-wrap">
-                  {['#000000', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#64748b'].map(c => (
+                  {COLOR_PALETTE.map(c => (
                     <button
                       key={c}
                       className={cn(
-                        "w-8 h-8 rounded-full border-2 transition-all",
-                        newColumn.header_text_color === c ? "border-primary scale-110" : "border-transparent"
+                        "w-8 h-8 rounded-full border-2 transition-all hover:scale-110",
+                        newColumn.header_text_color === c ? "border-primary scale-110 shadow-sm" : "border-transparent"
                       )}
                       style={{ backgroundColor: c }}
                       onClick={() => setNewColumn({...newColumn, header_text_color: c})}
                     />
                   ))}
+                  <div className="flex items-center gap-2 w-full mt-2">
+                    <Input 
+                      type="color" 
+                      className="w-10 h-10 p-0 border-none cursor-pointer overflow-hidden rounded-full shadow-sm"
+                      value={newColumn.header_text_color || '#000000'}
+                      onChange={(e) => setNewColumn({...newColumn, header_text_color: e.target.value})}
+                    />
+                    <span className="text-sm text-muted-foreground">Escolher cor personalizada</span>
+                  </div>
                 </div>
               </div>
+
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsColumnModalOpen(false)}>Cancelar</Button>
@@ -485,19 +511,29 @@ export const OrganizationTablesPanel = () => {
                 <div className="space-y-2">
                   <Label>Cor do Texto da Coluna</Label>
                   <div className="flex gap-2 flex-wrap">
-                    {['#000000', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#64748b'].map(c => (
+                    {COLOR_PALETTE.map(c => (
                       <button
                         key={c}
                         className={cn(
-                          "w-8 h-8 rounded-full border-2 transition-all",
-                          editingColumn.header_text_color === c ? "border-primary scale-110" : "border-transparent"
+                          "w-8 h-8 rounded-full border-2 transition-all hover:scale-110",
+                          editingColumn.header_text_color === c ? "border-primary scale-110 shadow-sm" : "border-transparent"
                         )}
                         style={{ backgroundColor: c }}
                         onClick={() => setEditingColumn({...editingColumn, header_text_color: c})}
                       />
                     ))}
+                    <div className="flex items-center gap-2 w-full mt-2">
+                      <Input 
+                        type="color" 
+                        className="w-10 h-10 p-0 border-none cursor-pointer overflow-hidden rounded-full shadow-sm"
+                        value={editingColumn.header_text_color || '#000000'}
+                        onChange={(e) => setEditingColumn({...editingColumn, header_text_color: e.target.value})}
+                      />
+                      <span className="text-sm text-muted-foreground">Escolher cor personalizada</span>
+                    </div>
                   </div>
                 </div>
+
               </div>
             )}
             <DialogFooter>
@@ -646,18 +682,28 @@ export const OrganizationTablesPanel = () => {
             <div className="grid gap-2">
               <Label>Cor de Identificação</Label>
               <div className="flex gap-2 flex-wrap">
-                {['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'].map(c => (
+                {COLOR_PALETTE.slice(1).map(c => (
                   <button
                     key={c}
                     className={cn(
-                      "w-8 h-8 rounded-full border-2 transition-all",
+                      "w-8 h-8 rounded-full border-2 transition-all hover:scale-110",
                       newTable.color === c ? "border-foreground scale-110 shadow-sm" : "border-transparent"
                     )}
                     style={{ backgroundColor: c }}
                     onClick={() => setNewTable({...newTable, color: c})}
                   />
                 ))}
+                <div className="flex items-center gap-2 w-full mt-2">
+                  <Input 
+                    type="color" 
+                    className="w-10 h-10 p-0 border-none cursor-pointer overflow-hidden rounded-full shadow-sm"
+                    value={newTable.color || '#3b82f6'}
+                    onChange={(e) => setNewTable({...newTable, color: e.target.value})}
+                  />
+                  <span className="text-sm text-muted-foreground">Escolher cor personalizada</span>
+                </div>
               </div>
+
             </div>
           </div>
           <DialogFooter>
