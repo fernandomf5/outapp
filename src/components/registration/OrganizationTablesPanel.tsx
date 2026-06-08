@@ -174,14 +174,14 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     setRows(formattedRows);
   };
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       setUploadingLogo(true);
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `table-logos/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -194,16 +194,24 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         .from('images')
         .getPublicUrl(filePath);
 
-      setNewTable(prev => ({ ...prev, logo_url: publicUrl }));
+      if (isEditing && editingTable) {
+        setEditingTable({ ...editingTable, logo_url: publicUrl });
+      } else {
+        setNewTable(prev => ({ ...prev, logo_url: publicUrl }));
+      }
+      
       toast({ title: "Logo carregado com sucesso!" });
     } catch (error: any) {
+      console.error("Erro no upload:", error);
       toast({ 
         title: "Erro ao carregar logo", 
-        description: error.message, 
+        description: error.message || "Verifique se o arquivo é uma imagem válida e tente novamente.", 
         variant: "destructive" 
       });
     } finally {
       setUploadingLogo(false);
+      // Clear the input so the same file can be selected again
+      e.target.value = '';
     }
   };
 
@@ -928,13 +936,17 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       <Checkbox 
                         checked={selectedRowIds.includes(row.id)} 
                         onCheckedChange={() => toggleRow(row.id)}
+                        onClick={(e) => e.stopPropagation()}
                       />
                       {selectedRowIds.includes(row.id) && (
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-destructive hover:bg-destructive/10 animate-in fade-in scale-in-95 duration-200"
-                          onClick={() => handleDeleteRow(row.id, idx)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteRow(row.id, idx);
+                          }}
                           title="Excluir Registro"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1226,7 +1238,9 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         </Dialog>
         
         {/* Edit Column Modal */}
-        <Dialog open={!!editingColumn} onOpenChange={(open) => !open && setEditingColumn(null)}>
+        <Dialog open={!!editingColumn} onOpenChange={(open) => {
+          if (!open) setEditingColumn(null);
+        }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Editar Coluna</DialogTitle>
@@ -1277,7 +1291,13 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         </Dialog>
 
         {/* Delete Confirmation Modal */}
-        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <Dialog open={isDeleteModalOpen} onOpenChange={(open) => {
+          setIsDeleteModalOpen(open);
+          if (!open) {
+            setItemToDelete(null);
+            setDeleteConfirmationText("");
+          }
+        }}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-destructive">
@@ -1530,7 +1550,9 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       </Dialog>
 
       {/* Edit Table Modal */}
-      <Dialog open={!!editingTable} onOpenChange={(open) => !open && setEditingTable(null)}>
+      <Dialog open={!!editingTable} onOpenChange={(open) => {
+        if (!open) setEditingTable(null);
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Editar Tabela</DialogTitle>
@@ -1589,25 +1611,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                         type="file" 
                         accept="image/*" 
                         className="hidden" 
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          try {
-                            setUploadingLogo(true);
-                            const fileExt = file.name.split('.').pop();
-                            const fileName = `${Math.random()}.${fileExt}`;
-                            const filePath = `table-logos/${fileName}`;
-                            const { error: uploadError } = await supabase.storage.from('images').upload(filePath, file);
-                            if (uploadError) throw uploadError;
-                            const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(filePath);
-                            setEditingTable({...editingTable, logo_url: publicUrl});
-                            toast({ title: "Logo carregado com sucesso!" });
-                          } catch (error: any) {
-                            toast({ title: "Erro ao carregar logo", description: error.message, variant: "destructive" });
-                          } finally {
-                            setUploadingLogo(false);
-                          }
-                        }}
+                        onChange={(e) => handleLogoUpload(e, true)}
                         disabled={uploadingLogo}
                       />
                     </Label>
