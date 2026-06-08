@@ -972,7 +972,7 @@ export function QRCodeGenerator() {
               </div>
             </div>
 
-            <div className="hidden lg:block" aria-hidden="true" />
+            <div className="hidden lg:block w-[360px]" aria-hidden="true" />
           </div>
         </CardContent>
       </Card>
