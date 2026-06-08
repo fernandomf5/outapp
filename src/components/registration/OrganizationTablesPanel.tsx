@@ -1488,7 +1488,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
             <Button 
               variant="destructive" 
               onClick={handleConfirmDelete}
-              disabled={deleteConfirmationText.toLowerCase() !== 'excluir'}
+              disabled={itemToDelete?.type !== 'row' && deleteConfirmationText.toLowerCase() !== 'excluir'}
             >
               Excluir Permanentemente
             </Button>
