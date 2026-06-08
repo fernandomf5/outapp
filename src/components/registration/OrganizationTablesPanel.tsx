@@ -1371,13 +1371,14 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       <CardDescription className="line-clamp-1">{table.description || "Sem descrição"}</CardDescription>
                     </div>
                   </div>
-                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex gap-1">
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log("Abrindo modal de edição para:", table.name);
                         setEditingTable(table);
                       }}
                       title="Editar"
@@ -1387,9 +1388,10 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log("Abrindo modal de exclusão para:", table.name);
                         handleDeleteTable(e, table);
                       }}
                       title="Excluir"
