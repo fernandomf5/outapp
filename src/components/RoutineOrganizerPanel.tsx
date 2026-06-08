@@ -339,7 +339,7 @@ export default function RoutineOrganizerPanel() {
           .from('routine_completions')
           .select('*')
           .eq('user_id', user.id)
-          .gte('completion_date', format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd')),
+          .gte('completion_date', format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')),
         supabase
           .from('routine_templates')
           .select('*')
