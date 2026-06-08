@@ -484,6 +484,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           <table className="w-full border-collapse text-sm">
             <thead className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
               <tr className="border-b">
+                <th className="w-10 px-4 py-3 text-center border-r">
+                  <Checkbox 
+                    checked={rows.length > 0 && selectedRowIds.length === rows.length} 
+                    onCheckedChange={toggleAllRows}
+                  />
+                </th>
                 <th className="w-12 px-4 py-3 text-left font-medium text-muted-foreground border-r">#</th>
                 {columns.map((col) => (
                   <th 
