@@ -541,6 +541,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                     color: row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit'
                   }}
                 >
+                  <td className="px-4 py-2 text-center border-r">
+                    <Checkbox 
+                      checked={selectedRowIds.includes(row.id)} 
+                      onCheckedChange={() => toggleRow(row.id)}
+                    />
+                  </td>
                   <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs relative group/idx">
                     <div className="flex items-center gap-1">
                       <input 
