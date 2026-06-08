@@ -82,7 +82,7 @@ export const OrganizationTablesPanel = () => {
       .order("order_index");
 
     if (colsError) return;
-    setColumns(cols || []);
+    setColumns((cols as any) || []);
 
     // Fetch Rows and Cells
     const { data: rowsData, error: rowsError } = await supabase
