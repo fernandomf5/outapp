@@ -885,10 +885,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       variant="ghost" 
                       size="icon" 
                       className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-                      onClick={async () => {
-                        await supabase.from('organization_table_rows').delete().eq('id', row.id);
-                        fetchTableDetails(selectedTable.id);
-                      }}
+                      onClick={() => handleDeleteRow(row.id, idx)}
                     >
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
