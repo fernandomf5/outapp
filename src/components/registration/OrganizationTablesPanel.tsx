@@ -174,14 +174,14 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     setRows(formattedRows);
   };
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       setUploadingLogo(true);
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `table-logos/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -194,16 +194,24 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         .from('images')
         .getPublicUrl(filePath);
 
-      setNewTable(prev => ({ ...prev, logo_url: publicUrl }));
+      if (isEditing && editingTable) {
+        setEditingTable({ ...editingTable, logo_url: publicUrl });
+      } else {
+        setNewTable(prev => ({ ...prev, logo_url: publicUrl }));
+      }
+      
       toast({ title: "Logo carregado com sucesso!" });
     } catch (error: any) {
+      console.error("Erro no upload:", error);
       toast({ 
         title: "Erro ao carregar logo", 
-        description: error.message, 
+        description: error.message || "Verifique se o arquivo é uma imagem válida e tente novamente.", 
         variant: "destructive" 
       });
     } finally {
       setUploadingLogo(false);
+      // Clear the input so the same file can be selected again
+      e.target.value = '';
     }
   };
 
