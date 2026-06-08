@@ -242,7 +242,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       toast({ title: "Erro ao adicionar coluna", variant: "destructive" });
     } else {
       setIsColumnModalOpen(false);
-      setNewColumn({ name: "", type: 'text', header_text_color: "#000000" });
+      setNewColumn({ name: "", type: 'text', header_text_color: "#10b981" });
       fetchTableDetails(selectedTable.id);
     }
   };
