@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye, BarChart3, Package, Code, Gift } from "lucide-react";
+import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye, BarChart3, Package, Code, Gift, Settings2, Link2, Palette, CheckCircle2, TrendingUp, ChevronDown } from "lucide-react";
 import { CheckoutImageUpload } from "@/components/checkout/CheckoutImageUpload";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -417,18 +417,68 @@ export const CheckoutCreatorPanel = () => {
   }
 
   const renderFormFields = () => (
-    <div className="max-h-[60vh] overflow-y-auto pr-2">
+    <div className="flex-1 overflow-y-auto pr-2 min-h-[500px]">
         <Tabs value={formTab} onValueChange={setFormTab}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
-              <TabsList className="grid grid-cols-6 w-full mb-4 h-auto">
-                <TabsTrigger value="basic">Básico</TabsTrigger>
-                <TabsTrigger value="integration">Integração</TabsTrigger>
-                <TabsTrigger value="design">Design</TabsTrigger>
-                <TabsTrigger value="thankyou">Obrigado</TabsTrigger>
-                <TabsTrigger value="upsell">Upsell</TabsTrigger>
-                <TabsTrigger value="tracking">Tracking</TabsTrigger>
-              </TabsList>
+              <div className="mb-8 p-4 bg-muted/30 rounded-2xl border border-primary/10">
+                <Label className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black mb-3 block ml-1">Sessão em edição</Label>
+                <Select value={formTab} onValueChange={setFormTab}>
+                  <SelectTrigger className="w-full h-14 text-lg font-bold border-2 border-primary/20 hover:border-primary/40 transition-all bg-background shadow-sm rounded-xl">
+                    <SelectValue placeholder="Selecione a etapa..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="basic">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                          <Settings2 className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Informações Básicas</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="integration">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                          <Link2 className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Integrações</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="design">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center">
+                          <Palette className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Design & Visual</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="thankyou">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Página de Obrigado</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="upsell">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                          <TrendingUp className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Upsell & Bumps</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="tracking">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                          <BarChart3 className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Tracking & Pixels</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="hidden md:block">
               <Label className="text-xs mb-2 block">Prévia</Label>
@@ -663,6 +713,40 @@ export const CheckoutCreatorPanel = () => {
             <Textarea value={formData.footer_code} onChange={(e) => setFormData({ ...formData, footer_code: e.target.value })} placeholder="<script>...</script>" className="font-mono text-xs" rows={5} />
           </div>
         </TabsContent>
+
+        <div className="mt-8 pt-6 border-t flex justify-end items-center gap-4">
+          {formTab !== 'basic' && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                const tabs = ['basic', 'integration', 'design', 'thankyou', 'upsell', 'tracking'];
+                const currentIndex = tabs.indexOf(formTab);
+                if (currentIndex > 0) setFormTab(tabs[currentIndex - 1]);
+              }}
+              className="text-muted-foreground"
+            >
+              Voltar
+            </Button>
+          )}
+          
+          {formTab !== 'tracking' ? (
+            <Button 
+              onClick={() => {
+                const tabs = ['basic', 'integration', 'design', 'thankyou', 'upsell', 'tracking'];
+                const currentIndex = tabs.indexOf(formTab);
+                if (currentIndex < tabs.length - 1) setFormTab(tabs[currentIndex + 1]);
+              }}
+              className="gap-2 bg-primary hover:bg-primary/90 transition-all px-6"
+            >
+              Continuar <ChevronDown className="w-4 h-4 -rotate-90" />
+            </Button>
+          ) : (
+            <div className="text-xs text-muted-foreground italic">
+              Fim das configurações. Não esqueça de salvar abaixo.
+            </div>
+          )}
+        </div>
       </Tabs>
     </div>
   );
@@ -754,7 +838,7 @@ export const CheckoutCreatorPanel = () => {
 
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader><DialogTitle>Criar Novo Checkout</DialogTitle></DialogHeader>
           {renderFormFields()}
           <DialogFooter>
@@ -766,7 +850,7 @@ export const CheckoutCreatorPanel = () => {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader><DialogTitle>Editar Checkout</DialogTitle></DialogHeader>
           {renderFormFields()}
           <DialogFooter>
