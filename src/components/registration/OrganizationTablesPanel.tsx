@@ -893,43 +893,25 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                   key={row.id} 
                   className={cn(
                     "border-b hover:bg-muted/30 transition-colors group relative",
-                    row.is_bold && "font-bold",
-                    selectedRowIds.includes(row.id) && "bg-primary/5"
+                    row.is_bold && "font-bold"
                   )}
                   style={{ 
                     backgroundColor: row.row_background_color || 'transparent',
                     color: row.row_text_color || (row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit')
                   }}
-                  onClick={() => {
-                    if (selectedRowIds.includes(row.id)) {
-                      setSelectedRowIds(selectedRowIds.filter(id => id !== row.id));
-                    } else {
-                      setSelectedRowIds([...selectedRowIds, row.id]);
-                    }
-                  }}
                 >
-                  <td className="px-4 py-2 text-center border-r sticky left-0 z-20 bg-inherit shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
+                  <td className="px-4 py-2 text-center border-r">
                     <div className="flex items-center gap-2">
                       <Checkbox 
                         checked={selectedRowIds.includes(row.id)} 
-                        onCheckedChange={() => {
-                          if (selectedRowIds.includes(row.id)) {
-                            setSelectedRowIds(selectedRowIds.filter(id => id !== row.id));
-                          } else {
-                            setSelectedRowIds([...selectedRowIds, row.id]);
-                          }
-                        }}
-                        onClick={(e) => e.stopPropagation()}
+                        onCheckedChange={() => toggleRow(row.id)}
                       />
                       {selectedRowIds.includes(row.id) && (
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-destructive hover:bg-destructive/10 animate-in fade-in scale-in-95 duration-200"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRow(row.id, idx);
-                          }}
+                          onClick={() => handleDeleteRow(row.id, idx)}
                           title="Excluir Registro"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -937,7 +919,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs relative group/idx sticky left-[84px] z-20 bg-inherit shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
+                  <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs relative group/idx">
                     <div className="flex items-center gap-1">
                       <input 
                         type="number" 
@@ -947,19 +929,15 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           const val = parseInt(e.target.value);
                           if (!isNaN(val)) handleUpdateRowOrder(row.id, val - 1);
                         }}
-                        onClick={(e) => e.stopPropagation()}
                       />
                     </div>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button 
-                          className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <button className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                           <Palette className="h-3 w-3 text-muted-foreground" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2" side="right" onClick={(e) => e.stopPropagation()}>
+                      <PopoverContent className="w-56 p-2" side="right">
                         <div className="space-y-4">
                           <div>
                             <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Estilo da Linha</p>
@@ -1043,13 +1021,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           "px-0 py-0 border-r min-w-[150px] transition-colors relative",
                           isSelected && "bg-primary/20 ring-1 ring-inset ring-primary"
                         )}
-                        onClick={(e) => {
-                          if (isSelectionMode) {
-                            e.stopPropagation();
-                            toggleCellSelection(row.id, col.id);
-                          }
-                        }}
                       >
+                        <div 
+                          className="absolute inset-0 z-10 cursor-pointer"
+                          style={{ display: isSelectionMode ? 'block' : 'none' }}
+                          onClick={() => toggleCellSelection(row.id, col.id)}
+                        />
                         <div className="flex items-center group/cell">
                           <input
                             type="text"
@@ -1062,19 +1039,15 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                             }}
                             value={cellData.value}
                             onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
                             placeholder="..."
                           />
                           <Popover>
                             <PopoverTrigger asChild>
-                              <button 
-                                className="opacity-0 group-hover/cell:opacity-100 transition-opacity p-1 hover:bg-muted rounded mr-1"
-                                onClick={(e) => e.stopPropagation()}
-                              >
+                              <button className="opacity-0 group-hover/cell:opacity-100 transition-opacity p-1 hover:bg-muted rounded mr-1">
                                 <Palette className="h-3 w-3 text-muted-foreground" />
                               </button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-48 p-2" side="bottom" onClick={(e) => e.stopPropagation()}>
+                            <PopoverContent className="w-48 p-2" side="bottom">
                               <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor do Texto</p>
                               <div className="flex gap-2 flex-wrap mb-3">
                                 {COLOR_PALETTE.slice(0, 8).map(c => (
