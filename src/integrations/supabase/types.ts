@@ -3157,6 +3157,7 @@ export type Database = {
           name: string
           price: number
           primary_color: string | null
+          product_type: string | null
           redirect_url: string | null
           show_fake_feedback: boolean | null
           show_order_details: boolean | null
@@ -3209,6 +3210,7 @@ export type Database = {
           name: string
           price?: number
           primary_color?: string | null
+          product_type?: string | null
           redirect_url?: string | null
           show_fake_feedback?: boolean | null
           show_order_details?: boolean | null
@@ -3261,6 +3263,7 @@ export type Database = {
           name?: string
           price?: number
           primary_color?: string | null
+          product_type?: string | null
           redirect_url?: string | null
           show_fake_feedback?: boolean | null
           show_order_details?: boolean | null

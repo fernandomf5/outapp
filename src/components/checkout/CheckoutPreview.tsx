@@ -94,10 +94,29 @@ export const CheckoutPreview = ({ checkout }: { checkout: any }) => {
                 <Label className="text-xs opacity-70">E-mail para entrega</Label>
                 <Input disabled placeholder="exemplo@email.com" className="h-10 bg-muted/20" />
               </div>
+              
+              {checkout.product_type === 'physical_product' && (
+                <div className="pt-4 border-t space-y-3 animate-in fade-in slide-in-from-top-2">
+                  <h4 className="font-bold flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>2</span>
+                    Endereço de Entrega
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-1 space-y-1">
+                      <Label className="text-[10px] opacity-70">CEP</Label>
+                      <Input disabled placeholder="00000-000" className="h-9 bg-muted/20 text-xs" />
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <Label className="text-[10px] opacity-70">Rua</Label>
+                      <Input disabled placeholder="Nome da rua..." className="h-9 bg-muted/20 text-xs" />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <Button className="w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95" style={{ backgroundColor: primaryColor }}>
-              Próximo Passo
+            <Button className="w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4" style={{ backgroundColor: primaryColor }}>
+              {checkout.product_type === 'physical_product' ? 'Calcular Frete' : 'Próximo Passo'}
             </Button>
             
             <p className="text-[10px] text-center text-muted-foreground flex items-center justify-center gap-1">

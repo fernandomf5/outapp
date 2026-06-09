@@ -64,6 +64,7 @@ interface Checkout {
   // Integration
   integration_type: string | null;
   integration_id: string | null;
+  product_type: string | null;
 }
 
 interface CheckoutOrder {
@@ -144,6 +145,7 @@ export const CheckoutCreatorPanel = () => {
     footer_color: '#64748b',
     show_fake_feedback: false,
     fake_feedbacks: [] as any[],
+    product_type: 'digital_product',
   });
 
   const [itemForm, setItemForm] = useState({
@@ -232,6 +234,7 @@ export const CheckoutCreatorPanel = () => {
       logo_url: '', background_color: '#F8FAFC', text_color: '#0f172a',
       footer_text: 'Compra 100% Segura', footer_color: '#64748b',
       show_fake_feedback: false, fake_feedbacks: [],
+      product_type: 'digital_product',
     });
     setFormTab('basic');
   };
@@ -278,6 +281,7 @@ export const CheckoutCreatorPanel = () => {
     footer_color: formData.footer_color,
     show_fake_feedback: formData.show_fake_feedback,
     fake_feedbacks: formData.fake_feedbacks,
+    product_type: formData.product_type,
   });
 
   const handleCreate = async () => {
@@ -357,6 +361,7 @@ export const CheckoutCreatorPanel = () => {
       footer_color: (checkout as any).footer_color || '#64748b',
       show_fake_feedback: (checkout as any).show_fake_feedback || false,
       fake_feedbacks: (checkout as any).fake_feedbacks || [],
+      product_type: (checkout as any).product_type || 'digital_product',
     });
     setView('editor');
   };
