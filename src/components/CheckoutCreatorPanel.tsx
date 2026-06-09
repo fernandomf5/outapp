@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye, BarChart3, Package, Code, Gift, Settings2, Link2, Palette, CheckCircle2, TrendingUp, ChevronDown } from "lucide-react";
+import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye, BarChart3, Package, Code, Gift, Settings2, Link2, Palette, CheckCircle2, TrendingUp, ChevronDown, ArrowLeft, Save, X } from "lucide-react";
 import { CheckoutImageUpload } from "@/components/checkout/CheckoutImageUpload";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -289,7 +289,7 @@ export const CheckoutCreatorPanel = () => {
       const { error } = await supabase.from('checkouts').insert({ user_id: user.id, ...buildCheckoutPayload() });
       if (error) throw error;
       toast.success('Checkout criado com sucesso!');
-      setIsCreateDialogOpen(false); resetForm(); loadCheckouts();
+      setView('list'); resetForm(); loadCheckouts();
     } catch (error: any) { toast.error(error.message || 'Erro ao criar checkout'); }
   };
 
@@ -299,18 +299,23 @@ export const CheckoutCreatorPanel = () => {
       const { error } = await supabase.from('checkouts').update(buildCheckoutPayload()).eq('id', selectedCheckout.id);
       if (error) throw error;
       toast.success('Checkout atualizado!');
-      setIsEditDialogOpen(false); resetForm(); loadCheckouts();
+      setView('list'); resetForm(); loadCheckouts();
     } catch (error: any) { toast.error(error.message || 'Erro ao atualizar'); }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este checkout?')) return;
+    const confirmation = prompt('Para excluir este checkout, digite a palavra "excluir":');
+    if (confirmation !== 'excluir') {
+      if (confirmation !== null) toast.error('Palavra de confirmação incorreta.');
+      return;
+    }
     try {
       const { error } = await supabase.from('checkouts').delete().eq('id', id);
       if (error) throw error;
       toast.success('Checkout excluído!'); loadCheckouts();
     } catch { toast.error('Erro ao excluir'); }
   };
+
 
   const handleToggleActive = async (checkout: Checkout) => {
     try {
@@ -352,7 +357,7 @@ export const CheckoutCreatorPanel = () => {
       show_fake_feedback: (checkout as any).show_fake_feedback || false,
       fake_feedbacks: (checkout as any).fake_feedbacks || [],
     });
-    setIsEditDialogOpen(true);
+    setView('editor');
   };
 
   const openOrdersDialog = (checkout: Checkout) => {
@@ -443,7 +448,7 @@ export const CheckoutCreatorPanel = () => {
   }
 
   const renderFormFields = () => (
-    <div className="flex-1 overflow-y-auto pr-2 min-h-[500px]">
+    <div className="flex-1 overflow-y-auto pr-2">
         <Tabs value={formTab} onValueChange={setFormTab}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
@@ -505,10 +510,6 @@ export const CheckoutCreatorPanel = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="hidden md:block">
-              <Label className="text-xs mb-2 block">Prévia</Label>
-              <CheckoutPreview checkout={formData} />
             </div>
           </div>
 
@@ -790,6 +791,63 @@ export const CheckoutCreatorPanel = () => {
     </div>
   );
 
+  if (view === 'editor') {
+    return (
+      <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        {/* Editor Header */}
+        <div className="h-16 border-b px-6 flex items-center justify-between bg-white shadow-sm shrink-0">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => setView('list')} className="rounded-full">
+              <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
+            </Button>
+            <div className="h-6 w-px bg-border hidden sm:block"></div>
+            <h2 className="font-bold text-lg hidden sm:block">
+              {selectedCheckout ? 'Editando: ' + selectedCheckout.name : 'Novo Checkout'}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => setView('list')} className="hidden sm:flex">
+              <X className="w-4 h-4 mr-2" /> Cancelar
+            </Button>
+            <Button onClick={selectedCheckout ? handleEdit : handleCreate} className="gap-2 bg-primary hover:bg-primary/90 px-6">
+              <Save className="w-4 h-4" /> Salvar Checkout
+            </Button>
+          </div>
+        </div>
+
+        {/* Editor Content */}
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          {/* Controls Panel */}
+          <div className="w-full md:w-[450px] border-r bg-muted/10 overflow-hidden flex flex-col">
+            <div className="p-6 overflow-y-auto">
+              {renderFormFields()}
+            </div>
+          </div>
+
+          {/* Live Preview Panel */}
+          <div className="flex-1 bg-slate-100 p-4 md:p-8 overflow-y-auto flex flex-col items-center">
+            <div className="w-full max-w-[800px] bg-white rounded-2xl shadow-2xl overflow-hidden ring-1 ring-black/5 aspect-[3/4] sm:aspect-auto sm:min-h-[90vh]">
+               <div className="bg-slate-800 text-white p-2 px-4 flex items-center gap-2 text-xs opacity-50">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="flex-1 text-center font-mono opacity-80">
+                    preview.meucheckout.com/{formData.slug || 'meu-link'}
+                  </div>
+               </div>
+               <div className="w-full h-full overflow-y-auto bg-slate-50">
+                  <CheckoutPreview checkout={formData} />
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
@@ -817,7 +875,7 @@ export const CheckoutCreatorPanel = () => {
       {/* Action Bar */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Meus Checkouts</h3>
-        <Button onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
+        <Button onClick={() => { resetForm(); setView('editor'); setSelectedCheckout(null); }}>
           <Plus className="w-4 h-4 mr-2" />Novo Checkout
         </Button>
       </div>
@@ -829,7 +887,7 @@ export const CheckoutCreatorPanel = () => {
             <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">Nenhum checkout criado</h3>
             <p className="text-muted-foreground mb-4">Crie seu primeiro checkout para começar a receber pagamentos via Mercado Pago.</p>
-            <Button onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
+            <Button onClick={() => { resetForm(); setView('editor'); setSelectedCheckout(null); }}>
               <Plus className="w-4 h-4 mr-2" />Criar Primeiro Checkout
             </Button>
           </CardContent>
@@ -875,29 +933,6 @@ export const CheckoutCreatorPanel = () => {
         </div>
       )}
 
-      {/* Create Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader><DialogTitle>Criar Novo Checkout</DialogTitle></DialogHeader>
-          {renderFormFields()}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreate}>Criar Checkout</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader><DialogTitle>Editar Checkout</DialogTitle></DialogHeader>
-          {renderFormFields()}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleEdit}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Additional Items Dialog */}
       <Dialog open={isItemsDialogOpen} onOpenChange={setIsItemsDialogOpen}>
