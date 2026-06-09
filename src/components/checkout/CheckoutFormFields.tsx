@@ -20,6 +20,15 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
     { id: 'tracking', label: 'Tracking', icon: Code, color: 'slate' },
   ];
 
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const activeElement = tabsRef.current?.querySelector(`[data-active="true"]`);
+    if (activeElement) {
+      activeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [formTab]);
+
   const handleNext = () => {
     const currentIndex = tabs.findIndex(t => t.id === formTab);
     if (currentIndex < tabs.length - 1) setFormTab(tabs[currentIndex + 1].id);
