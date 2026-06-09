@@ -24,15 +24,15 @@ import {
   Smartphone, 
   Code, 
   Eye,
-  Header,
   CheckCircle2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Heading
 } from "lucide-react";
 
 export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab, membersAreas, catalogs }: any) => {
   const tabs = [
     { id: 'general', label: '1. Geral', icon: Settings2 },
-    { id: 'header', label: '2. Cabeçalho', icon: Header },
+    { id: 'header', label: '2. Cabeçalho', icon: Heading },
     { id: 'layout', label: '3. Layout', icon: Layout },
     { id: 'colors', label: '4. Cores', icon: Palette },
     { id: 'typography', label: '5. Tipografia', icon: Type },
