@@ -24,7 +24,8 @@ import {
   Smartphone, 
   Code, 
   Eye,
-  Heading
+  Heading,
+  Plus
 } from "lucide-react";
 
 export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab }: any) => {
@@ -185,7 +186,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
         );
       case 'colors':
         return (
-          <div className="space-y-4 p-6 text-slate-900">
+          <div className="space-y-4 p-6">
             <h3 className="font-bold text-lg text-slate-900">Paleta de Cores</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
@@ -257,6 +258,209 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             </div>
           </div>
         );
+      case 'summary':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Resumo do Pedido</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-semibold">Mostrar Imagem do Produto</Label>
+                <Switch checked={formData.custom_settings.show_summary_image} onCheckedChange={(v) => updateSetting('show_summary_image', v)} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-semibold">Mostrar Descrição</Label>
+                <Switch checked={formData.custom_settings.show_summary_description} onCheckedChange={(v) => updateSetting('show_summary_description', v)} />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor de Fundo do Resumo</Label>
+                <Input type="color" value={formData.custom_settings.summary_bg_color} onChange={(e) => updateSetting('summary_bg_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+            </div>
+          </div>
+        );
+      case 'form':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Campos do Formulário</h3>
+            <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-medium">Campo: Nome Completo</Label>
+                <Switch checked={formData.custom_settings.show_field_name} onCheckedChange={(v) => updateSetting('show_field_name', v)} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-medium">Campo: E-mail</Label>
+                <Switch checked={formData.custom_settings.show_field_email} onCheckedChange={(v) => updateSetting('show_field_email', v)} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-medium">Campo: WhatsApp</Label>
+                <Switch checked={formData.custom_settings.show_field_whatsapp} onCheckedChange={(v) => updateSetting('show_field_whatsapp', v)} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-medium">Campo: CPF/CNPJ</Label>
+                <Switch checked={formData.custom_settings.show_field_cpf} onCheckedChange={(v) => updateSetting('show_field_cpf', v)} />
+              </div>
+            </div>
+          </div>
+        );
+      case 'payment':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Métodos de Pagamento</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">PIX</div>
+                  <Label className="text-slate-900 font-bold">Pix</Label>
+                </div>
+                <Switch checked={formData.custom_settings.enable_pix} onCheckedChange={(v) => updateSetting('enable_pix', v)} />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">CC</div>
+                  <Label className="text-slate-900 font-bold">Cartão de Crédito</Label>
+                </div>
+                <Switch checked={formData.custom_settings.enable_card} onCheckedChange={(v) => updateSetting('enable_card', v)} />
+              </div>
+            </div>
+          </div>
+        );
+      case 'benefits':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Benefícios e Garantias</h3>
+            <p className="text-slate-500 text-sm">Adicione itens para aumentar a confiança do cliente.</p>
+            <Button variant="outline" className="w-full border-dashed text-slate-600 border-slate-300 hover:bg-slate-50">
+              <Plus className="w-4 h-4 mr-2" /> Adicionar Benefício
+            </Button>
+          </div>
+        );
+      case 'testimonials':
+        return (
+          <div className="space-y-4 p-6 text-slate-900">
+            <h3 className="font-bold text-lg text-slate-900">Depoimentos</h3>
+            <div className="p-10 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center gap-4 bg-slate-50 border-slate-200">
+               <Users className="w-10 h-10 text-slate-300" />
+               <p className="text-slate-500 text-sm">Seus clientes ainda não têm depoimentos cadastrados.</p>
+               <Button size="sm" className="bg-slate-900 text-white">Adicionar Primeiro Depoimento</Button>
+            </div>
+          </div>
+        );
+      case 'guarantee':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Selo de Garantia</h3>
+            <div className="space-y-3">
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Título da Garantia</Label>
+               <Input value={formData.custom_settings.guarantee_title} onChange={(e) => updateSetting('guarantee_title', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+               
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Descrição</Label>
+               <Textarea value={formData.custom_settings.guarantee_description} onChange={(e) => updateSetting('guarantee_description', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+            </div>
+          </div>
+        );
+      case 'scarcity':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Gatilhos de Escassez</h3>
+            <div className="space-y-4">
+               <div className="flex items-center justify-between">
+                 <Label className="text-slate-700 font-semibold">Ativar Contador de Tempo</Label>
+                 <Switch checked={formData.custom_settings.show_scarcity} onCheckedChange={(v) => updateSetting('show_scarcity', v)} />
+               </div>
+               {formData.custom_settings.show_scarcity && (
+                 <div>
+                   <Label className="text-slate-700 font-semibold mb-1.5 block">Segundos do Contador</Label>
+                   <Input type="number" value={formData.custom_settings.scarcity_timer} onChange={(e) => updateSetting('scarcity_timer', parseInt(e.target.value))} className="bg-white border-slate-200 text-slate-900" />
+                 </div>
+               )}
+            </div>
+          </div>
+        );
+      case 'cta':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Botão de Pagamento</h3>
+            <div className="space-y-3">
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Texto do Botão</Label>
+               <Input value={formData.custom_settings.thank_you_button_text} onChange={(e) => updateSetting('thank_you_button_text', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+               
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Arredondamento</Label>
+               <Select value={formData.custom_settings.button_radius} onValueChange={(v) => updateSetting('button_radius', v)}>
+                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rounded-none">Quadrado</SelectItem>
+                    <SelectItem value="rounded-md">Suave</SelectItem>
+                    <SelectItem value="rounded-xl">Arredondado</SelectItem>
+                    <SelectItem value="rounded-full">Pílula</SelectItem>
+                  </SelectContent>
+               </Select>
+            </div>
+          </div>
+        );
+      case 'footer':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Rodapé</h3>
+            <div className="space-y-3">
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Informações de Contato</Label>
+               <Input value={formData.custom_settings.footer_contact_info} onChange={(e) => updateSetting('footer_contact_info', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+               
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Link Termos de Uso</Label>
+               <Input value={formData.custom_settings.footer_terms_url} onChange={(e) => updateSetting('footer_terms_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+               
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Link Política de Privacidade</Label>
+               <Input value={formData.custom_settings.footer_privacy_url} onChange={(e) => updateSetting('footer_privacy_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+            </div>
+          </div>
+        );
+      case 'mobile':
+        return (
+          <div className="space-y-4 p-6 text-slate-900">
+            <h3 className="font-bold text-lg text-slate-900">Configurações Mobile</h3>
+            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+               <p className="text-indigo-800 text-xs font-medium">As configurações mobile são otimizadas automaticamente, mas você pode ajustar elementos específicos aqui.</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-slate-700 font-semibold">Ocultar Elementos Pesados</Label>
+              <Switch checked={true} />
+            </div>
+          </div>
+        );
+      case 'tracking':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">SEO & Rastreamento</h3>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Pixel do Facebook/Meta</Label>
+                <Input value={formData.custom_settings.pixel_meta} onChange={(e) => updateSetting('pixel_meta', e.target.value)} placeholder="ID do Pixel" className="bg-white border-slate-200 text-slate-900" />
+              </div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Google Analytics (ID)</Label>
+                <Input value={formData.custom_settings.pixel_google_analytics} onChange={(e) => updateSetting('pixel_google_analytics', e.target.value)} placeholder="G-XXXXXX" className="bg-white border-slate-200 text-slate-900" />
+              </div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Scripts Personalizados (Header)</Label>
+                <Textarea value={formData.custom_settings.custom_scripts} onChange={(e) => updateSetting('custom_scripts', e.target.value)} placeholder="<script>...</script>" className="bg-white border-slate-200 text-slate-900 min-h-[150px]" />
+              </div>
+            </div>
+          </div>
+        );
+      case 'preview_tab':
+        return (
+          <div className="flex flex-col items-center justify-center p-12 text-center space-y-6">
+             <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                <Eye className="w-10 h-10" />
+             </div>
+             <div>
+                <h3 className="font-bold text-xl text-slate-900">Pronto para Visualizar</h3>
+                <p className="text-slate-500 max-w-xs mt-2">Use o painel ao lado para ver o preview em tempo real em diferentes dispositivos.</p>
+             </div>
+             <Button onClick={() => setFormTab('general')} variant="outline" className="text-slate-900 border-slate-200">Voltar ao Início</Button>
+          </div>
+        );
+      default:
+        return <div className="p-6 text-slate-500 bg-white min-h-[200px] flex items-center justify-center border m-6 rounded-xl border-dashed">Em desenvolvimento...</div>;
     }
   };
 
