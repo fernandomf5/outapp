@@ -144,8 +144,119 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
              </div>
           </div>
         );
-      default:
-        return <div className="p-6 text-slate-500 bg-white min-h-[200px] flex items-center justify-center border m-6 rounded-xl border-dashed">Em desenvolvimento...</div>;
+      case 'layout':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Configurações de Layout</h3>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Modelo de Layout</Label>
+                <Select value={formData.custom_settings.layout_model} onValueChange={(v) => updateSetting('layout_model', v)}>
+                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="modern">Moderno</SelectItem>
+                    <SelectItem value="classic">Clássico</SelectItem>
+                    <SelectItem value="minimal">Minimalista</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Estrutura</Label>
+                <Select value={formData.custom_settings.layout_structure} onValueChange={(v) => updateSetting('layout_structure', v)}>
+                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="split">Lado a Lado (Split)</SelectItem>
+                    <SelectItem value="single">Coluna Única</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Largura do Checkout</Label>
+                <Select value={formData.custom_settings.layout_width} onValueChange={(v) => updateSetting('layout_width', v)}>
+                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="boxed">Boxed (Centralizado)</SelectItem>
+                    <SelectItem value="full">Largura Total</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+      case 'colors':
+        return (
+          <div className="space-y-4 p-6 text-slate-900">
+            <h3 className="font-bold text-lg text-slate-900">Paleta de Cores</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor Principal</Label>
+                <Input type="color" value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor do Cartão/Fundo</Label>
+                <Input type="color" value={formData.custom_settings.card_color} onChange={(e) => updateSetting('card_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor dos Títulos</Label>
+                <Input type="color" value={formData.custom_settings.title_color} onChange={(e) => updateSetting('title_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor dos Subtítulos</Label>
+                <Input type="color" value={formData.custom_settings.subtitle_color} onChange={(e) => updateSetting('subtitle_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+            </div>
+          </div>
+        );
+      case 'typography':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Tipografia</h3>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Fonte dos Títulos</Label>
+                <Select value={formData.custom_settings.font_title} onValueChange={(v) => updateSetting('font_title', v)}>
+                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sans">Sans Serif (Inter/Roboto)</SelectItem>
+                    <SelectItem value="serif">Serif (Playfair Display)</SelectItem>
+                    <SelectItem value="mono">Monospace</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Tamanho H1</Label>
+                <Select value={formData.custom_settings.size_h1} onValueChange={(v) => updateSetting('size_h1', v)}>
+                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text-2xl">Pequeno</SelectItem>
+                    <SelectItem value="text-3xl">Médio</SelectItem>
+                    <SelectItem value="text-4xl">Grande</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+      case 'product':
+        return (
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Detalhes do Produto</h3>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Nome do Produto</Label>
+                <Input value={formData.item_name} onChange={(e) => setFormData({...formData, item_name: e.target.value})} className="bg-white border-slate-200 text-slate-900" />
+              </div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Preço (R$)</Label>
+                <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="bg-white border-slate-200 text-slate-900" />
+              </div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Descrição Breve</Label>
+                <Textarea value={formData.item_description} onChange={(e) => setFormData({...formData, item_description: e.target.value})} className="bg-white border-slate-200 text-slate-900 min-h-[100px]" />
+              </div>
+            </div>
+          </div>
+        );
     }
   };
 
