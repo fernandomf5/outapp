@@ -77,7 +77,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             <div className="space-y-3">
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Nome do Checkout</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500" />
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-900" />
               </div>
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">URL Personalizada</Label>
