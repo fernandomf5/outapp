@@ -24,12 +24,10 @@ import {
   Smartphone, 
   Code, 
   Eye,
-  CheckCircle2,
-  Image as ImageIcon,
   Heading
 } from "lucide-react";
 
-export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab, membersAreas, catalogs }: any) => {
+export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab }: any) => {
   const tabs = [
     { id: 'general', label: '1. Geral', icon: Settings2 },
     { id: 'header', label: '2. Cabeçalho', icon: Heading },
@@ -74,19 +72,25 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
     switch (formTab) {
       case 'general':
         return (
-          <div className="space-y-4 p-4">
-            <h3 className="font-bold text-lg">Informações Básicas</h3>
+          <div className="space-y-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Informações Básicas</h3>
             <div className="space-y-3">
-              <div><Label>Nome do Checkout</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
-              <div><Label>URL Personalizada</Label><Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} /></div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Nome do Checkout</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">URL Personalizada</Label>
+                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500" />
+              </div>
               <div className="flex items-center justify-between">
-                <Label>Status Ativo</Label>
+                <Label className="text-slate-700 font-semibold">Status Ativo</Label>
                 <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({...formData, is_active: v})} />
               </div>
               <div>
-                <Label>Tipo de Produto</Label>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Tipo de Produto</Label>
                 <Select value={formData.product_type} onValueChange={(v) => setFormData({...formData, product_type: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="service">Serviço</SelectItem>
                     <SelectItem value="online_course">Curso Online</SelectItem>
@@ -103,14 +107,14 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
         );
       case 'header':
         return (
-          <div className="space-y-4 p-4">
-             <h3 className="font-bold text-lg">Cabeçalho</h3>
+          <div className="space-y-4 p-6">
+             <h3 className="font-bold text-lg text-slate-900">Cabeçalho</h3>
              <CheckoutImageUpload label="Upload da Logo" value={formData.item_image_url} onChange={(url) => setFormData({...formData, item_image_url: url})} />
              <div className="grid grid-cols-2 gap-2">
                 <div>
-                   <Label>Tamanho da Logo</Label>
+                   <Label className="text-slate-700 font-semibold mb-1.5 block">Tamanho da Logo</Label>
                    <Select value={formData.custom_settings.logo_size} onValueChange={(v) => updateSetting('logo_size', v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="h-8">Pequeno</SelectItem>
                         <SelectItem value="h-12">Médio</SelectItem>
@@ -119,9 +123,9 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                    </Select>
                 </div>
                 <div>
-                   <Label>Alinhamento</Label>
+                   <Label className="text-slate-700 font-semibold mb-1.5 block">Alinhamento</Label>
                    <Select value={formData.custom_settings.logo_alignment} onValueChange={(v) => updateSetting('logo_alignment', v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="left">Esquerda</SelectItem>
                         <SelectItem value="center">Centro</SelectItem>
@@ -131,26 +135,25 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                 </div>
              </div>
              <div className="pt-4 border-t space-y-3">
-                <Label>Título Principal</Label>
-                <Input value={formData.custom_settings.header_title} onChange={(e) => updateSetting('header_title', e.target.value)} />
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Título Principal</Label>
+                <Input value={formData.custom_settings.header_title} onChange={(e) => updateSetting('header_title', e.target.value)} className="bg-white border-slate-200" />
                 <div className="flex items-center gap-2">
-                   <Input type="color" value={formData.custom_settings.header_title_color} onChange={(e) => updateSetting('header_title_color', e.target.value)} className="w-10 p-1" />
-                   <Label>Cor do Título</Label>
+                   <Input type="color" value={formData.custom_settings.header_title_color} onChange={(e) => updateSetting('header_title_color', e.target.value)} className="w-10 p-1 bg-white" />
+                   <Label className="text-slate-700 font-semibold">Cor do Título</Label>
                 </div>
              </div>
           </div>
         );
-      // ... I'll implement more cases in the final code but for now let's do the skeleton to fix build errors
       default:
-        return <div className="p-4 text-slate-500">Em desenvolvimento...</div>;
+        return <div className="p-6 text-slate-500 bg-white min-h-[200px] flex items-center justify-center border m-6 rounded-xl border-dashed">Em desenvolvimento...</div>;
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-slate-50">
       <div 
         ref={tabsRef}
-        className="flex overflow-x-auto border-b border-slate-100 scrollbar-hide bg-slate-50/50"
+        className="flex overflow-x-auto border-b border-slate-200 scrollbar-hide bg-white sticky top-0 z-10"
       >
         {tabs.map((tab) => (
           <button
@@ -159,8 +162,8 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
             onClick={() => setFormTab(tab.id)}
             className={`flex items-center gap-2 px-6 py-4 text-xs font-bold whitespace-nowrap border-b-2 transition-all duration-200 ${
               formTab === tab.id 
-                ? 'border-indigo-600 text-indigo-600 bg-white shadow-[0_-4px_0_0_rgba(79,70,229,0.05)]' 
-                : 'border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'
+                ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' 
+                : 'border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'
             }`}
           >
             <tab.icon className={`w-4 h-4 ${formTab === tab.id ? 'text-indigo-600' : 'text-slate-400'}`} />
