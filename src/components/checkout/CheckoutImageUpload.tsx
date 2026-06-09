@@ -60,7 +60,7 @@ export function CheckoutImageUpload({ label, value, onChange, aspectHint }: Chec
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label className="text-slate-700 font-semibold">{label}</Label>
       {value ? (
         <div className="relative rounded-lg border border-border overflow-hidden">
           <img src={value} alt={label} className="w-full h-36 object-cover" />
@@ -76,7 +76,7 @@ export function CheckoutImageUpload({ label, value, onChange, aspectHint }: Chec
         </div>
       ) : (
         <div
-          className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-5 text-center hover:border-primary/50 transition-colors cursor-pointer bg-muted/30"
+          className="border-2 border-dashed border-slate-200 rounded-lg p-5 text-center hover:border-indigo-500/50 transition-colors cursor-pointer bg-slate-50"
           onClick={() => document.getElementById(inputId)?.click()}
         >
           <input
@@ -90,13 +90,13 @@ export function CheckoutImageUpload({ label, value, onChange, aspectHint }: Chec
           {uploading ? (
             <Loader2 className="w-8 h-8 mx-auto mb-2 text-primary animate-spin" />
           ) : (
-            <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+            <Upload className="w-8 h-8 mx-auto mb-2 text-slate-400" />
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-slate-500">
             {uploading ? 'Enviando...' : 'Clique para enviar imagem'}
           </p>
           {aspectHint && (
-            <p className="text-[10px] text-muted-foreground/70 mt-1">{aspectHint}</p>
+            <p className="text-[10px] text-slate-400 mt-1">{aspectHint}</p>
           )}
         </div>
       )}
