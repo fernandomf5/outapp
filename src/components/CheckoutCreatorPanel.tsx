@@ -26,14 +26,14 @@ export const CheckoutCreatorPanel = () => {
           <h1 className="text-3xl font-bold text-slate-900">Meus Checkouts</h1>
           <p className="text-slate-500">Crie e gerencie seus fluxos de pagamento</p>
         </div>
-        <Button onClick={() => window.open('/checkout-editor/new', '_blank')} className="bg-indigo-600 hover:bg-indigo-700 h-12 px-6 rounded-xl shadow-lg shadow-indigo-200 gap-2">
+        <Button onClick={() => navigate('/checkout-editor/new')} className="bg-indigo-600 hover:bg-indigo-700 h-12 px-6 rounded-xl shadow-lg shadow-indigo-200 gap-2">
           <Plus className="w-5 h-5"/> Novo Checkout
         </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {checkouts.map(c => (
-          <Card key={c.id} className="group hover:shadow-xl transition-all duration-300 border-none bg-white rounded-2xl overflow-hidden cursor-pointer" onClick={() => window.open(`/checkout-editor/${c.id}`, '_blank')}>
+          <Card key={c.id} className="group hover:shadow-xl transition-all duration-300 border-none bg-white rounded-2xl overflow-hidden cursor-pointer" onClick={() => navigate(`/checkout-editor/${c.id}`)}>
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
