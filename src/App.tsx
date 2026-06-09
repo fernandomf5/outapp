@@ -12,6 +12,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useFavicon } from "./hooks/useFavicon";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import CheckoutEditorPage from "./pages/CheckoutEditorPage";
 import Dashboard from "./pages/Dashboard";
 
 import FullOrganizationTable from "./pages/FullOrganizationTable";
@@ -131,6 +132,11 @@ const AppContent = () => {
               <Route path="/checkout/:checkoutId/:slug/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
               <Route path="/fatura/:token" element={<InvoicePublicPage />} />
+              <Route path="/checkout-editor/:id" element={
+                <ProtectedRoute>
+                  <CheckoutEditorPage />
+                </ProtectedRoute>
+              } />
               <Route path="/page-editor/:pageId" element={
                 <ProtectedRoute>
                   <PageEditor />
