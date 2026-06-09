@@ -1,0 +1,2 @@
+ALTER TABLE public.checkouts ADD COLUMN IF NOT EXISTS product_type TEXT DEFAULT 'digital';
+COMMENT ON COLUMN public.checkouts.product_type IS 'Tipo de produto/venda: service, online_course, mentorship, digital_product, physical_product, subscription, members_area, other';

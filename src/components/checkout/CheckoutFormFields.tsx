@@ -40,6 +40,32 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                </div>
                Informações Principais
             </h4>
+            
+            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-4">
+              <Label className="text-blue-900 font-bold mb-2 block">Tipo de Venda / Produto</Label>
+              <Select 
+                value={formData.product_type} 
+                onValueChange={(v) => setFormData({ ...formData, product_type: v })}
+              >
+                <SelectTrigger className="bg-white border-blue-200">
+                  <SelectValue placeholder="Selecione o tipo de produto..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="service">🛠️ Serviço</SelectItem>
+                  <SelectItem value="online_course">🎓 Curso Online</SelectItem>
+                  <SelectItem value="mentorship">🤝 Mentoria</SelectItem>
+                  <SelectItem value="digital_product">📂 Produto Digital</SelectItem>
+                  <SelectItem value="physical_product">📦 Produto Físico</SelectItem>
+                  <SelectItem value="subscription">💳 Assinatura</SelectItem>
+                  <SelectItem value="members_area">👥 Área de Membros</SelectItem>
+                  <SelectItem value="other">✨ Outros</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-blue-700 mt-2">
+                * O checkout se adaptará automaticamente com campos e fluxos específicos para este tipo.
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div><Label>Nome do Checkout *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Ex: Curso Alpha" /></div>
               <div><Label>Slug da URL</Label><Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} placeholder="curso-alpha" /></div>
@@ -54,6 +80,19 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                  <CheckoutImageUpload label="Imagem do Produto" value={formData.item_image_url} onChange={(url) => setFormData({ ...formData, item_image_url: url })} />
                </div>
             </div>
+
+            {formData.product_type === 'physical_product' && (
+              <div className="pt-4 border-t animate-in fade-in slide-in-from-top-2">
+                <h5 className="font-bold mb-3 flex items-center gap-2">🚚 Configurações de Frete</h5>
+                <div className="bg-muted/30 p-4 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Habilitar Cálculo de Frete</Label>
+                    <Switch checked={true} disabled />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic">O formulário de endereço será solicitado obrigatoriamente para produtos físicos.</p>
+                </div>
+              </div>
+            )}
           </div>
         );
       case 'integration':
@@ -87,15 +126,32 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
               </div>
 
               <div className="pt-2 border-t">
-                <Label>Pós-Venda (Entrega Automática)</Label>
+                <Label className="flex items-center gap-2 mb-2">
+                  Pós-Venda (Entrega Automática)
+                  {formData.product_type === 'members_area' && <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-[9px]">Recomendado</Badge>}
+                </Label>
                 <Select value={formData.integration_id || 'none'} onValueChange={(v) => setFormData({ ...formData, integration_id: v === 'none' ? '' : v })}>
-                  <SelectTrigger><SelectValue placeholder="Nenhuma entrega selecionada" /></SelectTrigger>
+                  <SelectTrigger className={formData.product_type === 'members_area' && !formData.integration_id ? "border-purple-400 ring-1 ring-purple-100" : ""}><SelectValue placeholder="Nenhuma entrega selecionada" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhuma</SelectItem>
-                    {membersAreas?.map((a: any) => <SelectItem key={a.id} value={a.id}>🎓 {a.name}</SelectItem>)}
-                    {catalogs?.map((c: any) => <SelectItem key={c.id} value={c.id}>📦 {c.name}</SelectItem>)}
+                    <optgroup label="🎓 Áreas de Membros Out App">
+                      {membersAreas?.map((a: any) => <SelectItem key={a.id} value={a.id}>🎓 {a.name}</SelectItem>)}
+                    </optgroup>
+                    <optgroup label="📦 Catálogos / Outros">
+                      {catalogs?.map((c: any) => <SelectItem key={c.id} value={c.id}>📦 {c.name}</SelectItem>)}
+                    </optgroup>
                   </SelectContent>
                 </Select>
+                {formData.product_type === 'members_area' && (
+                  <p className="text-[10px] text-purple-600 mt-2 font-medium">
+                    ✨ Ao vincular a uma Área de Membros, o acesso será liberado automaticamente após o pagamento.
+                  </p>
+                )}
+                {formData.product_type === 'digital_product' && (
+                  <p className="text-[10px] text-muted-foreground mt-2 italic">
+                    💡 Para produtos digitais, você também pode configurar um link de download na aba "Obrigado".
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -160,6 +216,20 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
             <div className="space-y-3">
               <div><Label>Título de Sucesso</Label><Input value={formData.thank_you_title} onChange={(e) => setFormData({ ...formData, thank_you_title: e.target.value })} /></div>
               <div><Label>Mensagem de Boas-vindas</Label><Textarea value={formData.thank_you_message} onChange={(e) => setFormData({ ...formData, thank_you_message: e.target.value })} /></div>
+              
+              {(formData.product_type === 'digital_product' || formData.product_type === 'other') && (
+                <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                  <Label className="text-blue-900">Link para Download do Produto</Label>
+                  <Input 
+                    value={formData.thank_you_download_url || ''} 
+                    onChange={(e) => setFormData({ ...formData, thank_you_download_url: e.target.value })}
+                    placeholder="https://sua-nuvem.com/arquivo.zip"
+                    className="bg-white"
+                  />
+                  <p className="text-[9px] text-blue-600 mt-1">Este link será exibido na página de obrigado para o cliente baixar o produto.</p>
+                </div>
+              )}
+
               <CheckoutImageUpload label="Imagem de Destaque" value={formData.thank_you_image_url} onChange={(url) => setFormData({ ...formData, thank_you_image_url: url })} />
               
               <div className="grid grid-cols-2 gap-3 pt-2">
