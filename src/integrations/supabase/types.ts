@@ -3129,6 +3129,7 @@ export type Database = {
       }
       checkouts: {
         Row: {
+          background_color: string | null
           banner_url: string | null
           created_at: string
           description: string | null
@@ -3138,7 +3139,10 @@ export type Database = {
           downsell_price: number | null
           downsell_product_id: string | null
           downsell_title: string | null
+          fake_feedbacks: Json | null
           footer_code: string | null
+          footer_color: string | null
+          footer_text: string | null
           head_code: string | null
           id: string
           integration_id: string | null
@@ -3147,15 +3151,18 @@ export type Database = {
           item_description: string | null
           item_image_url: string | null
           item_name: string
+          logo_url: string | null
           mp_access_token: string | null
           mp_public_key: string | null
           name: string
           price: number
           primary_color: string | null
           redirect_url: string | null
+          show_fake_feedback: boolean | null
           show_order_details: boolean | null
           slug: string
           success_message: string | null
+          text_color: string | null
           thank_you_button_text: string | null
           thank_you_button_url: string | null
           thank_you_download_url: string | null
@@ -3174,6 +3181,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          background_color?: string | null
           banner_url?: string | null
           created_at?: string
           description?: string | null
@@ -3183,7 +3191,10 @@ export type Database = {
           downsell_price?: number | null
           downsell_product_id?: string | null
           downsell_title?: string | null
+          fake_feedbacks?: Json | null
           footer_code?: string | null
+          footer_color?: string | null
+          footer_text?: string | null
           head_code?: string | null
           id?: string
           integration_id?: string | null
@@ -3192,15 +3203,18 @@ export type Database = {
           item_description?: string | null
           item_image_url?: string | null
           item_name: string
+          logo_url?: string | null
           mp_access_token?: string | null
           mp_public_key?: string | null
           name: string
           price?: number
           primary_color?: string | null
           redirect_url?: string | null
+          show_fake_feedback?: boolean | null
           show_order_details?: boolean | null
           slug: string
           success_message?: string | null
+          text_color?: string | null
           thank_you_button_text?: string | null
           thank_you_button_url?: string | null
           thank_you_download_url?: string | null
@@ -3219,6 +3233,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          background_color?: string | null
           banner_url?: string | null
           created_at?: string
           description?: string | null
@@ -3228,7 +3243,10 @@ export type Database = {
           downsell_price?: number | null
           downsell_product_id?: string | null
           downsell_title?: string | null
+          fake_feedbacks?: Json | null
           footer_code?: string | null
+          footer_color?: string | null
+          footer_text?: string | null
           head_code?: string | null
           id?: string
           integration_id?: string | null
@@ -3237,15 +3255,18 @@ export type Database = {
           item_description?: string | null
           item_image_url?: string | null
           item_name?: string
+          logo_url?: string | null
           mp_access_token?: string | null
           mp_public_key?: string | null
           name?: string
           price?: number
           primary_color?: string | null
           redirect_url?: string | null
+          show_fake_feedback?: boolean | null
           show_order_details?: boolean | null
           slug?: string
           success_message?: string | null
+          text_color?: string | null
           thank_you_button_text?: string | null
           thank_you_button_url?: string | null
           thank_you_download_url?: string | null
