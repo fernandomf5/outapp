@@ -217,7 +217,7 @@ const CheckoutEditorPage = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-900">
-      <div className="w-[450px] border-r border-slate-800 bg-white flex flex-col h-full shadow-2xl z-20">
+      <div className="w-[450px] border-r border-slate-800 bg-white flex flex-col h-full shadow-2xl z-20 text-slate-900">
         <div className="p-4 border-b border-slate-100 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard?tab=checkout-creator')} className="rounded-xl hover:bg-slate-100">
             <ArrowLeft className="w-5 h-5 text-slate-600" />
