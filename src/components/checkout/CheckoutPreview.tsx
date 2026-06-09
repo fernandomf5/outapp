@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 
 export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, activeTab?: string }) => {
   const primaryColor = checkout.primary_color || '#8B5CF6';
-  const bgColor = checkout.background_color || '#F8FAFC';
-  const textColor = checkout.text_color || '#0f172a';
-  const footerColor = checkout.footer_color || '#64748b';
+  const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
+  const textColor = checkout.text_color || checkout.title_color || '#0f172a';
+  const footerColor = checkout.footer_color || checkout.footer_text_color || '#64748b';
   
   const feedbacks = checkout.fake_feedbacks || [
     { name: "Ana Silva", text: "Amei o curso! Muito prático.", rating: 5, avatar: "" },
@@ -19,15 +19,15 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
 
   return (
     <div 
-      className="w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300"
-      style={{ backgroundColor: bgColor, color: textColor }}
+      className="w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative"
+      style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
       <div className="w-full p-4 flex justify-center bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
         {checkout.logo_url ? (
           <img src={checkout.logo_url} alt="Logo" className="h-8 object-contain" />
         ) : (
-          <div className="font-bold text-xl flex items-center gap-2">
+          <div className="font-bold text-xl flex items-center gap-2" style={{ color: textColor }}>
             <Package className="w-6 h-6" style={{ color: primaryColor }} />
             <span>{checkout.name || 'Minha Loja'}</span>
           </div>
@@ -44,7 +44,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
 
         <div className="grid grid-cols-1 gap-6">
           {/* Main Product Info */}
-          <Card className="border-none shadow-sm overflow-hidden rounded-2xl bg-white">
+          <Card className={`border-none shadow-sm overflow-hidden rounded-2xl ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
             <CardContent className="p-0">
               <div className="p-5 flex gap-4">
                 {checkout.item_image_url ? (
@@ -56,15 +56,15 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                 )}
                 <div className="flex-1 flex flex-col justify-center">
                   <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
-                  <h3 className="font-bold text-lg md:text-xl leading-tight">{checkout.item_name || 'Nome do Produto'}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{checkout.item_description || 'Breve descrição do que você está comprando...'}</p>
+                  <h3 className="font-bold text-lg md:text-xl leading-tight" style={{ color: textColor }}>{checkout.item_name || 'Nome do Produto'}</h3>
+                  <p className="text-xs mt-1 line-clamp-1" style={{ color: checkout.subtitle_color || '#666666' }}>{checkout.item_description || 'Breve descrição do que você está comprando...'}</p>
                 </div>
               </div>
               
-              <div className="bg-muted/30 p-5 flex items-center justify-between border-t border-muted/50">
+              <div className="p-5 flex items-center justify-between border-t border-muted/50" style={{ backgroundColor: checkout.summary_bg_color || 'rgba(0,0,0,0.03)' }}>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-muted-foreground uppercase font-semibold">Valor Total</span>
-                  <p className="text-2xl font-black" style={{ color: primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
+                  <span className="text-[10px] uppercase font-semibold" style={{ color: checkout.subtitle_color || '#666666' }}>Valor Total</span>
+                  <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
                 </div>
                 <div className="flex flex-col items-end">
                    <span className="text-[10px] text-green-600 font-bold flex items-center gap-1">
@@ -80,42 +80,42 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
           </Card>
 
           {/* Checkout Form Simulation */}
-          <Card className="border-none shadow-sm rounded-2xl bg-white p-6 space-y-4">
-            <h4 className="font-bold flex items-center gap-2">
+          <Card className={`border-none shadow-sm rounded-2xl p-6 space-y-4 ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+            <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
               <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>1</span>
               Dados Pessoais
             </h4>
             <div className="space-y-3">
               <div className="space-y-1">
-                <Label className="text-xs opacity-70">Nome Completo</Label>
-                <Input disabled placeholder="Ex: Maria Souza" className="h-10 bg-muted/20" />
+                <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>Nome Completo</Label>
+                <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs opacity-70">E-mail para entrega</Label>
-                <Input disabled placeholder="exemplo@email.com" className="h-10 bg-muted/20" />
+                <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>E-mail para entrega</Label>
+                <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
               </div>
               
               {checkout.product_type === 'physical_product' && (
                 <div className="pt-4 border-t space-y-3 animate-in fade-in slide-in-from-top-2">
-                  <h4 className="font-bold flex items-center gap-2">
+                  <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
                     <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>2</span>
                     Endereço de Entrega
                   </h4>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="col-span-1 space-y-1">
-                      <Label className="text-[10px] opacity-70">CEP</Label>
-                      <Input disabled placeholder="00000-000" className="h-9 bg-muted/20 text-xs" />
+                       <Label className="text-[10px]" style={{ color: checkout.subtitle_color || '#666666' }}>CEP</Label>
+                       <Input disabled placeholder="00000-000" className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                     </div>
                     <div className="col-span-2 space-y-1">
-                      <Label className="text-[10px] opacity-70">Rua</Label>
-                      <Input disabled placeholder="Nome da rua..." className="h-9 bg-muted/20 text-xs" />
+                       <Label className="text-[10px]" style={{ color: checkout.subtitle_color || '#666666' }}>Rua</Label>
+                       <Input disabled placeholder="Nome da rua..." className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            <Button className="w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4" style={{ backgroundColor: primaryColor }}>
+            <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${activeTab === 'cta' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
               {checkout.product_type === 'physical_product' ? 'Calcular Frete' : 'Próximo Passo'}
             </Button>
             
@@ -128,7 +128,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
           {checkout.show_fake_feedback && (
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1">
-                <h4 className="font-bold text-sm">O que nossos clientes dizem</h4>
+                <h4 className="font-bold text-sm" style={{ color: textColor }}>O que nossos clientes dizem</h4>
                 <div className="flex text-yellow-500 gap-0.5">
                   <Star className="w-3 h-3 fill-current" />
                   <Star className="w-3 h-3 fill-current" />
@@ -139,17 +139,17 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
               </div>
               <div className="space-y-3">
                 {feedbacks.map((f: any, i: number) => (
-                  <Card key={i} className="border-none shadow-sm rounded-xl bg-white/50 backdrop-blur-sm p-4">
+                  <Card key={i} className={`border-none shadow-sm rounded-xl p-4 ${activeTab === 'testimonials' ? 'ring-2 ring-indigo-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9 }}>
                     <div className="flex gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs" style={{ color: primaryColor }}>
                         {f.name?.[0] || 'U'}
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
-                          <p className="text-xs font-bold">{f.name}</p>
+                          <p className="text-xs font-bold" style={{ color: textColor }}>{f.name}</p>
                           <CheckCircle2 className="w-3 h-3 text-blue-500" />
                         </div>
-                        <p className="text-[11px] leading-relaxed mt-1 opacity-80">{f.text}</p>
+                        <p className="text-[11px] leading-relaxed mt-1" style={{ color: checkout.subtitle_color || '#666666' }}>{f.text}</p>
                       </div>
                     </div>
                   </Card>
@@ -169,8 +169,8 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
             {checkout.footer_text || 'Compra 100% Segura'}
           </p>
           <div className="flex justify-center gap-2">
-            <Badge variant="outline" className="text-[9px] rounded-full opacity-50 px-3">Privacidade</Badge>
-            <Badge variant="outline" className="text-[9px] rounded-full opacity-50 px-3">Termos de Uso</Badge>
+            <Badge variant="outline" className="text-[9px] rounded-full px-3" style={{ color: footerColor, borderColor: footerColor, opacity: 0.5 }}>Privacidade</Badge>
+            <Badge variant="outline" className="text-[9px] rounded-full px-3" style={{ color: footerColor, borderColor: footerColor, opacity: 0.5 }}>Termos de Uso</Badge>
           </div>
         </div>
       </div>
