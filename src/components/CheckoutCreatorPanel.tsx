@@ -65,6 +65,7 @@ interface Checkout {
   integration_type: string | null;
   integration_id: string | null;
   product_type: string | null;
+  custom_settings: any;
 }
 
 interface CheckoutOrder {
@@ -112,7 +113,7 @@ export const CheckoutCreatorPanel = () => {
   const [selectedCheckout, setSelectedCheckout] = useState<Checkout | null>(null);
   const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [formTab, setFormTab] = useState('basic');
+  const [formTab, setFormTab] = useState('general');
 
   const [catalogs, setCatalogs] = useState<{ id: string; name: string }[]>([]);
   const [membersAreas, setMembersAreas] = useState<{ id: string; name: string }[]>([]);
@@ -137,15 +138,108 @@ export const CheckoutCreatorPanel = () => {
     downsell_image_url: '', downsell_checkout_url: '',
     // Integration
     integration_type: '', integration_id: '',
-    // Design Ext
-    logo_url: '',
-    background_color: '#F8FAFC',
-    text_color: '#0f172a',
-    footer_text: 'Compra 100% Segura',
-    footer_color: '#64748b',
-    show_fake_feedback: false,
-    fake_feedbacks: [] as any[],
+    // Product
     product_type: 'digital_product',
+    // Custom Settings (JSONB)
+    custom_settings: {
+      language: 'pt-BR',
+      currency: 'BRL',
+      logo_size: 'h-8',
+      logo_alignment: 'center',
+      header_title: '',
+      header_title_color: '#000000',
+      header_title_font_size: 'text-2xl',
+      header_title_font_family: 'sans',
+      header_title_bold: true,
+      header_subtitle: '',
+      header_subtitle_color: '#666666',
+      header_subtitle_font_family: 'sans',
+      header_subtitle_font_size: 'text-sm',
+      top_bar_bg_color: '#ffffff',
+      top_bar_text_color: '#000000',
+      show_secure_badge: true,
+      show_whatsapp_support: false,
+      layout_model: 'modern',
+      layout_structure: 'split',
+      layout_width: 'boxed',
+      background_gradient: '',
+      background_image: '',
+      card_color: '#ffffff',
+      card_transparency: 100,
+      card_border: true,
+      title_color: '#000000',
+      subtitle_color: '#666666',
+      field_color: '#ffffff',
+      button_hover_color: '',
+      button_text_color: '#ffffff',
+      font_title: 'sans',
+      font_subtitle: 'sans',
+      font_fields: 'sans',
+      font_buttons: 'sans',
+      size_h1: 'text-3xl',
+      size_h2: 'text-2xl',
+      size_text: 'text-base',
+      size_button: 'text-lg',
+      item_gallery: [] as string[],
+      item_category: '',
+      item_original_price: '',
+      show_summary_image: true,
+      show_summary_name: true,
+      show_summary_description: true,
+      show_summary_discount: true,
+      show_summary_warranty: true,
+      show_summary_installments: true,
+      show_summary_savings: true,
+      summary_bg_color: '#f3f4f6',
+      summary_text_color: '#000000',
+      summary_price_color: '#000000',
+      show_field_name: true,
+      show_field_email: true,
+      show_field_whatsapp: true,
+      show_field_cpf: true,
+      show_field_address: true,
+      show_field_city: true,
+      show_field_state: true,
+      show_field_zip: true,
+      custom_fields: [] as any[],
+      enable_pix: true,
+      enable_card: true,
+      enable_boleto: true,
+      enable_mp: true,
+      enable_stripe: false,
+      enable_paypal: false,
+      payment_button_color: '',
+      payment_icons: true,
+      payment_order: [] as string[],
+      benefits: [] as any[],
+      benefits_icon_color: '#000000',
+      benefits_title_color: '#000000',
+      benefits_desc_color: '#666666',
+      testimonials: [] as any[],
+      testimonials_layout: 'carousel',
+      guarantee_seal_url: '',
+      guarantee_title: '7 Dias de Garantia',
+      guarantee_description: 'Se você não gostar, devolvemos seu dinheiro.',
+      show_scarcity: false,
+      scarcity_type: 'countdown',
+      scarcity_timer: 600,
+      scarcity_daily_close: false,
+      scarcity_spots: 10,
+      button_size: 'large',
+      button_radius: 'rounded-xl',
+      button_icon: '',
+      footer_terms_url: '',
+      footer_privacy_url: '',
+      footer_contact_info: '',
+      footer_bg_color: '#ffffff',
+      footer_text_color: '#666666',
+      footer_links_color: '#3b82f6',
+      pixel_meta: '',
+      pixel_google_analytics: '',
+      pixel_gtm: '',
+      pixel_tiktok: '',
+      custom_scripts: '',
+    },
   });
 
   const [itemForm, setItemForm] = useState({
@@ -274,14 +368,8 @@ export const CheckoutCreatorPanel = () => {
     downsell_checkout_url: formData.downsell_checkout_url || null,
     integration_type: formData.integration_type || null,
     integration_id: formData.integration_id || null,
-    logo_url: formData.logo_url || null,
-    background_color: formData.background_color,
-    text_color: formData.text_color,
-    footer_text: formData.footer_text,
-    footer_color: formData.footer_color,
-    show_fake_feedback: formData.show_fake_feedback,
-    fake_feedbacks: formData.fake_feedbacks,
     product_type: formData.product_type,
+    custom_settings: formData.custom_settings,
   });
 
   const handleCreate = async () => {
@@ -354,14 +442,8 @@ export const CheckoutCreatorPanel = () => {
       downsell_price: checkout.downsell_price ? String(checkout.downsell_price) : '',
       downsell_image_url: checkout.downsell_image_url || '', downsell_checkout_url: checkout.downsell_checkout_url || '',
       integration_type: (checkout as any).integration_type || '', integration_id: (checkout as any).integration_id || '',
-      logo_url: (checkout as any).logo_url || '',
-      background_color: (checkout as any).background_color || '#F8FAFC',
-      text_color: (checkout as any).text_color || '#0f172a',
-      footer_text: (checkout as any).footer_text || 'Compra 100% Segura',
-      footer_color: (checkout as any).footer_color || '#64748b',
-      show_fake_feedback: (checkout as any).show_fake_feedback || false,
-      fake_feedbacks: (checkout as any).fake_feedbacks || [],
       product_type: (checkout as any).product_type || 'digital_product',
+      custom_settings: (checkout as any).custom_settings || {},
     });
     setView('editor');
   };
