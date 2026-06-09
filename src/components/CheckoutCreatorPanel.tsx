@@ -17,6 +17,7 @@ import { CheckoutImageUpload } from "@/components/checkout/CheckoutImageUpload";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CheckoutPreview } from "./checkout/CheckoutPreview";
+import { CheckoutFormFields } from "./checkout/CheckoutFormFields";
 
 
 interface Checkout {
