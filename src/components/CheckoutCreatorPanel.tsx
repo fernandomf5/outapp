@@ -134,6 +134,14 @@ export const CheckoutCreatorPanel = () => {
     downsell_image_url: '', downsell_checkout_url: '',
     // Integration
     integration_type: '', integration_id: '',
+    // Design Ext
+    logo_url: '',
+    background_color: '#F8FAFC',
+    text_color: '#0f172a',
+    footer_text: 'Compra 100% Segura',
+    footer_color: '#64748b',
+    show_fake_feedback: false,
+    fake_feedbacks: [] as any[],
   });
 
   const [itemForm, setItemForm] = useState({
@@ -219,6 +227,9 @@ export const CheckoutCreatorPanel = () => {
       downsell_title: '', downsell_description: '', downsell_price: '',
       downsell_image_url: '', downsell_checkout_url: '',
       integration_type: '', integration_id: '',
+      logo_url: '', background_color: '#F8FAFC', text_color: '#0f172a',
+      footer_text: 'Compra 100% Segura', footer_color: '#64748b',
+      show_fake_feedback: false, fake_feedbacks: [],
     });
     setFormTab('basic');
   };
@@ -258,6 +269,13 @@ export const CheckoutCreatorPanel = () => {
     downsell_checkout_url: formData.downsell_checkout_url || null,
     integration_type: formData.integration_type || null,
     integration_id: formData.integration_id || null,
+    logo_url: formData.logo_url || null,
+    background_color: formData.background_color,
+    text_color: formData.text_color,
+    footer_text: formData.footer_text,
+    footer_color: formData.footer_color,
+    show_fake_feedback: formData.show_fake_feedback,
+    fake_feedbacks: formData.fake_feedbacks,
   });
 
   const handleCreate = async () => {
@@ -325,6 +343,13 @@ export const CheckoutCreatorPanel = () => {
       downsell_price: checkout.downsell_price ? String(checkout.downsell_price) : '',
       downsell_image_url: checkout.downsell_image_url || '', downsell_checkout_url: checkout.downsell_checkout_url || '',
       integration_type: (checkout as any).integration_type || '', integration_id: (checkout as any).integration_id || '',
+      logo_url: (checkout as any).logo_url || '',
+      background_color: (checkout as any).background_color || '#F8FAFC',
+      text_color: (checkout as any).text_color || '#0f172a',
+      footer_text: (checkout as any).footer_text || 'Compra 100% Segura',
+      footer_color: (checkout as any).footer_color || '#64748b',
+      show_fake_feedback: (checkout as any).show_fake_feedback || false,
+      fake_feedbacks: (checkout as any).fake_feedbacks || [],
     });
     setIsEditDialogOpen(true);
   };
