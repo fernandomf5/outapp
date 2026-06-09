@@ -128,9 +128,12 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
 
               <div className="pt-2 border-t">
                 <Label className="flex items-center gap-2 mb-2">
-                  Pós-Venda (Entrega Automática)
+                  Liberação de Acesso Automática
                   {formData.product_type === 'members_area' && <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-[9px]">Recomendado</Badge>}
                 </Label>
+                <p className="text-[11px] text-muted-foreground mb-3">
+                  Escolha o conteúdo que o cliente receberá automaticamente por e-mail e em sua conta assim que o pagamento for aprovado.
+                </p>
                 <Select value={formData.integration_id || 'none'} onValueChange={(v) => setFormData({ ...formData, integration_id: v === 'none' ? '' : v })}>
                   <SelectTrigger className={formData.product_type === 'members_area' && !formData.integration_id ? "border-purple-400 ring-1 ring-purple-100" : ""}><SelectValue placeholder="Nenhuma entrega selecionada" /></SelectTrigger>
                   <SelectContent>
@@ -287,26 +290,43 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
 
   return (
     <div className="flex flex-col h-full">
-      {/* Scrollable Tabs Menu */}
-      <div className="flex gap-2 p-1.5 bg-muted/50 rounded-2xl overflow-x-auto scrollbar-hide mb-6 shrink-0">
-        {tabs.map(t => {
+      {/* Etapas do Checkout */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-2xl overflow-x-auto scrollbar-hide mb-6 shrink-0 shadow-sm">
+        {tabs.map((t, index) => {
           const Icon = t.icon;
           const isActive = formTab === t.id;
+          const currentIndex = tabs.findIndex(tab => tab.id === formTab);
+          const isCompleted = index < currentIndex;
+          
           return (
-            <button 
-              key={t.id}
-              onClick={() => setFormTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${
-                isActive 
-                  ? 'bg-white shadow-md text-slate-900 scale-105' 
-                  : 'text-muted-foreground hover:bg-white/50'
-              }`}
-            >
-              <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isActive ? `bg-${t.color}-100 text-${t.color}-600` : 'bg-muted text-muted-foreground'}`}>
-                <Icon className="w-3.5 h-3.5" />
-              </div>
-              {t.label}
-            </button>
+            <div key={t.id} className="flex items-center shrink-0">
+              <button 
+                onClick={() => setFormTab(t.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  isActive 
+                    ? 'bg-white shadow-sm border border-slate-200 text-slate-900 scale-105' 
+                    : isCompleted
+                      ? 'text-primary'
+                      : 'text-muted-foreground hover:bg-white/50'
+                }`}
+              >
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                  isActive 
+                    ? 'bg-primary text-white shadow-sm' 
+                    : isCompleted 
+                      ? 'bg-primary/10 text-primary' 
+                      : 'bg-slate-200 text-slate-500'
+                }`}>
+                  {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <span className="text-[10px]">{index + 1}</span>}
+                </div>
+                <span className="hidden sm:inline">{t.label}</span>
+              </button>
+              {index < tabs.length - 1 && (
+                <div className="mx-1 text-slate-300">
+                  <ChevronRight className="w-3 h-3" />
+                </div>
+              )}
+            </div>
           );
         })}
       </div>

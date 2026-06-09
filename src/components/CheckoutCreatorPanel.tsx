@@ -471,7 +471,12 @@ export const CheckoutCreatorPanel = () => {
         {/* Editor Header */}
         <div className="h-16 border-b px-6 flex items-center justify-between bg-slate-900 text-white shadow-sm shrink-0">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => setView('list')} className="rounded-full text-white hover:bg-white/10 hover:text-white">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setView('list')} 
+              className="rounded-full text-white hover:bg-white/10 hover:text-white"
+            >
               <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
             </Button>
             <div className="h-6 w-px bg-white/20 hidden sm:block"></div>
@@ -481,11 +486,18 @@ export const CheckoutCreatorPanel = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => setView('list')} className="hidden sm:flex text-white hover:bg-white/10 hover:text-white">
+            <Button 
+              variant="ghost" 
+              onClick={() => setView('list')} 
+              className="hidden sm:flex text-white hover:bg-white/10 hover:text-white"
+            >
               <X className="w-4 h-4 mr-2" /> Cancelar
             </Button>
-            <Button onClick={selectedCheckout ? handleEdit : handleCreate} className="gap-2 bg-primary hover:bg-primary/90 text-white border-0 px-6">
-              <Save className="w-4 h-4" /> Salvar Checkout
+            <Button 
+              onClick={selectedCheckout ? handleEdit : handleCreate} 
+              className="gap-2 bg-primary hover:bg-primary/90 text-white border-0 px-6 shadow-lg shadow-primary/20 transition-all active:scale-95"
+            >
+              <Save className="w-4 h-4" /> {selectedCheckout ? 'Salvar Alterações' : 'Criar Checkout'}
             </Button>
           </div>
         </div>
