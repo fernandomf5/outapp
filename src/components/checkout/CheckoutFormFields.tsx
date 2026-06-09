@@ -77,14 +77,14 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
           <div className="space-y-4 p-4">
             <h3 className="font-bold text-lg">Informações Básicas</h3>
             <div className="space-y-3">
-              <div><Label>Nome do Checkout</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
-              <div><Label>URL Personalizada</Label><Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} /></div>
+              <div><Label className=\"text-slate-700 font-semibold mb-1.5 block\">Nome do Checkout</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className=\"bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500\" /></div>
+              <div><Label className=\"text-slate-700 font-semibold mb-1.5 block\">URL Personalizada</Label><Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} className=\"bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500\" /></div>
               <div className="flex items-center justify-between">
-                <Label>Status Ativo</Label>
+                <Label className=\"text-slate-700 font-semibold\">Status Ativo</Label>
                 <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({...formData, is_active: v})} />
               </div>
               <div>
-                <Label>Tipo de Produto</Label>
+                <Label className=\"text-slate-700 font-semibold mb-1.5 block\">Tipo de Produto</Label>
                 <Select value={formData.product_type} onValueChange={(v) => setFormData({...formData, product_type: v})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -108,7 +108,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
              <CheckoutImageUpload label="Upload da Logo" value={formData.item_image_url} onChange={(url) => setFormData({...formData, item_image_url: url})} />
              <div className="grid grid-cols-2 gap-2">
                 <div>
-                   <Label>Tamanho da Logo</Label>
+                   <Label className=\"text-slate-700 font-semibold mb-1.5 block\">Tamanho da Logo</Label>
                    <Select value={formData.custom_settings.logo_size} onValueChange={(v) => updateSetting('logo_size', v)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -119,7 +119,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                    </Select>
                 </div>
                 <div>
-                   <Label>Alinhamento</Label>
+                   <Label className=\"text-slate-700 font-semibold mb-1.5 block\">Alinhamento</Label>
                    <Select value={formData.custom_settings.logo_alignment} onValueChange={(v) => updateSetting('logo_alignment', v)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -131,11 +131,11 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                 </div>
              </div>
              <div className="pt-4 border-t space-y-3">
-                <Label>Título Principal</Label>
+                <Label className=\"text-slate-700 font-semibold mb-1.5 block\">Título Principal</Label>
                 <Input value={formData.custom_settings.header_title} onChange={(e) => updateSetting('header_title', e.target.value)} />
                 <div className="flex items-center gap-2">
                    <Input type="color" value={formData.custom_settings.header_title_color} onChange={(e) => updateSetting('header_title_color', e.target.value)} className="w-10 p-1" />
-                   <Label>Cor do Título</Label>
+                   <Label className=\"text-slate-700 font-semibold\">Cor do Título</Label>
                 </div>
              </div>
           </div>
