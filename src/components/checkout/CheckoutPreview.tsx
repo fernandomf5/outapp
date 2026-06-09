@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export const CheckoutPreview = ({ checkout }: { checkout: any }) => {
+export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, activeTab?: string }) => {
   const primaryColor = checkout.primary_color || '#8B5CF6';
   const bgColor = checkout.background_color || '#F8FAFC';
   const textColor = checkout.text_color || '#0f172a';

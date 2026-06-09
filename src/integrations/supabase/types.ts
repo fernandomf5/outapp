@@ -3132,6 +3132,7 @@ export type Database = {
           background_color: string | null
           banner_url: string | null
           created_at: string
+          custom_settings: Json | null
           description: string | null
           downsell_checkout_url: string | null
           downsell_description: string | null
@@ -3185,6 +3186,7 @@ export type Database = {
           background_color?: string | null
           banner_url?: string | null
           created_at?: string
+          custom_settings?: Json | null
           description?: string | null
           downsell_checkout_url?: string | null
           downsell_description?: string | null
@@ -3238,6 +3240,7 @@ export type Database = {
           background_color?: string | null
           banner_url?: string | null
           created_at?: string
+          custom_settings?: Json | null
           description?: string | null
           downsell_checkout_url?: string | null
           downsell_description?: string | null
