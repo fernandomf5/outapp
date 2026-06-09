@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,15 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
     { id: 'upsell', label: 'Upsell', icon: TrendingUp, color: 'orange' },
     { id: 'tracking', label: 'Tracking', icon: Code, color: 'slate' },
   ];
+
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const activeElement = tabsRef.current?.querySelector(`[data-active="true"]`);
+    if (activeElement) {
+      activeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [formTab]);
 
   const handleNext = () => {
     const currentIndex = tabs.findIndex(t => t.id === formTab);
@@ -291,7 +300,10 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
   return (
     <div className="flex flex-col h-full">
       {/* Etapas do Checkout */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-2xl overflow-x-auto scrollbar-hide mb-6 shrink-0 shadow-sm">
+      <div 
+        ref={tabsRef}
+        className="flex items-center gap-2 p-1.5 bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-2xl overflow-x-auto scrollbar-hide mb-6 shrink-0 shadow-sm"
+      >
         {tabs.map((t, index) => {
           const Icon = t.icon;
           const isActive = formTab === t.id;
@@ -299,7 +311,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
           const isCompleted = index < currentIndex;
           
           return (
-            <div key={t.id} className="flex items-center shrink-0">
+            <div key={t.id} className="flex items-center shrink-0" data-active={isActive}>
               <button 
                 onClick={() => setFormTab(t.id)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
