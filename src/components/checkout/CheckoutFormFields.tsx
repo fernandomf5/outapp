@@ -330,14 +330,6 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
           );
         })}
       </div>
-              <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isActive ? `bg-${t.color}-100 text-${t.color}-600` : 'bg-muted text-muted-foreground'}`}>
-                <Icon className="w-3.5 h-3.5" />
-              </div>
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto pr-1">
