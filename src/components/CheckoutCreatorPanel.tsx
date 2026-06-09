@@ -608,28 +608,41 @@ export const CheckoutCreatorPanel = () => {
         </TabsContent>
 
         <TabsContent value="design" className="space-y-4">
+          <h4 className="font-semibold">🎨 Personalização do Checkout</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <CheckoutImageUpload label="Logo do Topo" value={formData.logo_url} onChange={(url) => setFormData({ ...formData, logo_url: url })} />
+            <CheckoutImageUpload label="Banner Principal" value={formData.banner_url} onChange={(url) => setFormData({ ...formData, banner_url: url })} aspectHint="1200x400px" />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Cor Principal</Label>
-              <div className="flex gap-2">
-                <Input type="color" value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" />
-                <Input value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} />
-              </div>
+              <div className="flex gap-2"><Input type="color" value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" /><Input value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} /></div>
             </div>
-            <CheckoutImageUpload
-              label="Banner do Checkout"
-              value={formData.banner_url}
-              onChange={(url) => setFormData({ ...formData, banner_url: url })}
-              aspectHint="Recomendado: 1200x400px"
-            />
+            <div>
+              <Label>Cor do Texto</Label>
+              <div className="flex gap-2"><Input type="color" value={formData.text_color} onChange={(e) => setFormData({ ...formData, text_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" /><Input value={formData.text_color} onChange={(e) => setFormData({ ...formData, text_color: e.target.value })} /></div>
+            </div>
+            <div>
+              <Label>Cor de Fundo</Label>
+              <div className="flex gap-2"><Input type="color" value={formData.background_color} onChange={(e) => setFormData({ ...formData, background_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" /><Input value={formData.background_color} onChange={(e) => setFormData({ ...formData, background_color: e.target.value })} /></div>
+            </div>
           </div>
-          <div>
-            <Label>Mensagem de Sucesso (legado)</Label>
-            <Input value={formData.success_message} onChange={(e) => setFormData({ ...formData, success_message: e.target.value })} />
+          <div className="border-t pt-4 space-y-4">
+            <h4 className="font-semibold">💬 Prova Social (Feedback Fake)</h4>
+            <div className="flex items-center gap-2">
+              <Switch checked={formData.show_fake_feedback} onCheckedChange={(v) => setFormData({ ...formData, show_fake_feedback: v })} />
+              <Label>Ativar feedbacks na página</Label>
+            </div>
+            {formData.show_fake_feedback && (
+              <div className="text-sm italic text-muted-foreground">Gerencie os feedbacks no painel de edição simplificado.</div>
+            )}
           </div>
-          <div>
-            <Label>URL de Redirecionamento (após pagamento)</Label>
-            <Input value={formData.redirect_url} onChange={(e) => setFormData({ ...formData, redirect_url: e.target.value })} placeholder="https://..." />
+          <div className="border-t pt-4 space-y-4">
+            <h4 className="font-semibold">👣 Rodapé</h4>
+            <div className="grid grid-cols-2 gap-4">
+               <div><Label>Texto do Rodapé</Label><Input value={formData.footer_text} onChange={(e) => setFormData({ ...formData, footer_text: e.target.value })} /></div>
+               <div><Label>Cor do texto</Label><div className="flex gap-2"><Input type="color" value={formData.footer_color} onChange={(e) => setFormData({ ...formData, footer_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" /><Input value={formData.footer_color} onChange={(e) => setFormData({ ...formData, footer_color: e.target.value })} /></div></div>
+            </div>
           </div>
         </TabsContent>
 
