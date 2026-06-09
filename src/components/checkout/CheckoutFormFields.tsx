@@ -81,7 +81,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
               </div>
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">URL Personalizada</Label>
-                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500" />
+                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-900" />
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-slate-700 font-semibold">Status Ativo</Label>
@@ -90,7 +90,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Tipo de Produto</Label>
                 <Select value={formData.product_type} onValueChange={(v) => setFormData({...formData, product_type: v})}>
-                  <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="service">Serviço</SelectItem>
                     <SelectItem value="online_course">Curso Online</SelectItem>
@@ -114,7 +114,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <div>
                    <Label className="text-slate-700 font-semibold mb-1.5 block">Tamanho da Logo</Label>
                    <Select value={formData.custom_settings.logo_size} onValueChange={(v) => updateSetting('logo_size', v)}>
-                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="h-8">Pequeno</SelectItem>
                         <SelectItem value="h-12">Médio</SelectItem>
@@ -125,7 +125,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <div>
                    <Label className="text-slate-700 font-semibold mb-1.5 block">Alinhamento</Label>
                    <Select value={formData.custom_settings.logo_alignment} onValueChange={(v) => updateSetting('logo_alignment', v)}>
-                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="left">Esquerda</SelectItem>
                         <SelectItem value="center">Centro</SelectItem>
@@ -134,11 +134,11 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                    </Select>
                 </div>
              </div>
-             <div className="pt-4 border-t space-y-3">
+             <div className="pt-4 border-t border-slate-100 space-y-3">
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Título Principal</Label>
-                <Input value={formData.custom_settings.header_title} onChange={(e) => updateSetting('header_title', e.target.value)} className="bg-white border-slate-200" />
+                <Input value={formData.custom_settings.header_title} onChange={(e) => updateSetting('header_title', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
                 <div className="flex items-center gap-2">
-                   <Input type="color" value={formData.custom_settings.header_title_color} onChange={(e) => updateSetting('header_title_color', e.target.value)} className="w-10 p-1 bg-white" />
+                   <Input type="color" value={formData.custom_settings.header_title_color} onChange={(e) => updateSetting('header_title_color', e.target.value)} className="w-10 p-1 bg-white border-slate-200 h-10" />
                    <Label className="text-slate-700 font-semibold">Cor do Título</Label>
                 </div>
              </div>
