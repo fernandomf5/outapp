@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Eye, Save, Plus } from "lucide-react";
+import { Copy, Eye, Save, Plus, ArrowLeft } from "lucide-react";
 import { CheckoutPreview } from "./checkout/CheckoutPreview";
 import { CheckoutFormFields } from "./checkout/CheckoutFormFields";
 
@@ -13,9 +12,9 @@ export const CheckoutCreatorPanel = () => {
   const [selectedCheckout, setSelectedCheckout] = useState<any | null>(null);
   const [formTab, setFormTab] = useState('general');
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     name: '', description: '', slug: '', item_name: '', item_description: '',
-    item_image_url: '', price: '', primary_color: '#8B5CF6', banner_url: '',
+    item_image_url: '', price: '0', primary_color: '#8B5CF6', banner_url: '',
     success_message: 'Pagamento realizado com sucesso!', redirect_url: '',
     mp_access_token: '', mp_public_key: '',
     thank_you_title: 'Obrigado pela sua compra!',
@@ -140,41 +139,135 @@ export const CheckoutCreatorPanel = () => {
 
   useEffect(() => { loadCheckouts(); }, []);
 
+  const preparePayload = () => {
+    const payload = { ...formData };
+    payload.price = parseFloat(formData.price) || 0;
+    payload.upsell_price = formData.upsell_price ? parseFloat(formData.upsell_price) : null;
+    payload.downsell_price = formData.downsell_price ? parseFloat(formData.downsell_price) : null;
+    // Remove null values for optional UUID fields if they are empty strings
+    if (payload.integration_id === '') payload.integration_id = null;
+    return payload;
+  };
+
   const handleCreate = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { error } = await supabase.from('checkouts').insert({ user_id: user.id, ...formData });
-    if (error) toast.error('Erro ao criar');
+    const { error } = await supabase.from('checkouts').insert({ user_id: user.id, ...preparePayload() });
+    if (error) {
+      console.error(error);
+      toast.error('Erro ao criar: ' + error.message);
+    }
     else { toast.success('Criado!'); setView('list'); loadCheckouts(); }
   };
 
   const handleEdit = async () => {
     if (!selectedCheckout) return;
-    const { error } = await supabase.from('checkouts').update(formData).eq('id', selectedCheckout.id);
-    if (error) toast.error('Erro ao atualizar');
+    const { error } = await supabase.from('checkouts').update(preparePayload()).eq('id', selectedCheckout.id);
+    if (error) {
+       console.error(error);
+       toast.error('Erro ao atualizar: ' + error.message);
+    }
     else { toast.success('Atualizado!'); setView('list'); loadCheckouts(); }
   };
 
+  const openEditor = (checkout: any) => {
+    setSelectedCheckout(checkout);
+    setFormData({
+      ...checkout,
+      price: String(checkout.price),
+      upsell_price: checkout.upsell_price ? String(checkout.upsell_price) : '',
+      downsell_price: checkout.downsell_price ? String(checkout.downsell_price) : '',
+      custom_settings: checkout.custom_settings || formData.custom_settings
+    });
+    setView('editor');
+  };
+
   if (view === 'list') return (
-    <div className="p-6">
-      <Button onClick={() => { setView('editor'); setSelectedCheckout(null); }}><Plus className="mr-2"/> Novo Checkout</Button>
-      <div className="mt-4 grid gap-4">
-        {checkouts.map(c => <div key={c.id} className="p-4 border rounded" onClick={() => { setSelectedCheckout(c); setView('editor'); }}>{c.name}</div>)}
+    <div className="p-6 max-w-7xl mx-auto bg-slate-50 min-h-screen">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Meus Checkouts</h1>
+          <p className="text-slate-500">Crie e gerencie seus fluxos de pagamento</p>
+        </div>
+        <Button onClick={() => { setView('editor'); setSelectedCheckout(null); }} className="bg-indigo-600 hover:bg-indigo-700 h-12 px-6 rounded-xl shadow-lg shadow-indigo-200 gap-2">
+          <Plus className="w-5 h-5"/> Novo Checkout
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {checkouts.map(c => (
+          <Card key={c.id} className="group hover:shadow-xl transition-all duration-300 border-none bg-white rounded-2xl overflow-hidden cursor-pointer" onClick={() => openEditor(c)}>
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                  <Save className="w-6 h-6" />
+                </div>
+                <div className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${c.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                  {c.is_active ? 'Ativo' : 'Inativo'}
+                </div>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1">{c.name}</h3>
+              <p className="text-sm text-slate-500 line-clamp-2 mb-4">{c.item_name} - R$ {Number(c.price).toFixed(2)}</p>
+              <div className="flex items-center gap-2 pt-4 border-t border-slate-50">
+                <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-slate-600">
+                  Editar
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-slate-600">
+                  Relatórios
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
     </div>
   );
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="w-[400px] border-r overflow-y-auto">
-        <CheckoutFormFields formData={formData} setFormData={setFormData} formTab={formTab} setFormTab={setFormTab} />
+    <div className="flex h-screen overflow-hidden bg-slate-900">
+      <div className="w-[450px] border-r border-slate-800 bg-white flex flex-col h-full shadow-2xl z-20">
+        <div className="p-4 border-b border-slate-100 flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => setView('list')} className="rounded-xl hover:bg-slate-100">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex-1">
+            <h2 className="font-bold text-slate-900">Criador de Checkout</h2>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Checkout Inteligente</p>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <CheckoutFormFields formData={formData} setFormData={setFormData} formTab={formTab} setFormTab={setFormTab} />
+        </div>
       </div>
-      <div className="flex-1 bg-gray-100 p-6 flex flex-col items-center justify-center">
-        <CheckoutPreview checkout={{...formData, ...formData.custom_settings}} />
-        <div className="fixed bottom-4 right-4 flex gap-2">
-            <Button variant="outline"><Copy className="w-4 h-4 mr-2" /> Duplicar</Button>
-            <Button variant="outline"><Eye className="w-4 h-4 mr-2" /> Visualizar</Button>
-            <Button onClick={selectedCheckout ? handleEdit : handleCreate}><Save className="w-4 h-4 mr-2" /> Publicar</Button>
+      
+      <div className="flex-1 bg-[#0F172A] relative flex flex-col overflow-hidden">
+        {/* Preview Header */}
+        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-md">
+           <div className="flex items-center gap-3">
+             <div className="px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+               Preview em Tempo Real
+             </div>
+             <span className="text-white/40 text-sm">|</span>
+             <span className="text-white/60 text-xs">{formData.name || 'Sem nome'}</span>
+           </div>
+           
+           <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 gap-2">
+                <Copy className="w-4 h-4" /> Duplicar
+              </Button>
+              <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 gap-2">
+                <Eye className="w-4 h-4" /> Visualizar
+              </Button>
+              <Button onClick={selectedCheckout ? handleEdit : handleCreate} className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 shadow-xl shadow-indigo-900/20">
+                <Save className="w-4 h-4" /> {selectedCheckout ? 'Salvar Alterações' : 'Publicar Checkout'}
+              </Button>
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-8 flex justify-center items-start scrollbar-hide">
+           <div className="w-full max-w-4xl transform scale-90 origin-top transition-all duration-500">
+              <CheckoutPreview checkout={{...formData, ...(formData.custom_settings || {})}} activeTab={formTab} />
+           </div>
         </div>
       </div>
     </div>
