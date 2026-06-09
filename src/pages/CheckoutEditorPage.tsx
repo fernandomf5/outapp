@@ -153,6 +153,7 @@ const CheckoutEditorPage = () => {
 
       if (data) {
         setSelectedCheckout(data);
+        const settings = data.custom_settings && typeof data.custom_settings === 'object' ? data.custom_settings : {};
         setFormData({
           ...data,
           price: String(data.price),
@@ -160,7 +161,7 @@ const CheckoutEditorPage = () => {
           downsell_price: data.downsell_price ? String(data.downsell_price) : '',
           custom_settings: {
             ...formData.custom_settings,
-            ...(data.custom_settings || {})
+            ...settings
           }
         });
       }
@@ -212,13 +213,7 @@ const CheckoutEditorPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-slate-900">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
+  const currentSettings = formData.custom_settings && typeof formData.custom_settings === 'object' ? formData.custom_settings : {};
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-900">
@@ -262,7 +257,7 @@ const CheckoutEditorPage = () => {
 
         <div className="flex-1 overflow-y-auto p-8 flex justify-center items-start scrollbar-hide">
            <div className="w-full max-w-4xl transform scale-90 origin-top transition-all duration-500">
-              <CheckoutPreview checkout={{...formData, ...(formData.custom_settings || {})}} activeTab={formTab} />
+              <CheckoutPreview checkout={{...formData, ...currentSettings}} activeTab={formTab} />
            </div>
         </div>
       </div>
