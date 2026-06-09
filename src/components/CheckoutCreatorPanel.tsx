@@ -134,6 +134,14 @@ export const CheckoutCreatorPanel = () => {
     downsell_image_url: '', downsell_checkout_url: '',
     // Integration
     integration_type: '', integration_id: '',
+    // Design Ext
+    logo_url: '',
+    background_color: '#F8FAFC',
+    text_color: '#0f172a',
+    footer_text: 'Compra 100% Segura',
+    footer_color: '#64748b',
+    show_fake_feedback: false,
+    fake_feedbacks: [] as any[],
   });
 
   const [itemForm, setItemForm] = useState({
@@ -219,6 +227,9 @@ export const CheckoutCreatorPanel = () => {
       downsell_title: '', downsell_description: '', downsell_price: '',
       downsell_image_url: '', downsell_checkout_url: '',
       integration_type: '', integration_id: '',
+      logo_url: '', background_color: '#F8FAFC', text_color: '#0f172a',
+      footer_text: 'Compra 100% Segura', footer_color: '#64748b',
+      show_fake_feedback: false, fake_feedbacks: [],
     });
     setFormTab('basic');
   };
@@ -258,6 +269,13 @@ export const CheckoutCreatorPanel = () => {
     downsell_checkout_url: formData.downsell_checkout_url || null,
     integration_type: formData.integration_type || null,
     integration_id: formData.integration_id || null,
+    logo_url: formData.logo_url || null,
+    background_color: formData.background_color,
+    text_color: formData.text_color,
+    footer_text: formData.footer_text,
+    footer_color: formData.footer_color,
+    show_fake_feedback: formData.show_fake_feedback,
+    fake_feedbacks: formData.fake_feedbacks,
   });
 
   const handleCreate = async () => {
@@ -325,6 +343,13 @@ export const CheckoutCreatorPanel = () => {
       downsell_price: checkout.downsell_price ? String(checkout.downsell_price) : '',
       downsell_image_url: checkout.downsell_image_url || '', downsell_checkout_url: checkout.downsell_checkout_url || '',
       integration_type: (checkout as any).integration_type || '', integration_id: (checkout as any).integration_id || '',
+      logo_url: (checkout as any).logo_url || '',
+      background_color: (checkout as any).background_color || '#F8FAFC',
+      text_color: (checkout as any).text_color || '#0f172a',
+      footer_text: (checkout as any).footer_text || 'Compra 100% Segura',
+      footer_color: (checkout as any).footer_color || '#64748b',
+      show_fake_feedback: (checkout as any).show_fake_feedback || false,
+      fake_feedbacks: (checkout as any).fake_feedbacks || [],
     });
     setIsEditDialogOpen(true);
   };
@@ -583,28 +608,41 @@ export const CheckoutCreatorPanel = () => {
         </TabsContent>
 
         <TabsContent value="design" className="space-y-4">
+          <h4 className="font-semibold">🎨 Personalização do Checkout</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <CheckoutImageUpload label="Logo do Topo" value={formData.logo_url} onChange={(url) => setFormData({ ...formData, logo_url: url })} />
+            <CheckoutImageUpload label="Banner Principal" value={formData.banner_url} onChange={(url) => setFormData({ ...formData, banner_url: url })} aspectHint="1200x400px" />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Cor Principal</Label>
-              <div className="flex gap-2">
-                <Input type="color" value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" />
-                <Input value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} />
-              </div>
+              <div className="flex gap-2"><Input type="color" value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" /><Input value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} /></div>
             </div>
-            <CheckoutImageUpload
-              label="Banner do Checkout"
-              value={formData.banner_url}
-              onChange={(url) => setFormData({ ...formData, banner_url: url })}
-              aspectHint="Recomendado: 1200x400px"
-            />
+            <div>
+              <Label>Cor do Texto</Label>
+              <div className="flex gap-2"><Input type="color" value={formData.text_color} onChange={(e) => setFormData({ ...formData, text_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" /><Input value={formData.text_color} onChange={(e) => setFormData({ ...formData, text_color: e.target.value })} /></div>
+            </div>
+            <div>
+              <Label>Cor de Fundo</Label>
+              <div className="flex gap-2"><Input type="color" value={formData.background_color} onChange={(e) => setFormData({ ...formData, background_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" /><Input value={formData.background_color} onChange={(e) => setFormData({ ...formData, background_color: e.target.value })} /></div>
+            </div>
           </div>
-          <div>
-            <Label>Mensagem de Sucesso (legado)</Label>
-            <Input value={formData.success_message} onChange={(e) => setFormData({ ...formData, success_message: e.target.value })} />
+          <div className="border-t pt-4 space-y-4">
+            <h4 className="font-semibold">💬 Prova Social (Feedback Fake)</h4>
+            <div className="flex items-center gap-2">
+              <Switch checked={formData.show_fake_feedback} onCheckedChange={(v) => setFormData({ ...formData, show_fake_feedback: v })} />
+              <Label>Ativar feedbacks na página</Label>
+            </div>
+            {formData.show_fake_feedback && (
+              <div className="text-sm italic text-muted-foreground">Gerencie os feedbacks no painel de edição simplificado.</div>
+            )}
           </div>
-          <div>
-            <Label>URL de Redirecionamento (após pagamento)</Label>
-            <Input value={formData.redirect_url} onChange={(e) => setFormData({ ...formData, redirect_url: e.target.value })} placeholder="https://..." />
+          <div className="border-t pt-4 space-y-4">
+            <h4 className="font-semibold">👣 Rodapé</h4>
+            <div className="grid grid-cols-2 gap-4">
+               <div><Label>Texto do Rodapé</Label><Input value={formData.footer_text} onChange={(e) => setFormData({ ...formData, footer_text: e.target.value })} /></div>
+               <div><Label>Cor do texto</Label><div className="flex gap-2"><Input type="color" value={formData.footer_color} onChange={(e) => setFormData({ ...formData, footer_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" /><Input value={formData.footer_color} onChange={(e) => setFormData({ ...formData, footer_color: e.target.value })} /></div></div>
+            </div>
           </div>
         </TabsContent>
 
