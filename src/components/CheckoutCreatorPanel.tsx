@@ -501,7 +501,6 @@ export const CheckoutCreatorPanel = () => {
             </Button>
           </div>
         </div>
-        </div>
 
         {/* Editor Content */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
