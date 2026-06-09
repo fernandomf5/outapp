@@ -99,13 +99,14 @@ interface Product {
 }
 
 export const CheckoutCreatorPanel = () => {
+  const [view, setView] = useState<'list' | 'editor'>('list');
+
   const [checkouts, setCheckouts] = useState<Checkout[]>([]);
   const [orders, setOrders] = useState<CheckoutOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isOrdersDialogOpen, setIsOrdersDialogOpen] = useState(false);
   const [isItemsDialogOpen, setIsItemsDialogOpen] = useState(false);
+
   const [selectedCheckout, setSelectedCheckout] = useState<Checkout | null>(null);
   const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
