@@ -325,7 +325,7 @@ const CheckoutPage = () => {
                             <Checkbox checked={selectedBumps.has(bump.id)} onCheckedChange={() => toggleBump(bump.id)} className="w-5 h-5" />
                             {bump.image_url && <img src={bump.image_url} alt={bump.name} className="w-14 h-14 rounded-xl object-cover" />}
                             <div className="flex-1">
-                              <p className="font-bold text-sm md:text-base">{bump.name}</p>
+                              <p className="font-bold text-sm md:text-base" style={{ color: textColor }}>{bump.name}</p>
                               <div className="flex items-center gap-2">
                                 <span className="font-black text-sm" style={{ color: primaryColor }}>+ R$ {Number(bump.price).toFixed(2)}</span>
                                 <Badge variant="secondary" className="text-[9px] h-4">SÓ HOJE</Badge>
@@ -399,21 +399,21 @@ const CheckoutPage = () => {
             {checkout.show_fake_feedback && checkout.fake_feedbacks && checkout.fake_feedbacks.length > 0 && (
                <div className="space-y-6 animate-in fade-in duration-700 delay-300">
                   <div className="flex items-center justify-between px-2">
-                    <h4 className="font-black text-sm uppercase tracking-widest">Opinião de quem já comprou</h4>
+                    <h4 className="font-black text-sm uppercase tracking-widest" style={{ color: textColor }}>Opinião de quem já comprou</h4>
                     <div className="flex text-yellow-400 gap-1">
                       {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 fill-current" />)}
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {checkout.fake_feedbacks.map((f: any, i: number) => (
-                      <Card key={i} className="border-none shadow-sm rounded-2xl bg-white/60 backdrop-blur-sm p-6 flex gap-4">
+                      <Card key={i} className="border-none shadow-sm rounded-2xl p-6 flex gap-4" style={{ backgroundColor: (checkout.card_color || '#ffffff') + '99', backdropFilter: 'blur(8px)' }}>
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary flex-shrink-0" style={{ color: primaryColor }}>{f.name?.[0] || 'U'}</div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                             <p className="font-bold text-sm">{f.name}</p>
+                             <p className="font-bold text-sm" style={{ color: textColor }}>{f.name}</p>
                              <CheckCircle2 className="w-3 h-3 text-blue-500" />
                           </div>
-                          <p className="text-sm opacity-80 leading-relaxed italic">"{f.text}"</p>
+                          <p className="text-sm opacity-80 leading-relaxed italic" style={{ color: subtitleColor }}>"{f.text}"</p>
                         </div>
                       </Card>
                     ))}
@@ -477,7 +477,7 @@ const CheckoutPage = () => {
                     <div key={item.id} className="group flex items-center gap-3 p-3 rounded-2xl border-2 border-transparent bg-muted/10 hover:border-primary/20 transition-all">
                       {item.image_url && <img src={item.image_url} alt={item.name} className="w-12 h-12 rounded-xl object-cover shadow-sm" />}
                       <div className="flex-1">
-                        <p className="font-bold text-xs truncate">{item.name}</p>
+                        <p className="font-bold text-xs truncate" style={{ color: textColor }}>{item.name}</p>
                         <p className="font-black text-xs" style={{ color: primaryColor }}>R$ {Number(item.price).toFixed(2)}</p>
                       </div>
                       <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full bg-white shadow-sm hover:bg-primary hover:text-white transition-all" onClick={() => updateRelatedQty(item.id, 1)}>
