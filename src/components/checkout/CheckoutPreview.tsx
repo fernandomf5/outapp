@@ -24,7 +24,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
-      <div className={`w-full p-4 flex ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10`}>
+      <div className={`w-full p-4 flex ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} border-b sticky top-0 z-10`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
         {checkout.item_image_url ? (
           <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
         ) : (
