@@ -341,7 +341,7 @@ const CheckoutPage = () => {
                 <div className="border-t pt-8">
                   {!showPayment && (
                     <div className="space-y-6">
-                      <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2">
+                      <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2" style={{ color: textColor }}>
                         <span className="w-6 h-6 rounded-full text-white text-[10px] flex items-center justify-center font-black" style={{ backgroundColor: primaryColor }}>1</span>
                         Informações de Contato
                       </h4>
@@ -351,15 +351,15 @@ const CheckoutPage = () => {
                           <Input className="h-12 rounded-xl bg-muted/20 border-none" value={customerData.name} onChange={(e) => setCustomerData({ ...customerData, name: e.target.value })} placeholder="Como prefere ser chamado?" />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase opacity-70">E-mail para entrega *</Label>
+                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>E-mail para entrega *</Label>
                           <Input className="h-12 rounded-xl bg-muted/20 border-none" type="email" value={customerData.email} onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })} placeholder="Onde enviaremos seu acesso?" />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase opacity-70">WhatsApp</Label>
+                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>WhatsApp</Label>
                           <Input className="h-12 rounded-xl bg-muted/20 border-none" value={customerData.phone} onChange={(e) => setCustomerData({ ...customerData, phone: e.target.value })} placeholder="(00) 00000-0000" />
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase opacity-70">CPF / CNPJ *</Label>
+                         <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>CPF / CNPJ *</Label>
                           <Input className="h-12 rounded-xl bg-muted/20 border-none" value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: e.target.value })} placeholder="000.000.000-00" />
                         </div>
                       </div>
@@ -441,8 +441,8 @@ const CheckoutPage = () => {
                   <div className="space-y-3 pt-4 border-t border-dashed">
                     {getSelectedExtras().map((ex, i) => (
                       <div key={i} className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground font-medium flex items-center gap-2"><Plus className="w-3 h-3" /> {ex.name}</span>
-                        <span className="font-bold">R$ {(ex.price * ex.qty).toFixed(2)}</span>
+                        <span className="font-medium flex items-center gap-2" style={{ color: subtitleColor }}><Plus className="w-3 h-3" /> {ex.name}</span>
+                        <span className="font-bold" style={{ color: textColor }}>R$ {(ex.price * ex.qty).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -457,7 +457,7 @@ const CheckoutPage = () => {
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 text-[10px] font-black uppercase text-green-600 bg-green-50 p-4 rounded-xl border border-green-100">
                       <Shield className="w-5 h-5 flex-shrink-0" />
-                      <span>Sua compra é processada em um ambiente 100% criptografado e seguro.</span>
+                      <span style={{ color: subtitleColor }}>Sua compra é processada em um ambiente 100% criptografado e seguro.</span>
                     </div>
                     
                     <div className="flex justify-center items-center gap-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
@@ -498,9 +498,9 @@ const CheckoutPage = () => {
              {checkout.footer_text || 'COMPRA 100% SEGURA & PROTEGIDA'}
            </p>
            <div className="flex justify-center flex-wrap gap-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">
-             <span className="hover:opacity-100 cursor-pointer transition-opacity">Privacidade</span>
-             <span className="hover:opacity-100 cursor-pointer transition-opacity">Termos de Uso</span>
-             <span className="hover:opacity-100 cursor-pointer transition-opacity">Contato</span>
+             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Privacidade</span>
+             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Termos de Uso</span>
+             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Contato</span>
            </div>
         </div>
 
