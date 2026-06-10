@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, activeTab?: string }) => {
   const primaryColor = checkout.primary_color || '#8B5CF6';
   const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
-  const textColor = checkout.text_color || checkout.title_color || '#0f172a';
-  const footerColor = checkout.footer_color || checkout.footer_text_color || '#64748b';
+  const textColor = checkout.title_color || '#0f172a';
+  const subtitleColor = checkout.subtitle_color || '#666666';
+  const footerColor = checkout.footer_text_color || '#64748b';
   
   const feedbacks = checkout.fake_feedbacks || [
     { name: "Ana Silva", text: "Amei o curso! Muito prático.", rating: 5, avatar: "" },
@@ -57,13 +58,13 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                 <div className="flex-1 flex flex-col justify-center">
                   <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
                   <h3 className="font-bold text-lg md:text-xl leading-tight" style={{ color: textColor }}>{checkout.item_name || 'Nome do Produto'}</h3>
-                  <p className="text-xs mt-1 line-clamp-1" style={{ color: checkout.subtitle_color || '#666666' }}>{checkout.item_description || 'Breve descrição do que você está comprando...'}</p>
+                  <p className="text-xs mt-1 line-clamp-1" style={{ color: subtitleColor }}>{checkout.item_description || 'Breve descrição do que você está comprando...'}</p>
                 </div>
               </div>
               
               <div className="p-5 flex items-center justify-between border-t border-muted/50" style={{ backgroundColor: checkout.summary_bg_color || 'rgba(0,0,0,0.03)' }}>
                 <div className="flex flex-col">
-                  <span className="text-[10px] uppercase font-semibold" style={{ color: checkout.subtitle_color || '#666666' }}>Valor Total</span>
+                  <span className="text-[10px] uppercase font-semibold" style={{ color: subtitleColor }}>Valor Total</span>
                   <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
                 </div>
                 <div className="flex flex-col items-end">
@@ -90,19 +91,19 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                 <div className="space-y-3">
                   {checkout.show_field_name !== false && (
                     <div className="space-y-1">
-                      <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>Nome Completo</Label>
+                      <Label className="text-xs" style={{ color: subtitleColor }}>Nome Completo</Label>
                       <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                     </div>
                   )}
                   {checkout.show_field_email !== false && (
                     <div className="space-y-1">
-                      <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>E-mail para entrega</Label>
+                      <Label className="text-xs" style={{ color: subtitleColor }}>E-mail para entrega</Label>
                       <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                     </div>
                   )}
                   {checkout.show_field_whatsapp && (
                     <div className="space-y-1">
-                      <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>WhatsApp</Label>
+                      <Label className="text-xs" style={{ color: subtitleColor }}>WhatsApp</Label>
                       <Input disabled placeholder="(00) 00000-0000" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                     </div>
                   )}
@@ -116,12 +117,12 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                       <div className="grid grid-cols-3 gap-2">
                         {checkout.show_field_zip !== false && (
                           <div className="col-span-1 space-y-1">
-                            <Label className="text-[10px]" style={{ color: checkout.subtitle_color || '#666666' }}>CEP</Label>
+                            <Label className="text-[10px]" style={{ color: subtitleColor }}>CEP</Label>
                             <Input disabled placeholder="00000-000" className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                           </div>
                         )}
                         <div className="col-span-2 space-y-1">
-                           <Label className="text-[10px]" style={{ color: checkout.subtitle_color || '#666666' }}>Rua</Label>
+                           <Label className="text-[10px]" style={{ color: subtitleColor }}>Rua</Label>
                            <Input disabled placeholder="Nome da rua..." className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                         </div>
                       </div>
@@ -217,7 +218,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                           <p className="text-xs font-bold" style={{ color: textColor }}>{f.name}</p>
                           <CheckCircle2 className="w-3 h-3 text-blue-500" />
                         </div>
-                        <p className="text-[11px] leading-relaxed mt-1" style={{ color: checkout.subtitle_color || '#666666' }}>{f.text}</p>
+                        <p className="text-[11px] leading-relaxed mt-1" style={{ color: subtitleColor }}>{f.text}</p>
                       </div>
                     </div>
                   </Card>

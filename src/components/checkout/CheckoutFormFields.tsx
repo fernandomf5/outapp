@@ -194,7 +194,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Input type="color" value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <Label className="text-slate-700 font-semibold">Cor do Cartão/Fundo</Label>
+                <Label className="text-slate-700 font-semibold">Cor do Fundo</Label>
                 <Input type="color" value={formData.custom_settings.card_color} onChange={(e) => updateSetting('card_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
