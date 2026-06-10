@@ -117,9 +117,9 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                    <Select value={formData.custom_settings.logo_size} onValueChange={(v) => updateSetting('logo_size', v)}>
                       <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="h-8">Pequeno</SelectItem>
-                        <SelectItem value="h-12">Médio</SelectItem>
-                        <SelectItem value="h-16">Grande</SelectItem>
+                        <SelectItem value="h-8">Pequeno (h-8)</SelectItem>
+                        <SelectItem value="h-16">Médio (h-16)</SelectItem>
+                        <SelectItem value="h-24">Grande (h-24)</SelectItem>
                       </SelectContent>
                    </Select>
                 </div>
@@ -284,20 +284,46 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             <h3 className="font-bold text-lg text-slate-900">Campos do Formulário</h3>
             <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center justify-between">
-                <Label className="text-slate-700 font-medium">Campo: Nome Completo</Label>
+                <Label className="text-slate-700 font-medium">Nome Completo</Label>
                 <Switch checked={formData.custom_settings.show_field_name} onCheckedChange={(v) => updateSetting('show_field_name', v)} />
               </div>
               <div className="flex items-center justify-between">
-                <Label className="text-slate-700 font-medium">Campo: E-mail</Label>
+                <Label className="text-slate-700 font-medium">E-mail</Label>
                 <Switch checked={formData.custom_settings.show_field_email} onCheckedChange={(v) => updateSetting('show_field_email', v)} />
               </div>
               <div className="flex items-center justify-between">
-                <Label className="text-slate-700 font-medium">Campo: WhatsApp</Label>
+                <Label className="text-slate-700 font-medium">WhatsApp</Label>
                 <Switch checked={formData.custom_settings.show_field_whatsapp} onCheckedChange={(v) => updateSetting('show_field_whatsapp', v)} />
               </div>
               <div className="flex items-center justify-between">
-                <Label className="text-slate-700 font-medium">Campo: CPF/CNPJ</Label>
+                <Label className="text-slate-700 font-medium">CPF/CNPJ</Label>
                 <Switch checked={formData.custom_settings.show_field_cpf} onCheckedChange={(v) => updateSetting('show_field_cpf', v)} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-medium">Telefone Fixo</Label>
+                <Switch checked={formData.custom_settings.show_field_phone} onCheckedChange={(v) => updateSetting('show_field_phone', v)} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-slate-700 font-medium">Data de Nascimento</Label>
+                <Switch checked={formData.custom_settings.show_field_birth} onCheckedChange={(v) => updateSetting('show_field_birth', v)} />
+              </div>
+              <div className="pt-2 border-t border-slate-200">
+                <div className="flex items-center justify-between">
+                  <Label className="text-slate-700 font-bold">Endereço de Entrega</Label>
+                  <Switch checked={formData.custom_settings.show_field_address} onCheckedChange={(v) => updateSetting('show_field_address', v)} />
+                </div>
+                {formData.custom_settings.show_field_address && (
+                  <div className="mt-2 space-y-2 pl-4 border-l-2 border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-slate-500 text-xs">CEP</Label>
+                      <Switch checked={formData.custom_settings.show_field_zip} onCheckedChange={(v) => updateSetting('show_field_zip', v)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-slate-500 text-xs">Cidade/Estado</Label>
+                      <Switch checked={formData.custom_settings.show_field_city} onCheckedChange={(v) => updateSetting('show_field_city', v)} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -307,19 +333,49 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
           <div className="space-y-4 p-6">
             <h3 className="font-bold text-lg text-slate-900">Métodos de Pagamento</h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">PIX</div>
-                  <Label className="text-slate-900 font-bold">Pix</Label>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">PIX</div>
+                    <div>
+                      <Label className="text-slate-900 font-bold block">Pix Manual</Label>
+                      <p className="text-[10px] text-slate-500">QR Code manual e confirmação via WhatsApp</p>
+                    </div>
+                  </div>
+                  <Switch checked={formData.custom_settings.enable_pix} onCheckedChange={(v) => updateSetting('enable_pix', v)} />
                 </div>
-                <Switch checked={formData.custom_settings.enable_pix} onCheckedChange={(v) => updateSetting('enable_pix', v)} />
+                {formData.custom_settings.enable_pix && (
+                  <div className="space-y-3 pt-2 border-t border-slate-200">
+                    <div>
+                      <Label className="text-slate-700 text-xs font-semibold mb-1 block">Chave PIX</Label>
+                      <Input value={formData.custom_settings.pix_key || ''} onChange={(e) => updateSetting('pix_key', e.target.value)} placeholder="Sua chave PIX" className="h-9 bg-white text-slate-900" />
+                    </div>
+                    <div>
+                      <Label className="text-slate-700 text-xs font-semibold mb-1 block">Número WhatsApp para Comprovante</Label>
+                      <Input value={formData.custom_settings.pix_whatsapp || ''} onChange={(e) => updateSetting('pix_whatsapp', e.target.value)} placeholder="5511999999999" className="h-9 bg-white text-slate-900" />
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">CC</div>
-                  <Label className="text-slate-900 font-bold">Cartão de Crédito</Label>
+
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs">MP</div>
+                    <div>
+                      <Label className="text-slate-900 font-bold block">Mercado Pago</Label>
+                      <p className="text-[10px] text-slate-500">Integração automática e cartão de crédito</p>
+                    </div>
+                  </div>
+                  <Switch checked={formData.custom_settings.enable_mp} onCheckedChange={(v) => updateSetting('enable_mp', v)} />
                 </div>
-                <Switch checked={formData.custom_settings.enable_card} onCheckedChange={(v) => updateSetting('enable_card', v)} />
+                {formData.custom_settings.enable_mp && (
+                  <div className="space-y-3 pt-2 border-t border-slate-200">
+                    <div className="p-2 bg-blue-100/50 border border-blue-200 rounded text-[10px] text-blue-800">
+                      Configure suas credenciais nas configurações de integração do dashboard.
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -327,21 +383,114 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
       case 'benefits':
         return (
           <div className="space-y-4 p-6">
-            <h3 className="font-bold text-lg text-slate-900">Benefícios e Garantias</h3>
-            <p className="text-slate-500 text-sm">Adicione itens para aumentar a confiança do cliente.</p>
-            <Button variant="outline" className="w-full border-dashed text-slate-600 border-slate-300 hover:bg-slate-50">
-              <Plus className="w-4 h-4 mr-2" /> Adicionar Benefício
-            </Button>
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-lg text-slate-900">Benefícios</h3>
+              <Button size="sm" onClick={() => {
+                const benefits = formData.custom_settings.benefits || [];
+                updateSetting('benefits', [...benefits, { title: 'Novo Benefício', description: 'Descrição curta do benefício' }]);
+              }} className="bg-indigo-600 text-white h-8">
+                <Plus className="w-4 h-4 mr-1" /> Adicionar
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {(formData.custom_settings.benefits || []).map((b: any, i: number) => (
+                <div key={i} className="p-4 bg-white border border-slate-200 rounded-xl space-y-2 relative group">
+                  <Input 
+                    value={b.title} 
+                    onChange={(e) => {
+                      const benefits = [...(formData.custom_settings.benefits || [])];
+                      benefits[i].title = e.target.value;
+                      updateSetting('benefits', benefits);
+                    }} 
+                    className="font-bold text-slate-900 h-8 border-none p-0 focus-visible:ring-0" 
+                    placeholder="Título do Benefício" 
+                  />
+                  <Textarea 
+                    value={b.description} 
+                    onChange={(e) => {
+                      const benefits = [...(formData.custom_settings.benefits || [])];
+                      benefits[i].description = e.target.value;
+                      updateSetting('benefits', benefits);
+                    }} 
+                    className="text-xs text-slate-500 border-none p-0 focus-visible:ring-0 min-h-[40px] resize-none" 
+                    placeholder="Descrição do benefício..." 
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6 text-red-500 hover:bg-red-50"
+                    onClick={() => {
+                      const benefits = (formData.custom_settings.benefits || []).filter((_: any, idx: number) => idx !== i);
+                      updateSetting('benefits', benefits);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 rotate-45" />
+                  </Button>
+                </div>
+              ))}
+              {(formData.custom_settings.benefits || []).length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  <Gift className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-slate-400 text-xs">Nenhum benefício adicionado.</p>
+                </div>
+              )}
+            </div>
           </div>
         );
       case 'testimonials':
         return (
-          <div className="space-y-4 p-6 text-slate-900">
-            <h3 className="font-bold text-lg text-slate-900">Depoimentos</h3>
-            <div className="p-10 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center gap-4 bg-slate-50 border-slate-200">
-               <Users className="w-10 h-10 text-slate-300" />
-               <p className="text-slate-500 text-sm">Seus clientes ainda não têm depoimentos cadastrados.</p>
-               <Button size="sm" className="bg-slate-900 text-white">Adicionar Primeiro Depoimento</Button>
+          <div className="space-y-4 p-6">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-lg text-slate-900">Depoimentos</h3>
+              <Button size="sm" onClick={() => {
+                const testimonials = formData.custom_settings.testimonials || [];
+                updateSetting('testimonials', [...testimonials, { name: 'Cliente Satisfeito', text: 'Excelente produto, super recomendo!', rating: 5 }]);
+              }} className="bg-indigo-600 text-white h-8">
+                <Plus className="w-4 h-4 mr-1" /> Adicionar
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {(formData.custom_settings.testimonials || []).map((t: any, i: number) => (
+                <div key={i} className="p-4 bg-white border border-slate-200 rounded-xl space-y-2 relative group">
+                  <Input 
+                    value={t.name} 
+                    onChange={(e) => {
+                      const testimonials = [...(formData.custom_settings.testimonials || [])];
+                      testimonials[i].name = e.target.value;
+                      updateSetting('testimonials', testimonials);
+                    }} 
+                    className="font-bold text-slate-900 h-8 border-none p-0 focus-visible:ring-0" 
+                    placeholder="Nome do Cliente" 
+                  />
+                  <Textarea 
+                    value={t.text} 
+                    onChange={(e) => {
+                      const testimonials = [...(formData.custom_settings.testimonials || [])];
+                      testimonials[i].text = e.target.value;
+                      updateSetting('testimonials', testimonials);
+                    }} 
+                    className="text-xs text-slate-500 border-none p-0 focus-visible:ring-0 min-h-[40px] resize-none" 
+                    placeholder="Texto do depoimento..." 
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6 text-red-500 hover:bg-red-50"
+                    onClick={() => {
+                      const testimonials = (formData.custom_settings.testimonials || []).filter((_: any, idx: number) => idx !== i);
+                      updateSetting('testimonials', testimonials);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 rotate-45" />
+                  </Button>
+                </div>
+              ))}
+              {(formData.custom_settings.testimonials || []).length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-slate-400 text-xs">Nenhum depoimento adicionado.</p>
+                </div>
+              )}
             </div>
           </div>
         );
