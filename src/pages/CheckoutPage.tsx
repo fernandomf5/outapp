@@ -450,7 +450,7 @@ const CheckoutPage = () => {
                 
                 <div className="pt-6 mt-4 border-t-2 border-black/5">
                   <div className="flex justify-between items-center mb-6">
-                    <span className="text-sm font-black uppercase tracking-widest opacity-60">Total a pagar</span>
+                    <span className="text-sm font-black uppercase tracking-widest opacity-60" style={{ color: textColor }}>Total a pagar</span>
                     <span className="text-3xl font-black" style={{ color: primaryColor }}>R$ {total.toFixed(2)}</span>
                   </div>
                   
@@ -470,8 +470,8 @@ const CheckoutPage = () => {
             </Card>
 
             {!showPayment && related.length > 0 && (
-              <Card className="shadow-xl border-none bg-white rounded-3xl overflow-hidden">
-                <CardHeader className="bg-muted/20 pb-4"><CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">🛒 Frequentemente comprados juntos</CardTitle></CardHeader>
+              <Card className="shadow-xl border-none rounded-3xl overflow-hidden" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+                <CardHeader className="bg-muted/20 pb-4"><CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2" style={{ color: textColor }}>🛒 Frequentemente comprados juntos</CardTitle></CardHeader>
                 <CardContent className="p-4 grid gap-3">
                   {related.map(item => (
                     <div key={item.id} className="group flex items-center gap-3 p-3 rounded-2xl border-2 border-transparent bg-muted/10 hover:border-primary/20 transition-all">
