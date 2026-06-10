@@ -316,11 +316,11 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                   <div className="mt-2 space-y-2 pl-4 border-l-2 border-slate-200">
                     <div className="flex items-center justify-between">
                       <Label className="text-slate-500 text-xs">CEP</Label>
-                      <Switch size="sm" checked={formData.custom_settings.show_field_zip} onCheckedChange={(v) => updateSetting('show_field_zip', v)} />
+                      <Switch checked={formData.custom_settings.show_field_zip} onCheckedChange={(v) => updateSetting('show_field_zip', v)} />
                     </div>
                     <div className="flex items-center justify-between">
                       <Label className="text-slate-500 text-xs">Cidade/Estado</Label>
-                      <Switch size="sm" checked={formData.custom_settings.show_field_city} onCheckedChange={(v) => updateSetting('show_field_city', v)} />
+                      <Switch checked={formData.custom_settings.show_field_city} onCheckedChange={(v) => updateSetting('show_field_city', v)} />
                     </div>
                   </div>
                 )}
