@@ -36,6 +36,7 @@ interface CheckoutData {
   footer_color: string | null;
   show_fake_feedback: boolean;
   fake_feedbacks: any[];
+  custom_settings?: any;
 }
 
 interface AdditionalItem {
@@ -75,7 +76,8 @@ const CheckoutPage = () => {
       const { data, error: fetchError } = await supabase
         .from('checkouts').select('*').eq('id', checkoutId).eq('is_active', true).single();
       if (fetchError || !data) { setError('Checkout não encontrado ou inativo'); return; }
-      setCheckout(data as any);
+      const settings = data.custom_settings && typeof data.custom_settings === 'object' ? data.custom_settings : {};
+      setCheckout({ ...data, ...settings } as any);
 
       let pubKey = (data as any).mp_public_key;
       if (!pubKey) {
