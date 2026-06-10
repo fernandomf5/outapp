@@ -202,6 +202,12 @@ const CheckoutPage = () => {
   const total = calculateTotal();
   const bumps = additionalItems.filter(i => i.item_type === 'bump');
   const related = additionalItems.filter(i => i.item_type === 'related');
+  
+  // Custom Styles from Settings
+  const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
+  const textColor = checkout.text_color || checkout.title_color || '#0f172a';
+  const subtitleColor = checkout.subtitle_color || '#666666';
+  const footerColor = checkout.footer_color || checkout.footer_text_color || '#64748b';
 
   if (paymentSuccess) {
     return (
@@ -234,9 +240,8 @@ const CheckoutPage = () => {
     );
   }
 
-  const bgColor = checkout.background_color || '#F8FAFC';
-  const textColor = checkout.text_color || '#0f172a';
-  const footerColor = checkout.footer_color || '#64748b';
+  // Styles were moved up for accessibility
+
 
   return (
     <>
@@ -247,26 +252,31 @@ const CheckoutPage = () => {
 
       <div className="min-h-screen flex flex-col items-center transition-all duration-300" style={{ backgroundColor: bgColor, color: textColor }}>
         {/* Modern Header */}
-        <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4">
-          <div className="w-full max-w-6xl flex justify-between items-center">
-             {checkout.logo_url ? (
-               <img src={checkout.logo_url} alt="Logo" className="h-8 md:h-10 object-contain" />
-             ) : (
-               <div className="font-bold text-xl md:text-2xl flex items-center gap-2">
-                 <Package className="w-6 h-6 md:w-8 md:h-8" style={{ color: primaryColor }} />
-                 <span>{checkout.name}</span>
+        <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+          <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
+             <div className="flex items-center justify-between w-full">
+               <div className={`flex items-center gap-2 ${checkout.logo_alignment === 'center' ? 'mx-auto' : ''}`}>
+                 {checkout.logo_url || checkout.item_image_url ? (
+                   <img src={checkout.logo_url || checkout.item_image_url || ""} alt="Logo" className={`${checkout.logo_size || 'h-8 md:h-10'} object-contain`} />
+                 ) : (
+                   <div className="font-bold text-xl md:text-2xl flex items-center gap-2" style={{ color: textColor }}>
+                     <Package className="w-6 h-6 md:w-8 md:h-8" style={{ color: primaryColor }} />
+                     <span>{checkout.name}</span>
+                   </div>
+                 )}
                </div>
-             )}
-             <div className="hidden md:flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider opacity-60">
-               <span className="flex items-center gap-1"><Shield className="w-3 h-3 text-green-500" /> Compra Segura</span>
-               <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> SSL Protegido</span>
+               
+               <div className={`hidden md:flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider opacity-60 ${checkout.logo_alignment === 'right' ? 'absolute left-0' : ''}`}>
+                 <span className="flex items-center gap-1" style={{ color: textColor }}><Shield className="w-3 h-3 text-green-500" /> Compra Segura</span>
+                 <span className="flex items-center gap-1" style={{ color: textColor }}><Lock className="w-3 h-3" /> SSL Protegido</span>
+               </div>
              </div>
           </div>
         </div>
 
         <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 p-4 md:p-8">
           <div className="md:col-span-7 lg:col-span-8 space-y-6">
-            <Card className="overflow-hidden shadow-xl border-none bg-white rounded-3xl">
+            <Card className="overflow-hidden shadow-xl border-none rounded-3xl" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
                   <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
@@ -283,8 +293,8 @@ const CheckoutPage = () => {
                     )}
                     <div className="flex-1 text-center md:text-left">
                       <Badge className="mb-2" style={{ backgroundColor: primaryColor }}>Oferta Ativa</Badge>
-                      <h3 className="text-xl md:text-2xl font-black leading-tight">{checkout.item_name}</h3>
-                      {checkout.item_description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{checkout.item_description}</p>}
+                      <h3 className="text-xl md:text-2xl font-black leading-tight" style={{ color: textColor }}>{checkout.item_name}</h3>
+                      {checkout.item_description && <p className="text-sm mt-2 line-clamp-2" style={{ color: subtitleColor }}>{checkout.item_description}</p>}
                       <div className="flex items-center justify-center md:justify-start gap-3 mt-4">
                         <p className="text-3xl font-black" style={{ color: primaryColor }}>R$ {Number(checkout.price).toFixed(2)}</p>
                         <span className="text-sm text-muted-foreground line-through opacity-50">R$ {(Number(checkout.price) * 1.5).toFixed(2)}</span>
@@ -331,7 +341,7 @@ const CheckoutPage = () => {
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase opacity-70">Nome Completo *</Label>
+                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>Nome Completo *</Label>
                           <Input className="h-12 rounded-xl bg-muted/20 border-none" value={customerData.name} onChange={(e) => setCustomerData({ ...customerData, name: e.target.value })} placeholder="Como prefere ser chamado?" />
                         </div>
                         <div className="space-y-2">
@@ -407,16 +417,16 @@ const CheckoutPage = () => {
           </div>
 
           <div className="md:col-span-5 lg:col-span-4 space-y-6">
-            <Card className="shadow-2xl border-none bg-white rounded-3xl sticky top-24 overflow-hidden">
+            <Card className="shadow-2xl border-none rounded-3xl sticky top-24 overflow-hidden" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
               <div className="p-6 bg-muted/30 border-b flex items-center justify-between">
-                <CardTitle className="text-lg font-black flex items-center gap-2"><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
+                <CardTitle className="text-lg font-black flex items-center gap-2" style={{ color: textColor }}><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
                 <Badge variant="outline" className="font-black text-[10px]">TOTAL</Badge>
               </div>
               <CardContent className="space-y-6 p-6">
                 <div className="flex gap-4 items-center">
                   {checkout.item_image_url && <img src={checkout.item_image_url} alt={checkout.item_name} className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-md" />}
                   <div className="flex-1">
-                    <h3 className="font-bold text-sm line-clamp-1">{checkout.item_name}</h3>
+                    <h3 className="font-bold text-sm line-clamp-1" style={{ color: textColor }}>{checkout.item_name}</h3>
                     <p className="text-lg font-black" style={{ color: primaryColor }}>R$ {Number(checkout.price).toFixed(2)}</p>
                   </div>
                 </div>
