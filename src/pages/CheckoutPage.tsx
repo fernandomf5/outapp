@@ -37,6 +37,12 @@ interface CheckoutData {
   show_fake_feedback: boolean;
   fake_feedbacks: any[];
   custom_settings?: any;
+  card_color?: string;
+  title_color?: string;
+  subtitle_color?: string;
+  footer_text_color?: string;
+  logo_size?: string;
+  logo_alignment?: string;
 }
 
 interface AdditionalItem {
