@@ -25,7 +25,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
       {/* Mini Header / Logo */}
       <div className="w-full p-4 flex justify-center bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
         {checkout.logo_url ? (
-          <img src={checkout.logo_url} alt="Logo" className="h-8 object-contain" />
+          <img src={checkout.logo_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
         ) : (
           <div className="font-bold text-xl flex items-center gap-2" style={{ color: textColor }}>
             <Package className="w-6 h-6" style={{ color: primaryColor }} />

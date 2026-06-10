@@ -117,9 +117,9 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                    <Select value={formData.custom_settings.logo_size} onValueChange={(v) => updateSetting('logo_size', v)}>
                       <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="h-8">Pequeno</SelectItem>
-                        <SelectItem value="h-12">Médio</SelectItem>
-                        <SelectItem value="h-16">Grande</SelectItem>
+                        <SelectItem value="h-8">Pequeno (h-8)</SelectItem>
+                        <SelectItem value="h-16">Médio (h-16)</SelectItem>
+                        <SelectItem value="h-24">Grande (h-24)</SelectItem>
                       </SelectContent>
                    </Select>
                 </div>
