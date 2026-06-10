@@ -81,51 +81,119 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
 
           {/* Checkout Form Simulation */}
           <Card className={`border-none shadow-sm rounded-2xl p-6 space-y-4 ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
-            <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
-              <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>1</span>
-              Dados Pessoais
-            </h4>
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>Nome Completo</Label>
-                <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>E-mail para entrega</Label>
-                <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
-              </div>
-              
-              {checkout.product_type === 'physical_product' && (
-                <div className="pt-4 border-t space-y-3 animate-in fade-in slide-in-from-top-2">
-                  <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
-                    <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>2</span>
-                    Endereço de Entrega
-                  </h4>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="col-span-1 space-y-1">
-                       <Label className="text-[10px]" style={{ color: checkout.subtitle_color || '#666666' }}>CEP</Label>
-                       <Input disabled placeholder="00000-000" className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+            {activeTab !== 'payment' ? (
+              <>
+                <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
+                  <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>1</span>
+                  Dados Pessoais
+                </h4>
+                <div className="space-y-3">
+                  {checkout.show_field_name !== false && (
+                    <div className="space-y-1">
+                      <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>Nome Completo</Label>
+                      <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                     </div>
-                    <div className="col-span-2 space-y-1">
-                       <Label className="text-[10px]" style={{ color: checkout.subtitle_color || '#666666' }}>Rua</Label>
-                       <Input disabled placeholder="Nome da rua..." className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                  )}
+                  {checkout.show_field_email !== false && (
+                    <div className="space-y-1">
+                      <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>E-mail para entrega</Label>
+                      <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
                     </div>
-                  </div>
+                  )}
+                  {checkout.show_field_whatsapp && (
+                    <div className="space-y-1">
+                      <Label className="text-xs" style={{ color: checkout.subtitle_color || '#666666' }}>WhatsApp</Label>
+                      <Input disabled placeholder="(00) 00000-0000" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                    </div>
+                  )}
+                  
+                  {checkout.show_field_address && (
+                    <div className="pt-4 border-t space-y-3 animate-in fade-in slide-in-from-top-2">
+                      <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
+                        <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>2</span>
+                        Endereço de Entrega
+                      </h4>
+                      <div className="grid grid-cols-3 gap-2">
+                        {checkout.show_field_zip !== false && (
+                          <div className="col-span-1 space-y-1">
+                            <Label className="text-[10px]" style={{ color: checkout.subtitle_color || '#666666' }}>CEP</Label>
+                            <Input disabled placeholder="00000-000" className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                          </div>
+                        )}
+                        <div className="col-span-2 space-y-1">
+                           <Label className="text-[10px]" style={{ color: checkout.subtitle_color || '#666666' }}>Rua</Label>
+                           <Input disabled placeholder="Nome da rua..." className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${activeTab === 'cta' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
-              {checkout.product_type === 'physical_product' ? 'Calcular Frete' : 'Próximo Passo'}
-            </Button>
+                <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${activeTab === 'cta' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
+                  {checkout.show_field_address ? 'Calcular Frete' : 'Próximo Passo'}
+                </Button>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
+                  <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>2</span>
+                  Pagamento
+                </h4>
+                <div className="space-y-2">
+                  {checkout.enable_pix && (
+                    <div className="p-3 border rounded-xl flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                        <DollarSign className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold" style={{ color: textColor }}>PIX (Manual)</p>
+                        <p className="text-[10px] text-muted-foreground">Aprovação manual via WhatsApp</p>
+                      </div>
+                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                    </div>
+                  )}
+                  {checkout.enable_mp && (
+                    <div className="p-3 border rounded-xl flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <CreditCard className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold" style={{ color: textColor }}>Mercado Pago</p>
+                        <p className="text-[10px] text-muted-foreground">Cartão, PIX Automático ou Boleto</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <Button className="w-full h-12 font-bold rounded-xl shadow-lg" style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
+                  Finalizar Pagamento
+                </Button>
+              </div>
+            )}
             
             <p className="text-[10px] text-center text-muted-foreground flex items-center justify-center gap-1">
               <Shield className="w-3 h-3 text-green-500" /> Seus dados estão protegidos por criptografia de ponta a ponta.
             </p>
           </Card>
 
+          {/* Benefits Section */}
+          {(checkout.benefits || []).length > 0 && (
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${activeTab === 'benefits' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse p-2 rounded-xl' : ''}`}>
+              {checkout.benefits.map((b: any, i: number) => (
+                <div key={i} className="flex gap-3 p-3 rounded-xl border border-muted bg-white/50">
+                   <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                     <CheckCircle2 className="w-4 h-4 text-green-600" />
+                   </div>
+                   <div>
+                     <p className="text-xs font-bold" style={{ color: textColor }}>{b.title}</p>
+                     <p className="text-[10px] text-muted-foreground leading-tight">{b.description}</p>
+                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Feedback Section */}
-          {checkout.show_fake_feedback && (
+          {((checkout.testimonials || []).length > 0 || checkout.show_fake_feedback) && (
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1">
                 <h4 className="font-bold text-sm" style={{ color: textColor }}>O que nossos clientes dizem</h4>
@@ -138,7 +206,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                 </div>
               </div>
               <div className="space-y-3">
-                {feedbacks.map((f: any, i: number) => (
+                {([...(checkout.testimonials || []), ...(checkout.show_fake_feedback ? feedbacks : [])]).map((f: any, i: number) => (
                   <Card key={i} className={`border-none shadow-sm rounded-xl p-4 ${activeTab === 'testimonials' ? 'ring-2 ring-indigo-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9 }}>
                     <div className="flex gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs" style={{ color: primaryColor }}>
