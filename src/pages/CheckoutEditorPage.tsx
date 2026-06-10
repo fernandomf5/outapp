@@ -246,7 +246,7 @@ const CheckoutEditorPage = () => {
               <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 gap-2">
                 <Copy className="w-4 h-4" /> Duplicar
               </Button>
-              <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 gap-2">
+              <Button variant="ghost" size="sm" onClick={() => window.open(`/checkout/${id || 'preview'}`, '_blank')} className="text-white/60 hover:text-white hover:bg-white/10 gap-2">
                 <Eye className="w-4 h-4" /> Visualizar
               </Button>
               <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 shadow-xl shadow-indigo-900/20">
