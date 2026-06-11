@@ -79,6 +79,7 @@ const CheckoutPage = () => {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [accessCode, setAccessCode] = useState<string | null>(null);
+  const [isManualPix, setIsManualPix] = useState(false);
 
   const [customerData, setCustomerData] = useState({
     name: '', email: '', phone: '', cpf: '',
@@ -184,9 +185,10 @@ const CheckoutPage = () => {
     }
   };
 
-  const handlePaymentSuccess = (data: { accessCode?: string; paymentId: string }) => {
+  const handlePaymentSuccess = (data: { accessCode?: string; paymentId: string; isManualPix?: boolean }) => {
     setPaymentSuccess(true);
     if (data.accessCode) setAccessCode(data.accessCode);
+    if (data.isManualPix) setIsManualPix(true);
   };
 
   const handlePaymentError = (errorMsg: string) => {
@@ -244,20 +246,33 @@ const CheckoutPage = () => {
           <Card className="w-full max-w-lg text-center overflow-hidden shadow-xl border-none rounded-2xl">
             <div className="p-8 space-y-6">
               <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                <CheckCircle2 className="w-10 h-10" style={{ color: primaryColor }} />
+                {isManualPix ? <Clock className="w-10 h-10" style={{ color: primaryColor }} /> : <CheckCircle2 className="w-10 h-10" style={{ color: primaryColor }} />}
               </div>
               <div>
-                <h1 className="text-2xl font-bold mb-2">🎉 Pagamento Confirmado!</h1>
-                <p className="text-muted-foreground">Seu pagamento foi processado com sucesso.</p>
+                <h1 className="text-2xl font-bold mb-2">{isManualPix ? '⏳ Aguardando Comprovante' : '🎉 Pagamento Confirmado!'}</h1>
+                <p className="text-muted-foreground">{isManualPix ? 'Seu pedido foi registrado. Envie o comprovante para liberar seu acesso.' : 'Seu pagamento foi processado com sucesso.'}</p>
               </div>
-              {accessCode && (
+              
+              {isManualPix && checkout.custom_settings?.pix_whatsapp && (
+                <Button 
+                  className="w-full h-14 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl gap-2 shadow-lg shadow-green-200"
+                  onClick={() => {
+                    const msg = encodeURIComponent(`Olá, segue meu comprovante de pagamento para o pedido ${orderId}. Nome: ${customerData.name}`);
+                    window.open(`https://wa.me/${checkout.custom_settings.pix_whatsapp}?text=${msg}`, '_blank');
+                  }}
+                >
+                  <Smartphone className="w-5 h-5" /> Enviar Comprovante no WhatsApp
+                </Button>
+              )}
+
+              {accessCode && !isManualPix && (
                 <div className="p-6 rounded-xl border-2 border-dashed" style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}08` }}>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Seu Código de Acesso</p>
                   <p className="text-3xl font-bold font-mono tracking-widest" style={{ color: primaryColor }}>{accessCode}</p>
                 </div>
               )}
-              <p className="text-sm text-muted-foreground">{checkout.success_message || 'Obrigado pela sua compra!'}</p>
-              {checkout.redirect_url && (
+              <p className="text-sm text-muted-foreground">{isManualPix ? 'Após a conferência do seu PIX, você receberá o acesso por e-mail.' : (checkout.success_message || 'Obrigado pela sua compra!')}</p>
+              {checkout.redirect_url && !isManualPix && (
                 <Button className="w-full" style={{ backgroundColor: primaryColor }} onClick={() => window.location.href = checkout.redirect_url!}>Continuar</Button>
               )}
             </div>
@@ -427,6 +442,7 @@ const CheckoutPage = () => {
                           customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
                           primaryColor={primaryColor} itemName={checkout.item_name}
                           onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey}
+                          pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
                         />
                       </div>
                     ) : !showPayment ? (
