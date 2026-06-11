@@ -394,27 +394,34 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             </div>
             <div className="space-y-3">
               {(formData.custom_settings.benefits || []).map((b: any, i: number) => (
-                <div key={i} className="p-4 bg-white border border-slate-200 rounded-xl space-y-2 relative group">
-                  <Input 
-                    value={b.title} 
-                    onChange={(e) => {
-                      const benefits = [...(formData.custom_settings.benefits || [])];
-                      benefits[i].title = e.target.value;
-                      updateSetting('benefits', benefits);
-                    }} 
-                    className="font-bold text-slate-900 h-8 border-none p-0 focus-visible:ring-0" 
-                    placeholder="Título do Benefício" 
-                  />
-                  <Textarea 
-                    value={b.description} 
-                    onChange={(e) => {
-                      const benefits = [...(formData.custom_settings.benefits || [])];
-                      benefits[i].description = e.target.value;
-                      updateSetting('benefits', benefits);
-                    }} 
-                    className="text-xs text-slate-500 border-none p-0 focus-visible:ring-0 min-h-[40px] resize-none" 
-                    placeholder="Descrição do benefício..." 
-                  />
+                <div key={i} className="p-4 bg-white border border-slate-200 rounded-xl space-y-3 relative group shadow-sm">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase font-bold text-slate-400">Título do Benefício</Label>
+                    <Input 
+                      value={b.title} 
+                      onChange={(e) => {
+                        const benefits = [...(formData.custom_settings.benefits || [])];
+                        benefits[i].title = e.target.value;
+                        updateSetting('benefits', benefits);
+                      }} 
+                      className="font-bold text-slate-900 h-9 bg-slate-50 border-slate-100 focus:bg-white transition-colors" 
+                      placeholder="Ex: Entrega Grátis" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase font-bold text-slate-400">Descrição</Label>
+                    <Textarea 
+                      value={b.description} 
+                      onChange={(e) => {
+                        const benefits = [...(formData.custom_settings.benefits || [])];
+                        benefits[i].description = e.target.value;
+                        updateSetting('benefits', benefits);
+                      }} 
+                      className="text-sm text-slate-600 bg-slate-50 border-slate-100 focus:bg-white transition-colors min-h-[60px]" 
+                      placeholder="Descreva brevemente este benefício..." 
+                    />
+                  </div>
+
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -451,27 +458,34 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             </div>
             <div className="space-y-3">
               {(formData.custom_settings.testimonials || []).map((t: any, i: number) => (
-                <div key={i} className="p-4 bg-white border border-slate-200 rounded-xl space-y-2 relative group">
-                  <Input 
-                    value={t.name} 
-                    onChange={(e) => {
-                      const testimonials = [...(formData.custom_settings.testimonials || [])];
-                      testimonials[i].name = e.target.value;
-                      updateSetting('testimonials', testimonials);
-                    }} 
-                    className="font-bold text-slate-900 h-8 border-none p-0 focus-visible:ring-0" 
-                    placeholder="Nome do Cliente" 
-                  />
-                  <Textarea 
-                    value={t.text} 
-                    onChange={(e) => {
-                      const testimonials = [...(formData.custom_settings.testimonials || [])];
-                      testimonials[i].text = e.target.value;
-                      updateSetting('testimonials', testimonials);
-                    }} 
-                    className="text-xs text-slate-500 border-none p-0 focus-visible:ring-0 min-h-[40px] resize-none" 
-                    placeholder="Texto do depoimento..." 
-                  />
+                <div key={i} className="p-4 bg-white border border-slate-200 rounded-xl space-y-3 relative group shadow-sm">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase font-bold text-slate-400">Nome do Cliente</Label>
+                    <Input 
+                      value={t.name} 
+                      onChange={(e) => {
+                        const testimonials = [...(formData.custom_settings.testimonials || [])];
+                        testimonials[i].name = e.target.value;
+                        updateSetting('testimonials', testimonials);
+                      }} 
+                      className="font-bold text-slate-900 h-9 bg-slate-50 border-slate-100 focus:bg-white transition-colors" 
+                      placeholder="Ex: João Silva" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase font-bold text-slate-400">Depoimento</Label>
+                    <Textarea 
+                      value={t.text} 
+                      onChange={(e) => {
+                        const testimonials = [...(formData.custom_settings.testimonials || [])];
+                        testimonials[i].text = e.target.value;
+                        updateSetting('testimonials', testimonials);
+                      }} 
+                      className="text-sm text-slate-600 bg-slate-50 border-slate-100 focus:bg-white transition-colors min-h-[80px]" 
+                      placeholder="O que o cliente disse sobre seu produto..." 
+                    />
+                  </div>
+
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -605,7 +619,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <h3 className="font-bold text-xl text-slate-900">Pronto para Visualizar</h3>
                 <p className="text-slate-500 max-w-xs mt-2">Use o painel ao lado para ver o preview em tempo real em diferentes dispositivos.</p>
              </div>
-             <Button onClick={() => setFormTab('general')} variant="outline" className="text-slate-900 border-slate-200">Voltar ao Início</Button>
+             <Button onClick={() => setFormTab('general')} className="bg-slate-900 text-white hover:bg-slate-800 px-8 py-6 rounded-xl font-bold text-lg shadow-xl transition-all hover:scale-105 active:scale-95">Voltar ao Início</Button>
           </div>
         );
       default:
