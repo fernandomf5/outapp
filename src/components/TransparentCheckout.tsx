@@ -252,11 +252,11 @@ export const TransparentCheckout = ({
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="credit_card" className="flex items-center gap-2">
+          <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{ color: activeTab === 'credit_card' ? primaryColor : textColor }}>
             <CreditCard className="w-4 h-4" />
             Cartão de Crédito
           </TabsTrigger>
-          <TabsTrigger value="pix" className="flex items-center gap-2">
+          <TabsTrigger value="pix" className="flex items-center gap-2" style={{ color: activeTab === 'pix' ? primaryColor : textColor }}>
             <QrCode className="w-4 h-4" />
             PIX
           </TabsTrigger>
