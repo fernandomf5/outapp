@@ -196,9 +196,9 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
             </Card>
 
             {/* Benefits Section */}
-            {(checkout.benefits || []).length > 0 && (
+            {(checkout.custom_settings?.benefits || []).length > 0 && (
               <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${activeTab === 'benefits' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse p-2 rounded-xl' : ''}`}>
-                {checkout.benefits.map((b: any, i: number) => (
+                {checkout.custom_settings.benefits.map((b: any, i: number) => (
                   <div key={i} className="flex gap-3 p-3 rounded-xl border border-muted bg-white/50">
                     <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
@@ -213,7 +213,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
             )}
 
             {/* Feedback Section */}
-            {((checkout.testimonials || []).length > 0 || checkout.show_fake_feedback) && (
+            {((checkout.custom_settings?.testimonials || []).length > 0 || checkout.show_fake_feedback) && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                   <h4 className="font-bold text-sm" style={{ color: textColor }}>O que nossos clientes dizem</h4>
@@ -226,7 +226,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {([...(checkout.testimonials || []), ...(checkout.show_fake_feedback ? feedbacks : [])]).map((f: any, i: number) => (
+                  {([...(checkout.custom_settings?.testimonials || []), ...(checkout.show_fake_feedback ? feedbacks : [])]).map((f: any, i: number) => (
                     <Card key={i} className={`border-none shadow-sm rounded-xl p-4 ${activeTab === 'testimonials' ? 'ring-2 ring-indigo-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9 }}>
                       <div className="flex gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs" style={{ color: primaryColor }}>
@@ -245,6 +245,18 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                 </div>
               </div>
             )}
+
+            {checkout.custom_settings?.show_scarcity && (
+              <div className={`p-4 rounded-2xl bg-indigo-600 text-white shadow-lg flex items-center justify-between gap-4 ${activeTab === 'scarcity' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`}>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-6 h-6 animate-pulse" />
+                  <p className="text-[10px] font-bold leading-tight">OFERTA POR TEMPO LIMITADO!</p>
+                </div>
+                <div className="text-xl font-black font-mono bg-white/10 px-3 py-1 rounded-lg">
+                   {Math.floor((checkout.custom_settings?.scarcity_timer || 600) / 60)}:{String((checkout.custom_settings?.scarcity_timer || 600) % 60).padStart(2, '0')}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -255,7 +267,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_Pix.svg/1200px-Logo_Pix.svg.png" alt="PIX" className="h-4 object-contain" />
           </div>
           <p className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: footerColor }}>
-            {checkout.footer_text || 'Compra 100% Segura'}
+            {checkout.custom_settings?.footer_contact_info || checkout.footer_text || 'Compra 100% Segura'}
           </p>
           <div className="flex justify-center gap-2">
             <Badge variant="outline" className="text-[9px] rounded-full px-3" style={{ color: footerColor, borderColor: footerColor, opacity: 0.5 }}>Privacidade</Badge>
