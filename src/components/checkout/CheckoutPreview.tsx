@@ -18,9 +18,15 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
     { name: "João Pereira", text: "Entrega super rápida do acesso.", rating: 5, avatar: "" }
   ];
 
+  const layoutModel = checkout.layout_model || 'modern';
+  const layoutStructure = checkout.layout_structure || 'split';
+  const layoutWidth = checkout.layout_width || 'boxed';
+
   return (
     <div 
-      className="w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative"
+      className={`w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative ${
+        layoutWidth === 'full' ? 'max-w-none' : 'max-w-4xl'
+      }`}
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
@@ -47,17 +53,18 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
 
 
 
-      <div className="p-4 md:p-6 space-y-6">
+      <div className={`p-4 md:p-6 space-y-6 ${layoutWidth === 'full' ? 'max-w-6xl mx-auto' : ''}`}>
         {/* Banner */}
         {checkout.banner_url && (
-          <div className="w-full h-32 md:h-48 overflow-hidden rounded-2xl shadow-sm">
+          <div className={`w-full overflow-hidden rounded-2xl shadow-sm ${layoutModel === 'minimal' ? 'h-24 md:h-32' : 'h-32 md:h-48'}`}>
             <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''}`}>
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-7 space-y-6' : 'space-y-6'}`}>
           {/* Main Product Info */}
-          <Card className={`border-none shadow-sm overflow-hidden rounded-2xl ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+          <Card className={`border-none shadow-sm overflow-hidden ${layoutModel === 'modern' ? 'rounded-3xl' : layoutModel === 'minimal' ? 'rounded-lg' : 'rounded-2xl'} ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
             <CardContent className="p-0">
               <div className="p-5 flex gap-4">
                 {checkout.item_image_url ? (
@@ -91,9 +98,11 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
               </div>
             </CardContent>
           </Card>
+          </div>
 
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-5 space-y-6' : 'space-y-6'}`}>
           {/* Checkout Form Simulation */}
-          <Card className={`border-none shadow-sm rounded-2xl p-6 space-y-4 ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+          <Card className={`border-none shadow-sm p-6 space-y-4 ${layoutModel === 'modern' ? 'rounded-3xl' : layoutModel === 'minimal' ? 'rounded-lg' : 'rounded-2xl'} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
             {activeTab !== 'payment' ? (
               <>
                 <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
@@ -238,6 +247,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* Footer */}
