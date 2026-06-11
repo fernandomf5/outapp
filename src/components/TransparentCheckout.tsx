@@ -165,7 +165,8 @@ export const TransparentCheckout = ({
     if (pixKey) {
       // Manual PIX flow
       setPixPending(true);
-      setPixQrCode(pixKey); // Use the key directly as content for manual flow
+      setPixQrCode(pixKey); 
+      setPixQrCodeBase64(""); // Clear base64 for manual key
       return;
     }
 
