@@ -32,7 +32,7 @@ declare global {
 
 export const TransparentCheckout = ({
   checkoutId, orderId, amount, customerName, customerEmail, customerCpf,
-  primaryColor, itemName, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
+  primaryColor, itemName, textColor, subtitleColor, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
 }: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string }) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("credit_card");
