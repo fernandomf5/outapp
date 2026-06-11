@@ -13,20 +13,29 @@ import { TransparentCheckout } from "@/components/TransparentCheckout";
 
 const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     setSeconds(initialSeconds);
+    setIsActive(true);
   }, [initialSeconds]);
 
   useEffect(() => {
-    if (seconds <= 0) return;
+    if (!isActive || seconds <= 0) return;
     
-    const timer = setTimeout(() => {
-      setSeconds(prev => prev - 1);
+    const intervalId = setInterval(() => {
+      setSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(intervalId);
+          setIsActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     
-    return () => clearTimeout(timer);
-  }, [seconds]);
+    return () => clearInterval(intervalId);
+  }, [seconds, isActive]);
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
@@ -548,7 +557,7 @@ const CheckoutPage = () => {
 
           <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'md:col-span-5 lg:col-span-4'} space-y-6 order-1 md:order-2`}>
             <Card className={`shadow-2xl border sticky top-24 overflow-hidden ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', borderColor: borderColor }}>
-              <div className="p-6 bg-muted/30 border-b flex items-center justify-between">
+              <div className="p-6 border-b flex items-center justify-between" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
                 <CardTitle className="text-lg font-black flex items-center gap-2" style={{ color: textColor }}><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
                 <Badge variant="outline" className="font-black text-[10px]">TOTAL</Badge>
               </div>

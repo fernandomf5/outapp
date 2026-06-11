@@ -8,21 +8,30 @@ import { Label } from "@/components/ui/label";
 
 const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number, activeTab?: string }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     // Reset timer when initialSeconds changes (e.g., edited in panel)
     setSeconds(initialSeconds);
+    setIsActive(true);
   }, [initialSeconds]);
 
   useEffect(() => {
-    if (seconds <= 0) return;
+    if (!isActive || seconds <= 0) return;
     
-    const timer = setTimeout(() => {
-      setSeconds(prev => prev - 1);
+    const intervalId = setInterval(() => {
+      setSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(intervalId);
+          setIsActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     
-    return () => clearTimeout(timer);
-  }, [seconds]);
+    return () => clearInterval(intervalId);
+  }, [seconds, isActive]);
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
@@ -121,7 +130,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                   </div>
                 </div>
                 
-                <div className="p-5 flex items-center justify-between border-t border-muted/50" style={{ backgroundColor: checkout.summary_bg_color || innerBgColor }}>
+                <div className="p-5 flex items-center justify-between border-t border-muted/50" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
                   <div className="flex flex-col">
                     <span className="text-[10px] uppercase font-semibold" style={{ color: subtitleColor }}>Valor Total</span>
                     <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
