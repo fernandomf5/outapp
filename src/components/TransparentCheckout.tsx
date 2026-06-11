@@ -302,7 +302,7 @@ export const TransparentCheckout = ({
                   onChange={(e) => setExpMonth(e.target.value.replace(/\D/g, '').substring(0, 2))}
                   maxLength={2} disabled={processing} 
                   className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }} />
+                  style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>Ano</Label>
@@ -310,7 +310,7 @@ export const TransparentCheckout = ({
                   onChange={(e) => setExpYear(e.target.value.replace(/\D/g, '').substring(0, 4))}
                   maxLength={4} disabled={processing} 
                   className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }} />
+                  style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>CVV</Label>
@@ -318,7 +318,7 @@ export const TransparentCheckout = ({
                   onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').substring(0, 4))}
                   maxLength={4} disabled={processing} 
                   className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }} />
+                  style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
             </div>
 
