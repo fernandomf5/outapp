@@ -161,6 +161,10 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Input type="color" value={formData.top_bar_bg_color || '#ffffff'} onChange={(e) => setFormData((prev: any) => ({...prev, top_bar_bg_color: e.target.value}))} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor do Selo 'Oferta Ativa'</Label>
+                <Input type="color" value={formData.custom_settings.badge_bg_color || formData.primary_color} onChange={(e) => updateSetting('badge_bg_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Cartão/Conteúdo</Label>
                 <Input type="color" value={formData.custom_settings.card_color || '#ffffff'} onChange={(e) => updateSetting('card_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
