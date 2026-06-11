@@ -425,7 +425,7 @@ export const TransparentCheckout = ({
               </div>
 
               {checkingPixStatus && !pixKey && (
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
+                <div className="flex items-center justify-center gap-2 text-sm animate-pulse" style={{ color: subtitleColor }}>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Aguardando confirmação do pagamento...
                 </div>
