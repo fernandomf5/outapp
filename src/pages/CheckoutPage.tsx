@@ -43,6 +43,8 @@ interface CheckoutData {
   footer_text_color?: string;
   logo_size?: string;
   logo_alignment?: string;
+  field_color?: string;
+  summary_bg_color?: string;
 }
 
 interface AdditionalItem {
@@ -211,9 +213,9 @@ const CheckoutPage = () => {
   
   // Custom Styles from Settings
   const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
-  const textColor = checkout.text_color || checkout.title_color || '#0f172a';
+  const textColor = checkout.title_color || checkout.text_color || '#0f172a';
   const subtitleColor = checkout.subtitle_color || '#666666';
-  const footerColor = checkout.footer_color || checkout.footer_text_color || '#64748b';
+  const footerColor = checkout.footer_text_color || checkout.footer_color || '#64748b';
 
   if (paymentSuccess) {
     return (
@@ -258,7 +260,7 @@ const CheckoutPage = () => {
 
       <div className="min-h-screen flex flex-col items-center transition-all duration-300" style={{ backgroundColor: bgColor, color: textColor }}>
         {/* Modern Header */}
-        <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+        <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
              <div className="flex items-center justify-between w-full">
                <div className={`flex items-center gap-2 ${checkout.logo_alignment === 'center' ? 'mx-auto' : ''}`}>
@@ -282,7 +284,7 @@ const CheckoutPage = () => {
 
         <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 p-4 md:p-8">
           <div className="md:col-span-7 lg:col-span-8 space-y-6">
-            <Card className="overflow-hidden shadow-xl border-none rounded-3xl" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+            <Card className="overflow-hidden shadow-xl border-none rounded-3xl" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
                   <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
@@ -319,7 +321,7 @@ const CheckoutPage = () => {
                         <div key={bump.id} className="group relative">
                           <div className={`absolute -inset-0.5 rounded-2xl blur opacity-20 transition duration-500 ${selectedBumps.has(bump.id) ? 'bg-primary' : 'bg-transparent'}`}></div>
                           <div className={`relative flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedBumps.has(bump.id) ? 'border-primary bg-primary/5' : 'bg-white hover:border-primary/30'}`}
-                            style={{ borderColor: selectedBumps.has(bump.id) ? primaryColor : undefined }}
+                            style={{ borderColor: selectedBumps.has(bump.id) ? primaryColor : undefined, backgroundColor: checkout.card_color || '#ffffff' }}
                             onClick={() => toggleBump(bump.id)}
                           >
                             <Checkbox checked={selectedBumps.has(bump.id)} onCheckedChange={() => toggleBump(bump.id)} className="w-5 h-5" />
@@ -348,19 +350,19 @@ const CheckoutPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>Nome Completo *</Label>
-                          <Input className="h-12 rounded-xl bg-muted/20 border-none" value={customerData.name} onChange={(e) => setCustomerData({ ...customerData, name: e.target.value })} placeholder="Como prefere ser chamado?" />
+                          <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.name} onChange={(e) => setCustomerData({ ...customerData, name: e.target.value })} placeholder="Como prefere ser chamado?" />
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>E-mail para entrega *</Label>
-                          <Input className="h-12 rounded-xl bg-muted/20 border-none" type="email" value={customerData.email} onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })} placeholder="Onde enviaremos seu acesso?" />
+                          <Input className="h-12 rounded-xl border-none shadow-sm" type="email" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.email} onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })} placeholder="Onde enviaremos seu acesso?" />
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>WhatsApp</Label>
-                          <Input className="h-12 rounded-xl bg-muted/20 border-none" value={customerData.phone} onChange={(e) => setCustomerData({ ...customerData, phone: e.target.value })} placeholder="(00) 00000-0000" />
+                          <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.phone} onChange={(e) => setCustomerData({ ...customerData, phone: e.target.value })} placeholder="(00) 00000-0000" />
                         </div>
                          <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>CPF / CNPJ *</Label>
-                          <Input className="h-12 rounded-xl bg-muted/20 border-none" value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: e.target.value })} placeholder="000.000.000-00" />
+                          <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: e.target.value })} placeholder="000.000.000-00" />
                         </div>
                       </div>
                     </div>
@@ -428,7 +430,7 @@ const CheckoutPage = () => {
                 <CardTitle className="text-lg font-black flex items-center gap-2" style={{ color: textColor }}><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
                 <Badge variant="outline" className="font-black text-[10px]">TOTAL</Badge>
               </div>
-              <CardContent className="space-y-6 p-6">
+              <CardContent className="space-y-6 p-6" style={{ backgroundColor: checkout.summary_bg_color || 'transparent' }}>
                 <div className="flex gap-4 items-center">
                   {checkout.item_image_url && <img src={checkout.item_image_url} alt={checkout.item_name} className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-md" />}
                   <div className="flex-1">
