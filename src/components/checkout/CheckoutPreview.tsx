@@ -148,6 +148,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                     <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
                   </div>
                   <div className="flex flex-col items-end">
+                    <Badge variant="outline" className="font-black text-[8px] mb-1" style={{ color: checkout.summary_text_color || textColor, borderColor: `${checkout.summary_text_color || textColor}40` }}>TOTAL</Badge>
                     <span className="text-[10px] text-green-600 font-bold flex items-center gap-1">
                       <Lock className="w-3 h-3" /> PAGAMENTO SEGURO
                     </span>
