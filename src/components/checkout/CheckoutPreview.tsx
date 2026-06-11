@@ -120,8 +120,8 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
           </div>
         )}
 
-        <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''} flex-col lg:flex-row`}>
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-7 space-y-6' : 'space-y-6'} order-1 lg:order-1`}>
+        <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''}`}>
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-7 space-y-6' : 'space-y-6'} order-2 lg:order-1`}>
             {/* Main Product Info */}
             <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="product" />
