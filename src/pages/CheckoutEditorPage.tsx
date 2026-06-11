@@ -13,6 +13,7 @@ const CheckoutEditorPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCheckout, setSelectedCheckout] = useState<any | null>(null);
   const [formTab, setFormTab] = useState('general');
+  const [viewport, setViewport] = useState('desktop');
 
   const [formData, setFormData] = useState<any>({
     name: '', description: '', slug: '', item_name: '', item_description: '',
@@ -266,8 +267,13 @@ const CheckoutEditorPage = () => {
            </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 flex justify-center items-start scrollbar-hide">
-           <div className="w-full max-w-4xl transform scale-90 origin-top transition-all duration-500">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center scrollbar-hide">
+           <div className="w-full flex justify-center gap-4 mb-6">
+              <Button variant="outline" size="sm" onClick={() => setViewport('desktop')} className={viewport === 'desktop' ? 'bg-indigo-600 text-white' : ''}>Desktop</Button>
+              <Button variant="outline" size="sm" onClick={() => setViewport('tablet')} className={viewport === 'tablet' ? 'bg-indigo-600 text-white' : ''}>Tablet</Button>
+              <Button variant="outline" size="sm" onClick={() => setViewport('mobile')} className={viewport === 'mobile' ? 'bg-indigo-600 text-white' : ''}>Mobile</Button>
+           </div>
+           <div className={`transition-all duration-500 origin-top ${viewport === 'mobile' ? 'w-[375px]' : viewport === 'tablet' ? 'w-[768px]' : 'w-full max-w-4xl'}`}>
               <CheckoutPreview checkout={{...formData, ...currentSettings}} activeTab={formTab} />
            </div>
         </div>
