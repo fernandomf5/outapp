@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Loader2, QrCode, Copy, CheckCircle2, AlertCircle } from "lucide-react";
+import { CreditCard, Loader2, QrCode, Copy, CheckCircle2, AlertCircle, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TransparentCheckoutProps {
