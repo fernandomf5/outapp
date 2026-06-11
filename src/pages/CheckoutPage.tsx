@@ -50,6 +50,9 @@ interface CheckoutData {
   header_title_font_size?: string;
   header_title_font_family?: string;
   header_title_bold?: boolean;
+  layout_model?: string;
+  layout_structure?: string;
+  layout_width?: string;
 }
 
 

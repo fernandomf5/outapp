@@ -13,16 +13,15 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
   const subtitleColor = checkout.subtitle_color || '#666666';
   const footerColor = checkout.footer_text_color || '#64748b';
   
+  const layoutModel = checkout.layout_model || 'modern';
+  const layoutStructure = checkout.layout_structure || 'split';
+  const layoutWidth = checkout.layout_width || 'boxed';
+  
   const feedbacks = checkout.fake_feedbacks || [
     { name: "Ana Silva", text: "Amei o curso! Muito prático.", rating: 5, avatar: "" },
     { name: "João Pereira", text: "Entrega super rápida do acesso.", rating: 5, avatar: "" }
   ];
 
-  const layoutModel = checkout.layout_model || 'modern';
-  const layoutStructure = checkout.layout_structure || 'split';
-  const layoutWidth = checkout.layout_width || 'boxed';
-
-  return (
     <div 
       className={`w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative ${
         layoutWidth === 'full' ? 'max-w-none' : 'max-w-4xl'
