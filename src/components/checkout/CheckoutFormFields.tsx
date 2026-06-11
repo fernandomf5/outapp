@@ -166,7 +166,10 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold text-xs">Cor do Fundo Interno (Cinza)</Label>
-                <Input type="color" value={formData.custom_settings.inner_bg_color || '#f3f4f6'} onChange={(e) => updateSetting('inner_bg_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <div className="flex items-center gap-2">
+                  <Input type="color" value={formData.custom_settings.inner_bg_color || '#f3f4f6'} onChange={(e) => updateSetting('inner_bg_color', e.target.value)} className="w-10 h-8 p-1 bg-white border-slate-200" />
+                  <Button variant="ghost" size="sm" onClick={() => updateSetting('inner_bg_color', 'transparent')} className="text-[10px] h-6 px-2">Limpar</Button>
+                </div>
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold text-xs">Cor das Bordas</Label>
@@ -177,12 +180,16 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Input type="color" value={formData.custom_settings.title_color || '#000000'} onChange={(e) => updateSetting('title_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <Label className="text-slate-700 font-semibold">Cor dos Subtítulos</Label>
+                <Label className="text-slate-700 font-semibold">Cor dos Subtítulos / Labels</Label>
                 <Input type="color" value={formData.custom_settings.subtitle_color || '#666666'} onChange={(e) => updateSetting('subtitle_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <Label className="text-slate-700 font-semibold">Cor do Input/Campos</Label>
+                <Label className="text-slate-700 font-semibold">Cor de Fundo dos Inputs</Label>
                 <Input type="color" value={formData.custom_settings.field_color || '#ffffff'} onChange={(e) => updateSetting('field_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor do Texto dos Inputs</Label>
+                <Input type="color" value={formData.custom_settings.field_text_color || '#000000'} onChange={(e) => updateSetting('field_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Botão Texto</Label>
