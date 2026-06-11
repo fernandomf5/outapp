@@ -269,6 +269,10 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Label className="text-slate-700 font-semibold">Cor do Texto do Resumo</Label>
                 <Input type="color" value={formData.custom_settings.summary_text_color || '#000000'} onChange={(e) => updateSetting('summary_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor dos Preços no Resumo</Label>
+                <Input type="color" value={formData.custom_settings.summary_price_color || '#000000'} onChange={(e) => updateSetting('summary_price_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
             </div>
           </div>
         );
