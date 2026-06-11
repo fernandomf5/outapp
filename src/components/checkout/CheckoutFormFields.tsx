@@ -249,6 +249,18 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Descrição Breve</Label>
                 <Textarea value={formData.item_description} onChange={(e) => setFormData((prev: any) => ({...prev, item_description: e.target.value}))} className="bg-white border-slate-200 text-slate-900 min-h-[100px]" />
               </div>
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-slate-700 font-semibold">Mostrar Preço Original (De:)</Label>
+                  <Switch checked={formData.custom_settings.show_original_price} onCheckedChange={(v) => updateSetting('show_original_price', v)} />
+                </div>
+                {formData.custom_settings.show_original_price && (
+                  <div>
+                    <Label className="text-slate-700 font-semibold mb-1.5 block">Preço Original (R$)</Label>
+                    <Input type="number" value={formData.custom_settings.original_price} onChange={(e) => updateSetting('original_price', e.target.value)} className="bg-white border-slate-200 text-slate-900" placeholder="Ex: 75.00" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
