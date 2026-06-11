@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, Lock, Smartphone, Star, Package, TrendingUp } from "lucide-react";
+import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, Lock, Smartphone, Star, Package, TrendingUp, Clock, Gift } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { TransparentCheckout } from "@/components/TransparentCheckout";
 
@@ -559,7 +559,7 @@ const CheckoutPage = () => {
         <div className="w-full max-w-6xl mt-12 mb-12 px-8 text-center space-y-6">
            <div className="w-full h-px bg-black/5"></div>
            <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em]" style={{ color: footerColor }}>
-             {checkout.footer_text || 'COMPRA 100% SEGURA & PROTEGIDA'}
+             {footerTextValue}
            </p>
            <div className="flex justify-center flex-wrap gap-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">
              <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Privacidade</span>
