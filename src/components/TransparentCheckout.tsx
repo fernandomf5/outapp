@@ -348,8 +348,8 @@ export const TransparentCheckout = ({
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <QrCode className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="font-semibold text-lg">Pagar com PIX</h3>
-                <p className="text-sm text-muted-foreground max-w-[250px] mx-auto mt-2">
+                <h3 className="font-semibold text-lg" style={{ color: textColor }}>Pagar com PIX</h3>
+                <p className="text-sm max-w-[250px] mx-auto mt-2" style={{ color: subtitleColor }}>
                   Liberação imediata! Gere o seu código PIX agora para finalizar.
                 </p>
               </div>
