@@ -8,21 +8,30 @@ import { Label } from "@/components/ui/label";
 
 const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number, activeTab?: string }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     // Reset timer when initialSeconds changes (e.g., edited in panel)
     setSeconds(initialSeconds);
+    setIsActive(true);
   }, [initialSeconds]);
 
   useEffect(() => {
-    if (seconds <= 0) return;
+    if (!isActive || seconds <= 0) return;
     
-    const timer = setTimeout(() => {
-      setSeconds(prev => prev - 1);
+    const intervalId = setInterval(() => {
+      setSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(intervalId);
+          setIsActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     
-    return () => clearTimeout(timer);
-  }, [seconds]);
+    return () => clearInterval(intervalId);
+  }, [seconds, isActive]);
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
