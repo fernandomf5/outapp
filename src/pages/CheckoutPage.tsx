@@ -389,7 +389,7 @@ const CheckoutPage = () => {
                       <img src={checkout.item_image_url} alt={checkout.item_name} className="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover shadow-lg" />
                     )}
                     <div className="flex-1 text-center md:text-left">
-                      <Badge className="mb-2" style={{ backgroundColor: primaryColor }}>Oferta Ativa</Badge>
+                      <Badge className="mb-2" style={{ backgroundColor: checkout.custom_settings?.badge_bg_color || primaryColor }}>Oferta Ativa</Badge>
                       <h3 className="text-xl md:text-2xl font-black leading-tight" style={{ color: textColor }}>{checkout.item_name}</h3>
                       {checkout.item_description && <p className="text-sm mt-2 line-clamp-2" style={{ color: subtitleColor }}>{checkout.item_description}</p>}
                       <div className="flex items-center justify-center md:justify-start gap-3 mt-4">
