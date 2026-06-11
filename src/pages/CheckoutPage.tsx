@@ -15,6 +15,10 @@ const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
 
   useEffect(() => {
+    setSeconds(initialSeconds);
+  }, [initialSeconds]);
+
+  useEffect(() => {
     if (seconds <= 0) return;
     const interval = setInterval(() => {
       setSeconds(s => s - 1);
@@ -261,6 +265,11 @@ const CheckoutPage = () => {
   const subtitleColor = checkout.custom_settings?.subtitle_color || checkout.subtitle_color || '#666666';
   const footerColor = checkout.custom_settings?.footer_text_color || checkout.footer_text_color || checkout.footer_color || '#64748b';
   const pColor = checkout.primary_color || '#8B5CF6';
+  
+  const innerBgColor = checkout.custom_settings?.inner_bg_color || 'rgba(0,0,0,0.03)';
+  const borderColor = checkout.custom_settings?.border_color || '#e2e8f0';
+  const cardRadius = checkout.custom_settings?.card_radius || 'rounded-3xl';
+  const cardShadow = checkout.custom_settings?.card_shadow || 'shadow-sm';
 
   if (paymentSuccess) {
     return (
@@ -352,7 +361,7 @@ const CheckoutPage = () => {
 
         <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl md:grid-cols-12 flex-col lg:flex-row`}>
           <div className={`md:col-span-7 lg:col-span-8 space-y-6 order-1 lg:order-1`}>
-            <Card className={`overflow-hidden shadow-xl border-none rounded-3xl`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
+            <Card className={`overflow-hidden border shadow-xl ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor, borderColor: borderColor }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
                   <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
@@ -363,7 +372,7 @@ const CheckoutPage = () => {
                 {/* Product Section */}
                 <div className="relative group">
                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-                   <div className="relative flex flex-col md:flex-row items-center gap-6 p-6 rounded-2xl bg-muted/20 border border-white/50">
+                   <div className={`relative flex flex-col md:flex-row items-center gap-6 p-6 border border-white/50 ${cardRadius}`} style={{ backgroundColor: innerBgColor }}>
                     {checkout.item_image_url && (
                       <img src={checkout.item_image_url} alt={checkout.item_name} className="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover shadow-lg" />
                     )}
@@ -473,7 +482,7 @@ const CheckoutPage = () => {
             {(benefits && benefits.length > 0) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-700">
                 {benefits.map((b: any, i: number) => (
-                  <div key={i} className="flex gap-4 p-5 rounded-3xl bg-white shadow-sm border border-slate-100">
+                  <div key={i} className={`flex gap-4 p-5 shadow-sm border border-slate-100 ${cardRadius}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
                     <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
                     </div>
@@ -497,7 +506,7 @@ const CheckoutPage = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {([...testimonials, ...(checkout.show_fake_feedback ? (checkout.fake_feedbacks || []) : [])]).map((f: any, i: number) => (
-                      <Card key={i} className="border-none shadow-sm rounded-2xl p-6 flex gap-4" style={{ backgroundColor: (checkout.card_color || '#ffffff') + '99', backdropFilter: 'blur(8px)' }}>
+                      <Card key={i} className={`border shadow-sm p-6 flex gap-4 ${cardRadius}`} style={{ backgroundColor: (checkout.card_color || '#ffffff') + '99', backdropFilter: 'blur(8px)', borderColor: borderColor }}>
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary flex-shrink-0" style={{ color: primaryColor }}>{f.name?.[0] || 'U'}</div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
@@ -530,20 +539,18 @@ const CheckoutPage = () => {
                     <p className="text-indigo-100 text-sm">Esta oferta expira em breve. Garanta sua vaga agora.</p>
                   </div>
                 </div>
-                <div className="text-4xl font-black font-mono bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-md">
-                   {Math.floor(scarcityTimer / 60)}:{String(scarcityTimer % 60).padStart(2, '0')}
-                </div>
+                <CountdownTimer initialSeconds={scarcityTimer} />
               </div>
             )}
           </div>
 
           <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'md:col-span-5 lg:col-span-4'} space-y-6 order-1 md:order-2`}>
-            <Card className={`shadow-2xl border-none sticky top-24 overflow-hidden ${(checkout.custom_settings?.layout_model || checkout.layout_model) === 'minimal' ? 'rounded-lg' : 'rounded-3xl'}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+            <Card className={`shadow-2xl border sticky top-24 overflow-hidden ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', borderColor: borderColor }}>
               <div className="p-6 bg-muted/30 border-b flex items-center justify-between">
                 <CardTitle className="text-lg font-black flex items-center gap-2" style={{ color: textColor }}><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
                 <Badge variant="outline" className="font-black text-[10px]">TOTAL</Badge>
               </div>
-              <CardContent className="space-y-6 p-6" style={{ backgroundColor: checkout.summary_bg_color || 'transparent' }}>
+              <CardContent className="space-y-6 p-6" style={{ backgroundColor: checkout.summary_bg_color || innerBgColor }}>
                 <div className="flex gap-4 items-center">
                   {checkout.item_image_url && <img src={checkout.item_image_url} alt={checkout.item_name} className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-md" />}
                   <div className="flex-1">
@@ -615,11 +622,11 @@ const CheckoutPage = () => {
                <Button 
                  variant="outline" 
                  size="sm" 
-                 className="rounded-full gap-2 font-bold px-6 h-10 transition-all hover:scale-105 active:scale-95"
-                 style={{ color: footerColor, borderColor: footerColor }}
-                 onClick={() => window.open(`tel:${checkout.custom_settings.footer_contact_info}`, '_blank')}
+                 className="rounded-full gap-2 font-bold px-6 h-10 transition-all hover:scale-105 active:scale-95 hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+                 style={{ color: footerColor, borderColor: `${footerColor}40` }}
+                 onClick={() => window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}
                >
-                 <Smartphone className="w-4 h-4" /> {checkout.custom_settings.footer_contact_info}
+                 <Smartphone className="w-4 h-4" /> Contato no WhatsApp
                </Button>
              </div>
            )}
