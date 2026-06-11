@@ -143,45 +143,6 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
              </div>
           </div>
         );
-      case 'layout':
-        return (
-          <div className="space-y-4 p-6">
-            <h3 className="font-bold text-lg text-slate-900">Configurações de Layout</h3>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-slate-700 font-semibold mb-1.5 block">Modelo de Layout</Label>
-                <Select value={formData.custom_settings.layout_model} onValueChange={(v) => updateSetting('layout_model', v)}>
-                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="modern">Moderno</SelectItem>
-                    <SelectItem value="classic">Clássico</SelectItem>
-                    <SelectItem value="minimal">Minimalista</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-slate-700 font-semibold mb-1.5 block">Estrutura</Label>
-                <Select value={formData.custom_settings.layout_structure} onValueChange={(v) => updateSetting('layout_structure', v)}>
-                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="split">Lado a Lado (Split)</SelectItem>
-                    <SelectItem value="single">Coluna Única</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-slate-700 font-semibold mb-1.5 block">Largura do Checkout</Label>
-                <Select value={formData.custom_settings.layout_width} onValueChange={(v) => updateSetting('layout_width', v)}>
-                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="boxed">Boxed (Centralizado)</SelectItem>
-                    <SelectItem value="full">Largura Total</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        );
       case 'colors':
         return (
           <div className="space-y-4 p-6">
@@ -203,35 +164,9 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Label className="text-slate-700 font-semibold">Cor dos Subtítulos</Label>
                 <Input type="color" value={formData.custom_settings.subtitle_color} onChange={(e) => updateSetting('subtitle_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
-            </div>
-          </div>
-        );
-      case 'typography':
-        return (
-          <div className="space-y-4 p-6">
-            <h3 className="font-bold text-lg text-slate-900">Tipografia</h3>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-slate-700 font-semibold mb-1.5 block">Fonte dos Títulos</Label>
-                <Select value={formData.custom_settings.font_title} onValueChange={(v) => updateSetting('font_title', v)}>
-                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sans">Sans Serif (Inter/Roboto)</SelectItem>
-                    <SelectItem value="serif">Serif (Playfair Display)</SelectItem>
-                    <SelectItem value="mono">Monospace</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-slate-700 font-semibold mb-1.5 block">Tamanho H1</Label>
-                <Select value={formData.custom_settings.size_h1} onValueChange={(v) => updateSetting('size_h1', v)}>
-                  <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="text-2xl">Pequeno</SelectItem>
-                    <SelectItem value="text-3xl">Médio</SelectItem>
-                    <SelectItem value="text-4xl">Grande</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor do Botão Texto</Label>
+                <Input type="color" value={formData.custom_settings.button_text_color} onChange={(e) => updateSetting('button_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
             </div>
           </div>
@@ -350,7 +285,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                     </div>
                     <div>
                       <Label className="text-slate-700 text-xs font-semibold mb-1 block">Número WhatsApp para Comprovante</Label>
-                      <Input value={formData.custom_settings.pix_whatsapp || ''} onChange={(e) => updateSetting('pix_whatsapp', e.target.value)} placeholder="5511999999999" className="h-9 bg-white text-slate-900" />
+                      <Input value={formData.custom_settings.pix_whatsapp || ''} onChange={(e) => updateSetting('pix_whatsapp', e.target.value)} placeholder="Ex: 5511999999999" className="h-9 bg-white text-slate-900" />
                     </div>
                   </div>
                 )}
