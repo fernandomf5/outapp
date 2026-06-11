@@ -43,6 +43,8 @@ interface CheckoutData {
   footer_text_color?: string;
   logo_size?: string;
   logo_alignment?: string;
+  field_color?: string;
+  summary_bg_color?: string;
 }
 
 interface AdditionalItem {
@@ -83,7 +85,7 @@ const CheckoutPage = () => {
         .from('checkouts').select('*').eq('id', checkoutId).eq('is_active', true).single();
       if (fetchError || !data) { setError('Checkout não encontrado ou inativo'); return; }
       const settings = data.custom_settings && typeof data.custom_settings === 'object' ? data.custom_settings : {};
-      setCheckout({ ...data, ...settings });
+      setCheckout({ ...data, ...settings } as any);
 
       let pubKey = (data as any).mp_public_key;
       if (!pubKey) {
