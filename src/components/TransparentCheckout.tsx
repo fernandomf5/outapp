@@ -369,14 +369,14 @@ export const TransparentCheckout = ({
 
           ) : (
             <div className="text-center space-y-4">
-              <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+              <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
                 {pixKey ? (
                   <div className="py-4 space-y-4">
                     <div className="p-4 bg-white rounded-xl border shadow-inner">
                       <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Chave PIX para Pagamento</p>
-                      <p className="text-lg font-black break-all">{pixKey}</p>
+                      <p className="text-lg font-black break-all text-slate-900">{pixKey}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
+                    <p className="text-xs leading-relaxed" style={{ color: subtitleColor }}>
                       Após o pagamento, clique no botão abaixo para finalizar seu pedido e enviar o comprovante.
                     </p>
                   </div>
