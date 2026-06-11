@@ -416,6 +416,7 @@ export const TransparentCheckout = ({
                       variant="ghost"
                       className="w-full h-12 font-bold" 
                       onClick={() => onSuccess({ paymentId: 'manual_pix', isManualPix: true })}
+                      style={{ color: subtitleColor }}
                     >
                       Já realizei o pagamento
                     </Button>
