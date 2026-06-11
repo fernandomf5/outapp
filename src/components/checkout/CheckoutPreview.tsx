@@ -146,6 +146,9 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                   <div className="flex flex-col">
                     <span className="text-[10px] uppercase font-semibold" style={{ color: checkout.summary_text_color || textColor }}>Valor Total</span>
                     <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
+                    {checkout.show_original_price && (
+                      <span className="text-xs text-muted-foreground line-through opacity-50 block">R$ {Number(checkout.original_price || (Number(checkout.price || 0) * 1.5)).toFixed(2)}</span>
+                    )}
                   </div>
                   <div className="flex flex-col items-end">
                     <Badge variant="outline" className="font-black text-[8px] mb-1" style={{ color: checkout.summary_text_color || textColor, borderColor: `${checkout.summary_text_color || textColor}40` }}>TOTAL</Badge>
