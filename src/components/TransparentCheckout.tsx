@@ -298,19 +298,25 @@ export const TransparentCheckout = ({
                 <Label className="text-xs" style={{ color: subtitleColor }}>Mês</Label>
                 <Input placeholder="MM" value={expMonth}
                   onChange={(e) => setExpMonth(e.target.value.replace(/\D/g, '').substring(0, 2))}
-                  maxLength={2} disabled={processing} style={{ color: textColor, backgroundColor: 'white' }} />
+                  maxLength={2} disabled={processing} 
+                  className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
+                  style={{ color: '#0f172a', backgroundColor: '#ffffff' }} />
               </div>
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>Ano</Label>
                 <Input placeholder="AA" value={expYear}
                   onChange={(e) => setExpYear(e.target.value.replace(/\D/g, '').substring(0, 4))}
-                  maxLength={4} disabled={processing} style={{ color: textColor, backgroundColor: 'white' }} />
+                  maxLength={4} disabled={processing} 
+                  className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
+                  style={{ color: '#0f172a', backgroundColor: '#ffffff' }} />
               </div>
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>CVV</Label>
                 <Input placeholder="123" value={cvv} type="password"
                   onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').substring(0, 4))}
-                  maxLength={4} disabled={processing} style={{ color: textColor, backgroundColor: 'white' }} />
+                  maxLength={4} disabled={processing} 
+                  className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
+                  style={{ color: '#0f172a', backgroundColor: '#ffffff' }} />
               </div>
             </div>
 
