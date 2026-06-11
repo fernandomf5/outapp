@@ -297,9 +297,9 @@ const CheckoutPage = () => {
         <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
              <div className="flex items-center justify-between w-full">
-               <div className={`flex items-center gap-4 ${checkout.logo_alignment === 'center' ? 'mx-auto' : checkout.logo_alignment === 'right' ? 'flex-row-reverse' : ''}`}>
+               <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 ${checkout.logo_alignment === 'center' ? 'mx-auto' : checkout.logo_alignment === 'right' ? 'flex-row-reverse' : ''}`}>
                  <div className="flex items-center gap-3">
-                   {checkout.logo_url || checkout.item_image_url ? (
+                   {(checkout.logo_url || checkout.item_image_url) ? (
                      <img src={checkout.logo_url || checkout.item_image_url || ""} alt="Logo" className={`${checkout.logo_size || 'h-8 md:h-10'} object-contain`} />
                    ) : (
                      <div className="font-bold text-xl md:text-2xl flex items-center gap-2" style={{ color: textColor }}>
@@ -310,7 +310,7 @@ const CheckoutPage = () => {
                  </div>
                  {checkout.header_title && (
                    <h1 
-                     className={`${checkout.header_title_font_size || 'text-2xl'} ${checkout.header_title_bold ? 'font-bold' : ''}`}
+                     className={`${checkout.header_title_font_size || 'text-xl md:text-2xl'} ${checkout.header_title_bold ? 'font-bold' : ''} text-center md:text-left`}
                      style={{ color: checkout.header_title_color || textColor }}
                    >
                      {checkout.header_title}
@@ -318,13 +318,11 @@ const CheckoutPage = () => {
                  )}
                </div>
 
-               
-               <div className={`hidden md:flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider opacity-60 ${checkout.logo_alignment === 'right' ? 'absolute left-0' : ''}`}>
+               <div className={`hidden lg:flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider opacity-60 ${checkout.logo_alignment === 'right' ? 'absolute left-0' : ''}`}>
                  <span className="flex items-center gap-1" style={{ color: textColor }}><Shield className="w-3 h-3 text-green-500" /> Compra Segura</span>
                  <span className="flex items-center gap-1" style={{ color: textColor }}><Lock className="w-3 h-3" /> SSL Protegido</span>
                </div>
              </div>
-
           </div>
         </div>
 
