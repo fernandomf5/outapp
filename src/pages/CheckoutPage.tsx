@@ -565,32 +565,32 @@ const CheckoutPage = () => {
                 <div className="flex gap-4 items-center">
                   {checkout.item_image_url && <img src={checkout.item_image_url} alt={checkout.item_name} className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-md" />}
                   <div className="flex-1">
-                    <h3 className="font-bold text-sm line-clamp-1" style={{ color: textColor }}>{checkout.item_name}</h3>
-                    <p className="text-lg font-black" style={{ color: primaryColor }}>R$ {Number(checkout.price).toFixed(2)}</p>
+                    <h3 className="font-bold text-sm line-clamp-1" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>{checkout.item_name}</h3>
+                    <p className="text-lg font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>R$ {Number(checkout.price).toFixed(2)}</p>
                   </div>
                 </div>
                 
                 {getSelectedExtras().length > 0 && (
-                  <div className="space-y-3 pt-4 border-t border-dashed">
+                  <div className="space-y-3 pt-4 border-t border-dashed" style={{ borderColor: `${checkout.custom_settings?.summary_text_color || textColor}20` }}>
                     {getSelectedExtras().map((ex, i) => (
                       <div key={i} className="flex justify-between items-center text-sm">
-                        <span className="font-medium flex items-center gap-2" style={{ color: subtitleColor }}><Plus className="w-3 h-3" /> {ex.name}</span>
-                        <span className="font-bold" style={{ color: textColor }}>R$ {(ex.price * ex.qty).toFixed(2)}</span>
+                        <span className="font-medium flex items-center gap-2" style={{ color: checkout.custom_settings?.summary_text_color || subtitleColor }}><Plus className="w-3 h-3" /> {ex.name}</span>
+                        <span className="font-bold" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>R$ {(ex.price * ex.qty).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
                 )}
                 
-                <div className="pt-6 mt-4 border-t-2 border-black/5">
+                <div className="pt-6 mt-4 border-t-2 border-black/5" style={{ borderColor: `${checkout.custom_settings?.summary_text_color || textColor}10` }}>
                   <div className="flex justify-between items-center mb-6">
-                    <span className="text-sm font-black uppercase tracking-widest opacity-60" style={{ color: textColor }}>Total a pagar</span>
-                    <span className="text-3xl font-black" style={{ color: primaryColor }}>R$ {total.toFixed(2)}</span>
+                    <span className="text-sm font-black uppercase tracking-widest opacity-60" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>Total a pagar</span>
+                    <span className="text-3xl font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>R$ {total.toFixed(2)}</span>
                   </div>
                   
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-[10px] font-black uppercase text-green-600 bg-green-50 p-4 rounded-xl border border-green-100">
+                    <div className="flex items-center gap-3 text-[10px] font-black uppercase text-green-600 bg-green-50 p-4 rounded-xl border border-green-100" style={{ backgroundColor: `${checkout.custom_settings?.summary_text_color || textColor}05`, borderColor: `${checkout.custom_settings?.summary_text_color || textColor}10` }}>
                       <Shield className="w-5 h-5 flex-shrink-0" />
-                      <span style={{ color: subtitleColor }}>Sua compra é processada em um ambiente 100% criptografado e seguro.</span>
+                      <span style={{ color: checkout.custom_settings?.summary_text_color || subtitleColor }}>Sua compra é processada em um ambiente 100% criptografado e seguro.</span>
                     </div>
                     
                     <div className="flex justify-center items-center gap-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
