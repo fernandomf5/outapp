@@ -50,6 +50,11 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
   const layoutModel = 'modern';
   const layoutStructure = 'split';
   const layoutWidth = 'full';
+
+  const innerBgColor = checkout.inner_bg_color || 'rgba(0,0,0,0.03)';
+  const borderColor = checkout.border_color || '#e2e8f0';
+  const cardRadius = checkout.card_radius || 'rounded-3xl';
+  const cardShadow = checkout.card_shadow || 'shadow-sm';
   
   const feedbacks = checkout.fake_feedbacks || [
     { name: "Ana Silva", text: "Amei o curso! Muito prático.", rating: 5, avatar: "" },
@@ -96,7 +101,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
         <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''} flex-col lg:flex-row`}>
           <div className={`${layoutStructure === 'split' ? 'lg:col-span-7 space-y-6' : 'space-y-6'} order-1 lg:order-1`}>
             {/* Main Product Info */}
-            <Card className={`border-none shadow-sm overflow-hidden rounded-3xl ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff' }}>
+            <Card className={`border shadow-sm overflow-hidden ${cardRadius} ${cardShadow} ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <CardContent className="p-0">
                 <div className="p-5 flex gap-4">
                   {checkout.item_image_url ? (
@@ -113,7 +118,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                   </div>
                 </div>
                 
-                <div className="p-5 flex items-center justify-between border-t border-muted/50" style={{ backgroundColor: checkout.summary_bg_color || 'rgba(0,0,0,0.03)' }}>
+                <div className="p-5 flex items-center justify-between border-t border-muted/50" style={{ backgroundColor: checkout.summary_bg_color || innerBgColor }}>
                   <div className="flex flex-col">
                     <span className="text-[10px] uppercase font-semibold" style={{ color: subtitleColor }}>Valor Total</span>
                     <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
@@ -134,7 +139,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
 
           <div className={`${layoutStructure === 'split' ? 'lg:col-span-5 space-y-6' : 'space-y-6'} order-1 lg:order-2`}>
             {/* Checkout Form Simulation */}
-            <Card className={`border-none shadow-sm p-6 space-y-4 rounded-3xl ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff' }}>
+            <Card className={`border shadow-sm p-6 space-y-4 ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               {activeTab !== 'payment' ? (
                 <>
                   <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
@@ -233,7 +238,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
             {(checkout.custom_settings?.benefits || []).length > 0 && (
               <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${activeTab === 'benefits' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse p-2 rounded-xl' : ''}`}>
                 {checkout.custom_settings.benefits.map((b: any, i: number) => (
-                  <div key={i} className="flex gap-3 p-3 rounded-xl border border-muted bg-white/50">
+                  <div key={i} className={`flex gap-3 p-3 border border-muted bg-white/50 ${cardRadius}`}>
                     <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
                     </div>
@@ -261,7 +266,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                 </div>
                 <div className="space-y-3">
                   {([...(checkout.custom_settings?.testimonials || []), ...(checkout.show_fake_feedback ? feedbacks : [])]).map((f: any, i: number) => (
-                    <Card key={i} className={`border-none shadow-sm rounded-xl p-4 ${activeTab === 'testimonials' ? 'ring-2 ring-indigo-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9 }}>
+                    <Card key={i} className={`border shadow-sm p-4 ${cardRadius} ${activeTab === 'testimonials' ? 'ring-2 ring-indigo-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9, borderColor: borderColor }}>
                       <div className="flex gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs" style={{ color: primaryColor }}>
                           {f.name?.[0] || 'U'}
@@ -302,10 +307,10 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                 variant="outline" 
                 size="sm" 
                 className="rounded-full gap-2 font-bold px-6 h-10 transition-all hover:scale-105 active:scale-95"
-                style={{ color: footerColor, borderColor: footerColor }}
-                onClick={() => window.open(`tel:${checkout.custom_settings.footer_contact_info}`, '_blank')}
+                style={{ color: footerColor, borderColor: `${footerColor}40` }}
+                onClick={() => window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}
               >
-                <Smartphone className="w-4 h-4" /> {checkout.custom_settings.footer_contact_info}
+                <Smartphone className="w-4 h-4" /> Contato no WhatsApp
               </Button>
             </div>
           )}
