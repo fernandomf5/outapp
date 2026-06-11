@@ -60,13 +60,13 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
   }, [formTab]);
 
   const updateSetting = (key: string, value: any) => {
-    setFormData({
-      ...formData,
+    setFormData((prev: any) => ({
+      ...prev,
       custom_settings: {
-        ...formData.custom_settings,
+        ...prev.custom_settings,
         [key]: value
       }
-    });
+    }));
   };
 
   const renderContent = () => {
@@ -78,19 +78,19 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             <div className="space-y-3">
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Nome do Checkout</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-900" />
+                <Input value={formData.name} onChange={(e) => setFormData((prev: any) => ({...prev, name: e.target.value}))} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-900" />
               </div>
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">URL Personalizada</Label>
-                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-900" />
+                <Input value={formData.slug} onChange={(e) => setFormData((prev: any) => ({...prev, slug: e.target.value}))} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-900" />
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-slate-700 font-semibold">Status Ativo</Label>
-                <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({...formData, is_active: v})} />
+                <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData((prev: any) => ({...prev, is_active: v}))} />
               </div>
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Tipo de Produto</Label>
-                <Select value={formData.product_type} onValueChange={(v) => setFormData({...formData, product_type: v})}>
+                <Select value={formData.product_type} onValueChange={(v) => setFormData((prev: any) => ({...prev, product_type: v}))}>
                   <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="service">Serviço</SelectItem>
@@ -110,7 +110,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
         return (
           <div className="space-y-4 p-6">
              <h3 className="font-bold text-lg text-slate-900">Cabeçalho</h3>
-             <CheckoutImageUpload label="Upload da Logo" value={formData.item_image_url} onChange={(url) => setFormData({...formData, item_image_url: url})} />
+             <CheckoutImageUpload label="Upload da Logo" value={formData.item_image_url} onChange={(url) => setFormData((prev: any) => ({...prev, item_image_url: url}))} />
              <div className="grid grid-cols-2 gap-2">
                 <div>
                    <Label className="text-slate-700 font-semibold mb-1.5 block">Tamanho da Logo</Label>
@@ -191,7 +191,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor Principal</Label>
-                <Input type="color" value={formData.primary_color} onChange={(e) => setFormData({...formData, primary_color: e.target.value})} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <Input type="color" value={formData.primary_color} onChange={(e) => setFormData((prev: any) => ({...prev, primary_color: e.target.value}))} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Fundo</Label>
@@ -245,15 +245,15 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             <div className="space-y-3">
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Nome do Produto</Label>
-                <Input value={formData.item_name} onChange={(e) => setFormData({...formData, item_name: e.target.value})} className="bg-white border-slate-200 text-slate-900" />
+                <Input value={formData.item_name} onChange={(e) => setFormData((prev: any) => ({...prev, item_name: e.target.value}))} className="bg-white border-slate-200 text-slate-900" />
               </div>
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Preço (R$)</Label>
-                <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="bg-white border-slate-200 text-slate-900" />
+                <Input type="number" value={formData.price} onChange={(e) => setFormData((prev: any) => ({...prev, price: e.target.value}))} className="bg-white border-slate-200 text-slate-900" />
               </div>
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Descrição Breve</Label>
-                <Textarea value={formData.item_description} onChange={(e) => setFormData({...formData, item_description: e.target.value})} className="bg-white border-slate-200 text-slate-900 min-h-[100px]" />
+                <Textarea value={formData.item_description} onChange={(e) => setFormData((prev: any) => ({...prev, item_description: e.target.value}))} className="bg-white border-slate-200 text-slate-900 min-h-[100px]" />
               </div>
             </div>
           </div>

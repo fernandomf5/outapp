@@ -13,9 +13,9 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
   const subtitleColor = checkout.subtitle_color || '#666666';
   const footerColor = checkout.footer_text_color || '#64748b';
   
-  const layoutModel = checkout.layout_model || 'modern';
-  const layoutStructure = checkout.layout_structure || 'split';
-  const layoutWidth = checkout.layout_width || 'boxed';
+  const layoutModel = (checkout.custom_settings?.layout_model || checkout.layout_model || 'modern');
+  const layoutStructure = (checkout.custom_settings?.layout_structure || checkout.layout_structure || 'split');
+  const layoutWidth = (checkout.custom_settings?.layout_width || checkout.layout_width || 'boxed');
   
   const feedbacks = checkout.fake_feedbacks || [
     { name: "Ana Silva", text: "Amei o curso! Muito prático.", rating: 5, avatar: "" },
