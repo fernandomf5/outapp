@@ -92,6 +92,7 @@ interface CheckoutData {
   layout_model?: string;
   layout_structure?: string;
   layout_width?: string;
+  top_bar_bg_color?: string;
 }
 
 
