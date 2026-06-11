@@ -632,26 +632,26 @@ const CheckoutPage = () => {
            <div className="w-full h-px bg-black/5"></div>
            
            {checkout.custom_settings?.footer_contact_info && (
-             <div className="flex justify-center">
+             <div className="flex justify-center flex-col items-center gap-3">
                <Button 
                  variant="outline" 
                  size="sm" 
-                 className="rounded-full gap-2 font-bold px-6 h-10 transition-all hover:scale-105 active:scale-95 hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+                 className="rounded-full gap-2 font-bold px-8 h-12 transition-all hover:scale-105 active:scale-95 hover:bg-green-50 hover:text-green-600 hover:border-green-200"
                  style={{ color: footerColor, borderColor: `${footerColor}40` }}
                  onClick={() => window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}
                >
-                 <Smartphone className="w-4 h-4" /> Contato no WhatsApp
+                 <Smartphone className="w-5 h-5" /> Contato no WhatsApp
                </Button>
              </div>
            )}
 
            <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em]" style={{ color: footerColor }}>
-             {footerTextValue}
+             {checkout.footer_text || 'Compra 100% Segura'}
            </p>
            <div className="flex justify-center flex-wrap gap-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">
              <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_privacy_url && window.open(checkout.custom_settings.footer_privacy_url, '_blank')}>Privacidade</span>
              <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_terms_url && window.open(checkout.custom_settings.footer_terms_url, '_blank')}>Termos de Uso</span>
-             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Contato</span>
+             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_contact_info && window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}>Contato</span>
            </div>
         </div>
 
