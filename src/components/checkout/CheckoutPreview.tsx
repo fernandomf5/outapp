@@ -144,7 +144,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                 <div className="p-5 flex items-center justify-between border-t border-muted/50 group relative" style={{ backgroundColor: checkout.custom_settings?.summary_header_bg_color || checkout.summary_bg_color || checkout.card_color || '#ffffff' }}>
                   <EditButton tab="summary" />
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase font-semibold" style={{ color: checkout.summary_text_color || subtitleColor }}>Valor Total</span>
+                    <span className="text-[10px] uppercase font-semibold" style={{ color: checkout.summary_text_color || textColor }}>Valor Total</span>
                     <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
                   </div>
                   <div className="flex flex-col items-end">
