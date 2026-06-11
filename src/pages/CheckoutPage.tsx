@@ -560,7 +560,7 @@ const CheckoutPage = () => {
             )}
           </div>
 
-          <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'md:col-span-5 lg:col-span-4'} space-y-6 order-1 md:order-2`}>
+          <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'lg:col-span-4'} space-y-6 order-1 lg:order-2`}>
             <Card className={`shadow-2xl border sticky top-24 overflow-hidden ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', borderColor: borderColor }}>
               <div className="p-6 border-b flex items-center justify-between" style={{ backgroundColor: checkout.custom_settings?.summary_header_bg_color || checkout.card_color || '#ffffff' }}>
                 <CardTitle className="text-lg font-black flex items-center gap-2" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
