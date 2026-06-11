@@ -338,7 +338,7 @@ const CheckoutPage = () => {
 
       <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full`} style={{ backgroundColor: bgColor, color: textColor }}>
         {/* Modern Header */}
-        <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
+        <div className="w-full border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.custom_settings?.top_bar_bg_color || checkout.top_bar_bg_color || checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
              <div className="flex items-center justify-between w-full">
                <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 ${checkout.logo_alignment === 'center' ? 'mx-auto' : checkout.logo_alignment === 'right' ? 'flex-row-reverse' : ''}`}>
