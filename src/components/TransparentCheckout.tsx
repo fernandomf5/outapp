@@ -17,6 +17,8 @@ interface TransparentCheckoutProps {
   customerCpf: string;
   primaryColor: string;
   itemName: string;
+  textColor?: string;
+  subtitleColor?: string;
   onSuccess: (data: { accessCode?: string; paymentId: string; isManualPix?: boolean }) => void;
   onError: (error: string) => void;
   mpPublicKey: string;
@@ -30,7 +32,7 @@ declare global {
 
 export const TransparentCheckout = ({
   checkoutId, orderId, amount, customerName, customerEmail, customerCpf,
-  primaryColor, itemName, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
+  primaryColor, itemName, textColor, subtitleColor, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
 }: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string }) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("credit_card");
@@ -249,12 +251,12 @@ export const TransparentCheckout = ({
     <div className="space-y-6">
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="credit_card" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 bg-slate-100/50">
+          <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{ color: activeTab === 'credit_card' ? primaryColor : textColor }}>
             <CreditCard className="w-4 h-4" />
             Cartão de Crédito
           </TabsTrigger>
-          <TabsTrigger value="pix" className="flex items-center gap-2">
+          <TabsTrigger value="pix" className="flex items-center gap-2" style={{ color: activeTab === 'pix' ? primaryColor : textColor }}>
             <QrCode className="w-4 h-4" />
             PIX
           </TabsTrigger>
@@ -263,50 +265,53 @@ export const TransparentCheckout = ({
         <TabsContent value="credit_card" className="space-y-4 mt-4">
           <div className="space-y-3">
             <div>
-              <Label className="text-xs">Número do Cartão</Label>
+              <Label className="text-xs" style={{ color: subtitleColor }}>Número do Cartão</Label>
               <Input
                 placeholder="0000 0000 0000 0000"
                 value={cardNumber}
                 onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 maxLength={19}
                 disabled={processing}
+                style={{ color: textColor }}
               />
             </div>
             <div>
-              <Label className="text-xs">Nome no Cartão</Label>
+              <Label className="text-xs" style={{ color: subtitleColor }}>Nome no Cartão</Label>
               <Input
                 placeholder="Nome como está no cartão"
                 value={cardHolder}
                 onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
                 disabled={processing}
+                style={{ color: textColor }}
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs">Mês</Label>
+                <Label className="text-xs" style={{ color: subtitleColor }}>Mês</Label>
                 <Input placeholder="MM" value={expMonth}
                   onChange={(e) => setExpMonth(e.target.value.replace(/\D/g, '').substring(0, 2))}
-                  maxLength={2} disabled={processing} />
+                  maxLength={2} disabled={processing} style={{ color: textColor }} />
               </div>
               <div>
-                <Label className="text-xs">Ano</Label>
+                <Label className="text-xs" style={{ color: subtitleColor }}>Ano</Label>
                 <Input placeholder="AA" value={expYear}
                   onChange={(e) => setExpYear(e.target.value.replace(/\D/g, '').substring(0, 4))}
-                  maxLength={4} disabled={processing} />
+                  maxLength={4} disabled={processing} style={{ color: textColor }} />
               </div>
               <div>
-                <Label className="text-xs">CVV</Label>
+                <Label className="text-xs" style={{ color: subtitleColor }}>CVV</Label>
                 <Input placeholder="123" value={cvv} type="password"
                   onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').substring(0, 4))}
-                  maxLength={4} disabled={processing} />
+                  maxLength={4} disabled={processing} style={{ color: textColor }} />
               </div>
             </div>
 
             {availableInstallments.length > 1 && (
               <div>
-                <Label className="text-xs">Parcelas</Label>
+                <Label className="text-xs" style={{ color: subtitleColor }}>Parcelas</Label>
                 <select
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  style={{ color: textColor }}
                   value={installments}
                   onChange={(e) => setInstallments(Number(e.target.value))}
                   disabled={processing}
@@ -343,8 +348,8 @@ export const TransparentCheckout = ({
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <QrCode className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="font-semibold text-lg">Pagar com PIX</h3>
-                <p className="text-sm text-muted-foreground max-w-[250px] mx-auto mt-2">
+                <h3 className="font-semibold text-lg" style={{ color: textColor }}>Pagar com PIX</h3>
+                <p className="text-sm max-w-[250px] mx-auto mt-2" style={{ color: subtitleColor }}>
                   Liberação imediata! Gere o seu código PIX agora para finalizar.
                 </p>
               </div>
@@ -364,14 +369,14 @@ export const TransparentCheckout = ({
 
           ) : (
             <div className="text-center space-y-4">
-              <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+              <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
                 {pixKey ? (
                   <div className="py-4 space-y-4">
                     <div className="p-4 bg-white rounded-xl border shadow-inner">
                       <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Chave PIX para Pagamento</p>
-                      <p className="text-lg font-black break-all">{pixKey}</p>
+                      <p className="text-lg font-black break-all text-slate-900">{pixKey}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
+                    <p className="text-xs leading-relaxed" style={{ color: subtitleColor }}>
                       Após o pagamento, clique no botão abaixo para finalizar seu pedido e enviar o comprovante.
                     </p>
                   </div>
@@ -382,11 +387,12 @@ export const TransparentCheckout = ({
                     className="w-48 h-48 mx-auto rounded-lg"
                   />
                 )}
-                {!pixKey && <p className="text-sm font-medium">Escaneie o QR Code ou copie o código PIX</p>}
+                {!pixKey && <p className="text-sm font-medium" style={{ color: textColor }}>Escaneie o QR Code ou copie o código PIX</p>}
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={copyPixCode}
+                  style={{ color: textColor, borderColor: subtitleColor }}
                 >
                   {pixCopied ? (
                     <><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />Copiado!</>
@@ -410,6 +416,7 @@ export const TransparentCheckout = ({
                       variant="ghost"
                       className="w-full h-12 font-bold" 
                       onClick={() => onSuccess({ paymentId: 'manual_pix', isManualPix: true })}
+                      style={{ color: subtitleColor }}
                     >
                       Já realizei o pagamento
                     </Button>
@@ -418,7 +425,7 @@ export const TransparentCheckout = ({
               </div>
 
               {checkingPixStatus && !pixKey && (
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
+                <div className="flex items-center justify-center gap-2 text-sm animate-pulse" style={{ color: subtitleColor }}>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Aguardando confirmação do pagamento...
                 </div>

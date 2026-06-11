@@ -417,7 +417,7 @@ const CheckoutPage = () => {
                   <div className="mt-8">
                     {showPayment && orderId && mpPublicKey ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                         <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2 mb-6">
+                         <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2 mb-6" style={{ color: textColor }}>
                           <span className="w-6 h-6 rounded-full text-white text-[10px] flex items-center justify-center font-black" style={{ backgroundColor: primaryColor }}>2</span>
                           Escolha a forma de pagamento
                         </h4>
@@ -425,6 +425,7 @@ const CheckoutPage = () => {
                           checkoutId={checkout.id} orderId={orderId} amount={total}
                           customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
                           primaryColor={primaryColor} itemName={checkout.item_name}
+                          textColor={textColor} subtitleColor={subtitleColor}
                           onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey}
                           pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
                         />
