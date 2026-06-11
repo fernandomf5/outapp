@@ -21,11 +21,11 @@ const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
   }, [initialSeconds]);
 
   useEffect(() => {
-    if (!isActive || seconds <= 0) return;
+    if (!isActive) return;
     
     const intervalId = setInterval(() => {
       setSeconds(prev => {
-        if (prev <= 1) {
+        if (prev <= 0) {
           clearInterval(intervalId);
           setIsActive(false);
           return 0;
@@ -35,7 +35,7 @@ const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
     }, 1000);
     
     return () => clearInterval(intervalId);
-  }, [seconds, isActive]);
+  }, [isActive]);
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
