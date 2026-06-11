@@ -81,7 +81,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
-      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff' }}>
+      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
         <div className="flex items-center gap-2">
           {checkout.item_image_url ? (
             <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
@@ -124,7 +124,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                     </div>
                   )}
                   <div className="flex-1 flex flex-col justify-center">
-                    <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
+                    <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ backgroundColor: checkout.inner_bg_color || '#f3f4f6', borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
                     <h3 className="font-bold text-lg md:text-xl leading-tight" style={{ color: textColor }}>{checkout.item_name || 'Nome do Produto'}</h3>
                     <p className="text-xs mt-1 line-clamp-1" style={{ color: subtitleColor }}>{checkout.item_description || 'Breve descrição do que você está comprando...'}</p>
                   </div>
@@ -132,7 +132,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                 
                 <div className="p-5 flex items-center justify-between border-t border-muted/50" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase font-semibold" style={{ color: subtitleColor }}>Valor Total</span>
+                    <span className="text-[10px] uppercase font-semibold" style={{ color: checkout.summary_text_color || subtitleColor }}>Valor Total</span>
                     <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
                   </div>
                   <div className="flex flex-col items-end">
