@@ -135,7 +135,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                     </div>
                   )}
                   <div className="flex-1 flex flex-col justify-center">
-                    <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ backgroundColor: checkout.inner_bg_color || '#f3f4f6', borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
+                    <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ backgroundColor: checkout.custom_settings?.badge_bg_color || checkout.inner_bg_color || '#f3f4f6', borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
                     <h3 className="font-bold text-lg md:text-xl leading-tight" style={{ color: textColor }}>{checkout.item_name || 'Nome do Produto'}</h3>
                     <p className="text-xs mt-1 line-clamp-1" style={{ color: subtitleColor }}>{checkout.item_description || 'Breve descrição do que você está comprando...'}</p>
                   </div>
