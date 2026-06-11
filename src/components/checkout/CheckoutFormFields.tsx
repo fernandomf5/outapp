@@ -305,7 +305,26 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 {formData.custom_settings.enable_mp && (
                   <div className="space-y-3 pt-2 border-t border-slate-200">
                     <div className="p-2 bg-blue-100/50 border border-blue-200 rounded text-[10px] text-blue-800">
-                      Configure suas credenciais nas configurações de integração do dashboard.
+                      Configure suas credenciais do Mercado Pago para este checkout.
+                    </div>
+                    <div>
+                      <Label className="text-slate-700 text-xs font-semibold mb-1 block">Public Key (PK_...)</Label>
+                      <Input 
+                        value={formData.mp_public_key || ''} 
+                        onChange={(e) => setFormData((prev: any) => ({...prev, mp_public_key: e.target.value}))} 
+                        placeholder="APP_USR-..." 
+                        className="h-9 bg-white text-slate-900" 
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-slate-700 text-xs font-semibold mb-1 block">Access Token (APP_USR-...)</Label>
+                      <Input 
+                        type="password"
+                        value={formData.mp_access_token || ''} 
+                        onChange={(e) => setFormData((prev: any) => ({...prev, mp_access_token: e.target.value}))} 
+                        placeholder="TEST-..." 
+                        className="h-9 bg-white text-slate-900" 
+                      />
                     </div>
                   </div>
                 )}

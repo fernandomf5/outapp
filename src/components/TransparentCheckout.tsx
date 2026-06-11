@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Loader2, QrCode, Copy, CheckCircle2, AlertCircle } from "lucide-react";
+import { CreditCard, Loader2, QrCode, Copy, CheckCircle2, AlertCircle, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TransparentCheckoutProps {
@@ -396,13 +396,24 @@ export const TransparentCheckout = ({
                 </Button>
 
                 {pixKey && (
-                  <Button 
-                    className="w-full h-12 font-bold" 
-                    style={{ backgroundColor: primaryColor }}
-                    onClick={() => onSuccess({ paymentId: 'manual_pix', isManualPix: true })}
-                  >
-                    Já realizei o pagamento
-                  </Button>
+                  <div className="space-y-3">
+                    <Button 
+                      className="w-full h-14 font-black bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg flex items-center justify-center gap-2" 
+                      onClick={() => {
+                        const msg = encodeURIComponent(`Olá, realizei o pagamento via PIX manual. Nome: ${customerName}. Valor: R$ ${amount.toFixed(2)}`);
+                        window.open(`https://wa.me/${pixWhatsapp}?text=${msg}`, '_blank');
+                      }}
+                    >
+                      <Smartphone className="w-5 h-5" /> Confirmar no WhatsApp
+                    </Button>
+                    <Button 
+                      variant="ghost"
+                      className="w-full h-12 font-bold" 
+                      onClick={() => onSuccess({ paymentId: 'manual_pix', isManualPix: true })}
+                    >
+                      Já realizei o pagamento
+                    </Button>
+                  </div>
                 )}
               </div>
 
