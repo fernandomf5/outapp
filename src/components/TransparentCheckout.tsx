@@ -282,7 +282,7 @@ export const TransparentCheckout = ({
                 onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 maxLength={19}
                  disabled={processing}
-                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }}
               />
             </div>
             <div>
