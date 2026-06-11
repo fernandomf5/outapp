@@ -60,7 +60,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
-      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff' }}>
         <div className="flex items-center gap-2">
           {checkout.item_image_url ? (
             <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
@@ -89,16 +89,16 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
           </div>
         )}
 
-        <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''} flex-col-reverse lg:flex-row`}>
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-7 space-y-6' : 'space-y-6'} order-2 lg:order-1`}>
+        <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''} flex-col lg:flex-row`}>
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-7 space-y-6' : 'space-y-6'} order-1 lg:order-1`}>
             {/* Main Product Info */}
-            <Card className={`border-none shadow-sm overflow-hidden rounded-3xl ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+            <Card className={`border-none shadow-sm overflow-hidden rounded-3xl ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff' }}>
               <CardContent className="p-0">
                 <div className="p-5 flex gap-4">
                   {checkout.item_image_url ? (
                     <img src={checkout.item_image_url} alt="Item" className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover shadow-sm" />
                   ) : (
-                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl bg-muted flex items-center justify-center">
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl flex items-center justify-center" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff' }}>
                       <Package className="w-10 h-10 text-muted-foreground" />
                     </div>
                   )}
@@ -130,7 +130,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
 
           <div className={`${layoutStructure === 'split' ? 'lg:col-span-5 space-y-6' : 'space-y-6'} order-1 lg:order-2`}>
             {/* Checkout Form Simulation */}
-            <Card className={`border-none shadow-sm p-6 space-y-4 rounded-3xl ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+            <Card className={`border-none shadow-sm p-6 space-y-4 rounded-3xl ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff' }}>
               {activeTab !== 'payment' ? (
                 <>
                   <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
@@ -141,19 +141,19 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                     {checkout.show_field_name !== false && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>Nome Completo</Label>
-                        <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
                       </div>
                     )}
                     {checkout.show_field_email !== false && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>E-mail para entrega</Label>
-                        <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
                       </div>
                     )}
                     {checkout.show_field_whatsapp && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>WhatsApp</Label>
-                        <Input disabled placeholder="(00) 00000-0000" className="h-10 border-slate-200" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="(00) 00000-0000" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
                       </div>
                     )}
                     
@@ -167,12 +167,12 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                           {checkout.show_field_zip !== false && (
                             <div className="col-span-1 space-y-1">
                               <Label className="text-[10px]" style={{ color: subtitleColor }}>CEP</Label>
-                              <Input disabled placeholder="00000-000" className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                              <Input disabled placeholder="00000-000" className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
                             </div>
                           )}
                           <div className="col-span-2 space-y-1">
                             <Label className="text-[10px]" style={{ color: subtitleColor }}>Rua</Label>
-                            <Input disabled placeholder="Nome da rua..." className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.field_color || '#ffffff', color: textColor }} />
+                            <Input disabled placeholder="Nome da rua..." className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
                           </div>
                         </div>
                       </div>
