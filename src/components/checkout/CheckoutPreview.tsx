@@ -10,15 +10,18 @@ const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number,
   const [seconds, setSeconds] = useState(initialSeconds);
 
   useEffect(() => {
+    // Reset timer when initialSeconds changes (e.g., edited in panel)
     setSeconds(initialSeconds);
   }, [initialSeconds]);
 
   useEffect(() => {
     if (seconds <= 0) return;
-    const interval = setInterval(() => {
-      setSeconds(s => s - 1);
+    
+    const timer = setTimeout(() => {
+      setSeconds(prev => prev - 1);
     }, 1000);
-    return () => clearInterval(interval);
+    
+    return () => clearTimeout(timer);
   }, [seconds]);
 
   const formatTime = (s: number) => {

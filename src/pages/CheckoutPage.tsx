@@ -20,10 +20,12 @@ const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
 
   useEffect(() => {
     if (seconds <= 0) return;
-    const interval = setInterval(() => {
-      setSeconds(s => s - 1);
+    
+    const timer = setTimeout(() => {
+      setSeconds(prev => prev - 1);
     }, 1000);
-    return () => clearInterval(interval);
+    
+    return () => clearTimeout(timer);
   }, [seconds]);
 
   const formatTime = (s: number) => {
