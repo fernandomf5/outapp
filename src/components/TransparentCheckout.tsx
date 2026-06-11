@@ -265,50 +265,53 @@ export const TransparentCheckout = ({
         <TabsContent value="credit_card" className="space-y-4 mt-4">
           <div className="space-y-3">
             <div>
-              <Label className="text-xs">Número do Cartão</Label>
+              <Label className="text-xs" style={{ color: subtitleColor }}>Número do Cartão</Label>
               <Input
                 placeholder="0000 0000 0000 0000"
                 value={cardNumber}
                 onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 maxLength={19}
                 disabled={processing}
+                style={{ color: textColor }}
               />
             </div>
             <div>
-              <Label className="text-xs">Nome no Cartão</Label>
+              <Label className="text-xs" style={{ color: subtitleColor }}>Nome no Cartão</Label>
               <Input
                 placeholder="Nome como está no cartão"
                 value={cardHolder}
                 onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
                 disabled={processing}
+                style={{ color: textColor }}
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs">Mês</Label>
+                <Label className="text-xs" style={{ color: subtitleColor }}>Mês</Label>
                 <Input placeholder="MM" value={expMonth}
                   onChange={(e) => setExpMonth(e.target.value.replace(/\D/g, '').substring(0, 2))}
-                  maxLength={2} disabled={processing} />
+                  maxLength={2} disabled={processing} style={{ color: textColor }} />
               </div>
               <div>
-                <Label className="text-xs">Ano</Label>
+                <Label className="text-xs" style={{ color: subtitleColor }}>Ano</Label>
                 <Input placeholder="AA" value={expYear}
                   onChange={(e) => setExpYear(e.target.value.replace(/\D/g, '').substring(0, 4))}
-                  maxLength={4} disabled={processing} />
+                  maxLength={4} disabled={processing} style={{ color: textColor }} />
               </div>
               <div>
-                <Label className="text-xs">CVV</Label>
+                <Label className="text-xs" style={{ color: subtitleColor }}>CVV</Label>
                 <Input placeholder="123" value={cvv} type="password"
                   onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').substring(0, 4))}
-                  maxLength={4} disabled={processing} />
+                  maxLength={4} disabled={processing} style={{ color: textColor }} />
               </div>
             </div>
 
             {availableInstallments.length > 1 && (
               <div>
-                <Label className="text-xs">Parcelas</Label>
+                <Label className="text-xs" style={{ color: subtitleColor }}>Parcelas</Label>
                 <select
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  style={{ color: textColor }}
                   value={installments}
                   onChange={(e) => setInstallments(Number(e.target.value))}
                   disabled={processing}
