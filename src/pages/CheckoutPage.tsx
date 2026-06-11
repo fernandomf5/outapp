@@ -371,8 +371,8 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl md:grid-cols-12 flex-col lg:flex-row`}>
-          <div className={`md:col-span-7 lg:col-span-8 space-y-6 order-1 lg:order-1`}>
+        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl lg:grid-cols-12 flex-col`}>
+          <div className={`lg:col-span-8 space-y-6 order-2 lg:order-1`}>
             <Card className={`overflow-hidden border shadow-xl ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor, borderColor: borderColor }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
