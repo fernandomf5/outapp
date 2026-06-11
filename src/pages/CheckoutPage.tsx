@@ -425,6 +425,7 @@ const CheckoutPage = () => {
                           checkoutId={checkout.id} orderId={orderId} amount={total}
                           customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
                           primaryColor={primaryColor} itemName={checkout.item_name}
+                          textColor={textColor} subtitleColor={subtitleColor}
                           onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey}
                           pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
                         />
