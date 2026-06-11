@@ -10,6 +10,10 @@ const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number,
   const [seconds, setSeconds] = useState(initialSeconds);
 
   useEffect(() => {
+    setSeconds(initialSeconds);
+  }, [initialSeconds]);
+
+  useEffect(() => {
     if (seconds <= 0) return;
     const interval = setInterval(() => {
       setSeconds(s => s - 1);

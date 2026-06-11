@@ -161,6 +161,14 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Input type="color" value={formData.custom_settings.card_color || '#ffffff'} onChange={(e) => updateSetting('card_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold text-xs">Cor do Fundo Interno (Cinza)</Label>
+                <Input type="color" value={formData.custom_settings.inner_bg_color || '#f3f4f6'} onChange={(e) => updateSetting('inner_bg_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold text-xs">Cor das Bordas</Label>
+                <Input type="color" value={formData.custom_settings.border_color || '#e2e8f0'} onChange={(e) => updateSetting('border_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor dos Títulos</Label>
                 <Input type="color" value={formData.custom_settings.title_color || '#000000'} onChange={(e) => updateSetting('title_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
@@ -175,6 +183,36 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Botão Texto</Label>
                 <Input type="color" value={formData.custom_settings.button_text_color || '#ffffff'} onChange={(e) => updateSetting('button_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              
+              <div className="pt-4 border-t border-slate-100 space-y-4">
+                <h4 className="font-bold text-sm text-slate-900">Ajustes Finos</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-slate-700 text-xs">Arredondamento dos Cards</Label>
+                    <Select value={formData.custom_settings.card_radius || 'rounded-3xl'} onValueChange={(v) => updateSetting('card_radius', v)}>
+                      <SelectTrigger className="w-[140px] h-8 text-xs bg-white"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="rounded-none">Nenhum</SelectItem>
+                        <SelectItem value="rounded-lg">Pequeno</SelectItem>
+                        <SelectItem value="rounded-2xl">Médio</SelectItem>
+                        <SelectItem value="rounded-3xl">Grande</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-slate-700 text-xs">Sombra dos Cards</Label>
+                    <Select value={formData.custom_settings.card_shadow || 'shadow-sm'} onValueChange={(v) => updateSetting('card_shadow', v)}>
+                      <SelectTrigger className="w-[140px] h-8 text-xs bg-white"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="shadow-none">Nenhuma</SelectItem>
+                        <SelectItem value="shadow-sm">Suave</SelectItem>
+                        <SelectItem value="shadow-md">Média</SelectItem>
+                        <SelectItem value="shadow-xl">Forte</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
