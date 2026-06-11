@@ -394,7 +394,9 @@ const CheckoutPage = () => {
                       {checkout.item_description && <p className="text-sm mt-2 line-clamp-2" style={{ color: subtitleColor }}>{checkout.item_description}</p>}
                       <div className="flex items-center justify-center md:justify-start gap-3 mt-4">
                         <p className="text-3xl font-black" style={{ color: primaryColor }}>R$ {Number(checkout.price).toFixed(2)}</p>
-                        <span className="text-sm text-muted-foreground line-through opacity-50">R$ {(Number(checkout.price) * 1.5).toFixed(2)}</span>
+                        {checkout.custom_settings?.show_original_price ? (
+                          <span className="text-sm text-muted-foreground line-through opacity-50">R$ {Number(checkout.custom_settings?.original_price || (Number(checkout.price) * 1.5)).toFixed(2)}</span>
+                        ) : null}
                       </div>
                     </div>
                   </div>
