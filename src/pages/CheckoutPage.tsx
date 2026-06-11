@@ -45,7 +45,13 @@ interface CheckoutData {
   logo_alignment?: string;
   field_color?: string;
   summary_bg_color?: string;
+  header_title?: string;
+  header_title_color?: string;
+  header_title_font_size?: string;
+  header_title_font_family?: string;
+  header_title_bold?: boolean;
 }
+
 
 interface AdditionalItem {
   id: string;
