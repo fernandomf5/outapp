@@ -50,6 +50,9 @@ interface CheckoutData {
   header_title_font_size?: string;
   header_title_font_family?: string;
   header_title_bold?: boolean;
+  layout_model?: string;
+  layout_structure?: string;
+  layout_width?: string;
 }
 
 
@@ -264,7 +267,7 @@ const CheckoutPage = () => {
         {checkout.head_code && <script>{checkout.head_code}</script>}
       </Helmet>
 
-      <div className="min-h-screen flex flex-col items-center transition-all duration-300" style={{ backgroundColor: bgColor, color: textColor }}>
+      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 ${checkout.layout_width === 'full' ? 'w-full' : ''}`} style={{ backgroundColor: bgColor, color: textColor }}>
         {/* Modern Header */}
         <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
@@ -300,9 +303,9 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 p-4 md:p-8">
-          <div className="md:col-span-7 lg:col-span-8 space-y-6">
-            <Card className="overflow-hidden shadow-xl border-none rounded-3xl" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
+        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 ${checkout.layout_width === 'full' ? 'max-w-none' : 'max-w-6xl'} ${checkout.layout_structure === 'single' ? 'max-w-3xl' : 'md:grid-cols-12'}`}>
+          <div className={`${checkout.layout_structure === 'single' ? 'col-span-1' : 'md:col-span-7 lg:col-span-8'} space-y-6`}>
+            <Card className={`overflow-hidden shadow-xl border-none ${checkout.layout_model === 'minimal' ? 'rounded-lg' : 'rounded-3xl'}`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
                   <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
@@ -442,8 +445,8 @@ const CheckoutPage = () => {
             )}
           </div>
 
-          <div className="md:col-span-5 lg:col-span-4 space-y-6">
-            <Card className="shadow-2xl border-none rounded-3xl sticky top-24 overflow-hidden" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+          <div className={`${checkout.layout_structure === 'single' ? 'col-span-1' : 'md:col-span-5 lg:col-span-4'} space-y-6`}>
+            <Card className={`shadow-2xl border-none sticky top-24 overflow-hidden ${checkout.layout_model === 'minimal' ? 'rounded-lg' : 'rounded-3xl'}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
               <div className="p-6 bg-muted/30 border-b flex items-center justify-between">
                 <CardTitle className="text-lg font-black flex items-center gap-2" style={{ color: textColor }}><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
                 <Badge variant="outline" className="font-black text-[10px]">TOTAL</Badge>
