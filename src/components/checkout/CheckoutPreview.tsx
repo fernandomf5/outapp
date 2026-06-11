@@ -63,7 +63,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
   const layoutStructure = 'split';
   const layoutWidth = 'full';
 
-  const innerBgColor = checkout.inner_bg_color || 'rgba(0,0,0,0.03)';
+  const innerBgColor = checkout.inner_bg_color === 'transparent' ? 'transparent' : checkout.inner_bg_color || 'rgba(0,0,0,0.03)';
   const borderColor = checkout.border_color || '#e2e8f0';
   const cardRadius = checkout.card_radius || 'rounded-3xl';
   const cardShadow = checkout.card_shadow || 'shadow-sm';
