@@ -328,8 +328,8 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl md:grid-cols-12`}>
-          <div className={`md:col-span-7 lg:col-span-8 space-y-6`}>
+        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl md:grid-cols-12 flex-col-reverse md:flex-row`}>
+          <div className={`md:col-span-7 lg:col-span-8 space-y-6 order-2 md:order-1`}>
             <Card className={`overflow-hidden shadow-xl border-none rounded-3xl`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
@@ -460,6 +460,23 @@ const CheckoutPage = () => {
               </CardContent>
             </Card>
 
+            {/* Benefits Section - Adding it here for visibility if missing */}
+            {(benefits && benefits.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-700">
+                {benefits.map((b: any, i: number) => (
+                  <div key={i} className="flex gap-4 p-5 rounded-3xl bg-white shadow-sm border border-slate-100">
+                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900">{b.title}</p>
+                      <p className="text-sm text-slate-500 leading-relaxed">{b.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Social Proof Section */}
             {(testimonials.length > 0 || checkout.show_fake_feedback) && (
                <div className="space-y-6 animate-in fade-in duration-700 delay-300">
@@ -502,7 +519,7 @@ const CheckoutPage = () => {
             )}
           </div>
 
-          <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'md:col-span-5 lg:col-span-4'} space-y-6`}>
+          <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'md:col-span-5 lg:col-span-4'} space-y-6 order-1 md:order-2`}>
             <Card className={`shadow-2xl border-none sticky top-24 overflow-hidden ${(checkout.custom_settings?.layout_model || checkout.layout_model) === 'minimal' ? 'rounded-lg' : 'rounded-3xl'}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
               <div className="p-6 bg-muted/30 border-b flex items-center justify-between">
                 <CardTitle className="text-lg font-black flex items-center gap-2" style={{ color: textColor }}><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
