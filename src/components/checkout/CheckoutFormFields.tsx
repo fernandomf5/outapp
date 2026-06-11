@@ -266,8 +266,12 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Switch checked={formData.custom_settings.show_summary_description} onCheckedChange={(v) => updateSetting('show_summary_description', v)} />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor de Fundo Cabeçalho Resumo</Label>
+                <Input type="color" value={formData.custom_settings.summary_header_bg_color || '#ffffff'} onChange={(e) => updateSetting('summary_header_bg_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor de Fundo do Resumo</Label>
-                <Input type="color" value={formData.custom_settings.summary_bg_color} onChange={(e) => updateSetting('summary_bg_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <Input type="color" value={formData.custom_settings.summary_bg_color || '#f3f4f6'} onChange={(e) => updateSetting('summary_bg_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Texto do Resumo</Label>
