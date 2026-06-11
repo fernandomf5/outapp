@@ -21,11 +21,11 @@ const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
   }, [initialSeconds]);
 
   useEffect(() => {
-    if (!isActive || seconds <= 0) return;
+    if (!isActive) return;
     
     const intervalId = setInterval(() => {
       setSeconds(prev => {
-        if (prev <= 1) {
+        if (prev <= 0) {
           clearInterval(intervalId);
           setIsActive(false);
           return 0;
@@ -35,7 +35,7 @@ const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
     }, 1000);
     
     return () => clearInterval(intervalId);
-  }, [seconds, isActive]);
+  }, [isActive]);
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
@@ -92,6 +92,7 @@ interface CheckoutData {
   layout_model?: string;
   layout_structure?: string;
   layout_width?: string;
+  top_bar_bg_color?: string;
 }
 
 
@@ -338,7 +339,7 @@ const CheckoutPage = () => {
 
       <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full`} style={{ backgroundColor: bgColor, color: textColor }}>
         {/* Modern Header */}
-        <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
+        <div className="w-full border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.custom_settings?.top_bar_bg_color || checkout.top_bar_bg_color || checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
              <div className="flex items-center justify-between w-full">
                <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 ${checkout.logo_alignment === 'center' ? 'mx-auto' : checkout.logo_alignment === 'right' ? 'flex-row-reverse' : ''}`}>
@@ -388,7 +389,7 @@ const CheckoutPage = () => {
                       <img src={checkout.item_image_url} alt={checkout.item_name} className="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover shadow-lg" />
                     )}
                     <div className="flex-1 text-center md:text-left">
-                      <Badge className="mb-2" style={{ backgroundColor: primaryColor }}>Oferta Ativa</Badge>
+                      <Badge className="mb-2" style={{ backgroundColor: checkout.custom_settings?.badge_bg_color || primaryColor }}>Oferta Ativa</Badge>
                       <h3 className="text-xl md:text-2xl font-black leading-tight" style={{ color: textColor }}>{checkout.item_name}</h3>
                       {checkout.item_description && <p className="text-sm mt-2 line-clamp-2" style={{ color: subtitleColor }}>{checkout.item_description}</p>}
                       <div className="flex items-center justify-center md:justify-start gap-3 mt-4">
@@ -470,6 +471,8 @@ const CheckoutPage = () => {
                           customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
                           primaryColor={primaryColor} itemName={checkout.item_name}
                           textColor={textColor} subtitleColor={subtitleColor}
+                          fieldColor={checkout.custom_settings?.field_color}
+                          fieldTextColor={checkout.custom_settings?.field_text_color}
                           onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey}
                           pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
                         />
@@ -557,7 +560,7 @@ const CheckoutPage = () => {
 
           <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'md:col-span-5 lg:col-span-4'} space-y-6 order-1 md:order-2`}>
             <Card className={`shadow-2xl border sticky top-24 overflow-hidden ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', borderColor: borderColor }}>
-              <div className="p-6 border-b flex items-center justify-between" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+              <div className="p-6 border-b flex items-center justify-between" style={{ backgroundColor: checkout.custom_settings?.summary_header_bg_color || checkout.card_color || '#ffffff' }}>
                 <CardTitle className="text-lg font-black flex items-center gap-2" style={{ color: textColor }}><ShoppingCart className="w-5 h-5" style={{ color: primaryColor }} /> RESUMO</CardTitle>
                 <Badge variant="outline" className="font-black text-[10px]">TOTAL</Badge>
               </div>
@@ -565,32 +568,32 @@ const CheckoutPage = () => {
                 <div className="flex gap-4 items-center">
                   {checkout.item_image_url && <img src={checkout.item_image_url} alt={checkout.item_name} className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-md" />}
                   <div className="flex-1">
-                    <h3 className="font-bold text-sm line-clamp-1" style={{ color: textColor }}>{checkout.item_name}</h3>
-                    <p className="text-lg font-black" style={{ color: primaryColor }}>R$ {Number(checkout.price).toFixed(2)}</p>
+                    <h3 className="font-bold text-sm line-clamp-1" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>{checkout.item_name}</h3>
+                    <p className="text-lg font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>R$ {Number(checkout.price).toFixed(2)}</p>
                   </div>
                 </div>
                 
                 {getSelectedExtras().length > 0 && (
-                  <div className="space-y-3 pt-4 border-t border-dashed">
+                  <div className="space-y-3 pt-4 border-t border-dashed" style={{ borderColor: `${checkout.custom_settings?.summary_text_color || textColor}20` }}>
                     {getSelectedExtras().map((ex, i) => (
                       <div key={i} className="flex justify-between items-center text-sm">
-                        <span className="font-medium flex items-center gap-2" style={{ color: subtitleColor }}><Plus className="w-3 h-3" /> {ex.name}</span>
-                        <span className="font-bold" style={{ color: textColor }}>R$ {(ex.price * ex.qty).toFixed(2)}</span>
+                        <span className="font-medium flex items-center gap-2" style={{ color: checkout.custom_settings?.summary_text_color || subtitleColor }}><Plus className="w-3 h-3" /> {ex.name}</span>
+                        <span className="font-bold" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>R$ {(ex.price * ex.qty).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
                 )}
                 
-                <div className="pt-6 mt-4 border-t-2 border-black/5">
+                <div className="pt-6 mt-4 border-t-2 border-black/5" style={{ borderColor: `${checkout.custom_settings?.summary_text_color || textColor}10` }}>
                   <div className="flex justify-between items-center mb-6">
-                    <span className="text-sm font-black uppercase tracking-widest opacity-60" style={{ color: textColor }}>Total a pagar</span>
-                    <span className="text-3xl font-black" style={{ color: primaryColor }}>R$ {total.toFixed(2)}</span>
+                    <span className="text-sm font-black uppercase tracking-widest opacity-60" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>Total a pagar</span>
+                    <span className="text-3xl font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>R$ {total.toFixed(2)}</span>
                   </div>
                   
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-[10px] font-black uppercase text-green-600 bg-green-50 p-4 rounded-xl border border-green-100">
+                    <div className="flex items-center gap-3 text-[10px] font-black uppercase text-green-600 bg-green-50 p-4 rounded-xl border border-green-100" style={{ backgroundColor: `${checkout.custom_settings?.summary_text_color || textColor}05`, borderColor: `${checkout.custom_settings?.summary_text_color || textColor}10` }}>
                       <Shield className="w-5 h-5 flex-shrink-0" />
-                      <span style={{ color: subtitleColor }}>Sua compra é processada em um ambiente 100% criptografado e seguro.</span>
+                      <span style={{ color: checkout.custom_settings?.summary_text_color || subtitleColor }}>Sua compra é processada em um ambiente 100% criptografado e seguro.</span>
                     </div>
                     
                     <div className="flex justify-center items-center gap-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
@@ -629,26 +632,26 @@ const CheckoutPage = () => {
            <div className="w-full h-px bg-black/5"></div>
            
            {checkout.custom_settings?.footer_contact_info && (
-             <div className="flex justify-center">
+             <div className="flex justify-center flex-col items-center gap-3">
                <Button 
                  variant="outline" 
                  size="sm" 
-                 className="rounded-full gap-2 font-bold px-6 h-10 transition-all hover:scale-105 active:scale-95 hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+                 className="rounded-full gap-2 font-bold px-8 h-12 transition-all hover:scale-105 active:scale-95 hover:bg-green-50 hover:text-green-600 hover:border-green-200"
                  style={{ color: footerColor, borderColor: `${footerColor}40` }}
                  onClick={() => window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}
                >
-                 <Smartphone className="w-4 h-4" /> Contato no WhatsApp
+                 <Smartphone className="w-5 h-5" /> Contato no WhatsApp
                </Button>
              </div>
            )}
 
            <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em]" style={{ color: footerColor }}>
-             {footerTextValue}
+             {checkout.footer_text || 'Compra 100% Segura'}
            </p>
            <div className="flex justify-center flex-wrap gap-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">
              <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_privacy_url && window.open(checkout.custom_settings.footer_privacy_url, '_blank')}>Privacidade</span>
              <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_terms_url && window.open(checkout.custom_settings.footer_terms_url, '_blank')}>Termos de Uso</span>
-             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Contato</span>
+             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_contact_info && window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}>Contato</span>
            </div>
         </div>
 

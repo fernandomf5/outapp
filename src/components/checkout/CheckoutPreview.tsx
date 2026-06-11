@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Package, Shield, ShoppingCart, CheckCircle2, Star, CreditCard, Lock, Smartphone, Heart, Clock } from "lucide-react";
+import { DollarSign, Package, Shield, ShoppingCart, CheckCircle2, Star, CreditCard, Lock, Smartphone, Heart, Clock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,11 +17,11 @@ const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number,
   }, [initialSeconds]);
 
   useEffect(() => {
-    if (!isActive || seconds <= 0) return;
+    if (!isActive) return;
     
     const intervalId = setInterval(() => {
       setSeconds(prev => {
-        if (prev <= 1) {
+        if (prev <= 0) {
           clearInterval(intervalId);
           setIsActive(false);
           return 0;
@@ -31,7 +31,7 @@ const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number,
     }, 1000);
     
     return () => clearInterval(intervalId);
-  }, [seconds, isActive]);
+  }, [isActive]);
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
@@ -52,7 +52,7 @@ const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number,
   );
 };
 
-export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, activeTab?: string }) => {
+export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout: any, activeTab?: string, onTabChange?: (tab: string) => void }) => {
   const primaryColor = checkout.primary_color || '#8B5CF6';
   const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
   const textColor = checkout.title_color || '#0f172a';
@@ -63,7 +63,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
   const layoutStructure = 'split';
   const layoutWidth = 'full';
 
-  const innerBgColor = checkout.inner_bg_color || 'rgba(0,0,0,0.03)';
+  const innerBgColor = checkout.inner_bg_color === 'transparent' ? 'transparent' : checkout.inner_bg_color || 'rgba(0,0,0,0.03)';
   const borderColor = checkout.border_color || '#e2e8f0';
   const cardRadius = checkout.card_radius || 'rounded-3xl';
   const cardShadow = checkout.card_shadow || 'shadow-sm';
@@ -73,6 +73,15 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
     { name: "João Pereira", text: "Entrega super rápida do acesso.", rating: 5, avatar: "" }
   ];
 
+  const EditButton = ({ tab, className = "" }: { tab: string, className?: string }) => (
+    <button 
+      onClick={(e) => { e.stopPropagation(); onTabChange?.(tab); }}
+      className={`absolute -top-2 -right-2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg hover:bg-indigo-700 cursor-pointer ${className}`}
+    >
+      <Pencil className="w-4 h-4" />
+    </button>
+  );
+
   return (
     <div 
       className={`w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative ${
@@ -81,7 +90,8 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
-      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
+      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 group relative ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
+        <EditButton tab="header" />
         <div className="flex items-center gap-2">
           {checkout.item_image_url ? (
             <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
@@ -113,7 +123,8 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
         <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''} flex-col lg:flex-row`}>
           <div className={`${layoutStructure === 'split' ? 'lg:col-span-7 space-y-6' : 'space-y-6'} order-1 lg:order-1`}>
             {/* Main Product Info */}
-            <Card className={`border shadow-sm overflow-hidden ${cardRadius} ${cardShadow} ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+            <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+              <EditButton tab="product" />
               <CardContent className="p-0">
                 <div className="p-5 flex gap-4">
                   {checkout.item_image_url ? (
@@ -124,13 +135,14 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                     </div>
                   )}
                   <div className="flex-1 flex flex-col justify-center">
-                    <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ backgroundColor: checkout.inner_bg_color || '#f3f4f6', borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
+                    <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ backgroundColor: checkout.custom_settings?.badge_bg_color || checkout.inner_bg_color || '#f3f4f6', borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
                     <h3 className="font-bold text-lg md:text-xl leading-tight" style={{ color: textColor }}>{checkout.item_name || 'Nome do Produto'}</h3>
                     <p className="text-xs mt-1 line-clamp-1" style={{ color: subtitleColor }}>{checkout.item_description || 'Breve descrição do que você está comprando...'}</p>
                   </div>
                 </div>
                 
-                <div className="p-5 flex items-center justify-between border-t border-muted/50" style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+                <div className="p-5 flex items-center justify-between border-t border-muted/50 group relative" style={{ backgroundColor: checkout.custom_settings?.summary_header_bg_color || checkout.summary_bg_color || checkout.card_color || '#ffffff' }}>
+                  <EditButton tab="summary" />
                   <div className="flex flex-col">
                     <span className="text-[10px] uppercase font-semibold" style={{ color: checkout.summary_text_color || subtitleColor }}>Valor Total</span>
                     <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
@@ -151,7 +163,8 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
 
           <div className={`${layoutStructure === 'split' ? 'lg:col-span-5 space-y-6' : 'space-y-6'} order-1 lg:order-2`}>
             {/* Checkout Form Simulation */}
-            <Card className={`border shadow-sm p-6 space-y-4 ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+            <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+              <EditButton tab="form" />
               {activeTab !== 'payment' ? (
                 <>
                   <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
@@ -162,19 +175,19 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                     {checkout.show_field_name !== false && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>Nome Completo</Label>
-                        <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: checkout.custom_settings?.field_text_color || textColor }} />
                       </div>
                     )}
                     {checkout.show_field_email !== false && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>E-mail para entrega</Label>
-                        <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: checkout.custom_settings?.field_text_color || textColor }} />
                       </div>
                     )}
                     {checkout.show_field_whatsapp && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>WhatsApp</Label>
-                        <Input disabled placeholder="(00) 00000-0000" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="(00) 00000-0000" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: checkout.custom_settings?.field_text_color || textColor }} />
                       </div>
                     )}
                     
@@ -265,7 +278,8 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
 
             {/* Feedback Section */}
             {((checkout.custom_settings?.testimonials || []).length > 0 || checkout.show_fake_feedback) && (
-              <div className="space-y-4">
+              <div className="space-y-4 group relative">
+                <EditButton tab="testimonials" />
                 <div className="flex items-center justify-between px-1">
                   <h4 className="font-bold text-sm" style={{ color: textColor }}>O que nossos clientes dizem</h4>
                   <div className="flex text-yellow-500 gap-0.5">
@@ -276,7 +290,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
                     <Star className="w-3 h-3 fill-current" />
                   </div>
                 </div>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {([...(checkout.custom_settings?.testimonials || []), ...(checkout.show_fake_feedback ? feedbacks : [])]).map((f: any, i: number) => (
                     <Card key={i} className={`border shadow-sm p-4 ${cardRadius} ${activeTab === 'testimonials' ? 'ring-2 ring-indigo-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9, borderColor: borderColor }}>
                       <div className="flex gap-3">
@@ -298,11 +312,37 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
             )}
 
             {checkout.custom_settings?.show_scarcity && (
-              <CountdownTimer 
-                initialSeconds={checkout.custom_settings?.scarcity_timer || 600} 
-                activeTab={activeTab}
-              />
+              <div className="group relative">
+                <EditButton tab="scarcity" />
+                <CountdownTimer 
+                  initialSeconds={checkout.custom_settings?.scarcity_timer || 600} 
+                  activeTab={activeTab}
+                />
+              </div>
             )}
+
+            {/* Guarantee Section */}
+            <div className="p-6 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center space-y-2 group relative">
+              <EditButton tab="guarantee" />
+              <Shield className="w-8 h-8 text-slate-300 mx-auto" />
+              <div className="space-y-1">
+                <h4 className="font-bold text-sm" style={{ color: textColor }}>{checkout.custom_settings?.guarantee_title || '7 Dias de Garantia'}</h4>
+                <p className="text-[10px] opacity-70 max-w-xs mx-auto" style={{ color: subtitleColor }}>{checkout.custom_settings?.guarantee_description || 'Se você não gostar, devolvemos seu dinheiro.'}</p>
+              </div>
+            </div>
+
+            {/* Footer Simulation */}
+            <div className="py-6 border-t text-center space-y-4 group relative">
+              <EditButton tab="footer" />
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-40" style={{ color: footerColor }}>
+                {checkout.footer_text || 'Compra 100% Segura'}
+              </p>
+              <div className="flex justify-center gap-4 text-[10px] font-bold opacity-30 uppercase tracking-widest">
+                <span>Privacidade</span>
+                <span>Termos</span>
+                <span>Contato</span>
+              </div>
+            </div>
           </div>
         </div>
 

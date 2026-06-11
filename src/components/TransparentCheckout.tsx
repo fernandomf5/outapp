@@ -20,6 +20,8 @@ interface TransparentCheckoutProps {
   itemName: string;
   textColor?: string;
   subtitleColor?: string;
+  fieldColor?: string;
+  fieldTextColor?: string;
   onSuccess: (data: { accessCode?: string; paymentId: string; isManualPix?: boolean }) => void;
   onError: (error: string) => void;
   mpPublicKey: string;
@@ -33,7 +35,7 @@ declare global {
 
 export const TransparentCheckout = ({
   checkoutId, orderId, amount, customerName, customerEmail, customerCpf,
-  primaryColor, itemName, textColor, subtitleColor, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
+  primaryColor, itemName, textColor, subtitleColor, fieldColor, fieldTextColor, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
 }: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string }) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("credit_card");
@@ -280,7 +282,7 @@ export const TransparentCheckout = ({
                 onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 maxLength={19}
                  disabled={processing}
-                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }}
               />
             </div>
             <div>
@@ -290,7 +292,7 @@ export const TransparentCheckout = ({
                 value={cardHolder}
                 onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
                  disabled={processing}
-                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }}
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -300,7 +302,7 @@ export const TransparentCheckout = ({
                   onChange={(e) => setExpMonth(e.target.value.replace(/\D/g, '').substring(0, 2))}
                   maxLength={2} disabled={processing} 
                   className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }} />
+                  style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>Ano</Label>
@@ -308,7 +310,7 @@ export const TransparentCheckout = ({
                   onChange={(e) => setExpYear(e.target.value.replace(/\D/g, '').substring(0, 4))}
                   maxLength={4} disabled={processing} 
                   className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }} />
+                  style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>CVV</Label>
@@ -316,7 +318,7 @@ export const TransparentCheckout = ({
                   onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').substring(0, 4))}
                   maxLength={4} disabled={processing} 
                   className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
-                  style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }} />
+                  style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
             </div>
 
