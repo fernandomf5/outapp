@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Loader2, QrCode, Copy, CheckCircle2, AlertCircle, Smartphone } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TransparentCheckoutProps {
@@ -297,19 +298,19 @@ export const TransparentCheckout = ({
                 <Label className="text-xs" style={{ color: subtitleColor }}>Mês</Label>
                 <Input placeholder="MM" value={expMonth}
                   onChange={(e) => setExpMonth(e.target.value.replace(/\D/g, '').substring(0, 2))}
-                  maxLength={2} disabled={processing} style={{ color: textColor }} />
+                  maxLength={2} disabled={processing} style={{ color: textColor, backgroundColor: 'white' }} />
               </div>
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>Ano</Label>
                 <Input placeholder="AA" value={expYear}
                   onChange={(e) => setExpYear(e.target.value.replace(/\D/g, '').substring(0, 4))}
-                  maxLength={4} disabled={processing} style={{ color: textColor }} />
+                  maxLength={4} disabled={processing} style={{ color: textColor, backgroundColor: 'white' }} />
               </div>
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>CVV</Label>
                 <Input placeholder="123" value={cvv} type="password"
                   onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').substring(0, 4))}
-                  maxLength={4} disabled={processing} style={{ color: textColor }} />
+                  maxLength={4} disabled={processing} style={{ color: textColor, backgroundColor: 'white' }} />
               </div>
             </div>
 
@@ -379,6 +380,11 @@ export const TransparentCheckout = ({
               <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
                 {pixKey ? (
                   <div className="py-4 space-y-4">
+                    <div className="flex justify-center mb-4">
+                      <div className="p-3 bg-white rounded-xl shadow-sm border">
+                        <QRCodeCanvas value={pixKey} size={180} />
+                      </div>
+                    </div>
                     <div className="p-4 bg-white rounded-xl border shadow-inner">
                       <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Chave PIX para Pagamento</p>
                       <p className="text-lg font-black break-all text-slate-900">{pixKey}</p>
