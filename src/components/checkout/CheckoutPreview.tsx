@@ -175,19 +175,19 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                     {checkout.show_field_name !== false && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>Nome Completo</Label>
-                        <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="Ex: Maria Souza" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: checkout.custom_settings?.field_text_color || textColor }} />
                       </div>
                     )}
                     {checkout.show_field_email !== false && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>E-mail para entrega</Label>
-                        <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="exemplo@email.com" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: checkout.custom_settings?.field_text_color || textColor }} />
                       </div>
                     )}
                     {checkout.show_field_whatsapp && (
                       <div className="space-y-1">
                         <Label className="text-xs" style={{ color: subtitleColor }}>WhatsApp</Label>
-                        <Input disabled placeholder="(00) 00000-0000" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
+                        <Input disabled placeholder="(00) 00000-0000" className="h-10 border-slate-200" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: checkout.custom_settings?.field_text_color || textColor }} />
                       </div>
                     )}
                     
