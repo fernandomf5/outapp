@@ -292,7 +292,7 @@ export const TransparentCheckout = ({
                 value={cardHolder}
                 onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
                  disabled={processing}
-                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }}
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
