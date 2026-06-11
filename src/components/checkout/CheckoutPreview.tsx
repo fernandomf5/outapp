@@ -24,7 +24,7 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
-      <div className={`w-full p-4 flex flex-col ${checkout.logo_alignment === 'left' ? 'items-start' : checkout.logo_alignment === 'right' ? 'items-end' : 'items-center'} border-b sticky top-0 z-10`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
+      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.card_color || '#ffffff' }}>
         <div className="flex items-center gap-2">
           {checkout.item_image_url ? (
             <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
@@ -37,13 +37,14 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
         </div>
         {checkout.header_title && (
           <h1 
-            className={`mt-1 ${checkout.header_title_font_size || 'text-xl'} ${checkout.header_title_bold ? 'font-bold' : ''}`}
-            style={{ color: checkout.header_title_color || textColor, fontFamily: checkout.header_title_font_family }}
+            className={`${checkout.header_title_font_size || 'text-xl'} ${checkout.header_title_bold ? 'font-bold' : ''}`}
+            style={{ color: checkout.header_title_color || textColor }}
           >
             {checkout.header_title}
           </h1>
         )}
       </div>
+
 
 
       <div className="p-4 md:p-6 space-y-6">
