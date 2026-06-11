@@ -216,15 +216,25 @@ const CheckoutPage = () => {
   }
 
   const primaryColor = checkout.primary_color || '#8B5CF6';
+  const benefits = checkout.custom_settings?.benefits || [];
+  const testimonials = checkout.custom_settings?.testimonials || [];
+  const showScarcity = checkout.custom_settings?.show_scarcity;
+  const scarcityTimer = checkout.custom_settings?.scarcity_timer || 600;
+  const guaranteeTitle = checkout.custom_settings?.guarantee_title || '7 Dias de Garantia';
+  const guaranteeDesc = checkout.custom_settings?.guarantee_description || 'Se você não gostar, devolvemos seu dinheiro.';
+  const footerTextValue = checkout.custom_settings?.footer_contact_info || checkout.footer_text || 'Compra 100% Segura';
+  const buttonText = checkout.custom_settings?.thank_you_button_text || 'Finalizar Pagamento';
+  const buttonRadius = checkout.custom_settings?.button_radius || 'rounded-xl';
   const total = calculateTotal();
   const bumps = additionalItems.filter(i => i.item_type === 'bump');
   const related = additionalItems.filter(i => i.item_type === 'related');
   
   // Custom Styles from Settings
-  const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
-  const textColor = checkout.title_color || checkout.text_color || '#0f172a';
-  const subtitleColor = checkout.subtitle_color || '#666666';
-  const footerColor = checkout.footer_text_color || checkout.footer_color || '#64748b';
+  const bgColor = checkout.custom_settings?.card_color || checkout.background_color || checkout.card_color || '#F8FAFC';
+  const textColor = checkout.custom_settings?.title_color || checkout.title_color || checkout.text_color || '#0f172a';
+  const subtitleColor = checkout.custom_settings?.subtitle_color || checkout.subtitle_color || '#666666';
+  const footerColor = checkout.custom_settings?.footer_text_color || checkout.footer_text_color || checkout.footer_color || '#64748b';
+  const pColor = checkout.primary_color || '#8B5CF6';
 
   if (paymentSuccess) {
     return (
@@ -267,7 +277,7 @@ const CheckoutPage = () => {
         {checkout.head_code && <script>{checkout.head_code}</script>}
       </Helmet>
 
-      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 ${(checkout.custom_settings?.layout_width || checkout.layout_width) === 'full' ? 'w-full' : ''}`} style={{ backgroundColor: bgColor, color: textColor }}>
+      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full`} style={{ backgroundColor: bgColor, color: textColor }}>
         {/* Modern Header */}
         <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
@@ -303,9 +313,9 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 ${(checkout.custom_settings?.layout_width || checkout.layout_width) === 'full' ? 'max-w-none' : 'max-w-6xl'} ${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'max-w-3xl' : 'md:grid-cols-12'}`}>
-          <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'md:col-span-7 lg:col-span-8'} space-y-6`}>
-            <Card className={`overflow-hidden shadow-xl border-none ${(checkout.custom_settings?.layout_model || checkout.layout_model) === 'minimal' ? 'rounded-lg' : 'rounded-3xl'}`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
+        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl md:grid-cols-12`}>
+          <div className={`md:col-span-7 lg:col-span-8 space-y-6`}>
+            <Card className={`overflow-hidden shadow-xl border-none rounded-3xl`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
                   <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />

@@ -32,22 +32,20 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
   const tabs = [
     { id: 'general', label: '1. Geral', icon: Settings2 },
     { id: 'header', label: '2. Cabeçalho', icon: Heading },
-    { id: 'layout', label: '3. Layout', icon: Layout },
-    { id: 'colors', label: '4. Cores', icon: Palette },
-    { id: 'typography', label: '5. Tipografia', icon: Type },
-    { id: 'product', label: '6. Produto', icon: Package },
-    { id: 'summary', label: '7. Resumo', icon: ShoppingCart },
-    { id: 'form', label: '8. Formulário', icon: ListTodo },
-    { id: 'payment', label: '9. Pagamento', icon: CreditCard },
-    { id: 'benefits', label: '10. Benefícios', icon: Gift },
-    { id: 'testimonials', label: '11. Depoimentos', icon: Users },
-    { id: 'guarantee', label: '12. Garantia', icon: ShieldCheck },
-    { id: 'scarcity', label: '13. Contador', icon: Clock },
-    { id: 'cta', label: '14. Botão', icon: MousePointer2 },
-    { id: 'footer', label: '15. Rodapé', icon: ListTodo },
-    { id: 'mobile', label: '16. Mobile', icon: Smartphone },
-    { id: 'tracking', label: '17. SEO & Tracking', icon: Code },
-    { id: 'preview_tab', label: '18. Visualizar', icon: Eye },
+    { id: 'colors', label: '3. Cores', icon: Palette },
+    { id: 'product', label: '4. Produto', icon: Package },
+    { id: 'summary', label: '5. Resumo', icon: ShoppingCart },
+    { id: 'form', label: '6. Formulário', icon: ListTodo },
+    { id: 'payment', label: '7. Pagamento', icon: CreditCard },
+    { id: 'benefits', label: '8. Benefícios', icon: Gift },
+    { id: 'testimonials', label: '9. Depoimentos', icon: Users },
+    { id: 'guarantee', label: '10. Garantia', icon: ShieldCheck },
+    { id: 'scarcity', label: '11. Contador', icon: Clock },
+    { id: 'cta', label: '12. Botão', icon: MousePointer2 },
+    { id: 'footer', label: '13. Rodapé', icon: ListTodo },
+    { id: 'mobile', label: '14. Mobile', icon: Smartphone },
+    { id: 'tracking', label: '15. SEO & Tracking', icon: Code },
+    { id: 'preview_tab', label: '16. Visualizar', icon: Eye },
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -394,7 +392,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             </div>
             <div className="space-y-3">
               {(formData.custom_settings.benefits || []).map((b: any, i: number) => (
-                <div key={i} className="p-4 bg-white border border-slate-200 rounded-xl space-y-3 relative group shadow-sm">
+                <div key={i} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative group shadow-sm">
                   <div className="space-y-1">
                     <Label className="text-[10px] uppercase font-bold text-slate-400">Título do Benefício</Label>
                     <Input 
@@ -458,7 +456,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             </div>
             <div className="space-y-3">
               {(formData.custom_settings.testimonials || []).map((t: any, i: number) => (
-                <div key={i} className="p-4 bg-white border border-slate-200 rounded-xl space-y-3 relative group shadow-sm">
+                <div key={i} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative group shadow-sm">
                   <div className="space-y-1">
                     <Label className="text-[10px] uppercase font-bold text-slate-400">Nome do Cliente</Label>
                     <Input 
