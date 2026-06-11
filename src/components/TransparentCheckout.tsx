@@ -20,6 +20,8 @@ interface TransparentCheckoutProps {
   itemName: string;
   textColor?: string;
   subtitleColor?: string;
+  fieldColor?: string;
+  fieldTextColor?: string;
   onSuccess: (data: { accessCode?: string; paymentId: string; isManualPix?: boolean }) => void;
   onError: (error: string) => void;
   mpPublicKey: string;
