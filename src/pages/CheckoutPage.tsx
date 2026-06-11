@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, Lock, Smartphone, Star, Package, TrendingUp } from "lucide-react";
+import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, Lock, Smartphone, Star, Package, TrendingUp, Clock, Gift } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { TransparentCheckout } from "@/components/TransparentCheckout";
 
@@ -79,6 +79,7 @@ const CheckoutPage = () => {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [accessCode, setAccessCode] = useState<string | null>(null);
+  const [isManualPix, setIsManualPix] = useState(false);
 
   const [customerData, setCustomerData] = useState({
     name: '', email: '', phone: '', cpf: '',
@@ -184,9 +185,10 @@ const CheckoutPage = () => {
     }
   };
 
-  const handlePaymentSuccess = (data: { accessCode?: string; paymentId: string }) => {
+  const handlePaymentSuccess = (data: { accessCode?: string; paymentId: string; isManualPix?: boolean }) => {
     setPaymentSuccess(true);
     if (data.accessCode) setAccessCode(data.accessCode);
+    if (data.isManualPix) setIsManualPix(true);
   };
 
   const handlePaymentError = (errorMsg: string) => {
@@ -216,15 +218,25 @@ const CheckoutPage = () => {
   }
 
   const primaryColor = checkout.primary_color || '#8B5CF6';
+  const benefits = checkout.custom_settings?.benefits || [];
+  const testimonials = checkout.custom_settings?.testimonials || [];
+  const showScarcity = checkout.custom_settings?.show_scarcity;
+  const scarcityTimer = checkout.custom_settings?.scarcity_timer || 600;
+  const guaranteeTitle = checkout.custom_settings?.guarantee_title || '7 Dias de Garantia';
+  const guaranteeDesc = checkout.custom_settings?.guarantee_description || 'Se você não gostar, devolvemos seu dinheiro.';
+  const footerTextValue = checkout.custom_settings?.footer_contact_info || checkout.footer_text || 'Compra 100% Segura';
+  const buttonText = checkout.custom_settings?.thank_you_button_text || 'Finalizar Pagamento';
+  const buttonRadius = checkout.custom_settings?.button_radius || 'rounded-xl';
   const total = calculateTotal();
   const bumps = additionalItems.filter(i => i.item_type === 'bump');
   const related = additionalItems.filter(i => i.item_type === 'related');
   
   // Custom Styles from Settings
-  const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
-  const textColor = checkout.title_color || checkout.text_color || '#0f172a';
-  const subtitleColor = checkout.subtitle_color || '#666666';
-  const footerColor = checkout.footer_text_color || checkout.footer_color || '#64748b';
+  const bgColor = checkout.custom_settings?.card_color || checkout.background_color || checkout.card_color || '#F8FAFC';
+  const textColor = checkout.custom_settings?.title_color || checkout.title_color || checkout.text_color || '#0f172a';
+  const subtitleColor = checkout.custom_settings?.subtitle_color || checkout.subtitle_color || '#666666';
+  const footerColor = checkout.custom_settings?.footer_text_color || checkout.footer_text_color || checkout.footer_color || '#64748b';
+  const pColor = checkout.primary_color || '#8B5CF6';
 
   if (paymentSuccess) {
     return (
@@ -234,20 +246,33 @@ const CheckoutPage = () => {
           <Card className="w-full max-w-lg text-center overflow-hidden shadow-xl border-none rounded-2xl">
             <div className="p-8 space-y-6">
               <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                <CheckCircle2 className="w-10 h-10" style={{ color: primaryColor }} />
+                {isManualPix ? <Clock className="w-10 h-10" style={{ color: primaryColor }} /> : <CheckCircle2 className="w-10 h-10" style={{ color: primaryColor }} />}
               </div>
               <div>
-                <h1 className="text-2xl font-bold mb-2">🎉 Pagamento Confirmado!</h1>
-                <p className="text-muted-foreground">Seu pagamento foi processado com sucesso.</p>
+                <h1 className="text-2xl font-bold mb-2">{isManualPix ? '⏳ Aguardando Comprovante' : '🎉 Pagamento Confirmado!'}</h1>
+                <p className="text-muted-foreground">{isManualPix ? 'Seu pedido foi registrado. Envie o comprovante para liberar seu acesso.' : 'Seu pagamento foi processado com sucesso.'}</p>
               </div>
-              {accessCode && (
+              
+              {isManualPix && checkout.custom_settings?.pix_whatsapp && (
+                <Button 
+                  className="w-full h-14 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl gap-2 shadow-lg shadow-green-200"
+                  onClick={() => {
+                    const msg = encodeURIComponent(`Olá, segue meu comprovante de pagamento para o pedido ${orderId}. Nome: ${customerData.name}`);
+                    window.open(`https://wa.me/${checkout.custom_settings.pix_whatsapp}?text=${msg}`, '_blank');
+                  }}
+                >
+                  <Smartphone className="w-5 h-5" /> Enviar Comprovante no WhatsApp
+                </Button>
+              )}
+
+              {accessCode && !isManualPix && (
                 <div className="p-6 rounded-xl border-2 border-dashed" style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}08` }}>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Seu Código de Acesso</p>
                   <p className="text-3xl font-bold font-mono tracking-widest" style={{ color: primaryColor }}>{accessCode}</p>
                 </div>
               )}
-              <p className="text-sm text-muted-foreground">{checkout.success_message || 'Obrigado pela sua compra!'}</p>
-              {checkout.redirect_url && (
+              <p className="text-sm text-muted-foreground">{isManualPix ? 'Após a conferência do seu PIX, você receberá o acesso por e-mail.' : (checkout.success_message || 'Obrigado pela sua compra!')}</p>
+              {checkout.redirect_url && !isManualPix && (
                 <Button className="w-full" style={{ backgroundColor: primaryColor }} onClick={() => window.location.href = checkout.redirect_url!}>Continuar</Button>
               )}
             </div>
@@ -267,7 +292,7 @@ const CheckoutPage = () => {
         {checkout.head_code && <script>{checkout.head_code}</script>}
       </Helmet>
 
-      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 ${(checkout.custom_settings?.layout_width || checkout.layout_width) === 'full' ? 'w-full' : ''}`} style={{ backgroundColor: bgColor, color: textColor }}>
+      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full`} style={{ backgroundColor: bgColor, color: textColor }}>
         {/* Modern Header */}
         <div className="w-full bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
@@ -303,9 +328,9 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 ${(checkout.custom_settings?.layout_width || checkout.layout_width) === 'full' ? 'max-w-none' : 'max-w-6xl'} ${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'max-w-3xl' : 'md:grid-cols-12'}`}>
-          <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'md:col-span-7 lg:col-span-8'} space-y-6`}>
-            <Card className={`overflow-hidden shadow-xl border-none ${(checkout.custom_settings?.layout_model || checkout.layout_model) === 'minimal' ? 'rounded-lg' : 'rounded-3xl'}`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
+        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl md:grid-cols-12`}>
+          <div className={`md:col-span-7 lg:col-span-8 space-y-6`}>
+            <Card className={`overflow-hidden shadow-xl border-none rounded-3xl`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
                   <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
@@ -361,6 +386,22 @@ const CheckoutPage = () => {
                   </div>
                 )}
 
+                {benefits.length > 0 && !showPayment && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                    {benefits.map((b: any, i: number) => (
+                      <div key={i} className="flex gap-3 p-4 rounded-2xl border border-muted bg-muted/5">
+                        <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold" style={{ color: textColor }}>{b.title}</p>
+                          <p className="text-xs opacity-70 leading-tight" style={{ color: subtitleColor }}>{b.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="border-t pt-8">
                   {!showPayment && (
                     <div className="space-y-6">
@@ -401,12 +442,13 @@ const CheckoutPage = () => {
                           customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
                           primaryColor={primaryColor} itemName={checkout.item_name}
                           onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey}
+                          pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
                         />
                       </div>
                     ) : !showPayment ? (
-                      <Button className="w-full h-16 text-lg font-black rounded-2xl shadow-2xl transition-all active:scale-95 group relative overflow-hidden" style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
+                      <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
                         <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
-                        <CreditCard className="w-6 h-6 mr-3" /> IR PARA O PAGAMENTO
+                        <CreditCard className="w-6 h-6 mr-3" /> {buttonText.toUpperCase()}
                       </Button>
                     ) : !mpPublicKey ? (
                       <div className="text-center p-6 bg-destructive/5 rounded-2xl border-2 border-dashed border-destructive/20 text-destructive font-bold">
@@ -419,7 +461,7 @@ const CheckoutPage = () => {
             </Card>
 
             {/* Social Proof Section */}
-            {checkout.show_fake_feedback && checkout.fake_feedbacks && checkout.fake_feedbacks.length > 0 && (
+            {(testimonials.length > 0 || checkout.show_fake_feedback) && (
                <div className="space-y-6 animate-in fade-in duration-700 delay-300">
                   <div className="flex items-center justify-between px-2">
                     <h4 className="font-black text-sm uppercase tracking-widest" style={{ color: textColor }}>Opinião de quem já comprou</h4>
@@ -428,7 +470,7 @@ const CheckoutPage = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {checkout.fake_feedbacks.map((f: any, i: number) => (
+                    {([...testimonials, ...(checkout.show_fake_feedback ? (checkout.fake_feedbacks || []) : [])]).map((f: any, i: number) => (
                       <Card key={i} className="border-none shadow-sm rounded-2xl p-6 flex gap-4" style={{ backgroundColor: (checkout.card_color || '#ffffff') + '99', backdropFilter: 'blur(8px)' }}>
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary flex-shrink-0" style={{ color: primaryColor }}>{f.name?.[0] || 'U'}</div>
                         <div>
@@ -442,6 +484,21 @@ const CheckoutPage = () => {
                     ))}
                   </div>
                </div>
+            )}
+
+            {showScarcity && (
+              <div className="p-6 rounded-3xl bg-indigo-600 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <Clock className="w-10 h-10 animate-pulse" />
+                  <div>
+                    <h4 className="font-black text-lg">OFERTA POR TEMPO LIMITADO!</h4>
+                    <p className="text-indigo-100 text-sm">Esta oferta expira em breve. Garanta sua vaga agora.</p>
+                  </div>
+                </div>
+                <div className="text-4xl font-black font-mono bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-md">
+                   {Math.floor(scarcityTimer / 60)}:{String(scarcityTimer % 60).padStart(2, '0')}
+                </div>
+              </div>
             )}
           </div>
 
@@ -518,7 +575,7 @@ const CheckoutPage = () => {
         <div className="w-full max-w-6xl mt-12 mb-12 px-8 text-center space-y-6">
            <div className="w-full h-px bg-black/5"></div>
            <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em]" style={{ color: footerColor }}>
-             {checkout.footer_text || 'COMPRA 100% SEGURA & PROTEGIDA'}
+             {footerTextValue}
            </p>
            <div className="flex justify-center flex-wrap gap-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">
              <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Privacidade</span>

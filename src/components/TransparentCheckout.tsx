@@ -17,7 +17,7 @@ interface TransparentCheckoutProps {
   customerCpf: string;
   primaryColor: string;
   itemName: string;
-  onSuccess: (data: { accessCode?: string; paymentId: string }) => void;
+  onSuccess: (data: { accessCode?: string; paymentId: string; isManualPix?: boolean }) => void;
   onError: (error: string) => void;
   mpPublicKey: string;
 }
@@ -30,8 +30,8 @@ declare global {
 
 export const TransparentCheckout = ({
   checkoutId, orderId, amount, customerName, customerEmail, customerCpf,
-  primaryColor, itemName, onSuccess, onError, mpPublicKey,
-}: TransparentCheckoutProps) => {
+  primaryColor, itemName, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
+}: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string }) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("credit_card");
   const [processing, setProcessing] = useState(false);
@@ -160,6 +160,13 @@ export const TransparentCheckout = ({
   };
 
   const handlePixPayment = async () => {
+    if (pixKey) {
+      // Manual PIX flow
+      setPixPending(true);
+      setPixQrCode(pixKey); // Use the key directly as content for manual flow
+      return;
+    }
+
     setProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke('checkout-transparent-payment', {
@@ -358,14 +365,24 @@ export const TransparentCheckout = ({
           ) : (
             <div className="text-center space-y-4">
               <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                {pixQrCodeBase64 && (
+                {pixKey ? (
+                  <div className="py-4 space-y-4">
+                    <div className="p-4 bg-white rounded-xl border shadow-inner">
+                      <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Chave PIX para Pagamento</p>
+                      <p className="text-lg font-black break-all">{pixKey}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Após o pagamento, clique no botão abaixo para finalizar seu pedido e enviar o comprovante.
+                    </p>
+                  </div>
+                ) : pixQrCodeBase64 && (
                   <img
                     src={`data:image/png;base64,${pixQrCodeBase64}`}
                     alt="QR Code PIX"
                     className="w-48 h-48 mx-auto rounded-lg"
                   />
                 )}
-                <p className="text-sm font-medium">Escaneie o QR Code ou copie o código PIX</p>
+                {!pixKey && <p className="text-sm font-medium">Escaneie o QR Code ou copie o código PIX</p>}
                 <Button
                   variant="outline"
                   className="w-full"
@@ -374,12 +391,22 @@ export const TransparentCheckout = ({
                   {pixCopied ? (
                     <><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />Copiado!</>
                   ) : (
-                    <><Copy className="w-4 h-4 mr-2" />Copiar código PIX</>
+                    <><Copy className="w-4 h-4 mr-2" />Copiar {pixKey ? 'Chave' : 'Código'} PIX</>
                   )}
                 </Button>
+
+                {pixKey && (
+                  <Button 
+                    className="w-full h-12 font-bold" 
+                    style={{ backgroundColor: primaryColor }}
+                    onClick={() => onSuccess({ paymentId: 'manual_pix', isManualPix: true })}
+                  >
+                    Já realizei o pagamento
+                  </Button>
+                )}
               </div>
 
-              {checkingPixStatus && (
+              {checkingPixStatus && !pixKey && (
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Aguardando confirmação do pagamento...
