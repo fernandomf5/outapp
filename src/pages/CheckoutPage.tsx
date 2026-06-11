@@ -386,21 +386,7 @@ const CheckoutPage = () => {
                   </div>
                 )}
 
-                {benefits.length > 0 && !showPayment && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                    {benefits.map((b: any, i: number) => (
-                      <div key={i} className="flex gap-3 p-4 rounded-2xl border border-muted bg-muted/5">
-                        <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
-                          <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold" style={{ color: textColor }}>{b.title}</p>
-                          <p className="text-xs opacity-70 leading-tight" style={{ color: subtitleColor }}>{b.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Benefits moved down for better layout */}
 
                 <div className="border-t pt-8">
                   {!showPayment && (
@@ -502,6 +488,15 @@ const CheckoutPage = () => {
                   </div>
                </div>
             )}
+
+            {/* Guarantee Section */}
+            <div className="p-8 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center space-y-4 animate-in fade-in duration-700 delay-500">
+               <Shield className="w-12 h-12 text-slate-300 mx-auto" />
+               <div className="space-y-1">
+                 <h4 className="font-black text-xl" style={{ color: textColor }}>{guaranteeTitle}</h4>
+                 <p className="text-sm opacity-70 max-w-sm mx-auto" style={{ color: subtitleColor }}>{guaranteeDesc}</p>
+               </div>
+            </div>
 
             {showScarcity && (
               <div className="p-6 rounded-3xl bg-indigo-600 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
