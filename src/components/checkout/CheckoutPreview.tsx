@@ -6,6 +6,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number, activeTab?: string }) => {
+  const [seconds, setSeconds] = useState(initialSeconds);
+
+  useEffect(() => {
+    if (seconds <= 0) return;
+    const interval = setInterval(() => {
+      setSeconds(s => s - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [seconds]);
+
+  const formatTime = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  };
+
+  return (
+    <div className={`p-4 rounded-2xl bg-indigo-600 text-white shadow-lg flex items-center justify-between gap-4 ${activeTab === 'scarcity' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`}>
+      <div className="flex items-center gap-2">
+        <Clock className="w-6 h-6 animate-pulse" />
+        <p className="text-[10px] font-bold leading-tight">OFERTA POR TEMPO LIMITADO!</p>
+      </div>
+      <div className="text-xl font-black font-mono bg-white/10 px-3 py-1 rounded-lg">
+        {formatTime(seconds)}
+      </div>
+    </div>
+  );
+};
+
 export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, activeTab?: string }) => {
   const primaryColor = checkout.primary_color || '#8B5CF6';
   const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
@@ -247,15 +277,10 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
             )}
 
             {checkout.custom_settings?.show_scarcity && (
-              <div className={`p-4 rounded-2xl bg-indigo-600 text-white shadow-lg flex items-center justify-between gap-4 ${activeTab === 'scarcity' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`}>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-6 h-6 animate-pulse" />
-                  <p className="text-[10px] font-bold leading-tight">OFERTA POR TEMPO LIMITADO!</p>
-                </div>
-                <div className="text-xl font-black font-mono bg-white/10 px-3 py-1 rounded-lg">
-                   {Math.floor((checkout.custom_settings?.scarcity_timer || 600) / 60)}:{String((checkout.custom_settings?.scarcity_timer || 600) % 60).padStart(2, '0')}
-                </div>
-              </div>
+              <CountdownTimer 
+                initialSeconds={checkout.custom_settings?.scarcity_timer || 600} 
+                activeTab={activeTab}
+              />
             )}
           </div>
         </div>
@@ -266,12 +291,28 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
             <img src="https://logodownload.org/wp-content/uploads/2014/10/mercado-pago-logo-1.png" alt="MP" className="h-4 object-contain" />
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_Pix.svg/1200px-Logo_Pix.svg.png" alt="PIX" className="h-4 object-contain" />
           </div>
+          
+          {checkout.custom_settings?.footer_contact_info && (
+            <div className="flex justify-center">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="rounded-full gap-2 font-bold px-6 h-10 transition-all hover:scale-105 active:scale-95"
+                style={{ color: footerColor, borderColor: footerColor }}
+                onClick={() => window.open(`tel:${checkout.custom_settings.footer_contact_info}`, '_blank')}
+              >
+                <Smartphone className="w-4 h-4" /> {checkout.custom_settings.footer_contact_info}
+              </Button>
+            </div>
+          )}
+          
           <p className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: footerColor }}>
-            {checkout.custom_settings?.footer_contact_info || checkout.footer_text || 'Compra 100% Segura'}
+            {checkout.footer_text || 'Compra 100% Segura'}
           </p>
+          
           <div className="flex justify-center gap-2">
-            <Badge variant="outline" className="text-[9px] rounded-full px-3" style={{ color: footerColor, borderColor: footerColor, opacity: 0.5 }}>Privacidade</Badge>
-            <Badge variant="outline" className="text-[9px] rounded-full px-3" style={{ color: footerColor, borderColor: footerColor, opacity: 0.5 }}>Termos de Uso</Badge>
+            <button className="text-[9px] hover:underline" style={{ color: footerColor, opacity: 0.7 }} onClick={() => checkout.custom_settings?.footer_privacy_url && window.open(checkout.custom_settings.footer_privacy_url, '_blank')}>Privacidade</button>
+            <button className="text-[9px] hover:underline" style={{ color: footerColor, opacity: 0.7 }} onClick={() => checkout.custom_settings?.footer_terms_url && window.open(checkout.custom_settings.footer_terms_url, '_blank')}>Termos de Uso</button>
           </div>
         </div>
       </div>

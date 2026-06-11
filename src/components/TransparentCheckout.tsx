@@ -251,12 +251,18 @@ export const TransparentCheckout = ({
     <div className="space-y-6">
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 bg-slate-100/50">
-          <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{ color: activeTab === 'credit_card' ? primaryColor : textColor }}>
+        <TabsList className="grid w-full grid-cols-2" style={{ backgroundColor: `${primaryColor}10` }}>
+          <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{ 
+            color: activeTab === 'credit_card' ? primaryColor : textColor,
+            backgroundColor: activeTab === 'credit_card' ? 'white' : 'transparent'
+          }}>
             <CreditCard className="w-4 h-4" />
             Cartão de Crédito
           </TabsTrigger>
-          <TabsTrigger value="pix" className="flex items-center gap-2" style={{ color: activeTab === 'pix' ? primaryColor : textColor }}>
+          <TabsTrigger value="pix" className="flex items-center gap-2" style={{ 
+            color: activeTab === 'pix' ? primaryColor : textColor,
+            backgroundColor: activeTab === 'pix' ? 'white' : 'transparent'
+          }}>
             <QrCode className="w-4 h-4" />
             PIX
           </TabsTrigger>
@@ -271,8 +277,8 @@ export const TransparentCheckout = ({
                 value={cardNumber}
                 onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 maxLength={19}
-                disabled={processing}
-                style={{ color: textColor }}
+                 disabled={processing}
+                style={{ color: textColor, backgroundColor: 'white' }}
               />
             </div>
             <div>
@@ -281,8 +287,8 @@ export const TransparentCheckout = ({
                 placeholder="Nome como está no cartão"
                 value={cardHolder}
                 onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-                disabled={processing}
-                style={{ color: textColor }}
+                 disabled={processing}
+                style={{ color: textColor, backgroundColor: 'white' }}
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -310,7 +316,7 @@ export const TransparentCheckout = ({
               <div>
                 <Label className="text-xs" style={{ color: subtitleColor }}>Parcelas</Label>
                 <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                 className="w-full rounded-md border border-input px-3 py-2 text-sm bg-white"
                   style={{ color: textColor }}
                   value={installments}
                   onChange={(e) => setInstallments(Number(e.target.value))}

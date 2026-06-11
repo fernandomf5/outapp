@@ -11,6 +11,30 @@ import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, L
 import { Helmet } from "react-helmet-async";
 import { TransparentCheckout } from "@/components/TransparentCheckout";
 
+const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
+  const [seconds, setSeconds] = useState(initialSeconds);
+
+  useEffect(() => {
+    if (seconds <= 0) return;
+    const interval = setInterval(() => {
+      setSeconds(s => s - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [seconds]);
+
+  const formatTime = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="text-xl font-black font-mono bg-white/10 px-4 py-2 rounded-xl border border-white/20">
+      {formatTime(seconds)}
+    </div>
+  );
+};
+
 interface CheckoutData {
   id: string;
   name: string;
