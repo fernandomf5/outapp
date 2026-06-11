@@ -586,7 +586,7 @@ const CheckoutPage = () => {
                 
                 <div className="pt-6 mt-4 border-t-2 border-black/5" style={{ borderColor: `${checkout.custom_settings?.summary_text_color || textColor}10` }}>
                   <div className="flex justify-between items-center mb-6">
-                    <span className="text-sm font-black uppercase tracking-widest opacity-60" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>Total a pagar</span>
+                    <span className="text-sm font-black uppercase tracking-widest" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>Total a pagar</span>
                     <span className="text-3xl font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>R$ {total.toFixed(2)}</span>
                   </div>
                   
