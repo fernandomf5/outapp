@@ -278,7 +278,8 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
 
             {/* Feedback Section */}
             {((checkout.custom_settings?.testimonials || []).length > 0 || checkout.show_fake_feedback) && (
-              <div className="space-y-4">
+              <div className="space-y-4 group relative">
+                <EditButton tab="testimonials" />
                 <div className="flex items-center justify-between px-1">
                   <h4 className="font-bold text-sm" style={{ color: textColor }}>O que nossos clientes dizem</h4>
                   <div className="flex text-yellow-500 gap-0.5">
@@ -289,7 +290,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                     <Star className="w-3 h-3 fill-current" />
                   </div>
                 </div>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {([...(checkout.custom_settings?.testimonials || []), ...(checkout.show_fake_feedback ? feedbacks : [])]).map((f: any, i: number) => (
                     <Card key={i} className={`border shadow-sm p-4 ${cardRadius} ${activeTab === 'testimonials' ? 'ring-2 ring-indigo-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9, borderColor: borderColor }}>
                       <div className="flex gap-3">
@@ -311,11 +312,37 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
             )}
 
             {checkout.custom_settings?.show_scarcity && (
-              <CountdownTimer 
-                initialSeconds={checkout.custom_settings?.scarcity_timer || 600} 
-                activeTab={activeTab}
-              />
+              <div className="group relative">
+                <EditButton tab="scarcity" />
+                <CountdownTimer 
+                  initialSeconds={checkout.custom_settings?.scarcity_timer || 600} 
+                  activeTab={activeTab}
+                />
+              </div>
             )}
+
+            {/* Guarantee Section */}
+            <div className="p-6 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center space-y-2 group relative">
+              <EditButton tab="guarantee" />
+              <Shield className="w-8 h-8 text-slate-300 mx-auto" />
+              <div className="space-y-1">
+                <h4 className="font-bold text-sm" style={{ color: textColor }}>{checkout.custom_settings?.guarantee_title || '7 Dias de Garantia'}</h4>
+                <p className="text-[10px] opacity-70 max-w-xs mx-auto" style={{ color: subtitleColor }}>{checkout.custom_settings?.guarantee_description || 'Se você não gostar, devolvemos seu dinheiro.'}</p>
+              </div>
+            </div>
+
+            {/* Footer Simulation */}
+            <div className="py-6 border-t text-center space-y-4 group relative">
+              <EditButton tab="footer" />
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-40" style={{ color: footerColor }}>
+                {checkout.footer_text || 'Compra 100% Segura'}
+              </p>
+              <div className="flex justify-center gap-4 text-[10px] font-bold opacity-30 uppercase tracking-widest">
+                <span>Privacidade</span>
+                <span>Termos</span>
+                <span>Contato</span>
+              </div>
+            </div>
           </div>
         </div>
 
