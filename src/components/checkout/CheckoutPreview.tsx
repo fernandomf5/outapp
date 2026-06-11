@@ -52,7 +52,7 @@ const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number,
   );
 };
 
-export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, activeTab?: string }) => {
+export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout: any, activeTab?: string, onTabChange?: (tab: string) => void }) => {
   const primaryColor = checkout.primary_color || '#8B5CF6';
   const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
   const textColor = checkout.title_color || '#0f172a';
@@ -72,6 +72,15 @@ export const CheckoutPreview = ({ checkout, activeTab }: { checkout: any, active
     { name: "Ana Silva", text: "Amei o curso! Muito prático.", rating: 5, avatar: "" },
     { name: "João Pereira", text: "Entrega super rápida do acesso.", rating: 5, avatar: "" }
   ];
+
+  const EditButton = ({ tab, className = "" }: { tab: string, className?: string }) => (
+    <button 
+      onClick={(e) => { e.stopPropagation(); onTabChange?.(tab); }}
+      className={`absolute -top-2 -right-2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg hover:bg-indigo-700 cursor-pointer ${className}`}
+    >
+      <Pencil className="w-4 h-4" />
+    </button>
+  );
 
   return (
     <div 
