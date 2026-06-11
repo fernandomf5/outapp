@@ -153,20 +153,28 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 <Input type="color" value={formData.primary_color} onChange={(e) => setFormData((prev: any) => ({...prev, primary_color: e.target.value}))} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <Label className="text-slate-700 font-semibold">Cor do Fundo</Label>
-                <Input type="color" value={formData.custom_settings.card_color} onChange={(e) => updateSetting('card_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <Label className="text-slate-700 font-semibold">Cor do Fundo Geral</Label>
+                <Input type="color" value={formData.background_color || '#F8FAFC'} onChange={(e) => setFormData((prev: any) => ({...prev, background_color: e.target.value}))} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor do Cartão/Conteúdo</Label>
+                <Input type="color" value={formData.custom_settings.card_color || '#ffffff'} onChange={(e) => updateSetting('card_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor dos Títulos</Label>
-                <Input type="color" value={formData.custom_settings.title_color} onChange={(e) => updateSetting('title_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <Input type="color" value={formData.custom_settings.title_color || '#000000'} onChange={(e) => updateSetting('title_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor dos Subtítulos</Label>
-                <Input type="color" value={formData.custom_settings.subtitle_color} onChange={(e) => updateSetting('subtitle_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <Input type="color" value={formData.custom_settings.subtitle_color || '#666666'} onChange={(e) => updateSetting('subtitle_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <Label className="text-slate-700 font-semibold">Cor do Input/Campos</Label>
+                <Input type="color" value={formData.custom_settings.field_color || '#ffffff'} onChange={(e) => updateSetting('field_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Botão Texto</Label>
-                <Input type="color" value={formData.custom_settings.button_text_color} onChange={(e) => updateSetting('button_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <Input type="color" value={formData.custom_settings.button_text_color || '#ffffff'} onChange={(e) => updateSetting('button_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
             </div>
           </div>

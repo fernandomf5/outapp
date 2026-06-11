@@ -11,6 +11,30 @@ import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, L
 import { Helmet } from "react-helmet-async";
 import { TransparentCheckout } from "@/components/TransparentCheckout";
 
+const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
+  const [seconds, setSeconds] = useState(initialSeconds);
+
+  useEffect(() => {
+    if (seconds <= 0) return;
+    const interval = setInterval(() => {
+      setSeconds(s => s - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [seconds]);
+
+  const formatTime = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="text-xl font-black font-mono bg-white/10 px-4 py-2 rounded-xl border border-white/20">
+      {formatTime(seconds)}
+    </div>
+  );
+};
+
 interface CheckoutData {
   id: string;
   name: string;
@@ -326,8 +350,8 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl md:grid-cols-12 flex-col-reverse md:flex-row`}>
-          <div className={`md:col-span-7 lg:col-span-8 space-y-6 order-2 md:order-1`}>
+        <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl md:grid-cols-12 flex-col lg:flex-row`}>
+          <div className={`md:col-span-7 lg:col-span-8 space-y-6 order-1 lg:order-1`}>
             <Card className={`overflow-hidden shadow-xl border-none rounded-3xl`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
@@ -585,12 +609,27 @@ const CheckoutPage = () => {
         {/* Modern Footer */}
         <div className="w-full max-w-6xl mt-12 mb-12 px-8 text-center space-y-6">
            <div className="w-full h-px bg-black/5"></div>
+           
+           {checkout.custom_settings?.footer_contact_info && (
+             <div className="flex justify-center">
+               <Button 
+                 variant="outline" 
+                 size="sm" 
+                 className="rounded-full gap-2 font-bold px-6 h-10 transition-all hover:scale-105 active:scale-95"
+                 style={{ color: footerColor, borderColor: footerColor }}
+                 onClick={() => window.open(`tel:${checkout.custom_settings.footer_contact_info}`, '_blank')}
+               >
+                 <Smartphone className="w-4 h-4" /> {checkout.custom_settings.footer_contact_info}
+               </Button>
+             </div>
+           )}
+
            <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em]" style={{ color: footerColor }}>
              {footerTextValue}
            </p>
            <div className="flex justify-center flex-wrap gap-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">
-             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Privacidade</span>
-             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Termos de Uso</span>
+             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_privacy_url && window.open(checkout.custom_settings.footer_privacy_url, '_blank')}>Privacidade</span>
+             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_terms_url && window.open(checkout.custom_settings.footer_terms_url, '_blank')}>Termos de Uso</span>
              <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }}>Contato</span>
            </div>
         </div>
