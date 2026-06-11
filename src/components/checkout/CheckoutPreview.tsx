@@ -90,7 +90,8 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
-      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
+      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 group relative ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
+        <EditButton tab="header" />
         <div className="flex items-center gap-2">
           {checkout.item_image_url ? (
             <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
