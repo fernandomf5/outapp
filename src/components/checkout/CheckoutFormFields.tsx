@@ -92,7 +92,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             variant={device === 'desktop' ? 'default' : 'outline'} 
             size="sm" 
             onClick={() => setDevice('desktop')}
-            className="h-8 gap-1.5 text-xs font-semibold"
+            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'desktop' ? 'bg-green-600 hover:bg-green-700' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
           >
             <Layout className="w-3.5 h-3.5" /> Desktop
           </Button>
@@ -100,7 +100,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             variant={device === 'tablet' ? 'default' : 'outline'} 
             size="sm" 
             onClick={() => setDevice('tablet')}
-            className="h-8 gap-1.5 text-xs font-semibold"
+            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'tablet' ? 'bg-green-600 hover:bg-green-700' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
           >
             <Smartphone className="w-3.5 h-3.5 rotate-90" /> Tablet
           </Button>
@@ -108,7 +108,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             variant={device === 'mobile' ? 'default' : 'outline'} 
             size="sm" 
             onClick={() => setDevice('mobile')}
-            className="h-8 gap-1.5 text-xs font-semibold"
+            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'mobile' ? 'bg-green-600 hover:bg-green-700' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
           >
             <Smartphone className="w-3.5 h-3.5" /> Mobile
           </Button>
