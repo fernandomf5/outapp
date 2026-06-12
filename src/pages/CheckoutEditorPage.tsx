@@ -244,8 +244,21 @@ const CheckoutEditorPage = () => {
            </div>
            
            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 gap-2">
-                <Copy className="w-4 h-4" /> Duplicar
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  if (!id || id === 'new') {
+                    toast.error('Por favor, salve seu checkout primeiro para copiar o link.');
+                    return;
+                  }
+                  const url = `${window.location.origin}/checkout/${id}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success('Link do checkout copiado!');
+                }}
+                className="text-white/60 hover:text-white hover:bg-white/10 gap-2"
+              >
+                <Copy className="w-4 h-4" /> Copiar Link
               </Button>
               <Button 
                 variant="ghost" 
