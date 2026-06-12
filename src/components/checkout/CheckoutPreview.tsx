@@ -40,7 +40,7 @@ const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number,
   };
 
   return (
-    <div className={`p-4 rounded-2xl bg-indigo-600 text-white shadow-lg flex items-center justify-between gap-4 ${activeTab === 'scarcity' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`}>
+    <div className={`p-4 rounded-2xl bg-green-600 text-white shadow-lg flex items-center justify-between gap-4 ${activeTab === 'scarcity' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`}>
       <div className="flex items-center gap-2">
         <Clock className="w-6 h-6 animate-pulse" />
         <p className="text-[10px] font-bold leading-tight">OFERTA POR TEMPO LIMITADO!</p>
@@ -76,7 +76,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
   const EditButton = ({ tab, className = "" }: { tab: string, className?: string }) => (
     <button 
       onClick={(e) => { e.stopPropagation(); onTabChange?.(tab); }}
-      className={`absolute -top-2 -right-2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg hover:bg-indigo-700 cursor-pointer ${className}`}
+      className={`absolute -top-2 -right-2 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg hover:bg-green-700 cursor-pointer ${className}`}
     >
       <Pencil className="w-4 h-4" />
     </button>
@@ -191,7 +191,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
             </Card>
 
             {/* Product Section Card */}
-            <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' ? 'ring-2 ring-indigo-500' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+            <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' ? 'ring-2 ring-green-500' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="product" />
               <CardContent className="p-4 flex gap-4">
                 {checkout.item_image_url ? (
@@ -213,7 +213,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
           {/* Form Column */}
           <div className={`${layoutStructure === 'split' ? 'lg:col-span-8' : ''} order-2 lg:order-1 space-y-6`}>
             {/* Checkout Form Simulation */}
-            <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+            <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="form" />
               {activeTab !== 'payment' ? (
                 <>
@@ -263,7 +263,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                     )}
                   </div>
 
-                  <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${activeTab === 'cta' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
+                  <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${activeTab === 'cta' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
                     {checkout.show_field_address ? 'Calcular Frete' : 'Próximo Passo'}
                   </Button>
                 </>
@@ -276,14 +276,14 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                   <div className="space-y-2">
                     {checkout.enable_pix && (
                       <div className="p-3 border rounded-xl flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                        <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600">
                           <DollarSign className="w-4 h-4" />
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-bold" style={{ color: textColor }}>PIX (Manual)</p>
                           <p className="text-[10px] text-muted-foreground">Aprovação manual via WhatsApp</p>
                         </div>
-                        <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
                       </div>
                     )}
                     {checkout.enable_mp && (
@@ -311,7 +311,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
 
             {/* Benefits Section */}
             {(checkout.custom_settings?.benefits || []).length > 0 && (
-              <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${activeTab === 'benefits' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse p-2 rounded-xl' : ''}`}>
+              <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${activeTab === 'benefits' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse p-2 rounded-xl' : ''}`}>
                 {checkout.custom_settings.benefits.map((b: any, i: number) => (
                   <div key={i} className={`flex gap-3 p-3 border border-muted bg-white/50 ${cardRadius}`}>
                     <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
@@ -342,7 +342,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {([...(checkout.custom_settings?.testimonials || []), ...(checkout.show_fake_feedback ? feedbacks : [])]).map((f: any, i: number) => (
-                    <Card key={i} className={`border shadow-sm p-4 ${cardRadius} ${activeTab === 'testimonials' ? 'ring-2 ring-indigo-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9, borderColor: borderColor }}>
+                    <Card key={i} className={`border shadow-sm p-4 ${cardRadius} ${activeTab === 'testimonials' ? 'ring-2 ring-green-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9, borderColor: borderColor }}>
                       <div className="flex gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs" style={{ color: primaryColor }}>
                           {f.name?.[0] || 'U'}
