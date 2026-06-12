@@ -92,7 +92,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             variant={device === 'desktop' ? 'default' : 'outline'} 
             size="sm" 
             onClick={() => setDevice('desktop')}
-            className="h-8 gap-1.5 text-xs font-semibold"
+            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'desktop' ? 'bg-green-600 hover:bg-green-700' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
           >
             <Layout className="w-3.5 h-3.5" /> Desktop
           </Button>
@@ -100,7 +100,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             variant={device === 'tablet' ? 'default' : 'outline'} 
             size="sm" 
             onClick={() => setDevice('tablet')}
-            className="h-8 gap-1.5 text-xs font-semibold"
+            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'tablet' ? 'bg-green-600 hover:bg-green-700' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
           >
             <Smartphone className="w-3.5 h-3.5 rotate-90" /> Tablet
           </Button>
@@ -108,7 +108,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             variant={device === 'mobile' ? 'default' : 'outline'} 
             size="sm" 
             onClick={() => setDevice('mobile')}
-            className="h-8 gap-1.5 text-xs font-semibold"
+            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'mobile' ? 'bg-green-600 hover:bg-green-700' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
           >
             <Smartphone className="w-3.5 h-3.5" /> Mobile
           </Button>
@@ -128,11 +128,11 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             <div className="space-y-3">
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Nome do Checkout</Label>
-                <Input value={formData.name} onChange={(e) => setFormData((prev: any) => ({...prev, name: e.target.value}))} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-900" />
+                <Input value={formData.name} onChange={(e) => setFormData((prev: any) => ({...prev, name: e.target.value}))} className="bg-white border-slate-200 focus:border-green-500 focus:ring-green-500 text-slate-900" />
               </div>
               <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">URL Personalizada</Label>
-                <Input value={formData.slug} onChange={(e) => setFormData((prev: any) => ({...prev, slug: e.target.value}))} className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-900" />
+                <Input value={formData.slug} onChange={(e) => setFormData((prev: any) => ({...prev, slug: e.target.value}))} className="bg-white border-slate-200 focus:border-green-500 focus:ring-green-500 text-slate-900" />
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-slate-700 font-semibold">Status Ativo</Label>
@@ -426,7 +426,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">PIX</div>
+                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 font-bold text-xs">PIX</div>
                     <div>
                       <Label className="text-slate-900 font-bold block">Pix Manual</Label>
                       <p className="text-[10px] text-slate-500">QR Code manual e confirmação via WhatsApp</p>
@@ -497,7 +497,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
               <Button size="sm" onClick={() => {
                 const benefits = formData.custom_settings.benefits || [];
                 updateSetting('benefits', [...benefits, { title: 'Novo Benefício', description: 'Descrição curta do benefício' }]);
-              }} className="bg-indigo-600 text-white h-8">
+              }} className="bg-green-600 text-white h-8">
                 <Plus className="w-4 h-4 mr-1" /> Adicionar
               </Button>
             </div>
@@ -561,7 +561,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
               <Button size="sm" onClick={() => {
                 const testimonials = formData.custom_settings.testimonials || [];
                 updateSetting('testimonials', [...testimonials, { name: 'Cliente Satisfeito', text: 'Excelente produto, super recomendo!', rating: 5 }]);
-              }} className="bg-indigo-600 text-white h-8">
+              }} className="bg-green-600 text-white h-8">
                 <Plus className="w-4 h-4 mr-1" /> Adicionar
               </Button>
             </div>
@@ -689,8 +689,8 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
         return (
           <div className="space-y-4 p-6 text-slate-900">
             <h3 className="font-bold text-lg text-slate-900">Configurações Mobile</h3>
-            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-               <p className="text-indigo-800 text-xs font-medium">As configurações mobile são otimizadas automaticamente, mas você pode ajustar elementos específicos aqui.</p>
+            <div className="p-4 bg-green-50 border border-green-100 rounded-xl">
+               <p className="text-green-800 text-xs font-medium">As configurações mobile são otimizadas automaticamente, mas você pode ajustar elementos específicos aqui.</p>
             </div>
             <div className="flex items-center justify-between">
               <Label className="text-slate-700 font-semibold">Ocultar Elementos Pesados</Label>
@@ -721,7 +721,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
       case 'preview_tab':
         return (
           <div className="flex flex-col items-center justify-center p-12 text-center space-y-6">
-             <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600">
                 <Eye className="w-10 h-10" />
              </div>
              <div>
@@ -749,11 +749,11 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             onClick={() => setFormTab(tab.id)}
             className={`flex items-center gap-2 px-6 py-4 text-xs font-bold whitespace-nowrap border-b-2 transition-all duration-200 ${
               formTab === tab.id 
-                ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' 
+                ? 'border-green-600 text-green-600 bg-green-50/30' 
                 : 'border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'
             }`}
           >
-            <tab.icon className={`w-4 h-4 ${formTab === tab.id ? 'text-indigo-600' : 'text-slate-400'}`} />
+            <tab.icon className={`w-4 h-4 ${formTab === tab.id ? 'text-green-600' : 'text-slate-400'}`} />
             {tab.label}
           </button>
         ))}

@@ -17,7 +17,7 @@ const CheckoutEditorPage = () => {
 
   const [formData, setFormData] = useState<any>({
     name: '', description: '', slug: '', item_name: '', item_description: '',
-    item_image_url: '', price: '0', primary_color: '#8B5CF6', banner_url: '',
+    item_image_url: '', price: '0', primary_color: '#16A34A', banner_url: '',
     success_message: 'Pagamento realizado com sucesso!', redirect_url: '',
     mp_access_token: '', mp_public_key: '',
     thank_you_title: 'Obrigado pela sua compra!',
@@ -274,7 +274,7 @@ const CheckoutEditorPage = () => {
               >
                 <Eye className="w-4 h-4" /> Visualizar
               </Button>
-              <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 shadow-xl shadow-indigo-900/20">
+              <Button onClick={handleSave} className="bg-green-600 hover:bg-green-500 text-white gap-2 shadow-xl shadow-green-900/20">
                 <Save className="w-4 h-4" /> {id === 'new' ? 'Publicar Checkout' : 'Salvar Alterações'}
               </Button>
            </div>
@@ -282,9 +282,9 @@ const CheckoutEditorPage = () => {
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center scrollbar-hide">
            <div className="w-full flex justify-center gap-4 mb-6">
-              <Button variant="outline" size="sm" onClick={() => setViewport('desktop')} className={viewport === 'desktop' ? 'bg-indigo-600 text-white' : ''}>Desktop</Button>
-              <Button variant="outline" size="sm" onClick={() => setViewport('tablet')} className={viewport === 'tablet' ? 'bg-indigo-600 text-white' : ''}>Tablet</Button>
-              <Button variant="outline" size="sm" onClick={() => setViewport('mobile')} className={viewport === 'mobile' ? 'bg-indigo-600 text-white' : ''}>Mobile</Button>
+              <Button variant="outline" size="sm" onClick={() => setViewport('desktop')} className={viewport === 'desktop' ? 'bg-green-600 text-white border-green-600' : 'text-white/70 border-white/20 hover:text-white hover:bg-white/10'}>Desktop</Button>
+              <Button variant="outline" size="sm" onClick={() => setViewport('tablet')} className={viewport === 'tablet' ? 'bg-green-600 text-white border-green-600' : 'text-white/70 border-white/20 hover:text-white hover:bg-white/10'}>Tablet</Button>
+              <Button variant="outline" size="sm" onClick={() => setViewport('mobile')} className={viewport === 'mobile' ? 'bg-green-600 text-white border-green-600' : 'text-white/70 border-white/20 hover:text-white hover:bg-white/10'}>Mobile</Button>
            </div>
            <div className={`transition-all duration-500 origin-top ${viewport === 'mobile' ? 'w-[375px]' : viewport === 'tablet' ? 'w-[768px]' : 'w-full max-w-4xl'}`}>
               <CheckoutPreview checkout={{...formData, ...currentSettings}} activeTab={formTab} onTabChange={setFormTab} />
