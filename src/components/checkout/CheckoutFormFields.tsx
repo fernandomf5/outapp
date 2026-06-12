@@ -136,9 +136,29 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
              <div className="pt-4 border-t border-slate-100 space-y-3">
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Título Principal</Label>
                 <Input value={formData.custom_settings.header_title} onChange={(e) => updateSetting('header_title', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
-                <div className="flex items-center gap-2">
-                   <Input type="color" value={formData.custom_settings.header_title_color} onChange={(e) => updateSetting('header_title_color', e.target.value)} className="w-10 p-1 bg-white border-slate-200 h-10" />
-                   <Label className="text-slate-700 font-semibold">Cor do Título</Label>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                   <div className="flex items-center gap-2">
+                      <Input type="color" value={formData.custom_settings.header_title_color} onChange={(e) => updateSetting('header_title_color', e.target.value)} className="w-10 p-1 bg-white border-slate-200 h-10" />
+                      <Label className="text-slate-700 font-semibold text-xs">Cor</Label>
+                   </div>
+                   <div>
+                      <Select value={formData.custom_settings.header_title_font_size || 'text-xl'} onValueChange={(v) => updateSetting('header_title_font_size', v)}>
+                         <SelectTrigger className="bg-white text-slate-900 border-slate-200 h-10 text-xs"><SelectValue placeholder="Tamanho" /></SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="text-sm">Pequeno (sm)</SelectItem>
+                           <SelectItem value="text-base">Base</SelectItem>
+                           <SelectItem value="text-lg">Grande (lg)</SelectItem>
+                           <SelectItem value="text-xl">Extra Grande (xl)</SelectItem>
+                           <SelectItem value="text-2xl">2X Grande (2xl)</SelectItem>
+                           <SelectItem value="text-3xl">3X Grande (3xl)</SelectItem>
+                           <SelectItem value="text-4xl">4X Grande (4xl)</SelectItem>
+                         </SelectContent>
+                      </Select>
+                   </div>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                   <Label className="text-slate-700 font-semibold text-xs">Negrito</Label>
+                   <Switch checked={formData.custom_settings.header_title_bold !== false} onCheckedChange={(v) => updateSetting('header_title_bold', v)} />
                 </div>
              </div>
           </div>
