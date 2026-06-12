@@ -49,7 +49,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   useEffect(() => {
     const activeElement = tabsRef.current?.querySelector(`[data-active="true"]`);
@@ -59,8 +59,8 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
   }, [formTab]);
 
   const updateSetting = (key: string, value: any) => {
-    const deviceSuffix = device === 'mobile' ? '_mobile' : '';
-    const finalKey = device === 'mobile' && ['logo_size', 'logo_alignment', 'header_title_font_size', 'layout_structure'].includes(key) 
+    const deviceSuffix = device === 'mobile' ? '_mobile' : device === 'tablet' ? '_tablet' : '';
+    const finalKey = (device === 'mobile' || device === 'tablet') && ['logo_size', 'logo_alignment', 'header_title_font_size', 'layout_structure'].includes(key) 
       ? `${key}${deviceSuffix}` 
       : key;
 
@@ -74,11 +74,11 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
   };
 
   const getSetting = (key: string) => {
-    const deviceSuffix = device === 'mobile' ? '_mobile' : '';
-    const mobileKey = `${key}${deviceSuffix}`;
+    const deviceSuffix = device === 'mobile' ? '_mobile' : device === 'tablet' ? '_tablet' : '';
+    const deviceKey = `${key}${deviceSuffix}`;
     
-    if (device === 'mobile' && formData.custom_settings[mobileKey] !== undefined) {
-      return formData.custom_settings[mobileKey];
+    if ((device === 'mobile' || device === 'tablet') && formData.custom_settings[deviceKey] !== undefined) {
+      return formData.custom_settings[deviceKey];
     }
     return formData.custom_settings[key];
   };
@@ -95,6 +95,14 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
             className="h-8 gap-1.5 text-xs font-semibold"
           >
             <Layout className="w-3.5 h-3.5" /> Desktop
+          </Button>
+          <Button 
+            variant={device === 'tablet' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setDevice('tablet')}
+            className="h-8 gap-1.5 text-xs font-semibold"
+          >
+            <Smartphone className="w-3.5 h-3.5 rotate-90" /> Tablet
           </Button>
           <Button 
             variant={device === 'mobile' ? 'default' : 'outline'} 

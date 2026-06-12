@@ -344,6 +344,7 @@ const CheckoutPage = () => {
              <div className="flex items-center justify-center w-full">
                <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 
                  ${checkout.logo_alignment === 'left' ? 'md:justify-start md:mr-auto' : checkout.logo_alignment === 'right' ? 'md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto'}
+                 ${checkout.custom_settings?.logo_alignment_tablet ? `sm:justify-${checkout.custom_settings.logo_alignment_tablet === 'left' ? 'start sm:mr-auto' : checkout.custom_settings.logo_alignment_tablet === 'right' ? 'end sm:ml-auto sm:flex-row-reverse' : 'center sm:mx-auto'}` : ''}
                  ${checkout.custom_settings?.logo_alignment_mobile === 'left' ? 'justify-start mr-auto md:justify-start md:mr-auto' : checkout.custom_settings?.logo_alignment_mobile === 'right' ? 'justify-end ml-auto flex-row-reverse md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto md:justify-center md:mx-auto'}
                `}>
                  <div className="flex items-center gap-3">
@@ -353,6 +354,7 @@ const CheckoutPage = () => {
                        alt="Logo" 
                        className={`object-contain
                          ${checkout.custom_settings?.logo_size_mobile || checkout.logo_size || 'h-8'}
+                         sm:${checkout.custom_settings?.logo_size_tablet || checkout.logo_size || 'h-9'}
                          md:${checkout.logo_size || 'h-10'}
                        `} 
                      />
@@ -367,6 +369,7 @@ const CheckoutPage = () => {
                     <h1 
                       className={`text-center
                         ${checkout.custom_settings?.header_title_font_size_mobile || checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'}
+                        sm:${checkout.custom_settings?.header_title_font_size_tablet || checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'}
                         md:${checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-2xl'}
                         ${checkout.custom_settings?.header_title_bold !== false ? 'font-bold' : ''}
                       `}
