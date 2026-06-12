@@ -342,10 +342,20 @@ const CheckoutPage = () => {
         <div className="w-full border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.custom_settings?.top_bar_bg_color || checkout.top_bar_bg_color || checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center justify-center relative`}>
              <div className="flex items-center justify-center w-full">
-               <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 ${checkout.logo_alignment === 'left' ? 'md:justify-start md:mr-auto' : checkout.logo_alignment === 'right' ? 'md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto'}`}>
+               <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 
+                 ${checkout.logo_alignment === 'left' ? 'md:justify-start md:mr-auto' : checkout.logo_alignment === 'right' ? 'md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto'}
+                 ${checkout.custom_settings?.logo_alignment_mobile === 'left' ? 'justify-start mr-auto md:justify-start md:mr-auto' : checkout.custom_settings?.logo_alignment_mobile === 'right' ? 'justify-end ml-auto flex-row-reverse md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto md:justify-center md:mx-auto'}
+               `}>
                  <div className="flex items-center gap-3">
                    {(checkout.logo_url || checkout.item_image_url) ? (
-                     <img src={checkout.logo_url || checkout.item_image_url || ""} alt="Logo" className={`${checkout.logo_size || 'h-8 md:h-10'} object-contain`} />
+                     <img 
+                       src={checkout.logo_url || checkout.item_image_url || ""} 
+                       alt="Logo" 
+                       className={`object-contain
+                         ${checkout.custom_settings?.logo_size_mobile || checkout.logo_size || 'h-8'}
+                         md:${checkout.logo_size || 'h-10'}
+                       `} 
+                     />
                    ) : (
                      <div className="font-bold text-xl md:text-2xl flex items-center gap-2" style={{ color: textColor }}>
                        <Package className="w-6 h-6 md:w-8 md:h-8" style={{ color: primaryColor }} />
@@ -355,7 +365,11 @@ const CheckoutPage = () => {
                  </div>
                   {checkout.header_title && (
                     <h1 
-                      className={`${checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl md:text-2xl'} ${checkout.custom_settings?.header_title_bold !== false ? 'font-bold' : ''} text-center`}
+                      className={`text-center
+                        ${checkout.custom_settings?.header_title_font_size_mobile || checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'}
+                        md:${checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-2xl'}
+                        ${checkout.custom_settings?.header_title_bold !== false ? 'font-bold' : ''}
+                      `}
                      style={{ color: checkout.header_title_color || textColor }}
                    >
                      {checkout.header_title}
