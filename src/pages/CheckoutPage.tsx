@@ -340,9 +340,9 @@ const CheckoutPage = () => {
       <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full`} style={{ backgroundColor: bgColor, color: textColor }}>
         {/* Modern Header */}
         <div className="w-full border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.custom_settings?.top_bar_bg_color || checkout.top_bar_bg_color || checkout.card_color || '#ffffff', color: textColor }}>
-          <div className={`w-full max-w-6xl flex items-center ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end' : 'justify-center'} relative`}>
-             <div className="flex items-center justify-between w-full">
-               <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 ${checkout.logo_alignment === 'center' ? 'mx-auto' : checkout.logo_alignment === 'right' ? 'flex-row-reverse' : ''}`}>
+          <div className={`w-full max-w-6xl flex items-center justify-center relative`}>
+             <div className="flex items-center justify-center w-full">
+               <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 ${checkout.logo_alignment === 'left' ? 'md:justify-start md:mr-auto' : checkout.logo_alignment === 'right' ? 'md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto'}`}>
                  <div className="flex items-center gap-3">
                    {(checkout.logo_url || checkout.item_image_url) ? (
                      <img src={checkout.logo_url || checkout.item_image_url || ""} alt="Logo" className={`${checkout.logo_size || 'h-8 md:h-10'} object-contain`} />
@@ -355,7 +355,7 @@ const CheckoutPage = () => {
                  </div>
                  {checkout.header_title && (
                    <h1 
-                     className={`${checkout.header_title_font_size || 'text-xl md:text-2xl'} ${checkout.header_title_bold ? 'font-bold' : ''} text-center md:text-left`}
+                     className={`${checkout.header_title_font_size || 'text-xl md:text-2xl'} ${checkout.header_title_bold ? 'font-bold' : ''} text-center`}
                      style={{ color: checkout.header_title_color || textColor }}
                    >
                      {checkout.header_title}
