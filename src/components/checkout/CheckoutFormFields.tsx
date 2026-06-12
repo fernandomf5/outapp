@@ -49,6 +49,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);
+  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
 
   useEffect(() => {
     const activeElement = tabsRef.current?.querySelector(`[data-active="true"]`);
@@ -58,16 +59,59 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
   }, [formTab]);
 
   const updateSetting = (key: string, value: any) => {
+    const deviceSuffix = device === 'mobile' ? '_mobile' : '';
+    const finalKey = device === 'mobile' && ['logo_size', 'logo_alignment', 'header_title_font_size', 'layout_structure'].includes(key) 
+      ? `${key}${deviceSuffix}` 
+      : key;
+
     setFormData((prev: any) => ({
       ...prev,
       custom_settings: {
         ...prev.custom_settings,
-        [key]: value
+        [finalKey]: value
       }
     }));
   };
 
+  const getSetting = (key: string) => {
+    const deviceSuffix = device === 'mobile' ? '_mobile' : '';
+    const mobileKey = `${key}${deviceSuffix}`;
+    
+    if (device === 'mobile' && formData.custom_settings[mobileKey] !== undefined) {
+      return formData.custom_settings[mobileKey];
+    }
+    return formData.custom_settings[key];
+  };
+
   const renderContent = () => {
+    return (
+      <div className="flex flex-col h-full">
+        {/* Mobile/Desktop Selector */}
+        <div className="px-6 py-2 border-b border-slate-100 flex items-center justify-center gap-2 bg-slate-50/50">
+          <Button 
+            variant={device === 'desktop' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setDevice('desktop')}
+            className="h-8 gap-1.5 text-xs font-semibold"
+          >
+            <Layout className="w-3.5 h-3.5" /> Desktop
+          </Button>
+          <Button 
+            variant={device === 'mobile' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setDevice('mobile')}
+            className="h-8 gap-1.5 text-xs font-semibold"
+          >
+            <Smartphone className="w-3.5 h-3.5" /> Mobile
+          </Button>
+        </div>
+
+        {renderTabContent()}
+      </div>
+    );
+  };
+
+  const renderTabContent = () => {
     switch (formTab) {
       case 'general':
         return (
@@ -112,7 +156,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
              <div className="grid grid-cols-2 gap-2">
                 <div>
                    <Label className="text-slate-700 font-semibold mb-1.5 block">Tamanho da Logo</Label>
-                   <Select value={formData.custom_settings.logo_size} onValueChange={(v) => updateSetting('logo_size', v)}>
+                   <Select value={getSetting('logo_size')} onValueChange={(v) => updateSetting('logo_size', v)}>
                       <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="h-8">Pequeno (h-8)</SelectItem>
@@ -123,7 +167,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                 </div>
                 <div>
                    <Label className="text-slate-700 font-semibold mb-1.5 block">Alinhamento</Label>
-                   <Select value={formData.custom_settings.logo_alignment} onValueChange={(v) => updateSetting('logo_alignment', v)}>
+                   <Select value={getSetting('logo_alignment')} onValueChange={(v) => updateSetting('logo_alignment', v)}>
                       <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="left">Esquerda</SelectItem>
@@ -142,7 +186,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
                       <Label className="text-slate-700 font-semibold text-xs">Cor</Label>
                    </div>
                    <div>
-                      <Select value={formData.custom_settings.header_title_font_size || 'text-xl'} onValueChange={(v) => updateSetting('header_title_font_size', v)}>
+                      <Select value={getSetting('header_title_font_size') || 'text-xl'} onValueChange={(v) => updateSetting('header_title_font_size', v)}>
                          <SelectTrigger className="bg-white text-slate-900 border-slate-200 h-10 text-xs"><SelectValue placeholder="Tamanho" /></SelectTrigger>
                          <SelectContent>
                            <SelectItem value="text-sm">Pequeno (sm)</SelectItem>
