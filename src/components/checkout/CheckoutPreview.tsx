@@ -105,7 +105,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
           </div>
           {checkout.header_title && (
             <h1 
-              className={`${checkout.header_title_font_size || 'text-xl'} ${checkout.header_title_bold ? 'font-bold' : ''} text-center`}
+              className={`${checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'} ${checkout.custom_settings?.header_title_bold !== false ? 'font-bold' : ''} text-center`}
               style={{ color: checkout.header_title_color || textColor }}
             >
               {checkout.header_title}
