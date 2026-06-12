@@ -90,26 +90,28 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
-      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center gap-4 group relative ${checkout.logo_alignment === 'left' ? 'justify-start' : checkout.logo_alignment === 'right' ? 'justify-end flex-row-reverse' : 'justify-center'}`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
+      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center justify-center group relative`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
         <EditButton tab="header" />
-        <div className="flex items-center gap-2">
-          {checkout.item_image_url ? (
-            <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
-          ) : (
-            <div className="font-bold text-xl flex items-center gap-2" style={{ color: textColor }}>
-              <Package className="w-6 h-6" style={{ color: primaryColor }} />
-              <span>{checkout.name || 'Minha Loja'}</span>
-            </div>
+        <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 ${checkout.logo_alignment === 'left' ? 'md:justify-start md:mr-auto' : checkout.logo_alignment === 'right' ? 'md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto'}`}>
+          <div className="flex items-center gap-2">
+            {checkout.item_image_url ? (
+              <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
+            ) : (
+              <div className="font-bold text-xl flex items-center gap-2" style={{ color: textColor }}>
+                <Package className="w-6 h-6" style={{ color: primaryColor }} />
+                <span>{checkout.name || 'Minha Loja'}</span>
+              </div>
+            )}
+          </div>
+          {checkout.header_title && (
+            <h1 
+              className={`${checkout.header_title_font_size || 'text-xl'} ${checkout.header_title_bold ? 'font-bold' : ''} text-center`}
+              style={{ color: checkout.header_title_color || textColor }}
+            >
+              {checkout.header_title}
+            </h1>
           )}
         </div>
-        {checkout.header_title && (
-          <h1 
-            className={`${checkout.header_title_font_size || 'text-xl'} ${checkout.header_title_bold ? 'font-bold' : ''}`}
-            style={{ color: checkout.header_title_color || textColor }}
-          >
-            {checkout.header_title}
-          </h1>
-        )}
       </div>
 
       <div className={`p-4 md:p-6 space-y-6 ${layoutWidth === 'full' ? 'max-w-6xl mx-auto' : ''}`}>
