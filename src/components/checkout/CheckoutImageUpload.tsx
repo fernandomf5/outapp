@@ -76,7 +76,7 @@ export function CheckoutImageUpload({ label, value, onChange, aspectHint }: Chec
         </div>
       ) : (
         <div
-          className="border-2 border-dashed border-slate-200 rounded-lg p-5 text-center hover:border-indigo-500/50 transition-colors cursor-pointer bg-slate-50"
+          className="border-2 border-dashed border-slate-200 rounded-lg p-5 text-center hover:border-green-500/50 transition-colors cursor-pointer bg-slate-50"
           onClick={() => document.getElementById(inputId)?.click()}
         >
           <input

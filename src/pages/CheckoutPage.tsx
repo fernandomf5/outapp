@@ -564,12 +564,12 @@ const CheckoutPage = () => {
             </div>
 
             {showScarcity && (
-              <div className="p-6 rounded-3xl bg-indigo-600 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="p-6 rounded-3xl bg-green-600 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
                   <Clock className="w-10 h-10 animate-pulse" />
                   <div>
                     <h4 className="font-black text-lg">OFERTA POR TEMPO LIMITADO!</h4>
-                    <p className="text-indigo-100 text-sm">Esta oferta expira em breve. Garanta sua vaga agora.</p>
+                    <p className="text-green-100 text-sm">Esta oferta expira em breve. Garanta sua vaga agora.</p>
                   </div>
                 </div>
                 <CountdownTimer initialSeconds={scarcityTimer} />
