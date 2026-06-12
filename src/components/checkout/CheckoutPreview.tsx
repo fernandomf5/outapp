@@ -165,7 +165,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
             </Card>
           </div>
 
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-5 space-y-6' : 'space-y-6'} order-1 lg:order-2`}>
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-5 space-y-6' : 'space-y-6'} order-1 lg:order-1`}>
             {/* Checkout Form Simulation */}
             <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="form" />
