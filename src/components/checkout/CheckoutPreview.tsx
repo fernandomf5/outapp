@@ -123,51 +123,73 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
         )}
 
         <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-7 space-y-6' : 'space-y-6'} order-2 lg:order-2`}>
-            {/* Main Product Info */}
-            <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' || activeTab === 'summary' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
-              <EditButton tab="product" />
-              <CardContent className="p-0">
-                <div className="p-5 flex gap-4">
-                  {checkout.item_image_url ? (
-                    <img src={checkout.item_image_url} alt="Item" className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover shadow-sm" />
-                  ) : (
-                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl flex items-center justify-center" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff' }}>
-                      <Package className="w-10 h-10 text-muted-foreground" />
-                    </div>
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-4 space-y-6' : 'space-y-6'} order-1 lg:order-2`}>
+            {/* Order Summary (Resumo) */}
+            <Card className={`shadow-2xl border overflow-hidden ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', borderColor: borderColor }}>
+              <div className="p-4 border-b flex items-center justify-between" style={{ backgroundColor: checkout.custom_settings?.summary_header_bg_color || checkout.card_color || '#ffffff' }}>
+                <CardTitle className="text-sm font-black flex items-center gap-2" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>
+                  <ShoppingCart className="w-4 h-4" style={{ color: primaryColor }} /> RESUMO
+                </CardTitle>
+                <Badge variant="outline" className="font-black text-[8px]" style={{ color: checkout.custom_settings?.summary_text_color || textColor, borderColor: `${checkout.custom_settings?.summary_text_color || textColor}40` }}>
+                  TOTAL
+                </Badge>
+              </div>
+              <CardContent className="space-y-4 p-4" style={{ backgroundColor: checkout.summary_bg_color || innerBgColor }}>
+                <div className="flex gap-3 items-center">
+                  {checkout.item_image_url && (
+                    <img src={checkout.item_image_url} alt={checkout.item_name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0 shadow-sm" />
                   )}
-                  <div className="flex-1 flex flex-col justify-center">
-                    <Badge variant="outline" className="w-fit mb-1 text-[10px] uppercase tracking-wider font-bold" style={{ backgroundColor: checkout.custom_settings?.badge_bg_color || checkout.inner_bg_color || '#f3f4f6', borderColor: primaryColor, color: primaryColor }}>Oferta Especial</Badge>
-                    <h3 className="font-bold text-lg md:text-xl leading-tight" style={{ color: textColor }}>{checkout.item_name || 'Nome do Produto'}</h3>
-                    <p className="text-xs mt-1 line-clamp-1" style={{ color: subtitleColor }}>{checkout.item_description || 'Breve descrição do que você está comprando...'}</p>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-xs line-clamp-1" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>
+                      {checkout.item_name || 'Nome do Produto'}
+                    </h3>
+                    <p className="text-base font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>
+                      R$ {Number(checkout.price || 0).toFixed(2)}
+                    </p>
                   </div>
                 </div>
                 
-                <div className="p-5 flex items-center justify-between border-t border-muted/50 group relative" style={{ backgroundColor: checkout.custom_settings?.summary_header_bg_color || checkout.summary_bg_color || checkout.card_color || '#ffffff' }}>
-                  <EditButton tab="summary" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase font-semibold" style={{ color: checkout.summary_text_color || textColor }}>Valor Total</span>
-                    <p className="text-2xl font-black" style={{ color: checkout.summary_price_color || primaryColor }}>R$ {Number(checkout.price || 0).toFixed(2)}</p>
-                    {checkout.show_original_price && (
-                      <span className="text-xs text-muted-foreground line-through opacity-50 block">R$ {Number(checkout.original_price || (Number(checkout.price || 0) * 1.5)).toFixed(2)}</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <Badge variant="outline" className="font-black text-[8px] mb-1" style={{ color: checkout.summary_text_color || textColor, borderColor: `${checkout.summary_text_color || textColor}40` }}>TOTAL</Badge>
-                    <span className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> PAGAMENTO SEGURO
+                <div className="pt-4 mt-2 border-t border-black/5" style={{ borderColor: `${checkout.custom_settings?.summary_text_color || textColor}10` }}>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>
+                      Total a pagar
                     </span>
-                    <div className="flex gap-1 mt-1 opacity-60">
-                      <CreditCard className="w-4 h-4" />
-                      <Smartphone className="w-4 h-4" />
-                    </div>
+                    <span className="text-xl font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>
+                      R$ {Number(checkout.price || 0).toFixed(2)}
+                    </span>
                   </div>
+                  
+                  <div className="flex items-center gap-2 text-[8px] font-black uppercase text-green-600 bg-green-50/50 p-2 rounded-lg border border-green-100" style={{ backgroundColor: `${checkout.custom_settings?.summary_text_color || textColor}05`, borderColor: `${checkout.custom_settings?.summary_text_color || textColor}10` }}>
+                    <Shield className="w-3 h-3 flex-shrink-0" />
+                    <span style={{ color: checkout.custom_settings?.summary_text_color || subtitleColor }}>
+                      Compra 100% criptografada e segura.
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Product Section (Opcional no preview mobile se o resumo já tiver as infos) */}
+            <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' ? 'ring-2 ring-indigo-500' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+              <EditButton tab="product" />
+              <CardContent className="p-4 flex gap-4">
+                {checkout.item_image_url ? (
+                  <img src={checkout.item_image_url} alt="Item" className="w-16 h-16 rounded-xl object-cover" />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-slate-100">
+                    <Package className="w-8 h-8 text-slate-300" />
+                  </div>
+                )}
+                <div className="flex-1 flex flex-col justify-center">
+                  <Badge variant="outline" className="w-fit mb-1 text-[8px] uppercase font-bold" style={{ borderColor: primaryColor, color: primaryColor }}>Oferta Ativa</Badge>
+                  <h3 className="font-bold text-sm leading-tight" style={{ color: textColor }}>{checkout.item_name || 'Nome do Produto'}</h3>
+                  <p className="text-[10px] line-clamp-1" style={{ color: subtitleColor }}>{checkout.item_description}</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-5 space-y-6' : 'space-y-6'} order-1 lg:order-1`}>
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-8 space-y-6' : 'space-y-6'} order-2 lg:order-1`}>
             {/* Checkout Form Simulation */}
             <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="form" />
