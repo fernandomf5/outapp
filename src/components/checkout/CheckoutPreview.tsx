@@ -92,10 +92,20 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
       {/* Mini Header / Logo */}
       <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center justify-center group relative`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
         <EditButton tab="header" />
-        <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 ${checkout.logo_alignment === 'left' ? 'md:justify-start md:mr-auto' : checkout.logo_alignment === 'right' ? 'md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto'}`}>
+        <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 
+          ${checkout.logo_alignment === 'left' ? 'md:justify-start md:mr-auto' : checkout.logo_alignment === 'right' ? 'md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto'}
+          ${checkout.custom_settings?.logo_alignment_mobile === 'left' ? 'justify-start mr-auto md:justify-start md:mr-auto' : checkout.custom_settings?.logo_alignment_mobile === 'right' ? 'justify-end ml-auto flex-row-reverse md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto md:justify-center md:mx-auto'}
+        `}>
           <div className="flex items-center gap-2">
             {checkout.item_image_url ? (
-              <img src={checkout.item_image_url} alt="Logo" className={`${checkout.logo_size || 'h-8'} object-contain`} />
+              <img 
+                src={checkout.item_image_url} 
+                alt="Logo" 
+                className={`object-contain
+                  ${checkout.custom_settings?.logo_size_mobile || checkout.logo_size || 'h-8'}
+                  md:${checkout.logo_size || 'h-8'}
+                `} 
+              />
             ) : (
               <div className="font-bold text-xl flex items-center gap-2" style={{ color: textColor }}>
                 <Package className="w-6 h-6" style={{ color: primaryColor }} />
@@ -105,7 +115,11 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
           </div>
           {checkout.header_title && (
             <h1 
-              className={`${checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'} ${checkout.custom_settings?.header_title_bold !== false ? 'font-bold' : ''} text-center`}
+              className={`text-center
+                ${checkout.custom_settings?.header_title_font_size_mobile || checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'}
+                md:${checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'}
+                ${checkout.custom_settings?.header_title_bold !== false ? 'font-bold' : ''}
+              `}
               style={{ color: checkout.header_title_color || textColor }}
             >
               {checkout.header_title}
