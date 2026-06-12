@@ -123,7 +123,11 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
         )}
 
         <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-4 space-y-6' : 'space-y-6'} order-1 lg:order-1`}>
+          {/* Mobile view: Summary first, then Form */}
+          {/* Desktop view: Layout structure determines order */}
+          
+          {/* Order Summary Column */}
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-4' : ''} order-1 lg:order-2 space-y-6`}>
             {/* Order Summary (Resumo) */}
             <Card className={`shadow-2xl border overflow-hidden ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', borderColor: borderColor }}>
               <div className="p-4 border-b flex items-center justify-between" style={{ backgroundColor: checkout.custom_settings?.summary_header_bg_color || checkout.card_color || '#ffffff' }}>
@@ -169,7 +173,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
               </CardContent>
             </Card>
 
-            {/* Product Section (Opcional no preview mobile se o resumo já tiver as infos) */}
+            {/* Product Section Card */}
             <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' ? 'ring-2 ring-indigo-500' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="product" />
               <CardContent className="p-4 flex gap-4">
@@ -189,7 +193,8 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
             </Card>
           </div>
 
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-8 space-y-6' : 'space-y-6'} order-2 lg:order-2`}>
+          {/* Form Column */}
+          <div className={`${layoutStructure === 'split' ? 'lg:col-span-8' : ''} order-2 lg:order-1 space-y-6`}>
             {/* Checkout Form Simulation */}
             <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-indigo-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="form" />
