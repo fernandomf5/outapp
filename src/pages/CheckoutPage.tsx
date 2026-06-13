@@ -647,8 +647,9 @@ const CheckoutPage = () => {
         </div>
         
         {/* Modern Footer */}
-        <div className="w-full max-w-6xl mt-12 mb-12 px-8 text-center space-y-6">
-           <div className="w-full h-px bg-black/5"></div>
+        <div className="w-full max-w-6xl mt-12 mb-12 px-4 md:px-8 text-center space-y-6">
+           <SecurityFooterBar settings={checkout.custom_settings} />
+
            
            {checkout.custom_settings?.footer_contact_info && (
              <div className="flex justify-center flex-col items-center gap-3">
