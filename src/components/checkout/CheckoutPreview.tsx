@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SecurityFooterBar } from "./SecurityFooterBar";
+import { CheckoutEffectsLayer, useEffectClasses, useCtaEffectClasses, effectCssVars } from "./CheckoutEffects";
 
 const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number, activeTab?: string }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
