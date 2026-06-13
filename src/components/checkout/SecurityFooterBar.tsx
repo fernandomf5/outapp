@@ -1,4 +1,6 @@
 import { Shield, ShieldCheck, BadgeCheck, Lock } from "lucide-react";
+import pixLogo from "@/assets/pix-logo.png.asset.json";
+
 
 interface Props {
   settings?: any;
