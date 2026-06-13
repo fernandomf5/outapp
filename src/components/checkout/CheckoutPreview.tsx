@@ -52,7 +52,7 @@ const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number,
   );
 };
 
-export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout: any, activeTab?: string, onTabChange?: (tab: string) => void }) => {
+export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'desktop' }: { checkout: any, activeTab?: string, onTabChange?: (tab: string) => void, device?: 'desktop' | 'tablet' | 'mobile' }) => {
   const primaryColor = checkout.primary_color || '#8B5CF6';
   const bgColor = checkout.background_color || checkout.card_color || '#F8FAFC';
   const textColor = checkout.title_color || '#0f172a';
@@ -67,7 +67,29 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
   const borderColor = checkout.border_color || '#e2e8f0';
   const cardRadius = checkout.card_radius || 'rounded-3xl';
   const cardShadow = checkout.card_shadow || 'shadow-sm';
-  
+
+  // Device-aware helpers (preview uses device prop, NOT real viewport)
+  const isMobile = device === 'mobile';
+  const isTablet = device === 'tablet';
+  const isDesktop = device === 'desktop';
+
+  const cs = checkout.custom_settings || {};
+  const pickDevice = (base: string, key: string, fallback: string) => {
+    if (isMobile) return cs[`${key}_mobile`] || checkout[`${key}_mobile`] || cs[key] || checkout[key] || base || fallback;
+    if (isTablet) return cs[`${key}_tablet`] || checkout[`${key}_tablet`] || cs[key] || checkout[key] || base || fallback;
+    return cs[key] || checkout[key] || base || fallback;
+  };
+
+  const logoSize = pickDevice('', 'logo_size', 'h-8');
+  const logoAlign = pickDevice('', 'logo_alignment', 'center');
+  const headerTitleSize = pickDevice('', 'header_title_font_size', 'text-xl');
+
+  const logoAlignClass = logoAlign === 'left'
+    ? 'justify-start mr-auto'
+    : logoAlign === 'right'
+      ? 'justify-end ml-auto flex-row-reverse'
+      : 'justify-center mx-auto';
+
   const feedbacks = checkout.fake_feedbacks || [
     { name: "Ana Silva", text: "Amei o curso! Muito prático.", rating: 5, avatar: "" },
     { name: "João Pereira", text: "Entrega super rápida do acesso.", rating: 5, avatar: "" }
@@ -82,31 +104,24 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
     </button>
   );
 
+  // Layout: on mobile, always stacked. On tablet, stacked. On desktop, split.
+  const useSplitLayout = isDesktop && layoutStructure === 'split';
+
   return (
     <div 
-      className={`w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative ${
-        layoutWidth === 'full' ? 'max-w-none' : 'max-w-4xl'
-      }`}
+      className={`w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative`}
       style={{ backgroundColor: bgColor }}
     >
       {/* Mini Header / Logo */}
-      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center justify-center group relative`} style={{ backgroundColor: checkout.top_bar_bg_color || checkout.custom_settings?.card_color || '#ffffff' }}>
+      <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center group relative`} style={{ backgroundColor: checkout.top_bar_bg_color || cs.card_color || '#ffffff' }}>
         <EditButton tab="header" />
-        <div className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 
-          ${checkout.logo_alignment === 'left' ? 'md:justify-start md:mr-auto' : checkout.logo_alignment === 'right' ? 'md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto'}
-          ${checkout.custom_settings?.logo_alignment_tablet ? `sm:justify-${checkout.custom_settings.logo_alignment_tablet === 'left' ? 'start sm:mr-auto' : checkout.custom_settings.logo_alignment_tablet === 'right' ? 'end sm:ml-auto sm:flex-row-reverse' : 'center sm:mx-auto'}` : ''}
-          ${checkout.custom_settings?.logo_alignment_mobile === 'left' ? 'justify-start mr-auto md:justify-start md:mr-auto' : checkout.custom_settings?.logo_alignment_mobile === 'right' ? 'justify-end ml-auto flex-row-reverse md:justify-end md:ml-auto md:flex-row-reverse' : 'justify-center mx-auto md:justify-center md:mx-auto'}
-        `}>
+        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} items-center gap-2 ${isMobile ? '' : 'gap-4'} w-full ${logoAlignClass}`}>
           <div className="flex items-center gap-2">
             {checkout.item_image_url ? (
               <img 
                 src={checkout.item_image_url} 
                 alt="Logo" 
-                className={`object-contain
-                  ${checkout.custom_settings?.logo_size_mobile || checkout.logo_size || 'h-8'}
-                  sm:${checkout.custom_settings?.logo_size_tablet || checkout.logo_size || 'h-9'}
-                  md:${checkout.logo_size || 'h-8'}
-                `} 
+                className={`object-contain ${logoSize}`}
               />
             ) : (
               <div className="font-bold text-xl flex items-center gap-2" style={{ color: textColor }}>
@@ -117,12 +132,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
           </div>
           {checkout.header_title && (
             <h1 
-              className={`text-center
-                ${checkout.custom_settings?.header_title_font_size_mobile || checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'}
-                sm:${checkout.custom_settings?.header_title_font_size_tablet || checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'}
-                md:${checkout.custom_settings?.header_title_font_size || checkout.header_title_font_size || 'text-xl'}
-                ${checkout.custom_settings?.header_title_bold !== false ? 'font-bold' : ''}
-              `}
+              className={`text-center ${headerTitleSize} ${cs.header_title_bold !== false ? 'font-bold' : ''}`}
               style={{ color: checkout.header_title_color || textColor }}
             >
               {checkout.header_title}
@@ -131,20 +141,18 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange }: { checkout
         </div>
       </div>
 
-      <div className={`p-4 md:p-6 space-y-6 ${layoutWidth === 'full' ? 'max-w-6xl mx-auto' : ''}`}>
+      <div className={`${isMobile ? 'p-3' : 'p-4'} space-y-6 ${isDesktop ? 'max-w-6xl mx-auto' : ''}`}>
         {/* Banner */}
         {checkout.banner_url && (
-          <div className={`w-full overflow-hidden rounded-2xl shadow-sm h-32 md:h-48`}>
+          <div className={`w-full overflow-hidden rounded-2xl shadow-sm ${isMobile ? 'h-32' : isTablet ? 'h-40' : 'h-48'}`}>
             <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
           </div>
         )}
 
-        <div className={`grid grid-cols-1 gap-6 ${layoutStructure === 'split' ? 'lg:grid-cols-12' : ''}`}>
-          {/* Mobile view: Summary first, then Form */}
-          {/* Desktop view: Layout structure determines order */}
-          
+        <div className={`grid grid-cols-1 gap-6 ${useSplitLayout ? 'grid-cols-12' : ''}`}>
           {/* Order Summary Column */}
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-4' : ''} order-1 lg:order-2 space-y-6`}>
+          <div className={`${useSplitLayout ? 'col-span-4 order-2' : 'order-1'} space-y-6`}>
+
             {/* Order Summary (Resumo) */}
             <Card className={`shadow-2xl border overflow-hidden ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', borderColor: borderColor }}>
               <div className="p-4 border-b flex items-center justify-between" style={{ backgroundColor: checkout.custom_settings?.summary_header_bg_color || checkout.card_color || '#ffffff' }}>
