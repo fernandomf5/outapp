@@ -279,7 +279,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
                     )}
                   </div>
 
-                  <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${activeTab === 'cta' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
+                  <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${ctaEffectClasses} ${activeTab === 'cta' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
                     {checkout.show_field_address ? 'Calcular Frete' : 'Próximo Passo'}
                   </Button>
                 </>
