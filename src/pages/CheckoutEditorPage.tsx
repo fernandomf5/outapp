@@ -172,8 +172,34 @@ const CheckoutEditorPage = () => {
     fetchCheckout();
   }, [id, navigate]);
 
+  const ALLOWED_COLUMNS = new Set([
+    'name','description','slug','item_name','item_description','item_image_url','price',
+    'primary_color','background_color','text_color','footer_color','footer_text','logo_url',
+    'banner_url','success_message','redirect_url','mp_access_token','mp_public_key',
+    'thank_you_title','thank_you_message','thank_you_image_url','thank_you_button_text',
+    'thank_you_button_url','thank_you_download_url','show_order_details','show_fake_feedback',
+    'fake_feedbacks','head_code','footer_code','upsell_title','upsell_description','upsell_price',
+    'upsell_image_url','upsell_checkout_url','upsell_product_id','downsell_title',
+    'downsell_description','downsell_price','downsell_image_url','downsell_checkout_url',
+    'downsell_product_id','integration_type','integration_id','product_type','is_active',
+    'custom_settings'
+  ]);
+
   const preparePayload = () => {
-    const payload = { ...formData };
+    const payload: any = {};
+    const extraSettings: any = {};
+    for (const [key, value] of Object.entries(formData)) {
+      if (key === 'id' || key === 'user_id' || key === 'created_at' || key === 'updated_at' || key === 'total_sales' || key === 'total_revenue') continue;
+      if (ALLOWED_COLUMNS.has(key)) {
+        payload[key] = value;
+      } else if (key !== 'custom_settings') {
+        extraSettings[key] = value;
+      }
+    }
+    payload.custom_settings = {
+      ...(formData.custom_settings || {}),
+      ...extraSettings,
+    };
     payload.price = parseFloat(formData.price) || 0;
     payload.upsell_price = formData.upsell_price ? parseFloat(formData.upsell_price) : null;
     payload.downsell_price = formData.downsell_price ? parseFloat(formData.downsell_price) : null;
