@@ -319,7 +319,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
 
             {/* Benefits Section */}
             {(checkout.custom_settings?.benefits || []).length > 0 && (
-              <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${activeTab === 'benefits' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse p-2 rounded-xl' : ''}`}>
+              <div className={`grid grid-cols-1 ${isMobile ? '' : 'grid-cols-2'} gap-3 ${activeTab === 'benefits' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse p-2 rounded-xl' : ''}`}>
                 {checkout.custom_settings.benefits.map((b: any, i: number) => (
                   <div key={i} className={`flex gap-3 p-3 border border-muted bg-white/50 ${cardRadius}`}>
                     <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
