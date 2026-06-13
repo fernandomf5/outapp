@@ -219,7 +219,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
           </div>
 
           {/* Form Column */}
-          <div className={`${layoutStructure === 'split' ? 'lg:col-span-8' : ''} order-2 lg:order-1 space-y-6`}>
+          <div className={`${useSplitLayout ? 'col-span-8 order-1' : 'order-2'} space-y-6`}>
             {/* Checkout Form Simulation */}
             <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="form" />
