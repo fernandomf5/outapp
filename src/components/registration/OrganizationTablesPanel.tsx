@@ -72,6 +72,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [selectedCells, setSelectedCells] = useState<Record<string, string[]>>({}); // rowId -> columnIds[]
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [openColPopoverId, setOpenColPopoverId] = useState<string | null>(null);
 
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
