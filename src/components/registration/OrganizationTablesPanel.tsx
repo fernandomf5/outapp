@@ -72,6 +72,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [selectedCells, setSelectedCells] = useState<Record<string, string[]>>({}); // rowId -> columnIds[]
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [openColPopoverId, setOpenColPopoverId] = useState<string | null>(null);
 
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
@@ -836,7 +837,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                         <span className="truncate">{col.name}</span>
                       </div>
                       
-                      <Popover>
+                      <Popover open={openColPopoverId === col.id} onOpenChange={(o) => setOpenColPopoverId(o ? col.id : null)}>
                         <PopoverTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
                             <MoreHorizontal className="h-3 w-3" />
@@ -846,14 +847,14 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           <Button 
                             variant="ghost" 
                             className="w-full justify-start text-xs h-8 px-2"
-                            onClick={() => setEditingColumn(col)}
+                            onClick={() => { setOpenColPopoverId(null); setTimeout(() => setEditingColumn(col), 50); }}
                           >
                             <Edit2 className="mr-2 h-3 w-3" /> Editar
                           </Button>
                           <Button 
                             variant="ghost" 
                             className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteColumn(col)}
+                            onClick={() => { setOpenColPopoverId(null); setTimeout(() => handleDeleteColumn(col), 50); }}
                           >
                             <Trash2 className="mr-2 h-3 w-3" /> Excluir
                           </Button>
