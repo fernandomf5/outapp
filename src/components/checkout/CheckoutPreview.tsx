@@ -446,6 +446,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 };
