@@ -8,44 +8,43 @@ import { Label } from "@/components/ui/label";
 import { SecurityFooterBar } from "./SecurityFooterBar";
 import { CheckoutEffectsLayer, useEffectClasses, useCtaEffectClasses, effectCssVars } from "./CheckoutEffects";
 
-const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number, activeTab?: string }) => {
+const CountdownTimer = ({ initialSeconds, loop, title, subtitle, activeTab }: { initialSeconds: number, loop?: boolean, title?: string, subtitle?: string, activeTab?: string }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
-  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    // Reset timer when initialSeconds changes (e.g., edited in panel)
     setSeconds(initialSeconds);
-    setIsActive(true);
   }, [initialSeconds]);
 
   useEffect(() => {
-    if (!isActive) return;
-    
     const intervalId = setInterval(() => {
       setSeconds(prev => {
         if (prev <= 0) {
+          if (loop) return initialSeconds;
           clearInterval(intervalId);
-          setIsActive(false);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    
     return () => clearInterval(intervalId);
-  }, [isActive]);
+  }, [initialSeconds, loop]);
 
   const formatTime = (s: number) => {
-    const mins = Math.floor(s / 60);
-    const secs = s % 60;
-    return `${mins}:${String(secs).padStart(2, '0')}`;
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
   };
 
   return (
     <div className={`p-4 rounded-2xl bg-green-600 text-white shadow-lg flex items-center justify-between gap-4 ${activeTab === 'scarcity' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`}>
       <div className="flex items-center gap-2">
         <Clock className="w-6 h-6 animate-pulse" />
-        <p className="text-[10px] font-bold leading-tight">OFERTA POR TEMPO LIMITADO!</p>
+        <div>
+          <p className="text-[10px] font-bold leading-tight">{title || 'OFERTA POR TEMPO LIMITADO!'}</p>
+          {subtitle && <p className="text-[9px] opacity-80 leading-tight">{subtitle}</p>}
+        </div>
       </div>
       <div className="text-xl font-black font-mono bg-white/10 px-3 py-1 rounded-lg">
         {formatTime(seconds)}
