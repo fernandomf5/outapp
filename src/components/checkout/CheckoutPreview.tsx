@@ -406,10 +406,8 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
 
         {/* Footer */}
         <div className="pt-8 pb-4 text-center space-y-4">
-          <div className="flex justify-center gap-6 opacity-30 grayscale contrast-125">
-            <img src="https://logodownload.org/wp-content/uploads/2014/10/mercado-pago-logo-1.png" alt="MP" className="h-4 object-contain" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_Pix.svg/1200px-Logo_Pix.svg.png" alt="PIX" className="h-4 object-contain" />
-          </div>
+          <SecurityFooterBar settings={checkout.custom_settings} compact />
+
           
           {checkout.custom_settings?.footer_contact_info && (
             <div className="flex justify-center">
