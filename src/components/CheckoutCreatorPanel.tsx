@@ -49,7 +49,7 @@ export const CheckoutCreatorPanel = () => {
                 <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-slate-600 flex items-center gap-1">
                   <Pencil className="w-3 h-3" /> Editar
                 </Button>
-                <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-slate-600 flex items-center gap-1" onClick={(e) => { e.stopPropagation(); window.open(`/checkout/${c.id}`, '_blank'); }}>
+                <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-slate-600 flex items-center gap-1" onClick={(e) => { e.stopPropagation(); const slugPart = c.slug ? `/${c.slug}` : ''; window.open(`/checkout/${c.id}${slugPart}`, '_blank'); }}>
                   <ExternalLink className="w-3 h-3" /> Visualizar
                 </Button>
               </div>
