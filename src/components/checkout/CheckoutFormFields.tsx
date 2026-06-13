@@ -136,241 +136,61 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                 <Label className="text-slate-700 font-semibold">Status Ativo</Label>
                 <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData((prev: any) => ({...prev, is_active: v}))} />
               </div>
-              <div className="p-3 rounded-lg bg-green-50 border border-green-100 text-xs text-slate-600">
-                Configure <b>o que será vendido</b> e <b>como será entregue</b> na aba <b>2. Entregáveis</b>.
-              </div>
-            </div>
-          </div>
-        );
-      case 'deliverables': {
-        const cs = formData.custom_settings || {};
-        const deliveryType = cs.delivery_type || 'digital';
-        const deliveryMethod = cs.delivery_method || '';
-        const billingModel = cs.billing_model || 'one_time';
-        const digitalMethods = [
-          { value: 'download', label: 'Download de arquivo' },
-          { value: 'email', label: 'Envio por e-mail' },
-          { value: 'members_area', label: 'Área de membros (Out App)' },
-          { value: 'external_link', label: 'Link externo' },
-          { value: 'whatsapp_group', label: 'Grupo WhatsApp' },
-          { value: 'telegram_group', label: 'Grupo Telegram' },
-          { value: 'credentials', label: 'Credenciais de acesso' },
-          { value: 'scheduling', label: 'Agendamento de serviço' },
-        ];
-        const physicalMethods = [
-          { value: 'correios', label: 'Correios' },
-          { value: 'melhor_envio', label: 'Melhor Envio' },
-          { value: 'own_carrier', label: 'Transportadora própria' },
-          { value: 'local_pickup', label: 'Retirada no local' },
-          { value: 'local_delivery', label: 'Entrega local' },
-        ];
-        const methods = deliveryType === 'physical' ? physicalMethods : digitalMethods;
-        return (
-          <div className="space-y-5 p-6">
-            <div>
-              <h3 className="font-bold text-lg text-slate-900">Entregáveis</h3>
-              <p className="text-xs text-slate-500">Defina o que será vendido, como será entregue e como será cobrado.</p>
             </div>
 
-            {/* Etapa 1 - Tipo de Produto */}
-            <div className="space-y-2">
-              <Label className="text-slate-700 font-semibold">1. Tipo de Produto</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { v: 'physical', t: 'Produto Físico', d: 'Precisa de entrega' },
-                  { v: 'digital', t: 'Produto Digital', d: 'Entrega automática' },
-                ].map(o => (
-                  <button
-                    key={o.v}
-                    type="button"
-                    onClick={() => updateSetting('delivery_type', o.v)}
-                    className={`text-left p-3 rounded-lg border-2 transition ${deliveryType === o.v ? 'border-green-500 bg-green-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}
-                  >
-                    <div className="font-bold text-sm text-slate-900">{o.t}</div>
-                    <div className="text-[11px] text-slate-500">{o.d}</div>
-                  </button>
-                ))}
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-green-600" />
+                <h3 className="font-bold text-lg text-slate-900">Integração com Área de Membros</h3>
               </div>
-            </div>
+              <p className="text-xs text-slate-500">
+                Vincule este checkout a uma área de membros. Após o pagamento aprovado, o cliente recebe automaticamente um <b>código de acesso</b> por e-mail para entrar na área.
+              </p>
 
-            {/* Etapa 2 - Forma de Entrega */}
-            <div className="space-y-2">
-              <Label className="text-slate-700 font-semibold">2. Forma de Entrega</Label>
-              <Select value={deliveryMethod} onValueChange={(v) => updateSetting('delivery_method', v)}>
-                <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue placeholder="Selecione uma forma de entrega" /></SelectTrigger>
-                <SelectContent>
-                  {methods.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Etapa 3 - Modelo de Cobrança */}
-            <div className="space-y-2">
-              <Label className="text-slate-700 font-semibold">3. Modelo de Cobrança</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { v: 'one_time', t: 'Pagamento único' },
-                  { v: 'installments', t: 'Parcelado' },
-                  { v: 'subscription', t: 'Assinatura' },
-                ].map(o => (
-                  <button
-                    key={o.v}
-                    type="button"
-                    onClick={() => updateSetting('billing_model', o.v)}
-                    className={`p-2 rounded-lg border-2 text-xs font-semibold transition ${billingModel === o.v ? 'border-green-500 bg-green-50 text-green-700' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}
-                  >
-                    {o.t}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-100">
+                <Label className="text-slate-700 font-semibold text-sm">Liberar acesso à área de membros</Label>
+                <Switch
+                  checked={formData.integration_type === 'members_area'}
+                  onCheckedChange={(v) => setFormData((prev: any) => ({
+                    ...prev,
+                    integration_type: v ? 'members_area' : '',
+                    integration_id: v ? prev.integration_id : '',
+                  }))}
+                />
               </div>
-              {billingModel === 'installments' && (
-                <div className="pt-2">
-                  <Label className="text-slate-700 text-xs mb-1 block">Máx. de parcelas</Label>
-                  <Input type="number" min={1} max={24} value={cs.max_installments || 12} onChange={(e) => updateSetting('max_installments', parseInt(e.target.value) || 1)} className="bg-white border-slate-200 text-slate-900" />
-                </div>
-              )}
-              {billingModel === 'subscription' && (
-                <div className="pt-2 grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-slate-700 text-xs mb-1 block">Frequência</Label>
-                    <Select value={cs.subscription_interval || 'monthly'} onValueChange={(v) => updateSetting('subscription_interval', v)}>
-                      <SelectTrigger className="bg-white text-slate-900 border-slate-200"><SelectValue /></SelectTrigger>
+
+              {formData.integration_type === 'members_area' && (
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold text-sm">Selecione a área de membros</Label>
+                  {membersAreas.length === 0 ? (
+                    <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                      Você ainda não criou nenhuma área de membros. Crie uma em <b>Área de Membros</b> no menu lateral e volte aqui.
+                    </div>
+                  ) : (
+                    <Select
+                      value={formData.integration_id || ''}
+                      onValueChange={(v) => setFormData((prev: any) => ({...prev, integration_id: v}))}
+                    >
+                      <SelectTrigger className="bg-white text-slate-900 border-slate-200">
+                        <SelectValue placeholder="Escolha uma área de membros" />
+                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="weekly">Semanal</SelectItem>
-                        <SelectItem value="monthly">Mensal</SelectItem>
-                        <SelectItem value="quarterly">Trimestral</SelectItem>
-                        <SelectItem value="yearly">Anual</SelectItem>
+                        {membersAreas.map((m: any) => (
+                          <SelectItem key={m.id} value={m.id}>{m.title || m.name || 'Sem título'}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div>
-                    <Label className="text-slate-700 text-xs mb-1 block">Dias de trial</Label>
-                    <Input type="number" min={0} value={cs.subscription_trial_days || 0} onChange={(e) => updateSetting('subscription_trial_days', parseInt(e.target.value) || 0)} className="bg-white border-slate-200 text-slate-900" />
+                  )}
+                  <div className="text-[11px] text-slate-500 leading-relaxed">
+                    ✓ Após o pagamento aprovado, é gerado um código único<br/>
+                    ✓ O código é enviado por e-mail automaticamente<br/>
+                    ✓ O cliente acessa a área de membros usando esse código
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Etapa 4 - Configurar Entregáveis */}
-            <div className="space-y-3 pt-2 border-t border-slate-100">
-              <Label className="text-slate-700 font-semibold">4. Configurar Entregáveis</Label>
-
-              {deliveryType === 'physical' ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Solicitar endereço de entrega</Label>
-                    <Switch checked={cs.require_address !== false} onCheckedChange={(v) => updateSetting('require_address', v)} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Calcular frete automaticamente</Label>
-                    <Switch checked={!!cs.calculate_shipping} onCheckedChange={(v) => updateSetting('calculate_shipping', v)} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-slate-700 text-xs mb-1 block">Peso (kg)</Label>
-                      <Input type="number" step="0.01" value={cs.package_weight || ''} onChange={(e) => updateSetting('package_weight', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
-                    </div>
-                    <div>
-                      <Label className="text-slate-700 text-xs mb-1 block">Altura (cm)</Label>
-                      <Input type="number" value={cs.package_height || ''} onChange={(e) => updateSetting('package_height', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
-                    </div>
-                    <div>
-                      <Label className="text-slate-700 text-xs mb-1 block">Largura (cm)</Label>
-                      <Input type="number" value={cs.package_width || ''} onChange={(e) => updateSetting('package_width', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
-                    </div>
-                    <div>
-                      <Label className="text-slate-700 text-xs mb-1 block">Comprimento (cm)</Label>
-                      <Input type="number" value={cs.package_length || ''} onChange={(e) => updateSetting('package_length', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-slate-700 text-xs mb-1 block">Prazo estimado de entrega</Label>
-                    <Input value={cs.delivery_eta || ''} onChange={(e) => updateSetting('delivery_eta', e.target.value)} placeholder="Ex: 5 a 10 dias úteis" className="bg-white border-slate-200 text-slate-900" />
-                  </div>
-                  <div>
-                    <Label className="text-slate-700 text-xs mb-1 block">Transportadora</Label>
-                    <Input value={cs.carrier_name || ''} onChange={(e) => updateSetting('carrier_name', e.target.value)} placeholder="Ex: Correios, Jadlog" className="bg-white border-slate-200 text-slate-900" />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Liberar download de arquivo</Label>
-                    <Switch checked={!!cs.deliver_download} onCheckedChange={(v) => updateSetting('deliver_download', v)} />
-                  </div>
-                  {cs.deliver_download && (
-                    <Input value={cs.download_url || formData.thank_you_download_url || ''} onChange={(e) => { updateSetting('download_url', e.target.value); setFormData((p: any) => ({...p, thank_you_download_url: e.target.value})); }} placeholder="URL do arquivo" className="bg-white border-slate-200 text-slate-900" />
-                  )}
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Liberar área de membros</Label>
-                    <Switch checked={!!cs.deliver_members_area} onCheckedChange={(v) => updateSetting('deliver_members_area', v)} />
-                  </div>
-                  {cs.deliver_members_area && (
-                    <Input value={cs.members_area_url || ''} onChange={(e) => updateSetting('members_area_url', e.target.value)} placeholder="URL da área de membros" className="bg-white border-slate-200 text-slate-900" />
-                  )}
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Enviar e-mail automático</Label>
-                    <Switch checked={cs.deliver_email !== false} onCheckedChange={(v) => updateSetting('deliver_email', v)} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Liberar link externo</Label>
-                    <Switch checked={!!cs.deliver_external_link} onCheckedChange={(v) => updateSetting('deliver_external_link', v)} />
-                  </div>
-                  {cs.deliver_external_link && (
-                    <Input value={cs.external_link_url || ''} onChange={(e) => updateSetting('external_link_url', e.target.value)} placeholder="https://..." className="bg-white border-slate-200 text-slate-900" />
-                  )}
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Liberar acesso ao sistema</Label>
-                    <Switch checked={!!cs.deliver_credentials} onCheckedChange={(v) => updateSetting('deliver_credentials', v)} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Convite para grupo WhatsApp</Label>
-                    <Switch checked={!!cs.deliver_whatsapp_group} onCheckedChange={(v) => updateSetting('deliver_whatsapp_group', v)} />
-                  </div>
-                  {cs.deliver_whatsapp_group && (
-                    <Input value={cs.whatsapp_group_url || ''} onChange={(e) => updateSetting('whatsapp_group_url', e.target.value)} placeholder="Link do grupo WhatsApp" className="bg-white border-slate-200 text-slate-900" />
-                  )}
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Convite para grupo Telegram</Label>
-                    <Switch checked={!!cs.deliver_telegram_group} onCheckedChange={(v) => updateSetting('deliver_telegram_group', v)} />
-                  </div>
-                  {cs.deliver_telegram_group && (
-                    <Input value={cs.telegram_group_url || ''} onChange={(e) => updateSetting('telegram_group_url', e.target.value)} placeholder="Link do grupo Telegram" className="bg-white border-slate-200 text-slate-900" />
-                  )}
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-700 text-xs">Agendamento de serviço</Label>
-                    <Switch checked={!!cs.deliver_scheduling} onCheckedChange={(v) => updateSetting('deliver_scheduling', v)} />
-                  </div>
-                  {cs.deliver_scheduling && (
-                    <Input value={cs.scheduling_url || ''} onChange={(e) => updateSetting('scheduling_url', e.target.value)} placeholder="URL do calendário/agenda" className="bg-white border-slate-200 text-slate-900" />
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Etapa 5 - Automações */}
-            <div className="space-y-3 pt-2 border-t border-slate-100">
-              <Label className="text-slate-700 font-semibold">5. Automações pós-compra</Label>
-              <div className="flex items-center justify-between">
-                <Label className="text-slate-700 text-xs">E-mail de compra aprovada</Label>
-                <Switch checked={cs.automation_email !== false} onCheckedChange={(v) => updateSetting('automation_email', v)} />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-slate-700 text-xs">WhatsApp de compra aprovada</Label>
-                <Switch checked={!!cs.automation_whatsapp} onCheckedChange={(v) => updateSetting('automation_whatsapp', v)} />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-slate-700 text-xs">Entrega automática</Label>
-                <Switch checked={cs.automation_auto_deliver !== false} onCheckedChange={(v) => updateSetting('automation_auto_deliver', v)} />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-slate-700 text-xs">Notificação interna ao vendedor</Label>
-                <Switch checked={cs.automation_internal_notify !== false} onCheckedChange={(v) => updateSetting('automation_internal_notify', v)} />
-              </div>
             </div>
           </div>
         );
-      }
       case 'header':
         return (
           <div className="space-y-4 p-6">
