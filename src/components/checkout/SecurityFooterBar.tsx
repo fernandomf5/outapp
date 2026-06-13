@@ -1,4 +1,6 @@
 import { Shield, ShieldCheck, BadgeCheck, Lock } from "lucide-react";
+import pixLogo from "@/assets/pix-logo.png.asset.json";
+
 
 interface Props {
   settings?: any;
@@ -37,12 +39,13 @@ export const SecurityFooterBar = ({ settings = {}, compact = false }: Props) => 
   const showMainShield = settings.security_bar_show_main !== false;
 
   const cards = [
-    { key: 'visa', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png' },
-    { key: 'master', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png' },
-    { key: 'elo', src: 'https://logospng.org/download/elo/logo-elo-1024.png' },
-    { key: 'amex', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/1200px-American_Express_logo.svg.png' },
-    { key: 'hiper', src: 'https://logospng.org/download/hipercard/logo-hipercard-1024.png' },
+    { key: 'visa', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/visa.svg' },
+    { key: 'master', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/mastercard.svg' },
+    { key: 'elo', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/elo.svg' },
+    { key: 'amex', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/amex.svg' },
+    { key: 'hiper', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/hipercard.svg' },
   ].filter(c => settings[`security_bar_card_${c.key}`] !== false);
+
 
   return (
     <div className={`w-full ${radius} px-4 md:px-8 py-5 md:py-6`} style={{ backgroundColor: bg, color: text }}>
@@ -59,7 +62,7 @@ export const SecurityFooterBar = ({ settings = {}, compact = false }: Props) => 
 
         {showPix && (
           <div className="flex items-center gap-3 pr-6" style={{ borderRight: `1px solid ${divider}` }}>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_Pix.svg/1200px-Logo_Pix.svg.png" alt="PIX" className="h-7 object-contain" />
+            <img src={pixLogo.url} alt="PIX" className="h-7 w-7 object-contain" />
             <div className="text-left leading-tight">
               <p className="text-[10px] font-semibold" style={{ color: subtle }}>{t.payTitle}</p>
               <p className="text-sm font-extrabold" style={{ color: accent }}>{t.payHighlight}</p>
