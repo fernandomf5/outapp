@@ -173,7 +173,7 @@ const CheckoutEditorPage = () => {
   }, [id, navigate]);
 
   const ALLOWED_COLUMNS = new Set([
-    'name','description','slug','item_name','item_description','item_image_url','price',
+    'name','description','item_name','item_description','item_image_url','price',
     'primary_color','background_color','text_color','footer_color','footer_text','logo_url',
     'banner_url','success_message','redirect_url','mp_access_token','mp_public_key',
     'thank_you_title','thank_you_message','thank_you_image_url','thank_you_button_text',
@@ -278,8 +278,7 @@ const CheckoutEditorPage = () => {
                     toast.error('Por favor, salve seu checkout primeiro para copiar o link.');
                     return;
                   }
-                  const slugPart = formData.slug ? `/${formData.slug}` : '';
-                  const url = `${window.location.origin}/checkout/${id}${slugPart}`;
+                  const url = `${window.location.origin}/checkout/${id}`;
                   navigator.clipboard.writeText(url);
                   toast.success('Link do checkout copiado!');
                 }}
@@ -295,8 +294,7 @@ const CheckoutEditorPage = () => {
                     toast.error('Por favor, salve seu checkout primeiro para visualizar a página final.');
                     return;
                   }
-                  const slugPart = formData.slug ? `/${formData.slug}` : '';
-                  window.open(`/checkout/${id}${slugPart}`, '_blank');
+                  window.open(`/checkout/${id}`, '_blank');
                 }} 
                 className="text-white/60 hover:text-white hover:bg-white/10 gap-2"
               >
