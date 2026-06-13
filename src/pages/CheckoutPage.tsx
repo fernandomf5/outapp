@@ -129,6 +129,14 @@ const CheckoutPage = () => {
 
   useEffect(() => { loadCheckout(); }, [checkoutId]);
 
+  const cs = (checkout?.custom_settings && typeof checkout.custom_settings === 'object' ? checkout.custom_settings : checkout) || {};
+  const effectClasses = useEffectClasses(cs);
+  const ctaEffectClasses = useCtaEffectClasses(cs);
+  const { fire: fireConfetti, Portal: ConfettiPortal } = useConfetti();
+  useEffect(() => {
+    if (paymentSuccess && cs.effect_confetti) fireConfetti();
+  }, [paymentSuccess, cs.effect_confetti]);
+
   const loadCheckout = async () => {
     try {
       if (!checkoutId) { setError('Checkout não encontrado'); return; }
