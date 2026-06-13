@@ -608,11 +608,15 @@ const CheckoutPage = () => {
                 <div className="flex items-center gap-4">
                   <Clock className="w-10 h-10 animate-pulse" />
                   <div>
-                    <h4 className="font-black text-lg">OFERTA POR TEMPO LIMITADO!</h4>
-                    <p className="text-green-100 text-sm">Esta oferta expira em breve. Garanta sua vaga agora.</p>
+                    <h4 className="font-black text-lg">{scarcityTitle}</h4>
+                    <p className="text-green-100 text-sm">{scarcitySubtitle}</p>
                   </div>
                 </div>
-                <CountdownTimer initialSeconds={scarcityTimer} />
+                <CountdownTimer
+                  initialSeconds={scarcityTimer}
+                  loop={scarcityLoop}
+                  persistKey={scarcityPersist ? `scarcity_${checkout.id}_v2` : undefined}
+                />
               </div>
             )}
           </div>
