@@ -681,8 +681,14 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
           <div className="space-y-4 p-6">
             <h3 className="font-bold text-lg text-slate-900">Rodapé</h3>
             <div className="space-y-3">
-               <Label className="text-slate-700 font-semibold mb-1.5 block">Informações de Contato</Label>
-               <Input value={formData.custom_settings.footer_contact_info} onChange={(e) => updateSetting('footer_contact_info', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Título do Rodapé</Label>
+               <Input value={formData.footer_text || ''} onChange={(e) => setFormData((prev: any) => ({...prev, footer_text: e.target.value}))} placeholder="Compra 100% Segura" className="bg-white border-slate-200 text-slate-900" />
+
+               <Label className="text-slate-700 font-semibold mb-1.5 block">Texto do Botão de Contato</Label>
+               <Input value={formData.custom_settings.footer_button_text || ''} onChange={(e) => updateSetting('footer_button_text', e.target.value)} placeholder="Contato no WhatsApp" className="bg-white border-slate-200 text-slate-900" />
+
+               <Label className="text-slate-700 font-semibold mb-1.5 block">WhatsApp de Contato (com DDD)</Label>
+               <Input value={formData.custom_settings.footer_contact_info} onChange={(e) => updateSetting('footer_contact_info', e.target.value)} placeholder="5511999999999" className="bg-white border-slate-200 text-slate-900" />
                
                <Label className="text-slate-700 font-semibold mb-1.5 block">Link Termos de Uso</Label>
                <Input value={formData.custom_settings.footer_terms_url} onChange={(e) => updateSetting('footer_terms_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
