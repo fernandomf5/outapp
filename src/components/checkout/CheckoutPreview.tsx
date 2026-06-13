@@ -109,11 +109,17 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
   // Layout: on mobile, always stacked. On tablet, stacked. On desktop, split.
   const useSplitLayout = isDesktop && layoutStructure === 'split';
 
+  const effectClasses = useEffectClasses(cs);
+  const ctaEffectClasses = useCtaEffectClasses(cs);
+
   return (
     <div 
       className={`w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative`}
-      style={{ backgroundColor: bgColor }}
+      style={{ backgroundColor: bgColor, ...effectCssVars(cs) }}
     >
+      <CheckoutEffectsLayer settings={cs} scope="preview" />
+      <div className="relative" style={{ zIndex: 1 }}>
+
       {/* Mini Header / Logo */}
       <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center group relative`} style={{ backgroundColor: checkout.top_bar_bg_color || cs.card_color || '#ffffff' }}>
         <EditButton tab="header" />
