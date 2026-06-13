@@ -287,7 +287,7 @@ const CheckoutEditorPage = () => {
               <Button variant="outline" size="sm" onClick={() => setViewport('mobile')} className={viewport === 'mobile' ? 'bg-green-600 text-white border-green-600' : 'text-white/70 border-white/20 hover:text-white hover:bg-white/10'}>Mobile</Button>
            </div>
            <div className={`transition-all duration-500 origin-top ${viewport === 'mobile' ? 'w-[375px]' : viewport === 'tablet' ? 'w-[768px]' : 'w-full max-w-4xl'}`}>
-              <CheckoutPreview checkout={{...formData, ...currentSettings}} activeTab={formTab} onTabChange={setFormTab} />
+              <CheckoutPreview checkout={{...formData, ...currentSettings}} activeTab={formTab} onTabChange={setFormTab} device={viewport as any} />
            </div>
         </div>
       </div>
