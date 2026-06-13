@@ -25,8 +25,10 @@ import {
   Code, 
   Eye,
   Heading,
-  Plus
+  Plus,
+  Sparkles
 } from "lucide-react";
+import { EFFECT_PRESETS } from "./CheckoutEffects";
 
 export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab, device = 'desktop' }: any) => {
   const tabs = [
@@ -43,9 +45,10 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
     { id: 'scarcity', label: '11. Contador', icon: Clock },
     { id: 'cta', label: '12. Botão', icon: MousePointer2 },
     { id: 'footer', label: '13. Rodapé', icon: ListTodo },
-    { id: 'mobile', label: '14. Mobile', icon: Smartphone },
-    { id: 'tracking', label: '15. SEO & Tracking', icon: Code },
-    { id: 'preview_tab', label: '16. Visualizar', icon: Eye },
+    { id: 'effects', label: '14. Efeitos', icon: Sparkles },
+    { id: 'mobile', label: '15. Mobile', icon: Smartphone },
+    { id: 'tracking', label: '16. SEO & Tracking', icon: Code },
+    { id: 'preview_tab', label: '17. Visualizar', icon: Eye },
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -799,6 +802,106 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
             </div>
           </div>
         );
+      case 'effects': {
+        const applyPreset = (presetKey: string) => {
+          const preset = EFFECT_PRESETS[presetKey] || {};
+          setFormData((prev: any) => ({
+            ...prev,
+            custom_settings: {
+              ...prev.custom_settings,
+              effect_preset: presetKey,
+              ...preset,
+            },
+          }));
+        };
+        const cs = formData.custom_settings || {};
+        const effectToggle = (key: string, label: string, desc: string) => (
+          <div className="flex items-start justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+            <div className="pr-3">
+              <Label className="text-slate-700 font-semibold text-xs">{label}</Label>
+              <p className="text-[10px] text-slate-500 mt-0.5">{desc}</p>
+            </div>
+            <Switch
+              checked={!!cs[key]}
+              onCheckedChange={(v) => updateSetting(key, v)}
+            />
+          </div>
+        );
+        const presets = [
+          { key: 'none', label: 'Nenhum', emoji: '⚪️' },
+          { key: 'neon', label: 'Neon', emoji: '💎' },
+          { key: 'aurora', label: 'Aurora', emoji: '🌌' },
+          { key: 'minimal', label: 'Minimalista', emoji: '✨' },
+          { key: 'festivo', label: 'Festivo', emoji: '🎉' },
+        ];
+        return (
+          <div className="space-y-5 p-6">
+            <div>
+              <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-green-600" /> Efeitos Visuais
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Adicione bordas animadas, fundos vivos e detalhes no botão de compra para deixar o checkout único.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-slate-700 font-semibold text-xs">Presets prontos</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {presets.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    onClick={() => applyPreset(p.key)}
+                    className={`p-3 rounded-xl border-2 text-center transition-all hover:scale-105 ${
+                      (cs.effect_preset || 'none') === p.key
+                        ? 'border-green-600 bg-green-50 text-green-700'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-lg">{p.emoji}</div>
+                    <div className="text-[10px] font-bold mt-1">{p.label}</div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-400">Aplicar um preset substitui os ajustes individuais abaixo.</p>
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 space-y-3">
+              <h4 className="font-bold text-sm text-slate-900">Cores dos efeitos</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                  <Label className="text-slate-700 font-semibold text-xs">Cor primária</Label>
+                  <Input type="color" value={cs.effect_color || '#8b5cf6'} onChange={(e) => updateSetting('effect_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                  <Label className="text-slate-700 font-semibold text-xs">Cor secundária</Label>
+                  <Input type="color" value={cs.effect_color_2 || '#ec4899'} onChange={(e) => updateSetting('effect_color_2', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 space-y-3">
+              <h4 className="font-bold text-sm text-slate-900">Bordas dos cards</h4>
+              {effectToggle('effect_border_beam', 'Borda gradiente animada', 'Linha de gradiente em loop ao redor do card principal e do rodapé.')}
+              {effectToggle('effect_border_glow', 'Brilho neon (glow)', 'Sombra colorida brilhando ao redor das bordas.')}
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 space-y-3">
+              <h4 className="font-bold text-sm text-slate-900">Fundo da página</h4>
+              {effectToggle('effect_aurora', 'Aurora animada', 'Manchas de luz em gradiente se movendo lentamente no fundo.')}
+              {effectToggle('effect_particles', 'Partículas flutuantes', 'Pequenos pontos coloridos subindo pelo fundo.')}
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 space-y-3">
+              <h4 className="font-bold text-sm text-slate-900">Botão de compra (CTA)</h4>
+              {effectToggle('effect_cta_pulse', 'Pulso ao redor do botão', 'Anel pulsante para chamar atenção para o CTA.')}
+              {effectToggle('effect_cta_shimmer', 'Brilho passando (shimmer)', 'Faixa de luz cruzando o botão periodicamente.')}
+              {effectToggle('effect_confetti', 'Confete ao concluir compra', 'Explosão de confete quando o pagamento é aprovado.')}
+            </div>
+          </div>
+        );
+      }
       case 'mobile':
         return (
           <div className="space-y-4 p-6 text-slate-900">

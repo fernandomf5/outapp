@@ -11,6 +11,7 @@ import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, L
 import { Helmet } from "react-helmet-async";
 import { TransparentCheckout } from "@/components/TransparentCheckout";
 import { SecurityFooterBar } from "@/components/checkout/SecurityFooterBar";
+import { CheckoutEffectsLayer, useEffectClasses, useCtaEffectClasses, effectCssVars, useConfetti } from "@/components/checkout/CheckoutEffects";
 
 const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
@@ -282,6 +283,13 @@ const CheckoutPage = () => {
   const innerBgColor = checkout.custom_settings?.inner_bg_color || 'rgba(0,0,0,0.03)';
   const borderColor = checkout.custom_settings?.border_color || '#e2e8f0';
   const cardRadius = checkout.custom_settings?.card_radius || 'rounded-3xl';
+  const cs = checkout.custom_settings || {};
+  const effectClasses = useEffectClasses(cs);
+  const ctaEffectClasses = useCtaEffectClasses(cs);
+  const { fire: fireConfetti, Portal: ConfettiPortal } = useConfetti();
+  useEffect(() => {
+    if (paymentSuccess && cs.effect_confetti) fireConfetti();
+  }, [paymentSuccess, cs.effect_confetti]);
   const cardShadow = checkout.custom_settings?.card_shadow || 'shadow-sm';
 
   if (paymentSuccess) {
@@ -338,7 +346,9 @@ const CheckoutPage = () => {
         {checkout.head_code && <script>{checkout.head_code}</script>}
       </Helmet>
 
-      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full`} style={{ backgroundColor: bgColor, color: textColor }}>
+      <ConfettiPortal />
+      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full relative overflow-hidden`} style={{ backgroundColor: bgColor, color: textColor, ...effectCssVars(cs) }}>
+        <CheckoutEffectsLayer settings={cs} scope="page" />
         {/* Modern Header */}
         <div className="w-full border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.custom_settings?.top_bar_bg_color || checkout.top_bar_bg_color || checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center justify-center relative`}>
@@ -391,7 +401,7 @@ const CheckoutPage = () => {
 
         <div className={`w-full grid grid-cols-1 gap-6 md:gap-8 p-4 md:p-8 max-w-6xl lg:grid-cols-12`}>
           <div className={`${(checkout.custom_settings?.layout_structure || checkout.layout_structure) === 'single' ? 'col-span-1' : 'lg:col-span-8'} space-y-6 order-2 lg:order-1`}>
-            <Card className={`overflow-hidden border shadow-xl ${cardRadius} ${cardShadow}`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor, borderColor: borderColor }}>
+            <Card className={`overflow-hidden border shadow-xl ${cardRadius} ${cardShadow} ${effectClasses}`} style={{ backgroundColor: checkout.card_color || '#ffffff', color: textColor, borderColor: borderColor, ...effectCssVars(cs) }}>
               {checkout.banner_url && (
                 <div className="w-full h-40 md:h-64 overflow-hidden">
                   <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
@@ -498,7 +508,7 @@ const CheckoutPage = () => {
                         />
                       </div>
                     ) : !showPayment ? (
-                      <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
+                      <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden ${ctaEffectClasses}`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
                         <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
                         <CreditCard className="w-6 h-6 mr-3" /> {buttonText.toUpperCase()}
                       </Button>

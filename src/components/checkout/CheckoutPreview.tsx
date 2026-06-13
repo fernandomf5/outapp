@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SecurityFooterBar } from "./SecurityFooterBar";
+import { CheckoutEffectsLayer, useEffectClasses, useCtaEffectClasses, effectCssVars } from "./CheckoutEffects";
 
 const CountdownTimer = ({ initialSeconds, activeTab }: { initialSeconds: number, activeTab?: string }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
@@ -108,11 +109,17 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
   // Layout: on mobile, always stacked. On tablet, stacked. On desktop, split.
   const useSplitLayout = isDesktop && layoutStructure === 'split';
 
+  const effectClasses = useEffectClasses(cs);
+  const ctaEffectClasses = useCtaEffectClasses(cs);
+
   return (
     <div 
       className={`w-full h-full min-h-[600px] border rounded-xl overflow-y-auto scrollbar-hide shadow-lg transition-all duration-300 relative`}
-      style={{ backgroundColor: bgColor }}
+      style={{ backgroundColor: bgColor, ...effectCssVars(cs) }}
     >
+      <CheckoutEffectsLayer settings={cs} scope="preview" />
+      <div className="relative" style={{ zIndex: 1 }}>
+
       {/* Mini Header / Logo */}
       <div className={`w-full p-4 border-b sticky top-0 z-10 flex items-center group relative`} style={{ backgroundColor: checkout.top_bar_bg_color || cs.card_color || '#ffffff' }}>
         <EditButton tab="header" />
@@ -222,7 +229,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
           {/* Form Column */}
           <div className={`${useSplitLayout ? 'col-span-8 order-1' : 'order-2'} space-y-6`}>
             {/* Checkout Form Simulation */}
-            <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+            <Card className={`border shadow-sm p-6 space-y-4 group relative ${cardRadius} ${cardShadow} ${effectClasses} ${activeTab === 'form' || activeTab === 'payment' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
               <EditButton tab="form" />
               {activeTab !== 'payment' ? (
                 <>
@@ -272,7 +279,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
                     )}
                   </div>
 
-                  <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${activeTab === 'cta' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
+                  <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${ctaEffectClasses} ${activeTab === 'cta' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
                     {checkout.show_field_address ? 'Calcular Frete' : 'Próximo Passo'}
                   </Button>
                 </>
@@ -438,6 +445,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
             <button className="text-[9px] hover:underline" style={{ color: footerColor, opacity: 0.7 }} onClick={() => checkout.custom_settings?.footer_terms_url && window.open(checkout.custom_settings.footer_terms_url, '_blank')}>Termos de Uso</button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
