@@ -39,12 +39,13 @@ export const SecurityFooterBar = ({ settings = {}, compact = false }: Props) => 
   const showMainShield = settings.security_bar_show_main !== false;
 
   const cards = [
-    { key: 'visa', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png' },
-    { key: 'master', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png' },
-    { key: 'elo', src: 'https://logospng.org/download/elo/logo-elo-1024.png' },
-    { key: 'amex', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/1200px-American_Express_logo.svg.png' },
-    { key: 'hiper', src: 'https://logospng.org/download/hipercard/logo-hipercard-1024.png' },
+    { key: 'visa', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/visa.svg' },
+    { key: 'master', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/mastercard.svg' },
+    { key: 'elo', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/elo.svg' },
+    { key: 'amex', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/amex.svg' },
+    { key: 'hiper', src: 'https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@main/flat/hipercard.svg' },
   ].filter(c => settings[`security_bar_card_${c.key}`] !== false);
+
 
   return (
     <div className={`w-full ${radius} px-4 md:px-8 py-5 md:py-6`} style={{ backgroundColor: bg, color: text }}>
