@@ -11,6 +11,7 @@ import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, L
 import { Helmet } from "react-helmet-async";
 import { TransparentCheckout } from "@/components/TransparentCheckout";
 import { SecurityFooterBar } from "@/components/checkout/SecurityFooterBar";
+import { CheckoutEffectsLayer, useEffectClasses, useCtaEffectClasses, effectCssVars, useConfetti } from "@/components/checkout/CheckoutEffects";
 
 const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
