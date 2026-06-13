@@ -200,7 +200,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
             </Card>
 
             {/* Product Section Card */}
-            <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' ? 'ring-2 ring-green-500' : ''}`} style={{ backgroundColor: checkout.custom_settings?.card_color || '#ffffff', borderColor: borderColor }}>
+            <Card className={`border shadow-sm overflow-hidden group relative ${cardRadius} ${cardShadow} ${activeTab === 'product' ? 'ring-2 ring-green-500' : ''}`} style={{ backgroundColor: innerBgColor, borderColor: borderColor }}>
               <EditButton tab="product" />
               <CardContent className="p-4 flex gap-4">
                 {checkout.item_image_url ? (
