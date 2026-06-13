@@ -406,7 +406,8 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
         </div>
 
         {/* Footer */}
-        <div className="pt-8 pb-4 text-center space-y-4">
+        <div className="pt-8 pb-4 text-center space-y-4 group relative">
+          <EditButton tab="footer" />
           <SecurityFooterBar settings={checkout.custom_settings} compact />
 
           
