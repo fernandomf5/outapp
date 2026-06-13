@@ -28,7 +28,7 @@ import {
   Plus
 } from "lucide-react";
 
-export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab }: any) => {
+export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab, device = 'desktop' }: any) => {
   const tabs = [
     { id: 'general', label: '1. Geral', icon: Settings2 },
     { id: 'header', label: '2. Cabeçalho', icon: Heading },
@@ -49,7 +49,6 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   useEffect(() => {
     const activeElement = tabsRef.current?.querySelector(`[data-active="true"]`);
@@ -83,35 +82,18 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab 
     return formData.custom_settings[key];
   };
 
+  const deviceLabel = device === 'mobile' ? 'Mobile' : device === 'tablet' ? 'Tablet' : 'Desktop';
+
   const renderContent = () => {
     return (
       <div className="flex flex-col h-full">
-        {/* Mobile/Desktop Selector */}
-        <div className="px-6 py-2 border-b border-slate-100 flex items-center justify-center gap-2 bg-slate-50/50">
-          <Button 
-            variant={device === 'desktop' ? 'default' : 'outline'} 
-            size="sm" 
-            onClick={() => setDevice('desktop')}
-            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'desktop' ? 'bg-green-600 hover:bg-green-700 text-white' : 'text-green-600 border-green-200 hover:bg-green-50 bg-white'}`}
-          >
-            <Layout className="w-3.5 h-3.5" /> Desktop
-          </Button>
-          <Button 
-            variant={device === 'tablet' ? 'default' : 'outline'} 
-            size="sm" 
-            onClick={() => setDevice('tablet')}
-            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'tablet' ? 'bg-green-600 hover:bg-green-700 text-white' : 'text-green-600 border-green-200 hover:bg-green-50 bg-white'}`}
-          >
-            <Smartphone className="w-3.5 h-3.5 rotate-90" /> Tablet
-          </Button>
-          <Button 
-            variant={device === 'mobile' ? 'default' : 'outline'} 
-            size="sm" 
-            onClick={() => setDevice('mobile')}
-            className={`h-8 gap-1.5 text-xs font-semibold ${device === 'mobile' ? 'bg-green-600 hover:bg-green-700 text-white' : 'text-green-600 border-green-200 hover:bg-green-50 bg-white'}`}
-          >
-            <Smartphone className="w-3.5 h-3.5" /> Mobile
-          </Button>
+        {/* Device indicator - synced with preview viewport */}
+        <div className="px-6 py-2 border-b border-slate-100 flex items-center justify-center gap-2 bg-green-50/60">
+          <Smartphone className="w-3.5 h-3.5 text-green-700" />
+          <span className="text-xs font-semibold text-green-800">
+            Editando: <span className="font-bold">{deviceLabel}</span>
+          </span>
+          <span className="text-[10px] text-slate-500">— altere o dispositivo no preview ao lado</span>
         </div>
 
         {renderTabContent()}
