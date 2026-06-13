@@ -25,8 +25,10 @@ import {
   Code, 
   Eye,
   Heading,
-  Plus
+  Plus,
+  Sparkles
 } from "lucide-react";
+import { EFFECT_PRESETS } from "./CheckoutEffects";
 
 export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab, device = 'desktop' }: any) => {
   const tabs = [
