@@ -62,7 +62,7 @@ export const SecurityFooterBar = ({ settings = {}, compact = false }: Props) => 
 
         {showPix && (
           <div className="flex items-center gap-3 pr-6" style={{ borderRight: `1px solid ${divider}` }}>
-            <img src={pixLogo.url} alt="PIX" className="h-7 w-7 object-contain" />
+            <img src="/pix-logo.png" alt="PIX" className="h-7 w-7 object-contain" />
             <div className="text-left leading-tight">
               <p className="text-[10px] font-semibold" style={{ color: subtle }}>{t.payTitle}</p>
               <p className="text-sm font-extrabold" style={{ color: accent }}>{t.payHighlight}</p>
