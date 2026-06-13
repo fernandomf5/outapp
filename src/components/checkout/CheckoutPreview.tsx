@@ -376,15 +376,23 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
               </div>
             )}
 
-            {checkout.custom_settings?.show_scarcity && (
-              <div className="group relative">
-                <EditButton tab="scarcity" />
-                <CountdownTimer 
-                  initialSeconds={checkout.custom_settings?.scarcity_timer || 600} 
-                  activeTab={activeTab}
-                />
-              </div>
-            )}
+            {checkout.custom_settings?.show_scarcity && (() => {
+              const s = checkout.custom_settings || {};
+              const total = (s.scarcity_hours || 0) * 3600 + (s.scarcity_minutes || 0) * 60 + (s.scarcity_seconds || 0);
+              const initial = total > 0 ? total : (s.scarcity_timer || 600);
+              return (
+                <div className="group relative">
+                  <EditButton tab="scarcity" />
+                  <CountdownTimer
+                    initialSeconds={initial}
+                    loop={s.scarcity_loop}
+                    title={s.scarcity_title}
+                    subtitle={s.scarcity_subtitle}
+                    activeTab={activeTab}
+                  />
+                </div>
+              );
+            })()}
 
             {/* Guarantee Section */}
             <div className="p-6 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center space-y-2 group relative">
