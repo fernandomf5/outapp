@@ -272,7 +272,7 @@ const CheckoutPage = () => {
   const related = additionalItems.filter(i => i.item_type === 'related');
   
   // Custom Styles from Settings
-  const bgColor = checkout.custom_settings?.card_color || checkout.background_color || checkout.card_color || '#F8FAFC';
+  const bgColor = checkout.custom_settings?.background_color || checkout.background_color || checkout.custom_settings?.card_color || checkout.card_color || '#F8FAFC';
   const textColor = checkout.custom_settings?.title_color || checkout.title_color || checkout.text_color || '#0f172a';
   const subtitleColor = checkout.custom_settings?.subtitle_color || checkout.subtitle_color || '#666666';
   const footerColor = checkout.custom_settings?.footer_text_color || checkout.footer_text_color || checkout.footer_color || '#64748b';
