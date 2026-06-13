@@ -508,7 +508,7 @@ const CheckoutPage = () => {
                         />
                       </div>
                     ) : !showPayment ? (
-                      <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
+                      <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden ${ctaEffectClasses}`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
                         <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
                         <CreditCard className="w-6 h-6 mr-3" /> {buttonText.toUpperCase()}
                       </Button>
