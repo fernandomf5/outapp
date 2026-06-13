@@ -616,9 +616,9 @@ const CheckoutPage = () => {
                       <span style={{ color: checkout.custom_settings?.summary_text_color || subtitleColor }}>Sua compra é processada em um ambiente 100% criptografado e seguro.</span>
                     </div>
                     
-                    <div className="flex justify-center items-center gap-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-                      <img src="https://logodownload.org/wp-content/uploads/2014/10/mercado-pago-logo-1.png" alt="Mercado Pago" className="h-4 object-contain" />
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_Pix.svg/1200px-Logo_Pix.svg.png" alt="PIX" className="h-4 object-contain" />
+                    <div className="flex justify-center items-center gap-6 opacity-60 hover:opacity-100 transition-all duration-500">
+                      <img src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.91/mercadopago/logo__large.png" alt="Mercado Pago" className="h-5 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      <img src="/pix-logo.png" alt="PIX" className="h-5 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                     </div>
                   </div>
                 </div>
