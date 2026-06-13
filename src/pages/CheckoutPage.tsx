@@ -288,8 +288,8 @@ const CheckoutPage = () => {
   const ctaEffectClasses = useCtaEffectClasses(cs);
   const { fire: fireConfetti, Portal: ConfettiPortal } = useConfetti();
   useEffect(() => {
-    if (paymentApproved && cs.effect_confetti) fireConfetti();
-  }, [paymentApproved, cs.effect_confetti]);
+    if (paymentSuccess && cs.effect_confetti) fireConfetti();
+  }, [paymentSuccess, cs.effect_confetti]);
   const cardShadow = checkout.custom_settings?.card_shadow || 'shadow-sm';
 
   if (paymentSuccess) {
