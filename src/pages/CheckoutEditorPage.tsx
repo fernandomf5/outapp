@@ -229,7 +229,7 @@ const CheckoutEditorPage = () => {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          <CheckoutFormFields formData={formData} setFormData={setFormData} formTab={formTab} setFormTab={setFormTab} />
+          <CheckoutFormFields formData={formData} setFormData={setFormData} formTab={formTab} setFormTab={setFormTab} device={viewport} />
         </div>
       </div>
       
