@@ -696,6 +696,106 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                <Label className="text-slate-700 font-semibold mb-1.5 block">Link Política de Privacidade</Label>
                <Input value={formData.custom_settings.footer_privacy_url} onChange={(e) => updateSetting('footer_privacy_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
             </div>
+
+            <div className="pt-5 mt-5 border-t border-slate-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900">Barra de Segurança</h4>
+                  <p className="text-[11px] text-slate-500">Bandeiras, PIX e selos de confiança no rodapé.</p>
+                </div>
+                <Switch
+                  checked={formData.custom_settings.security_bar_enabled !== false}
+                  onCheckedChange={(v) => updateSetting('security_bar_enabled', v)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                  <Label className="text-slate-700 text-xs">Fundo</Label>
+                  <Input type="color" value={formData.custom_settings.security_bar_bg_color || '#0b0b0b'} onChange={(e) => updateSetting('security_bar_bg_color', e.target.value)} className="w-10 h-8 p-1 bg-white border-slate-200" />
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                  <Label className="text-slate-700 text-xs">Texto</Label>
+                  <Input type="color" value={formData.custom_settings.security_bar_text_color || '#ffffff'} onChange={(e) => updateSetting('security_bar_text_color', e.target.value)} className="w-10 h-8 p-1 bg-white border-slate-200" />
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                  <Label className="text-slate-700 text-xs">Texto Secundário</Label>
+                  <Input type="color" value={formData.custom_settings.security_bar_subtle_color || '#9ca3af'} onChange={(e) => updateSetting('security_bar_subtle_color', e.target.value)} className="w-10 h-8 p-1 bg-white border-slate-200" />
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+                  <Label className="text-slate-700 text-xs">Destaque</Label>
+                  <Input type="color" value={formData.custom_settings.security_bar_accent_color || '#16A34A'} onChange={(e) => updateSetting('security_bar_accent_color', e.target.value)} className="w-10 h-8 p-1 bg-white border-slate-200" />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-slate-700 text-xs mb-1.5 block">Arredondamento</Label>
+                <Select value={formData.custom_settings.security_bar_radius || 'rounded-3xl'} onValueChange={(v) => updateSetting('security_bar_radius', v)}>
+                  <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rounded-none">Sem arredondamento</SelectItem>
+                    <SelectItem value="rounded-xl">Pequeno</SelectItem>
+                    <SelectItem value="rounded-2xl">Médio</SelectItem>
+                    <SelectItem value="rounded-3xl">Grande</SelectItem>
+                    <SelectItem value="rounded-full">Pílula</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <p className="font-semibold text-xs text-slate-700">Blocos visíveis</p>
+                {[
+                  ['security_bar_show_main', 'Bloco "Pagamento Seguro"'],
+                  ['security_bar_show_pix', 'Bloco PIX / Cartão'],
+                  ['security_bar_show_cards', 'Bandeiras de cartão'],
+                  ['security_bar_show_secure_badge', 'Selo "Compra 100% Segura"'],
+                  ['security_bar_show_trust', 'Linha de selos de confiança'],
+                ].map(([k, label]) => (
+                  <div key={k} className="flex items-center justify-between">
+                    <Label className="text-slate-700 text-xs">{label}</Label>
+                    <Switch checked={formData.custom_settings[k] !== false} onCheckedChange={(v) => updateSetting(k, v)} />
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <p className="font-semibold text-xs text-slate-700">Bandeiras de cartão</p>
+                {[
+                  ['visa', 'Visa'],
+                  ['master', 'Mastercard'],
+                  ['elo', 'Elo'],
+                  ['amex', 'American Express'],
+                  ['hiper', 'Hipercard'],
+                ].map(([k, label]) => (
+                  <div key={k} className="flex items-center justify-between">
+                    <Label className="text-slate-700 text-xs">{label}</Label>
+                    <Switch checked={formData.custom_settings[`security_bar_card_${k}`] !== false} onCheckedChange={(v) => updateSetting(`security_bar_card_${k}`, v)} />
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <p className="font-semibold text-xs text-slate-700">Textos</p>
+                {[
+                  ['security_bar_title', 'Título principal', 'PAGAMENTO SEGURO'],
+                  ['security_bar_subtitle', 'Subtítulo principal', 'Seus dados protegidos com criptografia de ponta a ponta'],
+                  ['security_bar_pay_title', 'Texto "Pague com"', 'PAGUE COM'],
+                  ['security_bar_pay_highlight', 'Destaque (ex: PIX)', 'PIX'],
+                  ['security_bar_pay_rest', 'Complemento (ex: OU CARTÃO)', 'OU CARTÃO'],
+                  ['security_bar_trust1_title', 'Selo 1 - Título', 'AMBIENTE'],
+                  ['security_bar_trust1_sub', 'Selo 1 - Subtítulo', '100% SEGURO'],
+                  ['security_bar_trust2_title', 'Selo 2 - Título', 'EMPRESA'],
+                  ['security_bar_trust2_sub', 'Selo 2 - Subtítulo', 'CONFIÁVEL'],
+                  ['security_bar_trust3_title', 'Selo 3 - Título', 'PROTEÇÃO TOTAL'],
+                  ['security_bar_trust3_sub', 'Selo 3 - Subtítulo', 'DOS SEUS DADOS'],
+                ].map(([k, label, ph]) => (
+                  <div key={k}>
+                    <Label className="text-slate-700 text-[11px] mb-1 block">{label}</Label>
+                    <Input value={formData.custom_settings[k] ?? ''} onChange={(e) => updateSetting(k, e.target.value)} placeholder={ph} className="bg-white border-slate-200 text-slate-900 h-8 text-xs" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         );
       case 'mobile':

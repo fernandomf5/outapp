@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, Lock, Smartphone, Star, Package, TrendingUp, Clock, Gift } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { TransparentCheckout } from "@/components/TransparentCheckout";
+import { SecurityFooterBar } from "@/components/checkout/SecurityFooterBar";
 
 const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
   const [seconds, setSeconds] = useState(initialSeconds);
@@ -647,8 +648,9 @@ const CheckoutPage = () => {
         </div>
         
         {/* Modern Footer */}
-        <div className="w-full max-w-6xl mt-12 mb-12 px-8 text-center space-y-6">
-           <div className="w-full h-px bg-black/5"></div>
+        <div className="w-full max-w-6xl mt-12 mb-12 px-4 md:px-8 text-center space-y-6">
+           <SecurityFooterBar settings={checkout.custom_settings} />
+
            
            {checkout.custom_settings?.footer_contact_info && (
              <div className="flex justify-center flex-col items-center gap-3">
