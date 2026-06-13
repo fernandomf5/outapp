@@ -292,7 +292,14 @@ const CheckoutPage = () => {
   const benefits = checkout.custom_settings?.benefits || [];
   const testimonials = checkout.custom_settings?.testimonials || [];
   const showScarcity = checkout.custom_settings?.show_scarcity;
-  const scarcityTimer = checkout.custom_settings?.scarcity_timer || 600;
+  const scarcityTotalSec = (checkout.custom_settings?.scarcity_hours || 0) * 3600
+    + (checkout.custom_settings?.scarcity_minutes || 0) * 60
+    + (checkout.custom_settings?.scarcity_seconds || 0);
+  const scarcityTimer = scarcityTotalSec > 0 ? scarcityTotalSec : (checkout.custom_settings?.scarcity_timer || 600);
+  const scarcityLoop = !!checkout.custom_settings?.scarcity_loop;
+  const scarcityPersist = checkout.custom_settings?.scarcity_persist !== false;
+  const scarcityTitle = checkout.custom_settings?.scarcity_title || 'OFERTA POR TEMPO LIMITADO!';
+  const scarcitySubtitle = checkout.custom_settings?.scarcity_subtitle || 'Esta oferta expira em breve. Garanta sua vaga agora.';
   const guaranteeTitle = checkout.custom_settings?.guarantee_title || '7 Dias de Garantia';
   const guaranteeDesc = checkout.custom_settings?.guarantee_description || 'Se você não gostar, devolvemos seu dinheiro.';
   const footerTextValue = checkout.custom_settings?.footer_contact_info || checkout.footer_text || 'Compra 100% Segura';
