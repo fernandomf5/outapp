@@ -348,7 +348,7 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
                     <Star className="w-3 h-3 fill-current" />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className={`grid grid-cols-1 ${isMobile ? '' : 'grid-cols-2'} gap-3`}>
                   {([...(checkout.custom_settings?.testimonials || []), ...(checkout.show_fake_feedback ? feedbacks : [])]).map((f: any, i: number) => (
                     <Card key={i} className={`border shadow-sm p-4 ${cardRadius} ${activeTab === 'testimonials' ? 'ring-2 ring-green-500 ring-offset-2 animate-pulse' : ''}`} style={{ backgroundColor: checkout.card_color || '#ffffff', opacity: 0.9, borderColor: borderColor }}>
                       <div className="flex gap-3">
