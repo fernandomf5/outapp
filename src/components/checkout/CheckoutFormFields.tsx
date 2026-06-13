@@ -208,11 +208,11 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Fundo Geral</Label>
-                <Input type="color" value={formData.background_color || '#F8FAFC'} onChange={(e) => setFormData((prev: any) => ({...prev, background_color: e.target.value}))} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <Input type="color" value={formData.custom_settings.background_color || formData.background_color || '#F8FAFC'} onChange={(e) => updateSetting('background_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Cabeçalho (Logo)</Label>
-                <Input type="color" value={formData.top_bar_bg_color || '#ffffff'} onChange={(e) => setFormData((prev: any) => ({...prev, top_bar_bg_color: e.target.value}))} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                <Input type="color" value={formData.custom_settings.top_bar_bg_color || formData.top_bar_bg_color || '#ffffff'} onChange={(e) => updateSetting('top_bar_bg_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <Label className="text-slate-700 font-semibold">Cor do Selo 'Oferta Ativa'</Label>
