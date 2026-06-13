@@ -417,15 +417,19 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
                 variant="outline" 
                 size="sm" 
                 className="rounded-full gap-2 font-bold px-6 h-10 transition-all hover:scale-105 active:scale-95"
-                style={{ color: footerColor, borderColor: `${footerColor}40` }}
+                style={{ 
+                  color: checkout.custom_settings?.footer_button_text_color || footerColor, 
+                  borderColor: checkout.custom_settings?.footer_button_border_color || `${footerColor}40`,
+                  backgroundColor: checkout.custom_settings?.footer_button_bg_color || 'transparent',
+                }}
                 onClick={() => window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}
               >
-                <Smartphone className="w-4 h-4" /> Contato no WhatsApp
+                <Smartphone className="w-4 h-4" /> {checkout.custom_settings?.footer_button_text || 'Contato no WhatsApp'}
               </Button>
             </div>
           )}
           
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: footerColor }}>
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: checkout.custom_settings?.footer_title_color || footerColor }}>
             {checkout.footer_text || 'Compra 100% Segura'}
           </p>
           
