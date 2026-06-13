@@ -250,34 +250,6 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                 <Input type="color" value={formData.custom_settings.button_text_color || '#ffffff'} onChange={(e) => updateSetting('button_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
               </div>
 
-              <div className="pt-4 border-t border-slate-100">
-                <h4 className="font-bold text-sm text-slate-900 mb-3">Rodapé</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <Label className="text-slate-700 font-semibold text-xs">Cor do Título do Rodapé</Label>
-                    <Input type="color" value={formData.custom_settings.footer_title_color || formData.custom_settings.footer_text_color || '#64748b'} onChange={(e) => updateSetting('footer_title_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <Label className="text-slate-700 font-semibold text-xs">Cor dos Textos do Rodapé</Label>
-                    <Input type="color" value={formData.custom_settings.footer_text_color || '#64748b'} onChange={(e) => updateSetting('footer_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <Label className="text-slate-700 font-semibold text-xs">Fundo do Botão de Contato</Label>
-                    <div className="flex items-center gap-2">
-                      <Input type="color" value={formData.custom_settings.footer_button_bg_color || '#ffffff'} onChange={(e) => updateSetting('footer_button_bg_color', e.target.value)} className="w-10 h-8 p-1 bg-white border-slate-200" />
-                      <Button variant="ghost" size="sm" onClick={() => updateSetting('footer_button_bg_color', 'transparent')} className="text-[10px] h-6 px-2">Limpar</Button>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <Label className="text-slate-700 font-semibold text-xs">Texto do Botão de Contato</Label>
-                    <Input type="color" value={formData.custom_settings.footer_button_text_color || '#64748b'} onChange={(e) => updateSetting('footer_button_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <Label className="text-slate-700 font-semibold text-xs">Borda do Botão de Contato</Label>
-                    <Input type="color" value={formData.custom_settings.footer_button_border_color || '#e2e8f0'} onChange={(e) => updateSetting('footer_button_border_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
-                  </div>
-                </div>
-              </div>
               
               <div className="pt-4 border-t border-slate-100 space-y-4">
                 <h4 className="font-bold text-sm text-slate-900">Ajustes Finos</h4>
@@ -693,11 +665,40 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                <Label className="text-slate-700 font-semibold mb-1.5 block">Link Termos de Uso</Label>
                <Input value={formData.custom_settings.footer_terms_url} onChange={(e) => updateSetting('footer_terms_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
                
-               <Label className="text-slate-700 font-semibold mb-1.5 block">Link Política de Privacidade</Label>
-               <Input value={formData.custom_settings.footer_privacy_url} onChange={(e) => updateSetting('footer_privacy_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
-            </div>
+                <Label className="text-slate-700 font-semibold mb-1.5 block">Link Política de Privacidade</Label>
+                <Input value={formData.custom_settings.footer_privacy_url} onChange={(e) => updateSetting('footer_privacy_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+             </div>
 
-            <div className="pt-5 mt-5 border-t border-slate-200 space-y-4">
+             <div className="pt-5 mt-5 border-t border-slate-200 space-y-4">
+               <h4 className="font-bold text-sm text-slate-900">Cores do Rodapé</h4>
+               <div className="space-y-3">
+                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                   <Label className="text-slate-700 font-semibold text-xs">Cor do Título do Rodapé</Label>
+                   <Input type="color" value={formData.custom_settings.footer_title_color || formData.custom_settings.footer_text_color || '#64748b'} onChange={(e) => updateSetting('footer_title_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                 </div>
+                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                   <Label className="text-slate-700 font-semibold text-xs">Cor dos Textos do Rodapé</Label>
+                   <Input type="color" value={formData.custom_settings.footer_text_color || '#64748b'} onChange={(e) => updateSetting('footer_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                 </div>
+                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                   <Label className="text-slate-700 font-semibold text-xs">Fundo do Botão de Contato</Label>
+                   <div className="flex items-center gap-2">
+                     <Input type="color" value={formData.custom_settings.footer_button_bg_color || '#ffffff'} onChange={(e) => updateSetting('footer_button_bg_color', e.target.value)} className="w-10 h-8 p-1 bg-white border-slate-200" />
+                     <Button variant="ghost" size="sm" onClick={() => updateSetting('footer_button_bg_color', 'transparent')} className="text-[10px] h-6 px-2">Limpar</Button>
+                   </div>
+                 </div>
+                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                   <Label className="text-slate-700 font-semibold text-xs">Texto do Botão de Contato</Label>
+                   <Input type="color" value={formData.custom_settings.footer_button_text_color || '#64748b'} onChange={(e) => updateSetting('footer_button_text_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                 </div>
+                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                   <Label className="text-slate-700 font-semibold text-xs">Borda do Botão de Contato</Label>
+                   <Input type="color" value={formData.custom_settings.footer_button_border_color || '#e2e8f0'} onChange={(e) => updateSetting('footer_button_border_color', e.target.value)} className="w-12 h-10 p-1 bg-white border-slate-200" />
+                 </div>
+               </div>
+             </div>
+
+             <div className="pt-5 mt-5 border-t border-slate-200 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-sm text-slate-900">Barra de Segurança</h4>
