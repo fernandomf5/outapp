@@ -221,7 +221,6 @@ export const CheckoutEffectsLayer = ({ settings = {}, scope = 'page' }: EffectsP
 
 /** Returns className string for a card that should receive border effects */
 export const useEffectClasses = (settings: any = {}) => {
-  useEffect(() => { ensureStyles(); }, []);
   const classes: string[] = [];
   if (settings.effect_border_beam) classes.push('ck-border-beam');
   if (settings.effect_border_glow) classes.push('ck-border-glow');
@@ -229,7 +228,6 @@ export const useEffectClasses = (settings: any = {}) => {
 };
 
 export const useCtaEffectClasses = (settings: any = {}) => {
-  useEffect(() => { ensureStyles(); }, []);
   const classes: string[] = [];
   if (settings.effect_cta_pulse) classes.push('ck-cta-pulse');
   if (settings.effect_cta_shimmer) classes.push('ck-cta-shimmer');
