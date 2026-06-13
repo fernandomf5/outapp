@@ -112,10 +112,6 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Nome do Checkout</Label>
                 <Input value={formData.name} onChange={(e) => setFormData((prev: any) => ({...prev, name: e.target.value}))} className="bg-white border-slate-200 focus:border-green-500 focus:ring-green-500 text-slate-900" />
               </div>
-              <div>
-                <Label className="text-slate-700 font-semibold mb-1.5 block">URL Personalizada</Label>
-                <Input value={formData.slug} onChange={(e) => setFormData((prev: any) => ({...prev, slug: e.target.value}))} className="bg-white border-slate-200 focus:border-green-500 focus:ring-green-500 text-slate-900" />
-              </div>
               <div className="flex items-center justify-between">
                 <Label className="text-slate-700 font-semibold">Status Ativo</Label>
                 <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData((prev: any) => ({...prev, is_active: v}))} />
