@@ -45,9 +45,10 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
     { id: 'scarcity', label: '11. Contador', icon: Clock },
     { id: 'cta', label: '12. Botão', icon: MousePointer2 },
     { id: 'footer', label: '13. Rodapé', icon: ListTodo },
-    { id: 'mobile', label: '14. Mobile', icon: Smartphone },
-    { id: 'tracking', label: '15. SEO & Tracking', icon: Code },
-    { id: 'preview_tab', label: '16. Visualizar', icon: Eye },
+    { id: 'effects', label: '14. Efeitos', icon: Sparkles },
+    { id: 'mobile', label: '15. Mobile', icon: Smartphone },
+    { id: 'tracking', label: '16. SEO & Tracking', icon: Code },
+    { id: 'preview_tab', label: '17. Visualizar', icon: Eye },
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);
