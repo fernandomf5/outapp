@@ -278,7 +278,8 @@ const CheckoutEditorPage = () => {
                     toast.error('Por favor, salve seu checkout primeiro para copiar o link.');
                     return;
                   }
-                  const url = `${window.location.origin}/checkout/${id}`;
+                  const slugPart = formData.slug ? `/${formData.slug}` : '';
+                  const url = `${window.location.origin}/checkout/${id}${slugPart}`;
                   navigator.clipboard.writeText(url);
                   toast.success('Link do checkout copiado!');
                 }}
@@ -294,7 +295,8 @@ const CheckoutEditorPage = () => {
                     toast.error('Por favor, salve seu checkout primeiro para visualizar a página final.');
                     return;
                   }
-                  window.open(`/checkout/${id}`, '_blank');
+                  const slugPart = formData.slug ? `/${formData.slug}` : '';
+                  window.open(`/checkout/${id}${slugPart}`, '_blank');
                 }} 
                 className="text-white/60 hover:text-white hover:bg-white/10 gap-2"
               >
