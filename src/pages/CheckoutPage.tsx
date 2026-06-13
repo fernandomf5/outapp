@@ -283,6 +283,13 @@ const CheckoutPage = () => {
   const innerBgColor = checkout.custom_settings?.inner_bg_color || 'rgba(0,0,0,0.03)';
   const borderColor = checkout.custom_settings?.border_color || '#e2e8f0';
   const cardRadius = checkout.custom_settings?.card_radius || 'rounded-3xl';
+  const cs = checkout.custom_settings || {};
+  const effectClasses = useEffectClasses(cs);
+  const ctaEffectClasses = useCtaEffectClasses(cs);
+  const { fire: fireConfetti, Portal: ConfettiPortal } = useConfetti();
+  useEffect(() => {
+    if (paymentApproved && cs.effect_confetti) fireConfetti();
+  }, [paymentApproved, cs.effect_confetti]);
   const cardShadow = checkout.custom_settings?.card_shadow || 'shadow-sm';
 
   if (paymentSuccess) {
