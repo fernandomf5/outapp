@@ -655,16 +655,20 @@ const CheckoutPage = () => {
                <Button 
                  variant="outline" 
                  size="sm" 
-                 className="rounded-full gap-2 font-bold px-8 h-12 transition-all hover:scale-105 active:scale-95 hover:bg-green-50 hover:text-green-600 hover:border-green-200"
-                 style={{ color: footerColor, borderColor: `${footerColor}40` }}
+                 className="rounded-full gap-2 font-bold px-8 h-12 transition-all hover:scale-105 active:scale-95"
+                 style={{ 
+                   color: checkout.custom_settings?.footer_button_text_color || footerColor, 
+                   borderColor: checkout.custom_settings?.footer_button_border_color || `${footerColor}40`,
+                   backgroundColor: checkout.custom_settings?.footer_button_bg_color || 'transparent',
+                 }}
                  onClick={() => window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}
                >
-                 <Smartphone className="w-5 h-5" /> Contato no WhatsApp
+                 <Smartphone className="w-5 h-5" /> {checkout.custom_settings?.footer_button_text || 'Contato no WhatsApp'}
                </Button>
              </div>
            )}
 
-           <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em]" style={{ color: footerColor }}>
+           <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em]" style={{ color: checkout.custom_settings?.footer_title_color || footerColor }}>
              {checkout.footer_text || 'Compra 100% Segura'}
            </p>
            <div className="flex justify-center flex-wrap gap-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">
