@@ -28,7 +28,7 @@ import {
   Plus
 } from "lucide-react";
 
-export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab }: any) => {
+export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab, device = 'desktop' }: any) => {
   const tabs = [
     { id: 'general', label: '1. Geral', icon: Settings2 },
     { id: 'header', label: '2. Cabeçalho', icon: Heading },
