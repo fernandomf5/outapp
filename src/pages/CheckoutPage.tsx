@@ -13,36 +13,57 @@ import { TransparentCheckout } from "@/components/TransparentCheckout";
 import { SecurityFooterBar } from "@/components/checkout/SecurityFooterBar";
 import { CheckoutEffectsLayer, useEffectClasses, useCtaEffectClasses, effectCssVars, useConfetti } from "@/components/checkout/CheckoutEffects";
 
-const CountdownTimer = ({ initialSeconds }: { initialSeconds: number }) => {
-  const [seconds, setSeconds] = useState(initialSeconds);
-  const [isActive, setIsActive] = useState(true);
+const CountdownTimer = ({ initialSeconds, loop, persistKey }: { initialSeconds: number, loop?: boolean, persistKey?: string }) => {
+  const computeRemaining = () => {
+    if (persistKey && typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(persistKey);
+        if (raw) {
+          const endsAt = parseInt(raw, 10);
+          const remaining = Math.floor((endsAt - Date.now()) / 1000);
+          if (remaining > 0) return remaining;
+          if (!loop) return 0;
+        }
+        const newEnd = Date.now() + initialSeconds * 1000;
+        localStorage.setItem(persistKey, String(newEnd));
+        return initialSeconds;
+      } catch { /* ignore */ }
+    }
+    return initialSeconds;
+  };
+
+  const [seconds, setSeconds] = useState(computeRemaining);
 
   useEffect(() => {
-    setSeconds(initialSeconds);
-    setIsActive(true);
-  }, [initialSeconds]);
+    setSeconds(computeRemaining());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSeconds, persistKey]);
 
   useEffect(() => {
-    if (!isActive) return;
-    
     const intervalId = setInterval(() => {
       setSeconds(prev => {
         if (prev <= 0) {
+          if (loop) {
+            if (persistKey) {
+              try { localStorage.setItem(persistKey, String(Date.now() + initialSeconds * 1000)); } catch { /* ignore */ }
+            }
+            return initialSeconds;
+          }
           clearInterval(intervalId);
-          setIsActive(false);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    
     return () => clearInterval(intervalId);
-  }, [isActive]);
+  }, [initialSeconds, loop, persistKey]);
 
   const formatTime = (s: number) => {
-    const mins = Math.floor(s / 60);
-    const secs = s % 60;
-    return `${mins}:${String(secs).padStart(2, '0')}`;
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
   };
 
   return (
@@ -271,7 +292,14 @@ const CheckoutPage = () => {
   const benefits = checkout.custom_settings?.benefits || [];
   const testimonials = checkout.custom_settings?.testimonials || [];
   const showScarcity = checkout.custom_settings?.show_scarcity;
-  const scarcityTimer = checkout.custom_settings?.scarcity_timer || 600;
+  const scarcityTotalSec = (checkout.custom_settings?.scarcity_hours || 0) * 3600
+    + (checkout.custom_settings?.scarcity_minutes || 0) * 60
+    + (checkout.custom_settings?.scarcity_seconds || 0);
+  const scarcityTimer = scarcityTotalSec > 0 ? scarcityTotalSec : (checkout.custom_settings?.scarcity_timer || 600);
+  const scarcityLoop = !!checkout.custom_settings?.scarcity_loop;
+  const scarcityPersist = checkout.custom_settings?.scarcity_persist !== false;
+  const scarcityTitle = checkout.custom_settings?.scarcity_title || 'OFERTA POR TEMPO LIMITADO!';
+  const scarcitySubtitle = checkout.custom_settings?.scarcity_subtitle || 'Esta oferta expira em breve. Garanta sua vaga agora.';
   const guaranteeTitle = checkout.custom_settings?.guarantee_title || '7 Dias de Garantia';
   const guaranteeDesc = checkout.custom_settings?.guarantee_description || 'Se você não gostar, devolvemos seu dinheiro.';
   const footerTextValue = checkout.custom_settings?.footer_contact_info || checkout.footer_text || 'Compra 100% Segura';
@@ -580,11 +608,15 @@ const CheckoutPage = () => {
                 <div className="flex items-center gap-4">
                   <Clock className="w-10 h-10 animate-pulse" />
                   <div>
-                    <h4 className="font-black text-lg">OFERTA POR TEMPO LIMITADO!</h4>
-                    <p className="text-green-100 text-sm">Esta oferta expira em breve. Garanta sua vaga agora.</p>
+                    <h4 className="font-black text-lg">{scarcityTitle}</h4>
+                    <p className="text-green-100 text-sm">{scarcitySubtitle}</p>
                   </div>
                 </div>
-                <CountdownTimer initialSeconds={scarcityTimer} />
+                <CountdownTimer
+                  initialSeconds={scarcityTimer}
+                  loop={scarcityLoop}
+                  persistKey={scarcityPersist ? `scarcity_${checkout.id}_v2` : undefined}
+                />
               </div>
             )}
           </div>

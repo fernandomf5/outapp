@@ -615,17 +615,61 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
       case 'scarcity':
         return (
           <div className="space-y-4 p-6">
-            <h3 className="font-bold text-lg text-slate-900">Gatilhos de Escassez</h3>
+            <h3 className="font-bold text-lg text-slate-900">Contador de Escassez</h3>
             <div className="space-y-4">
-               <div className="flex items-center justify-between">
-                 <Label className="text-slate-700 font-semibold">Ativar Contador de Tempo</Label>
+               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                 <div>
+                   <Label className="text-slate-700 font-semibold">Ativar Contador</Label>
+                   <p className="text-[11px] text-slate-500">Mostra um timer de urgência no checkout</p>
+                 </div>
                  <Switch checked={formData.custom_settings.show_scarcity} onCheckedChange={(v) => updateSetting('show_scarcity', v)} />
                </div>
+
                {formData.custom_settings.show_scarcity && (
-                 <div>
-                   <Label className="text-slate-700 font-semibold mb-1.5 block">Segundos do Contador</Label>
-                   <Input type="number" value={formData.custom_settings.scarcity_timer} onChange={(e) => updateSetting('scarcity_timer', parseInt(e.target.value))} className="bg-white border-slate-200 text-slate-900" />
-                 </div>
+                 <>
+                   <div>
+                     <Label className="text-slate-700 font-semibold mb-1.5 block">Duração do Contador</Label>
+                     <div className="grid grid-cols-3 gap-2">
+                       <div>
+                         <Input type="number" min={0} max={99} placeholder="0" value={formData.custom_settings.scarcity_hours ?? 0} onChange={(e) => updateSetting('scarcity_hours', Math.max(0, parseInt(e.target.value) || 0))} className="bg-white border-slate-200 text-slate-900 text-center" />
+                         <p className="text-[10px] text-slate-500 text-center mt-1 uppercase font-bold">Horas</p>
+                       </div>
+                       <div>
+                         <Input type="number" min={0} max={59} placeholder="10" value={formData.custom_settings.scarcity_minutes ?? 10} onChange={(e) => updateSetting('scarcity_minutes', Math.max(0, parseInt(e.target.value) || 0))} className="bg-white border-slate-200 text-slate-900 text-center" />
+                         <p className="text-[10px] text-slate-500 text-center mt-1 uppercase font-bold">Minutos</p>
+                       </div>
+                       <div>
+                         <Input type="number" min={0} max={59} placeholder="0" value={formData.custom_settings.scarcity_seconds ?? 0} onChange={(e) => updateSetting('scarcity_seconds', Math.max(0, parseInt(e.target.value) || 0))} className="bg-white border-slate-200 text-slate-900 text-center" />
+                         <p className="text-[10px] text-slate-500 text-center mt-1 uppercase font-bold">Segundos</p>
+                       </div>
+                     </div>
+                   </div>
+
+                   <div>
+                     <Label className="text-slate-700 font-semibold mb-1.5 block">Título</Label>
+                     <Input value={formData.custom_settings.scarcity_title ?? ''} onChange={(e) => updateSetting('scarcity_title', e.target.value)} placeholder="OFERTA POR TEMPO LIMITADO!" className="bg-white border-slate-200 text-slate-900" />
+                   </div>
+                   <div>
+                     <Label className="text-slate-700 font-semibold mb-1.5 block">Subtítulo</Label>
+                     <Input value={formData.custom_settings.scarcity_subtitle ?? ''} onChange={(e) => updateSetting('scarcity_subtitle', e.target.value)} placeholder="Esta oferta expira em breve. Garanta sua vaga agora." className="bg-white border-slate-200 text-slate-900" />
+                   </div>
+
+                   <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                     <div>
+                       <Label className="text-slate-700 font-semibold">Reiniciar ao Zerar</Label>
+                       <p className="text-[11px] text-slate-500">Quando chegar em 00:00, recomeça automaticamente</p>
+                     </div>
+                     <Switch checked={!!formData.custom_settings.scarcity_loop} onCheckedChange={(v) => updateSetting('scarcity_loop', v)} />
+                   </div>
+
+                   <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                     <div>
+                       <Label className="text-slate-700 font-semibold">Persistir por Cliente</Label>
+                       <p className="text-[11px] text-slate-500">Não reinicia se o cliente recarregar a página</p>
+                     </div>
+                     <Switch checked={formData.custom_settings.scarcity_persist !== false} onCheckedChange={(v) => updateSetting('scarcity_persist', v)} />
+                   </div>
+                 </>
                )}
             </div>
           </div>
