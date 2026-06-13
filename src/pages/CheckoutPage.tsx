@@ -346,7 +346,9 @@ const CheckoutPage = () => {
         {checkout.head_code && <script>{checkout.head_code}</script>}
       </Helmet>
 
-      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full`} style={{ backgroundColor: bgColor, color: textColor }}>
+      <ConfettiPortal />
+      <div className={`min-h-screen flex flex-col items-center transition-all duration-300 w-full relative overflow-hidden`} style={{ backgroundColor: bgColor, color: textColor, ...effectCssVars(cs) }}>
+        <CheckoutEffectsLayer settings={cs} scope="page" />
         {/* Modern Header */}
         <div className="w-full border-b sticky top-0 z-50 flex justify-center p-4" style={{ backgroundColor: checkout.custom_settings?.top_bar_bg_color || checkout.top_bar_bg_color || checkout.card_color || '#ffffff', color: textColor }}>
           <div className={`w-full max-w-6xl flex items-center justify-center relative`}>
