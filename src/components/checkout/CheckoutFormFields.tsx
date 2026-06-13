@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { CheckoutImageUpload } from "@/components/checkout/CheckoutImageUpload";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Settings2, 
   Layout, 
@@ -26,30 +27,45 @@ import {
   Eye,
   Heading,
   Plus,
-  Sparkles
+  Sparkles,
+  GraduationCap
 } from "lucide-react";
 import { EFFECT_PRESETS } from "./CheckoutEffects";
 
 export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab, device = 'desktop' }: any) => {
+  const [membersAreas, setMembersAreas] = useState<any[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('simple_members_areas' as any)
+        .select('id,title,name')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      setMembersAreas(data || []);
+    })();
+  }, []);
+
   const tabs = [
     { id: 'general', label: '1. Geral', icon: Settings2 },
-    { id: 'deliverables', label: '2. Entregáveis', icon: Package },
-    { id: 'header', label: '3. Cabeçalho', icon: Heading },
-    { id: 'colors', label: '4. Cores', icon: Palette },
-    { id: 'product', label: '5. Produto', icon: Package },
-    { id: 'summary', label: '6. Resumo', icon: ShoppingCart },
-    { id: 'form', label: '7. Formulário', icon: ListTodo },
-    { id: 'payment', label: '8. Pagamento', icon: CreditCard },
-    { id: 'benefits', label: '9. Benefícios', icon: Gift },
-    { id: 'testimonials', label: '10. Depoimentos', icon: Users },
-    { id: 'guarantee', label: '11. Garantia', icon: ShieldCheck },
-    { id: 'scarcity', label: '12. Contador', icon: Clock },
-    { id: 'cta', label: '13. Botão', icon: MousePointer2 },
-    { id: 'footer', label: '14. Rodapé', icon: ListTodo },
-    { id: 'effects', label: '15. Efeitos', icon: Sparkles },
-    { id: 'mobile', label: '16. Mobile', icon: Smartphone },
-    { id: 'tracking', label: '17. SEO & Tracking', icon: Code },
-    { id: 'preview_tab', label: '18. Visualizar', icon: Eye },
+    { id: 'header', label: '2. Cabeçalho', icon: Heading },
+    { id: 'colors', label: '3. Cores', icon: Palette },
+    { id: 'product', label: '4. Produto', icon: Package },
+    { id: 'summary', label: '5. Resumo', icon: ShoppingCart },
+    { id: 'form', label: '6. Formulário', icon: ListTodo },
+    { id: 'payment', label: '7. Pagamento', icon: CreditCard },
+    { id: 'benefits', label: '8. Benefícios', icon: Gift },
+    { id: 'testimonials', label: '9. Depoimentos', icon: Users },
+    { id: 'guarantee', label: '10. Garantia', icon: ShieldCheck },
+    { id: 'scarcity', label: '11. Contador', icon: Clock },
+    { id: 'cta', label: '12. Botão', icon: MousePointer2 },
+    { id: 'footer', label: '13. Rodapé', icon: ListTodo },
+    { id: 'effects', label: '14. Efeitos', icon: Sparkles },
+    { id: 'mobile', label: '15. Mobile', icon: Smartphone },
+    { id: 'tracking', label: '16. SEO & Tracking', icon: Code },
+    { id: 'preview_tab', label: '17. Visualizar', icon: Eye },
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);
