@@ -46,9 +46,10 @@ interface TaskCardProps {
   isOverlay?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  onUpdateChecklist?: (taskId: string, checklist: ChecklistItem[]) => void;
 }
 
-export const TaskCard = ({ task, isOverlay, onEdit, onDelete }: TaskCardProps) => {
+export const TaskCard = ({ task, isOverlay, onEdit, onDelete, onUpdateChecklist }: TaskCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const {
     attributes,
