@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
 import { TaskDialog } from "./TaskDialog";
@@ -78,6 +79,9 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingBlock, setEditingBlock] = useState<Block | null>(null);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{ type: "task" | "block"; id: string; name: string } | null>(null);
 
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
@@ -262,15 +266,53 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      const { error } = await supabase.from("tasks").delete().eq("id", taskId);
-      if (error) throw error;
-      setTasks(tasks.filter(t => t.id !== taskId));
-      toast.success("Tarefa removida");
-    } catch (error) {
-      toast.error("Erro ao remover tarefa");
+  const handleDeleteTask = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    setPendingDelete({ type: "task", id: taskId, name: task.title });
+    setConfirmOpen(true);
+  };
+
+  const handleDeleteBlock = (blockId: string) => {
+    const block = blocks.find(b => b.id === blockId);
+    if (!block) return;
+    setPendingDelete({ type: "block", id: blockId, name: block.name });
+    setConfirmOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (!pendingDelete) return;
+
+    if (pendingDelete.type === "task") {
+      try {
+        const { error } = await supabase.from("tasks").delete().eq("id", pendingDelete.id);
+        if (error) throw error;
+        setTasks(tasks.filter(t => t.id !== pendingDelete.id));
+        toast.success("Tarefa removida");
+      } catch (error) {
+        toast.error("Erro ao remover tarefa");
+      }
+    } else {
+      const hasTasks = tasks.some(t => t.block_id === pendingDelete.id);
+      if (hasTasks) {
+        toast.error("Não é possível excluir um bloco que contém tarefas.");
+        setConfirmOpen(false);
+        setPendingDelete(null);
+        return;
+      }
+
+      try {
+        const { error } = await supabase.from("task_blocks").delete().eq("id", pendingDelete.id);
+        if (error) throw error;
+        setBlocks(blocks.filter(b => b.id !== pendingDelete.id));
+        toast.success("Bloco removido");
+      } catch (error) {
+        toast.error("Erro ao remover bloco");
+      }
     }
+
+    setConfirmOpen(false);
+    setPendingDelete(null);
   };
 
   const handleUpdateChecklist = async (taskId: string, checklist: ChecklistItem[]) => {
@@ -304,22 +346,6 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     setIsBlockDialogOpen(true);
   };
 
-  const handleDeleteBlock = async (blockId: string) => {
-    const hasTasks = tasks.some(t => t.block_id === blockId);
-    if (hasTasks) {
-      toast.error("Não é possível excluir um bloco que contém tarefas.");
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from("task_blocks").delete().eq("id", blockId);
-      if (error) throw error;
-      setBlocks(blocks.filter(b => b.id !== blockId));
-      toast.success("Bloco removido");
-    } catch (error) {
-      toast.error("Erro ao remover bloco");
-    }
-  };
 
   const scrollBoard = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -444,6 +470,14 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         userId={userId}
         effectiveUserId={effectiveUserId}
         onSuccess={fetchData}
+      />
+
+      <DeleteConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={executeDelete}
+        title={`Excluir ${pendingDelete?.type === "task" ? "tarefa" : "bloco"}?`}
+        description={`Tem certeza que deseja excluir "${pendingDelete?.name || ""}"? Esta ação não pode ser desfeita.`}
       />
     </div>
   );
