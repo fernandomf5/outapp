@@ -19,10 +19,18 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Trash2, GripVertical } from "lucide-react";
 
 interface Block {
   id: string;
   name: string;
+}
+
+interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
 }
 
 interface Task {
@@ -33,6 +41,7 @@ interface Task {
   category?: string;
   due_date?: string;
   block_id: string;
+  checklist?: ChecklistItem[] | null;
 }
 
 interface TaskDialogProps {
@@ -44,6 +53,7 @@ interface TaskDialogProps {
   effectiveUserId: string;
   onSuccess: () => void;
 }
+
 
 export const TaskDialog = ({ 
   open, 
