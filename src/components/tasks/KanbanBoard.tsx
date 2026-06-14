@@ -346,22 +346,6 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     setIsBlockDialogOpen(true);
   };
 
-  const handleDeleteBlock = async (blockId: string) => {
-    const hasTasks = tasks.some(t => t.block_id === blockId);
-    if (hasTasks) {
-      toast.error("Não é possível excluir um bloco que contém tarefas.");
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from("task_blocks").delete().eq("id", blockId);
-      if (error) throw error;
-      setBlocks(blocks.filter(b => b.id !== blockId));
-      toast.success("Bloco removido");
-    } catch (error) {
-      toast.error("Erro ao remover bloco");
-    }
-  };
 
   const scrollBoard = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
