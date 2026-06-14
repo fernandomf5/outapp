@@ -21,6 +21,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
+interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -28,7 +34,9 @@ interface Task {
   priority: "low" | "medium" | "high";
   category?: string;
   due_date?: string;
+  checklist?: ChecklistItem[] | null;
 }
+
 
 interface TaskCardProps {
   task: Task;
