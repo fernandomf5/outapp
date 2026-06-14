@@ -462,7 +462,7 @@ export const TaskHistoryDialog = ({
         onConfirm={handleClearHistory}
         title="Zerar histórico?"
         description={`Isso excluirá permanentemente ${stats.done} tarefa(s) concluída(s) do filtro atual. Esta ação não pode ser desfeita.`}
-        loading={clearing}
+        
       />
     </>
   );
