@@ -73,6 +73,8 @@ export const TaskDialog = ({
     due_date: "",
     block_id: ""
   });
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [newItemText, setNewItemText] = useState("");
 
   useEffect(() => {
     if (task) {
@@ -84,6 +86,7 @@ export const TaskDialog = ({
         due_date: task.due_date || "",
         block_id: task.block_id
       });
+      setChecklist(Array.isArray(task.checklist) ? task.checklist : []);
     } else {
       setFormData({
         title: "",
@@ -93,8 +96,37 @@ export const TaskDialog = ({
         due_date: "",
         block_id: blocks[0]?.id || ""
       });
+      setChecklist([]);
     }
+    setNewItemText("");
   }, [task, blocks, open]);
+
+  const addChecklistItem = () => {
+    const text = newItemText.trim();
+    if (!text) return;
+    setChecklist((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), text, done: false }
+    ]);
+    setNewItemText("");
+  };
+
+  const toggleChecklistItem = (id: string) => {
+    setChecklist((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, done: !it.done } : it))
+    );
+  };
+
+  const updateChecklistText = (id: string, text: string) => {
+    setChecklist((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, text } : it))
+    );
+  };
+
+  const removeChecklistItem = (id: string) => {
+    setChecklist((prev) => prev.filter((it) => it.id !== id));
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
