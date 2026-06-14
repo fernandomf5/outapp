@@ -36,6 +36,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
   const [users, setUsers] = useState<UserRegistration[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserRegistration | null>(null);
   const [loading, setLoading] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
