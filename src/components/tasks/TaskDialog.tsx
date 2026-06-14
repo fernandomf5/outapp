@@ -182,8 +182,10 @@ export const TaskDialog = ({
             user_id: effectiveUserId,
             client_id: userId,
             task_order: nextOrder,
-            status: "pending"
+            status: "pending",
+            checklist: checklist as any
           });
+
         
         if (error) throw error;
         toast.success("Tarefa criada");
