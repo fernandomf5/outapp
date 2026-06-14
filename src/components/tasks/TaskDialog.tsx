@@ -149,8 +149,10 @@ export const TaskDialog = ({
             category: formData.category,
             due_date: formData.due_date || null,
             block_id: formData.block_id,
+            checklist: checklist as any,
             updated_at: new Date().toISOString()
           })
+
           .eq("id", task.id);
         
         if (error) throw error;
