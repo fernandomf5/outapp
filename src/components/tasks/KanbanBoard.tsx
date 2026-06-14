@@ -80,6 +80,9 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingBlock, setEditingBlock] = useState<Block | null>(null);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{ type: "task" | "block"; id: string; name: string } | null>(null);
+
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
   const sensors = useSensors(
