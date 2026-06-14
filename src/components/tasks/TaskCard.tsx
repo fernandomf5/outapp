@@ -167,17 +167,58 @@ export const TaskCard = ({ task, isOverlay, onEdit, onDelete, onUpdateChecklist 
           )}
 
           {Array.isArray(task.checklist) && task.checklist.length > 0 && (() => {
-            const done = task.checklist!.filter((i) => i.done).length;
-            const total = task.checklist!.length;
+            const items = task.checklist!;
+            const done = items.filter((i) => i.done).length;
+            const total = items.length;
             const complete = done === total;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
             return (
-              <Badge
-                variant="outline"
-                className={`px-1.5 py-0 text-[10px] font-medium ${complete ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30" : ""}`}
-              >
-                <CheckSquare className="h-3 w-3 mr-1" />
-                {done}/{total}
-              </Badge>
+              <Popover>
+                <PopoverTrigger asChild onPointerDown={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={(e) => e.stopPropagation()}
+                    className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0 text-[10px] font-medium hover:bg-accent transition-colors ${complete ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30" : "bg-background"}`}
+                  >
+                    <CheckSquare className="h-3 w-3" />
+                    {done}/{total}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-72 p-3"
+                  align="start"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Checklist</span>
+                    <span className="text-[10px] text-muted-foreground">{done}/{total} • {pct}%</span>
+                  </div>
+                  <Progress value={pct} className="h-1.5 mb-3" />
+                  <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto">
+                    {items.map((item) => (
+                      <label
+                        key={item.id}
+                        className="flex items-start gap-2 cursor-pointer rounded-md p-1.5 hover:bg-accent/50 transition-colors"
+                      >
+                        <Checkbox
+                          checked={item.done}
+                          onCheckedChange={(checked) => {
+                            const next = items.map((i) =>
+                              i.id === item.id ? { ...i, done: !!checked } : i
+                            );
+                            onUpdateChecklist?.(task.id, next);
+                          }}
+                          className="mt-0.5"
+                        />
+                        <span className={`text-xs leading-snug flex-1 ${item.done ? "line-through text-muted-foreground" : ""}`}>
+                          {item.text}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             );
           })()}
 
