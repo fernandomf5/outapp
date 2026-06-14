@@ -37,6 +37,12 @@ interface Block {
   logo_url?: string;
 }
 
+interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 interface KanbanColumnProps {
   block: Block;
   tasks: Task[];
@@ -44,6 +50,7 @@ interface KanbanColumnProps {
   onDeleteTask: (id: string) => void;
   onEditBlock: (block: Block) => void;
   onDeleteBlock: (id: string) => void;
+  onUpdateChecklist?: (taskId: string, checklist: ChecklistItem[]) => void;
 }
 
 export const KanbanColumn = ({ 
@@ -52,7 +59,8 @@ export const KanbanColumn = ({
   onEditTask, 
   onDeleteTask, 
   onEditBlock, 
-  onDeleteBlock 
+  onDeleteBlock,
+  onUpdateChecklist
 }: KanbanColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: block.id,
@@ -126,6 +134,7 @@ export const KanbanColumn = ({
               task={task} 
               onEdit={() => onEditTask(task)}
               onDelete={() => onDeleteTask(task.id)}
+              onUpdateChecklist={onUpdateChecklist}
             />
           ))}
         </SortableContext>

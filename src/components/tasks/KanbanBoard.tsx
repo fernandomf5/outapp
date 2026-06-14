@@ -273,6 +273,22 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     }
   };
 
+  const handleUpdateChecklist = async (taskId: string, checklist: ChecklistItem[]) => {
+    const prev = tasks;
+    setTasks(tasks.map(t => t.id === taskId ? { ...t, checklist } : t));
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ checklist: checklist as any, updated_at: new Date().toISOString() })
+        .eq("id", taskId);
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error updating checklist:", error);
+      toast.error("Erro ao atualizar checklist");
+      setTasks(prev);
+    }
+  };
+
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setIsTaskDialogOpen(true);
@@ -396,6 +412,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
                 onDeleteTask={handleDeleteTask}
                 onEditBlock={handleEditBlock}
                 onDeleteBlock={handleDeleteBlock}
+                onUpdateChecklist={handleUpdateChecklist}
               />
             ))}
           </div>
