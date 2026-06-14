@@ -471,6 +471,14 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         effectiveUserId={effectiveUserId}
         onSuccess={fetchData}
       />
+
+      <DeleteConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={executeDelete}
+        title={`Excluir ${pendingDelete?.type === "task" ? "tarefa" : "bloco"}?`}
+        description={`Tem certeza que deseja excluir "${pendingDelete?.name || ""}"? Esta ação não pode ser desfeita.`}
+      />
     </div>
   );
 };
