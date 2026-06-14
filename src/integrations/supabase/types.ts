@@ -8411,6 +8411,7 @@ export type Database = {
           block_id: string | null
           business_id: string | null
           category: string | null
+          checklist: Json
           client_id: string | null
           created_at: string
           description: string | null
@@ -8428,6 +8429,7 @@ export type Database = {
           block_id?: string | null
           business_id?: string | null
           category?: string | null
+          checklist?: Json
           client_id?: string | null
           created_at?: string
           description?: string | null
@@ -8445,6 +8447,7 @@ export type Database = {
           block_id?: string | null
           business_id?: string | null
           category?: string | null
+          checklist?: Json
           client_id?: string | null
           created_at?: string
           description?: string | null

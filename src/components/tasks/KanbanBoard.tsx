@@ -30,6 +30,12 @@ import { TaskDialog } from "./TaskDialog";
 import { BlockDialog } from "./BlockDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -41,7 +47,9 @@ interface Task {
   client_id?: string;
   task_order: number;
   created_at: string;
+  checklist?: ChecklistItem[] | null;
 }
+
 
 interface Block {
   id: string;

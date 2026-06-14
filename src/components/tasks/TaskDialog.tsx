@@ -19,10 +19,18 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Trash2, GripVertical } from "lucide-react";
 
 interface Block {
   id: string;
   name: string;
+}
+
+interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
 }
 
 interface Task {
@@ -33,6 +41,7 @@ interface Task {
   category?: string;
   due_date?: string;
   block_id: string;
+  checklist?: ChecklistItem[] | null;
 }
 
 interface TaskDialogProps {
@@ -44,6 +53,7 @@ interface TaskDialogProps {
   effectiveUserId: string;
   onSuccess: () => void;
 }
+
 
 export const TaskDialog = ({ 
   open, 
@@ -63,6 +73,8 @@ export const TaskDialog = ({
     due_date: "",
     block_id: ""
   });
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [newItemText, setNewItemText] = useState("");
 
   useEffect(() => {
     if (task) {
@@ -74,6 +86,7 @@ export const TaskDialog = ({
         due_date: task.due_date || "",
         block_id: task.block_id
       });
+      setChecklist(Array.isArray(task.checklist) ? task.checklist : []);
     } else {
       setFormData({
         title: "",
@@ -83,8 +96,37 @@ export const TaskDialog = ({
         due_date: "",
         block_id: blocks[0]?.id || ""
       });
+      setChecklist([]);
     }
+    setNewItemText("");
   }, [task, blocks, open]);
+
+  const addChecklistItem = () => {
+    const text = newItemText.trim();
+    if (!text) return;
+    setChecklist((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), text, done: false }
+    ]);
+    setNewItemText("");
+  };
+
+  const toggleChecklistItem = (id: string) => {
+    setChecklist((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, done: !it.done } : it))
+    );
+  };
+
+  const updateChecklistText = (id: string, text: string) => {
+    setChecklist((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, text } : it))
+    );
+  };
+
+  const removeChecklistItem = (id: string) => {
+    setChecklist((prev) => prev.filter((it) => it.id !== id));
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,8 +149,10 @@ export const TaskDialog = ({
             category: formData.category,
             due_date: formData.due_date || null,
             block_id: formData.block_id,
+            checklist: checklist as any,
             updated_at: new Date().toISOString()
           })
+
           .eq("id", task.id);
         
         if (error) throw error;
@@ -138,8 +182,10 @@ export const TaskDialog = ({
             user_id: effectiveUserId,
             client_id: userId,
             task_order: nextOrder,
-            status: "pending"
+            status: "pending",
+            checklist: checklist as any
           });
+
         
         if (error) throw error;
         toast.success("Tarefa criada");
@@ -243,6 +289,64 @@ export const TaskDialog = ({
               />
             </div>
           </div>
+
+          <div className="space-y-2 rounded-md border p-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold">Checklist</Label>
+              {checklist.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {checklist.filter((i) => i.done).length}/{checklist.length} concluídos
+                </span>
+              )}
+            </div>
+
+            {checklist.length > 0 && (
+              <div className="space-y-1">
+                {checklist.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 group">
+                    <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+                    <Checkbox
+                      checked={item.done}
+                      onCheckedChange={() => toggleChecklistItem(item.id)}
+                    />
+                    <Input
+                      value={item.text}
+                      onChange={(e) => updateChecklistText(item.id, e.target.value)}
+                      className={`h-8 text-sm ${item.done ? "line-through text-muted-foreground" : ""}`}
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100"
+                      onClick={() => removeChecklistItem(item.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <Input
+                placeholder="Adicionar item da checklist..."
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addChecklistItem();
+                  }
+                }}
+                className="h-8 text-sm"
+              />
+              <Button type="button" size="sm" variant="secondary" onClick={addChecklistItem}>
+                <Plus className="h-4 w-4 mr-1" /> Adicionar
+              </Button>
+            </div>
+          </div>
+
 
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

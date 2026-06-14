@@ -7,8 +7,10 @@ import {
   MoreVertical, 
   Edit2, 
   Trash2,
-  Clock
+  Clock,
+  CheckSquare
 } from "lucide-react";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -19,6 +21,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
+interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -26,7 +34,9 @@ interface Task {
   priority: "low" | "medium" | "high";
   category?: string;
   due_date?: string;
+  checklist?: ChecklistItem[] | null;
 }
+
 
 interface TaskCardProps {
   task: Task;
@@ -152,6 +162,21 @@ export const TaskCard = ({ task, isOverlay, onEdit, onDelete }: TaskCardProps) =
             </Badge>
           )}
 
+          {Array.isArray(task.checklist) && task.checklist.length > 0 && (() => {
+            const done = task.checklist!.filter((i) => i.done).length;
+            const total = task.checklist!.length;
+            const complete = done === total;
+            return (
+              <Badge
+                variant="outline"
+                className={`px-1.5 py-0 text-[10px] font-medium ${complete ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30" : ""}`}
+              >
+                <CheckSquare className="h-3 w-3 mr-1" />
+                {done}/{total}
+              </Badge>
+            );
+          })()}
+
           {task.due_date && (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium ml-auto">
               <Clock className="h-3 w-3" />
@@ -166,3 +191,4 @@ export const TaskCard = ({ task, isOverlay, onEdit, onDelete }: TaskCardProps) =
     </Card>
   );
 };
+
