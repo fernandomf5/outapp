@@ -9,9 +9,11 @@ import {
   Loader2, 
   LayoutGrid, 
   FolderOpen,
-  User
+  User,
+  History
 } from "lucide-react";
 import { KanbanBoard } from "./KanbanBoard";
+import { TaskHistoryDialog } from "./TaskHistoryDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Category {
