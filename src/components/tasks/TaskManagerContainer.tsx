@@ -9,9 +9,11 @@ import {
   Loader2, 
   LayoutGrid, 
   FolderOpen,
-  User
+  User,
+  History
 } from "lucide-react";
 import { KanbanBoard } from "./KanbanBoard";
+import { TaskHistoryDialog } from "./TaskHistoryDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Category {
@@ -34,6 +36,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
   const [users, setUsers] = useState<UserRegistration[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserRegistration | null>(null);
   const [loading, setLoading] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
@@ -108,7 +111,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-4">
           {view !== "categories" && (
             <Button variant="ghost" size="icon" onClick={handleBack} className="rounded-full">
@@ -126,7 +129,17 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
             </p>
           </div>
         </div>
+        <Button variant="outline" onClick={() => setHistoryOpen(true)} className="gap-2">
+          <History className="h-4 w-4" />
+          Histórico
+        </Button>
       </div>
+
+      <TaskHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        effectiveUserId={effectiveUserId}
+      />
 
       {view === "categories" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
