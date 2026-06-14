@@ -412,6 +412,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
                 onDeleteTask={handleDeleteTask}
                 onEditBlock={handleEditBlock}
                 onDeleteBlock={handleDeleteBlock}
+                onUpdateChecklist={handleUpdateChecklist}
               />
             ))}
           </div>
