@@ -134,6 +134,7 @@ export const KanbanColumn = ({
               task={task} 
               onEdit={() => onEditTask(task)}
               onDelete={() => onDeleteTask(task.id)}
+              onUpdateChecklist={onUpdateChecklist}
             />
           ))}
         </SortableContext>
