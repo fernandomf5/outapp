@@ -103,11 +103,12 @@ export const MembersQuestionsBell = () => {
 
   if (!hasEnabledArea) return null;
 
-  const unreadCount = notifications.filter((n) => !seen.has(n.id)).length;
+  const visible = notifications.filter((n) => !dismissed.has(n.id));
+  const unreadCount = visible.filter((n) => !seen.has(n.id)).length;
 
   const markAllRead = () => {
     const next = new Set(seen);
-    notifications.forEach((n) => next.add(n.id));
+    visible.forEach((n) => next.add(n.id));
     setSeen(next);
     saveSeen(next);
   };
@@ -123,11 +124,10 @@ export const MembersQuestionsBell = () => {
 
   const handleDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setNotifications((curr) => curr.filter((n) => n.id !== id));
-    const next = new Set(seen);
+    const next = new Set(dismissed);
     next.add(id);
-    setSeen(next);
-    saveSeen(next);
+    setDismissed(next);
+    saveDismissed(next);
   };
 
   return (
