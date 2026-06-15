@@ -18,6 +18,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } 
 import { CSS } from '@dnd-kit/utilities';
 import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMembersAreaPreview";
 import { ManageQuestionsDialog } from "@/components/members-area/ManageQuestionsDialog";
+import { AccessCodesDialog } from "@/components/members-area/AccessCodesDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 interface ContentBlock {
@@ -205,6 +206,7 @@ export function SimpleMembersArea() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [areaToDelete, setAreaToDelete] = useState<MembersArea | null>(null);
   const [questionsAreaId, setQuestionsAreaId] = useState<{ id: string; name: string } | null>(null);
+  const [codesArea, setCodesArea] = useState<{ id: string; slug: string; name: string } | null>(null);
   const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
   const [isEditSectionDialogOpen, setIsEditSectionDialogOpen] = useState(false);
@@ -1705,6 +1707,15 @@ export function SimpleMembersArea() {
                       <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
+                  <Button
+                    variant="secondary"
+                    size="default"
+                    className="w-full h-11 sm:h-9 text-base sm:text-sm"
+                    onClick={(e) => { e.stopPropagation(); setCodesArea({ id: area.id, slug: area.slug, name: area.name }); }}
+                  >
+                    <Key className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
+                    Códigos de Acesso
+                  </Button>
                   {(area as any).enable_questions && (
                     <Button
                       variant="secondary"
@@ -1729,6 +1740,16 @@ export function SimpleMembersArea() {
           onOpenChange={(o) => !o && setQuestionsAreaId(null)}
           areaId={questionsAreaId.id}
           areaName={questionsAreaId.name}
+        />
+      )}
+
+      {codesArea && (
+        <AccessCodesDialog
+          open={!!codesArea}
+          onOpenChange={(o) => !o && setCodesArea(null)}
+          areaId={codesArea.id}
+          areaSlug={codesArea.slug}
+          areaName={codesArea.name}
         />
       )}
 

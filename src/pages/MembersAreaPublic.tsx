@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { linkifyText } from "@/utils/linkify";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,6 +128,7 @@ interface MembersArea {
 
 export default function MembersAreaPublic() {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
   const [area, setArea] = useState<MembersArea | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessCodeId, setAccessCodeId] = useState<string | null>(null);
@@ -143,6 +144,14 @@ export default function MembersAreaPublic() {
   useEffect(() => {
     loadArea();
   }, [slug]);
+
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      setLoginMode('code');
+      setPasswordInput(code.toUpperCase());
+    }
+  }, [searchParams]);
 
   const loadArea = async () => {
     try {
@@ -180,7 +189,12 @@ export default function MembersAreaPublic() {
           .maybeSingle();
         
         if (error || !codeData) {
-          toast.error('Código de acesso inválido ou expirado');
+          toast.error('Código de acesso inválido');
+          return;
+        }
+        const expiresAt = (codeData as any).expires_at;
+        if (expiresAt && new Date(expiresAt).getTime() < Date.now()) {
+          toast.error('Este código expirou');
           return;
         }
         setAccessCodeId((codeData as any).id);
