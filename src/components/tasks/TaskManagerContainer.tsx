@@ -236,7 +236,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
               </CardContent>
             </Card>
           ) : (
-            users.map((userReg) => (
+            users.map((userReg, index) => (
               <Card 
                 key={userReg.id} 
                 className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:border-primary/50"
@@ -249,6 +249,28 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{userReg.name}</h3>
                     <p className="text-sm text-muted-foreground truncate">{userReg.email || "Sem e-mail"}</p>
+                  </div>
+                  <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      disabled={index === 0}
+                      onClick={(e) => { e.stopPropagation(); moveUser(index, 'up'); }}
+                      title="Mover para cima"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      disabled={index === users.length - 1}
+                      onClick={(e) => { e.stopPropagation(); moveUser(index, 'down'); }}
+                      title="Mover para baixo"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </CardContent>
