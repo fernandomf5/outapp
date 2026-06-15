@@ -509,6 +509,15 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         onSuccess={fetchData}
       />
 
+      <BulkTaskDialog
+        open={isBulkTaskDialogOpen}
+        onOpenChange={setIsBulkTaskDialogOpen}
+        blocks={blocks}
+        userId={userId}
+        effectiveUserId={effectiveUserId}
+        onSuccess={fetchData}
+      />
+
       <BlockDialog
         open={isBlockDialogOpen}
         onOpenChange={setIsBlockDialogOpen}
