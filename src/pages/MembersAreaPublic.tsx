@@ -552,10 +552,25 @@ export default function MembersAreaPublic() {
             videos = block.content.split('|||').filter(Boolean).map(u => ({ url: u }));
           }
         }
+        const qaEnabled = !!area?.enable_questions && !!accessCodeId && !!area?.user_id;
         return (
           <div className="flex flex-col gap-6">
             {videos.map((video, idx) => (
-              <VideoGalleryItem key={idx} video={video} accentColor={accentColor} cardTextColor={cardTextColor} />
+              <div key={idx} className="flex flex-col">
+                <VideoGalleryItem video={video} accentColor={accentColor} cardTextColor={cardTextColor} />
+                {qaEnabled && (
+                  <VideoQuestions
+                    areaId={area!.id}
+                    ownerUserId={area!.user_id!}
+                    blockId={block.id}
+                    videoIndex={idx}
+                    accessCodeId={accessCodeId!}
+                    studentName={studentName}
+                    accentColor={accentColor}
+                    cardTextColor={cardTextColor}
+                  />
+                )}
+              </div>
             ))}
           </div>
         );
