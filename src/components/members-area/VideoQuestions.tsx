@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { MessageCircle, Send, CheckCircle2 } from "lucide-react";
+import { MessageCircle, Send, CheckCircle2, Pencil, Trash2, X, Check } from "lucide-react";
 
 interface Question {
   id: string;
@@ -38,6 +38,8 @@ export function VideoQuestions({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
   const load = async () => {
     const { data } = await supabase
@@ -93,6 +95,47 @@ export function VideoQuestions({
     toast.success("Dúvida enviada!");
   };
 
+  const startEdit = (q: Question) => {
+    setEditingId(q.id);
+    setEditText(q.question);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditText("");
+  };
+
+  const saveEdit = async (id: string) => {
+    if (!editText.trim()) return;
+    const { error } = await supabase
+      .from("members_area_video_questions" as any)
+      .update({ question: editText.trim() })
+      .eq("id", id)
+      .is("answer", null);
+    if (error) {
+      toast.error("Erro ao editar dúvida");
+      return;
+    }
+    toast.success("Dúvida atualizada");
+    cancelEdit();
+    load();
+  };
+
+  const removeQuestion = async (id: string) => {
+    if (!confirm("Excluir esta dúvida?")) return;
+    const { error } = await supabase
+      .from("members_area_video_questions" as any)
+      .delete()
+      .eq("id", id)
+      .is("answer", null);
+    if (error) {
+      toast.error("Erro ao excluir dúvida");
+      return;
+    }
+    toast.success("Dúvida excluída");
+    load();
+  };
+
   return (
     <div
       className="mt-4 rounded-lg border p-4"
@@ -107,9 +150,51 @@ export function VideoQuestions({
         <div className="space-y-3 mb-3 max-h-72 overflow-y-auto">
           {questions.map((q) => (
             <div key={q.id} className="rounded-md bg-black/5 p-3 text-sm">
-              <p className="whitespace-pre-wrap">
-                <span className="font-medium">Você:</span> {q.question}
-              </p>
+              {editingId === q.id ? (
+                <div className="space-y-2">
+                  <Textarea
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    rows={2}
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <Button size="sm" variant="ghost" onClick={cancelEdit}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => saveEdit(q.id)}
+                      style={{ backgroundColor: accentColor }}
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start justify-between gap-2">
+                  <p className="whitespace-pre-wrap flex-1">
+                    <span className="font-medium">Você:</span> {q.question}
+                  </p>
+                  {!q.answer && (
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        onClick={() => startEdit(q)}
+                        className="opacity-60 hover:opacity-100 transition"
+                        title="Editar"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => removeQuestion(q.id)}
+                        className="opacity-60 hover:opacity-100 transition text-red-600"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               {q.answer ? (
                 <div className="mt-2 pt-2 border-t border-black/10">
                   <p className="whitespace-pre-wrap flex items-start gap-1">
@@ -119,9 +204,9 @@ export function VideoQuestions({
                     </span>
                   </p>
                 </div>
-              ) : (
+              ) : editingId !== q.id ? (
                 <p className="mt-1 text-xs opacity-70">Aguardando resposta do professor...</p>
-              )}
+              ) : null}
             </div>
           ))}
         </div>
