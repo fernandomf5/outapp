@@ -10,7 +10,9 @@ import {
   LayoutGrid, 
   FolderOpen,
   User,
-  History
+  History,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { KanbanBoard } from "./KanbanBoard";
 import { TaskHistoryDialog } from "./TaskHistoryDialog";
