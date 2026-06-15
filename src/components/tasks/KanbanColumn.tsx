@@ -74,14 +74,13 @@ export const KanbanColumn = ({
     <div 
       ref={setNodeRef}
       style={{ 
-        borderColor: block.color,
-        boxShadow: `0 10px 30px -10px rgba(0,0,0,0.3), inset 0 -6px 0 ${block.color}40, 0 4px 0 ${block.color}60`,
-        backgroundColor: block.color + '05',
-        transform: isOver ? 'translateY(-4px) scale(1.01)' : 'none'
+        borderColor: isOver ? block.color : block.color,
+        boxShadow: isOver 
+          ? `0 0 0 3px ${block.color}, 0 20px 40px -10px ${block.color}80` 
+          : `0 10px 30px -10px rgba(0,0,0,0.3), inset 0 -6px 0 ${block.color}40, 0 4px 0 ${block.color}60`,
+        backgroundColor: isOver ? block.color + '20' : block.color + '05',
       }}
-      className={`flex flex-col w-80 shrink-0 rounded-2xl border-[3px] transition-all duration-300 relative overflow-hidden ${
-        isOver ? 'shadow-2xl' : ''
-      }`}
+      className={`flex flex-col w-80 shrink-0 rounded-2xl border-[3px] transition-colors duration-200 relative overflow-hidden`}
     >
       <div 
         className="p-4 flex items-center justify-between border-b border-border/5 rounded-t-2xl relative"
