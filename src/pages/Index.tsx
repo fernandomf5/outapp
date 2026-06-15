@@ -622,7 +622,9 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-14 xs:pt-16 sm:pt-20 md:pt-24 lg:pt-28 3xl:pt-36 pb-8 xs:pb-10 sm:pb-14 md:pb-18 lg:pb-22 3xl:pb-28 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 gradient-primary relative overflow-hidden">
+      <section className="pt-14 xs:pt-16 sm:pt-20 md:pt-24 lg:pt-28 3xl:pt-36 pb-8 xs:pb-10 sm:pb-14 md:pb-18 lg:pb-22 3xl:pb-28 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
+        {/* Subtle grain/noise overlay for elegance */}
+        <div className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}></div>
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 xs:top-20 left-4 xs:left-10 w-24 xs:w-32 sm:w-40 md:w-56 lg:w-72 3xl:w-96 h-24 xs:h-32 sm:h-40 md:h-56 lg:h-72 3xl:h-96 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-10 xs:bottom-20 right-4 xs:right-10 w-32 xs:w-48 sm:w-56 md:w-72 lg:w-88 3xl:w-[500px] h-32 xs:h-48 sm:h-56 md:h-72 lg:h-88 3xl:h-[500px] bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
