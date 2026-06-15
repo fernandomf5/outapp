@@ -36,11 +36,15 @@ declare global {
 export const TransparentCheckout = ({
   checkoutId, orderId, amount, customerName, customerEmail, customerCpf,
   primaryColor, itemName, textColor, subtitleColor, fieldColor, fieldTextColor, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
-}: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string }) => {
+  enableMp = true, enablePixManual,
+}: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string, enableMp?: boolean, enablePixManual?: boolean }) => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("credit_card");
+  const showCard = enableMp && !!mpPublicKey;
+  const showPix = enablePixManual ?? !!pixKey;
+  const hasMpPix = enableMp && !!mpPublicKey && !enablePixManual;
+  const [activeTab, setActiveTab] = useState<string>(showCard ? "credit_card" : "pix");
   const [processing, setProcessing] = useState(false);
-  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(!enableMp || !mpPublicKey);
   const [mp, setMp] = useState<any>(null);
 
   // Card form state
