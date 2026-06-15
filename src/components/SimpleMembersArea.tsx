@@ -619,6 +619,12 @@ export function SimpleMembersArea() {
     toast.success('Link copiado!');
   };
 
+  const handleCopyCheckoutLink = (checkout: { id: string; slug: string }) => {
+    const link = `${window.location.origin}/checkout/${checkout.id}/${checkout.slug}`;
+    navigator.clipboard.writeText(link);
+    toast.success('Link do checkout copiado!');
+  };
+
   const handleOpenEditDialog = (area: MembersArea) => {
     setEditingArea(area);
     setAreaFormData({
