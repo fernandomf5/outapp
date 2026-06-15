@@ -121,6 +121,8 @@ interface MembersArea {
   accent_color?: string;
   area_type?: string;
   customer_name?: string;
+  enable_questions?: boolean;
+  user_id?: string;
 }
 
 export default function MembersAreaPublic() {
