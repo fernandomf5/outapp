@@ -39,6 +39,7 @@ import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
 import { TaskDialog } from "./TaskDialog";
 import { BlockDialog } from "./BlockDialog";
+import { BulkTaskDialog } from "./BulkTaskDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ChecklistItem {
