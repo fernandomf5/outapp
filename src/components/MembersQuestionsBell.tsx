@@ -23,18 +23,24 @@ interface QuestionNotification {
 }
 
 const STORAGE_KEY = "members_questions_seen_ids";
+const DISMISSED_KEY = "members_questions_dismissed_ids";
 
-const getSeen = (): Set<string> => {
+const getStored = (key: string): Set<string> => {
   try {
-    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+    return new Set(JSON.parse(localStorage.getItem(key) || "[]"));
   } catch {
     return new Set();
   }
 };
 
-const saveSeen = (set: Set<string>) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(set)));
+const saveStored = (key: string, set: Set<string>) => {
+  localStorage.setItem(key, JSON.stringify(Array.from(set)));
 };
+
+const getSeen = () => getStored(STORAGE_KEY);
+const saveSeen = (s: Set<string>) => saveStored(STORAGE_KEY, s);
+const getDismissed = () => getStored(DISMISSED_KEY);
+const saveDismissed = (s: Set<string>) => saveStored(DISMISSED_KEY, s);
 
 export const MembersQuestionsBell = () => {
   const { user } = useAuth();
