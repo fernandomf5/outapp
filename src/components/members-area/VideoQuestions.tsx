@@ -110,8 +110,7 @@ export function VideoQuestions({
     const { error } = await supabase
       .from("members_area_video_questions" as any)
       .update({ question: editText.trim() })
-      .eq("id", id)
-      .is("answer", null);
+      .eq("id", id);
     if (error) {
       toast.error("Erro ao editar dúvida");
       return;
@@ -126,8 +125,7 @@ export function VideoQuestions({
     const { error } = await supabase
       .from("members_area_video_questions" as any)
       .delete()
-      .eq("id", id)
-      .is("answer", null);
+      .eq("id", id);
     if (error) {
       toast.error("Erro ao excluir dúvida");
       return;
@@ -175,24 +173,22 @@ export function VideoQuestions({
                   <p className="whitespace-pre-wrap flex-1">
                     <span className="font-medium">Você:</span> {q.question}
                   </p>
-                  {!q.answer && (
-                    <div className="flex gap-1 shrink-0">
-                      <button
-                        onClick={() => startEdit(q)}
-                        className="opacity-60 hover:opacity-100 transition"
-                        title="Editar"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => removeQuestion(q.id)}
-                        className="opacity-60 hover:opacity-100 transition text-red-600"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => startEdit(q)}
+                      className="opacity-60 hover:opacity-100 transition"
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => removeQuestion(q.id)}
+                      className="opacity-60 hover:opacity-100 transition text-red-600"
+                      title="Excluir"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               )}
               {q.answer ? (

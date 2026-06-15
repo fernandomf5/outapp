@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
-import { MessageCircle, Trash2, Send, CheckCircle2 } from "lucide-react";
+import { MessageCircle, Trash2, Send, CheckCircle2, Eraser } from "lucide-react";
 
 interface Question {
   id: string;
@@ -73,6 +73,17 @@ export function ManageQuestionsDialog({ open, onOpenChange, areaId, areaName }: 
     if (error) return toast.error("Erro ao responder");
     toast.success("Resposta enviada!");
     setAnswers((a) => ({ ...a, [q.id]: "" }));
+  };
+
+  const clearAnswer = async (q: Question) => {
+    if (!confirm("Excluir esta resposta? Você poderá responder novamente.")) return;
+    const { error } = await supabase
+      .from("members_area_video_questions" as any)
+      .update({ answer: null, answered_at: null })
+      .eq("id", q.id);
+    if (error) return toast.error("Erro ao excluir resposta");
+    setAnswers((a) => ({ ...a, [q.id]: "" }));
+    toast.success("Resposta removida");
   };
 
   const handleDelete = async () => {
@@ -143,10 +154,18 @@ export function ManageQuestionsDialog({ open, onOpenChange, areaId, areaName }: 
                         value={answers[q.id] ?? q.answer ?? ""}
                         onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
                       />
-                      <Button onClick={() => handleAnswer(q)} disabled={loading}>
-                        <Send className="w-4 h-4 mr-1" />
-                        {q.answer ? "Atualizar" : "Responder"}
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button onClick={() => handleAnswer(q)} disabled={loading}>
+                          <Send className="w-4 h-4 mr-1" />
+                          {q.answer ? "Atualizar" : "Responder"}
+                        </Button>
+                        {q.answer && (
+                          <Button variant="outline" onClick={() => clearAnswer(q)}>
+                            <Eraser className="w-4 h-4 mr-1" />
+                            Excluir resposta
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
