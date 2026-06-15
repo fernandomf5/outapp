@@ -550,33 +550,45 @@ const CheckoutPage = () => {
                   )}
 
                   <div className="mt-8">
-                    {showPayment && orderId && mpPublicKey ? (
-                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                         <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2 mb-6" style={{ color: textColor }}>
-                          <span className="w-6 h-6 rounded-full text-white text-[10px] flex items-center justify-center font-black" style={{ backgroundColor: primaryColor }}>2</span>
-                          Escolha a forma de pagamento
-                        </h4>
-                        <TransparentCheckout
-                          checkoutId={checkout.id} orderId={orderId} amount={total}
-                          customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
-                          primaryColor={primaryColor} itemName={checkout.item_name}
-                          textColor={textColor} subtitleColor={subtitleColor}
-                          fieldColor={checkout.custom_settings?.field_color}
-                          fieldTextColor={checkout.custom_settings?.field_text_color}
-                          onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey}
-                          pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
-                        />
-                      </div>
-                    ) : !showPayment ? (
-                      <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden ${ctaEffectClasses}`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
-                        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
-                        <CreditCard className="w-6 h-6 mr-3" /> {buttonText.toUpperCase()}
-                      </Button>
-                    ) : !mpPublicKey ? (
-                      <div className="text-center p-6 bg-destructive/5 rounded-2xl border-2 border-dashed border-destructive/20 text-destructive font-bold">
-                        Mercado Pago não configurado corretamente.
-                      </div>
-                    ) : null}
+                    {(() => {
+                      const enablePixManual = !!(checkout.custom_settings?.enable_pix && checkout.custom_settings?.pix_key);
+                      const enableMp = !!(checkout.custom_settings?.enable_mp && mpPublicKey);
+                      const anyPayment = enablePixManual || enableMp;
+                      if (showPayment && orderId && anyPayment) {
+                        return (
+                          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2 mb-6" style={{ color: textColor }}>
+                              <span className="w-6 h-6 rounded-full text-white text-[10px] flex items-center justify-center font-black" style={{ backgroundColor: primaryColor }}>2</span>
+                              Escolha a forma de pagamento
+                            </h4>
+                            <TransparentCheckout
+                              checkoutId={checkout.id} orderId={orderId} amount={total}
+                              customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
+                              primaryColor={primaryColor} itemName={checkout.item_name}
+                              textColor={textColor} subtitleColor={subtitleColor}
+                              fieldColor={checkout.custom_settings?.field_color}
+                              fieldTextColor={checkout.custom_settings?.field_text_color}
+                              onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey || ''}
+                              pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
+                              enableMp={enableMp} enablePixManual={enablePixManual}
+                            />
+                          </div>
+                        );
+                      }
+                      if (!showPayment) {
+                        return (
+                          <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden ${ctaEffectClasses}`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
+                            <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                            <CreditCard className="w-6 h-6 mr-3" /> {buttonText.toUpperCase()}
+                          </Button>
+                        );
+                      }
+                      return (
+                        <div className="text-center p-6 bg-destructive/5 rounded-2xl border-2 border-dashed border-destructive/20 text-destructive font-bold">
+                          Nenhum método de pagamento configurado.
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </CardContent>
