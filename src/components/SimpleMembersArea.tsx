@@ -1705,12 +1705,33 @@ export function SimpleMembersArea() {
                       <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
+                  {(area as any).enable_questions && (
+                    <Button
+                      variant="secondary"
+                      size="default"
+                      className="w-full h-11 sm:h-9 text-base sm:text-sm"
+                      onClick={(e) => { e.stopPropagation(); setQuestionsAreaId({ id: area.id, name: area.name }); }}
+                    >
+                      <MessageSquare className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
+                      Gerenciar Dúvidas
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {questionsAreaId && (
+        <ManageQuestionsDialog
+          open={!!questionsAreaId}
+          onOpenChange={(o) => !o && setQuestionsAreaId(null)}
+          areaId={questionsAreaId.id}
+          areaName={questionsAreaId.name}
+        />
+      )}
+
 
       <Dialog modal={false} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
