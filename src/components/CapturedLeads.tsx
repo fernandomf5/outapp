@@ -11,79 +11,126 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Edit, Trash2, Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Users, Download } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 interface Lead {
   id: string;
-  visitor_name: string | null;
-  visitor_email: string | null;
-  visitor_phone: string | null;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
   created_at: string;
+  source: string;
 }
+
+const SOURCE_COLORS: Record<string, string> = {
+  "Chat Online": "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  "Agente IA": "bg-purple-500/10 text-purple-600 border-purple-500/20",
+  "Clonador de Páginas": "bg-orange-500/10 text-orange-600 border-orange-500/20",
+  "Quiz": "bg-pink-500/10 text-pink-600 border-pink-500/20",
+  "Briefing": "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  "Catálogo": "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  "Checkout": "bg-green-500/10 text-green-600 border-green-500/20",
+};
 
 export function CapturedLeads() {
   const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingLead, setEditingLead] = useState<Lead | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
 
   useEffect(() => {
-    if (user) {
-      fetchLeads();
-    }
+    if (user) fetchLeads();
   }, [user]);
 
   const fetchLeads = async () => {
     if (!user) return;
-
     try {
       setLoading(true);
+      const all: Lead[] = [];
 
-      // Buscar conversas do usuário com dados de visitantes
-      const { data: conversations, error } = await supabase
+      // 1. Chat Online (chatbot_conversations)
+      const { data: chatLeads } = await supabase
         .from("chatbot_conversations")
-        .select(`
-          id,
-          visitor_name,
-          visitor_email,
-          visitor_phone,
-          started_at,
-          chatbot_id,
-          chatbots!inner(user_id)
-        `)
+        .select("id, visitor_name, visitor_email, visitor_phone, started_at, chatbots!inner(user_id)")
         .eq("chatbots.user_id", user.id)
-        .or("visitor_name.not.is.null,visitor_email.not.is.null,visitor_phone.not.is.null")
-        .order("started_at", { ascending: false });
+        .or("visitor_name.not.is.null,visitor_email.not.is.null,visitor_phone.not.is.null");
+      chatLeads?.forEach((c: any) => all.push({
+        id: `chat-${c.id}`,
+        name: c.visitor_name, email: c.visitor_email, phone: c.visitor_phone,
+        created_at: c.started_at, source: "Chat Online",
+      }));
 
-      if (error) throw error;
+      // 2. Agente IA (agent_customers)
+      const { data: agentLeads } = await supabase
+        .from("agent_customers")
+        .select("id, name, email, phone, created_at, ai_agents!inner(user_id)")
+        .eq("ai_agents.user_id", user.id);
+      agentLeads?.forEach((c: any) => all.push({
+        id: `agent-${c.id}`, name: c.name, email: c.email, phone: c.phone,
+        created_at: c.created_at, source: "Agente IA",
+      }));
 
-      // Remover duplicatas baseado em email ou telefone
-      const uniqueLeads = conversations?.reduce((acc: Lead[], current) => {
-        const isDuplicate = acc.some(
-          (lead) =>
-            (current.visitor_email && lead.visitor_email === current.visitor_email) ||
-            (current.visitor_phone && lead.visitor_phone === current.visitor_phone)
-        );
+      // 3. Clonador de Páginas (cloned_page_leads)
+      const { data: clonedLeads } = await supabase
+        .from("cloned_page_leads")
+        .select("id, name, email, phone, created_at, cloned_pages!inner(user_id)")
+        .eq("cloned_pages.user_id", user.id);
+      clonedLeads?.forEach((c: any) => all.push({
+        id: `cloned-${c.id}`, name: c.name, email: c.email, phone: c.phone,
+        created_at: c.created_at, source: "Clonador de Páginas",
+      }));
 
-        if (!isDuplicate) {
-          acc.push({
-            id: current.id,
-            visitor_name: current.visitor_name,
-            visitor_email: current.visitor_email,
-            visitor_phone: current.visitor_phone,
-            created_at: current.started_at,
-          });
-        }
+      // 4. Quiz (quiz_responses)
+      const { data: quizLeads } = await supabase
+        .from("quiz_responses")
+        .select("id, name, email, phone, created_at, quizzes!inner(user_id)")
+        .eq("quizzes.user_id", user.id);
+      quizLeads?.forEach((c: any) => all.push({
+        id: `quiz-${c.id}`, name: c.name, email: c.email, phone: c.phone,
+        created_at: c.created_at, source: "Quiz",
+      }));
 
-        return acc;
-      }, []) || [];
+      // 5. Briefing (briefing_responses)
+      const { data: briefingLeads } = await supabase
+        .from("briefing_responses")
+        .select("id, visitor_name, visitor_email, visitor_phone, created_at, briefings!inner(user_id)")
+        .eq("briefings.user_id", user.id);
+      briefingLeads?.forEach((c: any) => all.push({
+        id: `briefing-${c.id}`, name: c.visitor_name, email: c.visitor_email, phone: c.visitor_phone,
+        created_at: c.created_at, source: "Briefing",
+      }));
 
-      setLeads(uniqueLeads);
+      // 6. Catálogo (catalog_customers)
+      const { data: catLeads } = await supabase
+        .from("catalog_customers")
+        .select("id, name, email, phone, created_at, catalogs!inner(user_id)")
+        .eq("catalogs.user_id", user.id);
+      catLeads?.forEach((c: any) => all.push({
+        id: `catalog-${c.id}`, name: c.name, email: c.email, phone: c.phone,
+        created_at: c.created_at, source: "Catálogo",
+      }));
+
+      // 7. Checkout (checkout_orders)
+      const { data: checkoutLeads } = await supabase
+        .from("checkout_orders")
+        .select("id, customer_name, customer_email, customer_phone, created_at")
+        .eq("user_id", user.id);
+      checkoutLeads?.forEach((c: any) => all.push({
+        id: `checkout-${c.id}`, name: c.customer_name, email: c.customer_email, phone: c.customer_phone,
+        created_at: c.created_at, source: "Checkout",
+      }));
+
+      all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setLeads(all);
     } catch (error) {
       console.error("Erro ao buscar leads:", error);
       toast.error("Erro ao carregar leads capturados");
@@ -92,74 +139,32 @@ export function CapturedLeads() {
     }
   };
 
-  const handleUpdateLead = async () => {
-    if (!editingLead) return;
+  const filteredLeads = sourceFilter === "all"
+    ? leads
+    : leads.filter((l) => l.source === sourceFilter);
 
-    const { error } = await supabase
-      .from('chatbot_conversations')
-      .update({
-        visitor_name: editingLead.visitor_name,
-        visitor_email: editingLead.visitor_email,
-        visitor_phone: editingLead.visitor_phone,
-      })
-      .eq('id', editingLead.id);
-
-    if (error) {
-      toast.error("Erro ao atualizar lead");
-    } else {
-      toast.success("Lead atualizado com sucesso!");
-      fetchLeads();
-      setIsEditDialogOpen(false);
-      setEditingLead(null);
-    }
-  };
-
-  const handleDeleteLead = async (leadId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este lead?')) return;
-
-    const { error } = await supabase
-      .from('chatbot_conversations')
-      .update({
-        visitor_name: null,
-        visitor_email: null,
-        visitor_phone: null,
-      })
-      .eq('id', leadId);
-
-    if (error) {
-      toast.error("Erro ao excluir lead");
-    } else {
-      toast.success("Lead excluído com sucesso!");
-      fetchLeads();
-    }
-  };
+  const sources = Array.from(new Set(leads.map((l) => l.source)));
 
   const handleExportCSV = () => {
-    if (leads.length === 0) {
+    if (filteredLeads.length === 0) {
       toast.error("Nenhum lead para exportar");
       return;
     }
-
-    const headers = ["Nome", "Email", "Telefone", "Data de Captura"];
-    const rows = leads.map(l => [
-      l.visitor_name || "",
-      l.visitor_email || "",
-      l.visitor_phone || "",
-      new Date(l.created_at).toLocaleDateString('pt-BR')
+    const headers = ["Nome", "Email", "Telefone", "Origem", "Data de Captura"];
+    const rows = filteredLeads.map((l) => [
+      l.name || "", l.email || "", l.phone || "", l.source,
+      new Date(l.created_at).toLocaleDateString("pt-BR"),
     ]);
-
     const csvContent = [
       headers.join(","),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
     ].join("\n");
-
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `leads_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `leads_${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
-
-    toast.success(`${leads.length} leads exportados com sucesso!`);
+    toast.success(`${filteredLeads.length} leads exportados!`);
   };
 
   if (loading) {
@@ -181,23 +186,32 @@ export function CapturedLeads() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Leads Capturados ({leads.length})
+            Leads Capturados ({filteredLeads.length})
           </CardTitle>
-          <Button
-            variant="outline"
-            onClick={handleExportCSV}
-            disabled={leads.length === 0}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filtrar por origem" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as origens</SelectItem>
+                {sources.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={handleExportCSV} disabled={filteredLeads.length === 0}>
+              <Download className="w-4 h-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        {leads.length === 0 ? (
+        {filteredLeads.length === 0 ? (
           <p className="text-muted-foreground">Nenhum lead capturado ainda.</p>
         ) : (
           <div className="overflow-x-auto rounded-md border">
@@ -207,45 +221,26 @@ export function CapturedLeads() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
+                  <TableHead>Origem</TableHead>
                   <TableHead>Data de Captura</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leads.map((lead) => (
+                {filteredLeads.map((lead) => (
                   <TableRow key={lead.id}>
-                    <TableCell>{lead.visitor_name || "-"}</TableCell>
-                    <TableCell>{lead.visitor_email || "-"}</TableCell>
-                    <TableCell>{lead.visitor_phone || "-"}</TableCell>
+                    <TableCell>{lead.name || "-"}</TableCell>
+                    <TableCell>{lead.email || "-"}</TableCell>
+                    <TableCell>{lead.phone || "-"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={SOURCE_COLORS[lead.source] || ""}>
+                        {lead.source}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       {new Date(lead.created_at).toLocaleDateString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
+                        day: "2-digit", month: "2-digit", year: "numeric",
+                        hour: "2-digit", minute: "2-digit",
                       })}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setEditingLead(lead);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteLead(lead.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -254,52 +249,6 @@ export function CapturedLeads() {
           </div>
         )}
       </CardContent>
-
-      {/* Dialog de Edição */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Lead</DialogTitle>
-          </DialogHeader>
-          {editingLead && (
-            <div className="space-y-4 mt-4">
-              <div>
-                <Label>Nome</Label>
-                <Input
-                  value={editingLead.visitor_name || ''}
-                  onChange={(e) => setEditingLead({ ...editingLead, visitor_name: e.target.value })}
-                  placeholder="Nome do lead"
-                />
-              </div>
-              <div>
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={editingLead.visitor_email || ''}
-                  onChange={(e) => setEditingLead({ ...editingLead, visitor_email: e.target.value })}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-              <div>
-                <Label>Telefone</Label>
-                <Input
-                  value={editingLead.visitor_phone || ''}
-                  onChange={(e) => setEditingLead({ ...editingLead, visitor_phone: e.target.value })}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="flex-1">
-                  Cancelar
-                </Button>
-                <Button onClick={handleUpdateLead} className="flex-1 gradient-primary">
-                  Salvar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }
