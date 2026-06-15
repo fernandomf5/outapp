@@ -17,6 +17,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMembersAreaPreview";
+import { ManageQuestionsDialog } from "@/components/members-area/ManageQuestionsDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 interface ContentBlock {
@@ -203,6 +204,7 @@ export function SimpleMembersArea() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [areaToDelete, setAreaToDelete] = useState<MembersArea | null>(null);
+  const [questionsAreaId, setQuestionsAreaId] = useState<{ id: string; name: string } | null>(null);
   const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
   const [isEditSectionDialogOpen, setIsEditSectionDialogOpen] = useState(false);
@@ -228,6 +230,7 @@ export function SimpleMembersArea() {
     customer_name: '',
     business_id: '',
     area_type: 'course' as string,
+    enable_questions: false as boolean,
     // Design da tela de login
     login_background_color: '#1a1a2e',
     login_text_color: '#ffffff',
@@ -334,6 +337,7 @@ export function SimpleMembersArea() {
           customer_name: selectedCustomer?.name || null,
           business_id: areaFormData.business_id || null,
           area_type: areaFormData.area_type,
+          enable_questions: areaFormData.enable_questions,
           access_type: areaFormData.access_type,
           login_background_color: areaFormData.login_background_color,
           login_text_color: areaFormData.login_text_color,
@@ -595,6 +599,7 @@ export function SimpleMembersArea() {
       customer_name: area.customer_name || '',
       business_id: area.business_id || '',
       area_type: area.area_type || 'course',
+      enable_questions: (area as any).enable_questions || false,
       login_background_color: (area as any).login_background_color || '#1a1a2e',
       login_text_color: (area as any).login_text_color || '#ffffff',
       background_color: area.background_color || '#ffffff',
@@ -631,6 +636,7 @@ export function SimpleMembersArea() {
           customer_name: selectedCustomer?.name || null,
           business_id: areaFormData.business_id || null,
           area_type: areaFormData.area_type,
+          enable_questions: areaFormData.enable_questions,
           access_type: areaFormData.access_type,
           login_background_color: areaFormData.login_background_color,
           login_text_color: areaFormData.login_text_color,
@@ -1699,12 +1705,33 @@ export function SimpleMembersArea() {
                       <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
+                  {(area as any).enable_questions && (
+                    <Button
+                      variant="secondary"
+                      size="default"
+                      className="w-full h-11 sm:h-9 text-base sm:text-sm"
+                      onClick={(e) => { e.stopPropagation(); setQuestionsAreaId({ id: area.id, name: area.name }); }}
+                    >
+                      <MessageSquare className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
+                      Gerenciar Dúvidas
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {questionsAreaId && (
+        <ManageQuestionsDialog
+          open={!!questionsAreaId}
+          onOpenChange={(o) => !o && setQuestionsAreaId(null)}
+          areaId={questionsAreaId.id}
+          areaName={questionsAreaId.name}
+        />
+      )}
+
 
       <Dialog modal={false} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
@@ -1812,6 +1839,22 @@ export function SimpleMembersArea() {
                       : 'Área exclusiva sem acompanhamento de progresso'}
                   </p>
                 </div>
+                {areaFormData.area_type === 'course' && (
+                  <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm">Habilitar dúvidas dos alunos</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Cada aluno poderá comentar abaixo dos vídeos para tirar dúvidas. Apenas o próprio aluno vê suas perguntas e suas respostas.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-5 w-5 cursor-pointer"
+                      checked={areaFormData.enable_questions}
+                      onChange={(e) => setAreaFormData({ ...areaFormData, enable_questions: e.target.checked })}
+                    />
+                  </div>
+                )}
                 <div>
                   <ImageUpload
                     label="Logo (opcional)"
@@ -2057,6 +2100,22 @@ export function SimpleMembersArea() {
                       : 'Área exclusiva sem acompanhamento de progresso'}
                   </p>
                 </div>
+                {areaFormData.area_type === 'course' && (
+                  <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm">Habilitar dúvidas dos alunos</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Cada aluno poderá comentar abaixo dos vídeos para tirar dúvidas. Apenas o próprio aluno vê suas perguntas e suas respostas.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-5 w-5 cursor-pointer"
+                      checked={areaFormData.enable_questions}
+                      onChange={(e) => setAreaFormData({ ...areaFormData, enable_questions: e.target.checked })}
+                    />
+                  </div>
+                )}
                 <div>
                   <ImageUpload
                     label="Logo (opcional)"

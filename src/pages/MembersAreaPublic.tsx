@@ -13,6 +13,7 @@ import { AdsDashboardBlock } from "@/components/members-area/AdsDashboardBlock";
 import { PaymentHistoryBlock } from "@/components/members-area/PaymentHistoryBlock";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { VideoQuestions } from "@/components/members-area/VideoQuestions";
 
 const SecretContentBlock = ({ content, title, accentColor, textColor }: { content: string; title?: string; accentColor: string; textColor: string }) => {
   const [visible, setVisible] = useState(false);
@@ -121,12 +122,16 @@ interface MembersArea {
   accent_color?: string;
   area_type?: string;
   customer_name?: string;
+  enable_questions?: boolean;
+  user_id?: string;
 }
 
 export default function MembersAreaPublic() {
   const { slug } = useParams();
   const [area, setArea] = useState<MembersArea | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [accessCodeId, setAccessCodeId] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState<string>('Aluno');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginMode, setLoginMode] = useState<'password' | 'code'>('password');
@@ -178,6 +183,8 @@ export default function MembersAreaPublic() {
           toast.error('Código de acesso inválido ou expirado');
           return;
         }
+        setAccessCodeId((codeData as any).id);
+        setStudentName((codeData as any).customer_name || 'Aluno');
         setIsAuthenticated(true);
         toast.success('Acesso liberado!');
       } catch {
@@ -545,10 +552,25 @@ export default function MembersAreaPublic() {
             videos = block.content.split('|||').filter(Boolean).map(u => ({ url: u }));
           }
         }
+        const qaEnabled = !!area?.enable_questions && !!accessCodeId && !!area?.user_id;
         return (
           <div className="flex flex-col gap-6">
             {videos.map((video, idx) => (
-              <VideoGalleryItem key={idx} video={video} accentColor={accentColor} cardTextColor={cardTextColor} />
+              <div key={idx} className="flex flex-col">
+                <VideoGalleryItem video={video} accentColor={accentColor} cardTextColor={cardTextColor} />
+                {qaEnabled && (
+                  <VideoQuestions
+                    areaId={area!.id}
+                    ownerUserId={area!.user_id!}
+                    blockId={block.id}
+                    videoIndex={idx}
+                    accessCodeId={accessCodeId!}
+                    studentName={studentName}
+                    accentColor={accentColor}
+                    cardTextColor={cardTextColor}
+                  />
+                )}
+              </div>
             ))}
           </div>
         );
