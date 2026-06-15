@@ -154,6 +154,38 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     }
   };
 
+  const handleUpdateBusiness = async (id: string, data: { name: string; business_type: 'personal' | 'company'; description: string }) => {
+    try {
+      const { error } = await supabase
+        .from('financial_businesses')
+        .update({
+          name: data.name,
+          business_type: data.business_type,
+          description: data.description || null,
+        })
+        .eq('id', id);
+      if (error) throw error;
+      toast.success('Gestão atualizada com sucesso!');
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error('Erro ao atualizar gestão');
+    }
+  };
+
+  const handleDeleteBusiness = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('financial_businesses')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      toast.success('Gestão excluída com sucesso!');
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error('Erro ao excluir gestão');
+    }
+  };
+
   if (viewMode === 'selection') {
     return (
       <div className="container mx-auto py-6">
@@ -162,6 +194,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           onSelectBusiness={handleSelectBusiness}
           onSelectMultipleBusinesses={handleSelectMultipleBusinesses}
           onCreateBusiness={handleCreateBusiness}
+          onUpdateBusiness={handleUpdateBusiness}
+          onDeleteBusiness={handleDeleteBusiness}
         />
       </div>
     );
