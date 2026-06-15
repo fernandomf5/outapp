@@ -17,7 +17,11 @@ import {
   PointerSensor, 
   useSensor, 
   useSensors,
-  closestCorners
+  pointerWithin,
+  rectIntersection,
+  getFirstCollision,
+  closestCenter,
+  CollisionDetection
 } from "@dnd-kit/core";
 import { 
   arrayMove 
@@ -107,6 +111,20 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
       },
     })
   );
+
+  // Custom collision: prioritize pointer position so cursor must actually be over the target column.
+  // This avoids "snapping" to a far column (e.g., skipping "Em progresso" and landing on "Concluído").
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    const rectCollisions = rectIntersection(args);
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
+    }
+    return closestCenter(args);
+  };
 
   useEffect(() => {
     fetchData();
@@ -444,7 +462,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={collisionDetectionStrategy}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
