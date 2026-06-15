@@ -14,6 +14,7 @@ import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
+import { MembersQuestionsBell } from "@/components/MembersQuestionsBell";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { UserSidebar } from "@/components/layout/UserSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -514,6 +515,7 @@ const Dashboard = () => {
                     {!isTeamMember && <ConversationNotificationBell />}
                     {!isTeamMember && <NotificationBell />}
                     {!isTeamMember && <TicketNotificationBell />}
+                    {!isTeamMember && <MembersQuestionsBell />}
                     <div className="hidden md:flex items-center gap-1">
                       <LanguageSelector />
                       <ThemeToggle />
