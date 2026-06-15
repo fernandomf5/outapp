@@ -87,6 +87,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [isBulkTaskDialogOpen, setIsBulkTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingBlock, setEditingBlock] = useState<Block | null>(null);
