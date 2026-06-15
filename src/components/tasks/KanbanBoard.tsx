@@ -25,6 +25,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Archive, Trash2 } from "lucide-react";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
 import { TaskDialog } from "./TaskDialog";
@@ -82,6 +91,9 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{ type: "task" | "block"; id: string; name: string } | null>(null);
+  const [taskDeleteOpen, setTaskDeleteOpen] = useState(false);
+  const [pendingTaskDelete, setPendingTaskDelete] = useState<{ id: string; name: string } | null>(null);
+  const [taskDeleteLoading, setTaskDeleteLoading] = useState(false);
 
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
@@ -158,6 +170,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         .select("*")
         .eq("user_id", effectiveUserId)
         .eq("client_id", userId)
+        .eq("archived", false)
         .order("task_order");
 
       if (tasksError) {
@@ -269,8 +282,8 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const handleDeleteTask = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
-    setPendingDelete({ type: "task", id: taskId, name: task.title });
-    setConfirmOpen(true);
+    setPendingTaskDelete({ id: taskId, name: task.title });
+    setTaskDeleteOpen(true);
   };
 
   const handleDeleteBlock = (blockId: string) => {
@@ -280,35 +293,61 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     setConfirmOpen(true);
   };
 
+  const handleArchiveTask = async () => {
+    if (!pendingTaskDelete) return;
+    try {
+      setTaskDeleteLoading(true);
+      const { error } = await supabase
+        .from("tasks")
+        .update({ archived: true, archived_at: new Date().toISOString() } as any)
+        .eq("id", pendingTaskDelete.id);
+      if (error) throw error;
+      setTasks(tasks.filter(t => t.id !== pendingTaskDelete.id));
+      toast.success("Tarefa guardada no histórico");
+      setTaskDeleteOpen(false);
+      setPendingTaskDelete(null);
+    } catch {
+      toast.error("Erro ao arquivar tarefa");
+    } finally {
+      setTaskDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteTaskPermanent = async () => {
+    if (!pendingTaskDelete) return;
+    try {
+      setTaskDeleteLoading(true);
+      const { error } = await supabase.from("tasks").delete().eq("id", pendingTaskDelete.id);
+      if (error) throw error;
+      setTasks(tasks.filter(t => t.id !== pendingTaskDelete.id));
+      toast.success("Tarefa excluída definitivamente");
+      setTaskDeleteOpen(false);
+      setPendingTaskDelete(null);
+    } catch {
+      toast.error("Erro ao excluir tarefa");
+    } finally {
+      setTaskDeleteLoading(false);
+    }
+  };
+
   const executeDelete = async () => {
     if (!pendingDelete) return;
 
-    if (pendingDelete.type === "task") {
-      try {
-        const { error } = await supabase.from("tasks").delete().eq("id", pendingDelete.id);
-        if (error) throw error;
-        setTasks(tasks.filter(t => t.id !== pendingDelete.id));
-        toast.success("Tarefa removida");
-      } catch (error) {
-        toast.error("Erro ao remover tarefa");
-      }
-    } else {
-      const hasTasks = tasks.some(t => t.block_id === pendingDelete.id);
-      if (hasTasks) {
-        toast.error("Não é possível excluir um bloco que contém tarefas.");
-        setConfirmOpen(false);
-        setPendingDelete(null);
-        return;
-      }
+    const hasTasks = tasks.some(t => t.block_id === pendingDelete.id);
+    if (hasTasks) {
+      toast.error("Não é possível excluir um bloco que contém tarefas.");
+      setConfirmOpen(false);
+      setPendingDelete(null);
+      return;
+    }
 
-      try {
-        const { error } = await supabase.from("task_blocks").delete().eq("id", pendingDelete.id);
-        if (error) throw error;
-        setBlocks(blocks.filter(b => b.id !== pendingDelete.id));
-        toast.success("Bloco removido");
-      } catch (error) {
-        toast.error("Erro ao remover bloco");
-      }
+    try {
+      const { error } = await supabase.from("task_blocks").delete().eq("id", pendingDelete.id);
+      if (error) throw error;
+      setBlocks(blocks.filter(b => b.id !== pendingDelete.id));
+      toast.success("Bloco removido");
+    } catch {
+      toast.error("Erro ao remover bloco");
     }
 
     setConfirmOpen(false);
@@ -476,9 +515,46 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         onConfirm={executeDelete}
-        title={`Excluir ${pendingDelete?.type === "task" ? "tarefa" : "bloco"}?`}
-        description={`Tem certeza que deseja excluir "${pendingDelete?.name || ""}"? Esta ação não pode ser desfeita.`}
+        title="Excluir bloco?"
+        description={`Tem certeza que deseja excluir o bloco "${pendingDelete?.name || ""}"? Esta ação não pode ser desfeita.`}
       />
+
+      <Dialog open={taskDeleteOpen} onOpenChange={(o) => { if (!taskDeleteLoading) setTaskDeleteOpen(o); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Excluir tarefa</DialogTitle>
+            <DialogDescription>
+              O que deseja fazer com <span className="font-semibold text-foreground">"{pendingTaskDelete?.name}"</span>?
+              Você pode guardar no histórico do cliente ou excluir definitivamente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              onClick={handleArchiveTask}
+              disabled={taskDeleteLoading}
+              className="w-full justify-start gap-2"
+              variant="default"
+            >
+              <Archive className="h-4 w-4" />
+              Guardar no histórico
+            </Button>
+            <Button
+              onClick={handleDeleteTaskPermanent}
+              disabled={taskDeleteLoading}
+              className="w-full justify-start gap-2"
+              variant="destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              Excluir definitivamente
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setTaskDeleteOpen(false)} disabled={taskDeleteLoading}>
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
