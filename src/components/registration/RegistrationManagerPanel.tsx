@@ -301,15 +301,6 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => moveItem(index, 'top')}
-                              disabled={index === 0}
-                              title="Mover para o topo"
-                            >
-                              <ChevronsUp className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
                               onClick={() => moveItem(index, 'up')}
                               disabled={index === 0}
                               title="Subir"
@@ -324,15 +315,6 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                               title="Descer"
                             >
                               <ArrowDown className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => moveItem(index, 'bottom')}
-                              disabled={index === items.length - 1}
-                              title="Mover para o fim"
-                            >
-                              <ChevronsDown className="h-4 w-4" />
                             </Button>
                             <Button 
                               variant="ghost" 
