@@ -107,6 +107,7 @@ export const TaskHistoryDialog = ({
           .from("tasks")
           .select("*")
           .eq("user_id", effectiveUserId)
+          .eq("archived", true)
           .order("updated_at", { ascending: false }),
         supabase
           .from("task_blocks")
