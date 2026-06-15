@@ -260,6 +260,53 @@ export function UnifiedRegistrationForm({
             />
           </div>
 
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>URLs do Cliente (Drive, Site, etc.)</Label>
+              {!isViewOnly && (
+                <Button type="button" variant="outline" size="sm" onClick={addUrl}>
+                  <Plus className="w-4 h-4 mr-1" /> Adicionar URL
+                </Button>
+              )}
+            </div>
+            {urls.length === 0 && (
+              <p className="text-sm text-muted-foreground">Nenhuma URL cadastrada.</p>
+            )}
+            {urls.map((u, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                {isViewOnly ? (
+                  <a
+                    href={normalizeUrl(u.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted text-primary underline break-all"
+                  >
+                    <ExternalLink className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{u.label ? `${u.label} — ${u.url}` : u.url}</span>
+                  </a>
+                ) : (
+                  <>
+                    <Input
+                      placeholder="Rótulo (opcional)"
+                      value={u.label}
+                      onChange={(e) => updateUrl(i, 'label', e.target.value)}
+                      className="md:max-w-[200px]"
+                    />
+                    <Input
+                      placeholder="https://exemplo.com"
+                      value={u.url}
+                      onChange={(e) => updateUrl(i, 'url', e.target.value)}
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeUrl(i)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+
+
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
               {isViewOnly ? 'Fechar' : 'Cancelar'}
