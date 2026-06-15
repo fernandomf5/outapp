@@ -353,7 +353,7 @@ export function SimpleMembersArea() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const slug = areaFormData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const slug = (areaFormData.slug || areaFormData.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
       // Get customer name if customer is selected
       const selectedCustomer = areaFormData.customer_id 
