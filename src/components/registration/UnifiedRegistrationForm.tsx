@@ -39,6 +39,24 @@ export function UnifiedRegistrationForm({
 
   const avatarUrl = watch('avatar_url');
 
+  const [urls, setUrls] = useState<Array<{ label: string; url: string }>>(() => {
+    const raw = initialData?.urls;
+    if (Array.isArray(raw)) {
+      return raw.map((u: any) =>
+        typeof u === 'string' ? { label: '', url: u } : { label: u?.label || '', url: u?.url || '' }
+      );
+    }
+    return [];
+  });
+
+  const addUrl = () => setUrls((p) => [...p, { label: '', url: '' }]);
+  const removeUrl = (i: number) => setUrls((p) => p.filter((_, idx) => idx !== i));
+  const updateUrl = (i: number, field: 'label' | 'url', val: string) =>
+    setUrls((p) => p.map((u, idx) => (idx === i ? { ...u, [field]: val } : u)));
+
+  const normalizeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
+
+
   const onSubmit = async (data: any) => {
     if (!user || isViewOnly) return;
     setLoading(true);
