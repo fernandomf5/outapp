@@ -212,6 +212,11 @@ const CheckoutEditorPage = () => {
     payload.upsell_price = formData.upsell_price ? parseFloat(formData.upsell_price) : null;
     payload.downsell_price = formData.downsell_price ? parseFloat(formData.downsell_price) : null;
     if (payload.integration_id === '') payload.integration_id = null;
+    if (!payload.slug || !String(payload.slug).trim()) {
+      payload.slug = slugify(payload.name) + '-' + Math.random().toString(36).slice(2, 7);
+    } else {
+      payload.slug = slugify(payload.slug);
+    }
     return payload;
   };
 
