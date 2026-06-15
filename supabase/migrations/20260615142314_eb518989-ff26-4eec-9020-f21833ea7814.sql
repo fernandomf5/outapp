@@ -1,0 +1,1 @@
+ALTER TABLE public.simple_members_areas ADD COLUMN IF NOT EXISTS manager_whatsapp text;

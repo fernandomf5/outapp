@@ -83,3 +83,7 @@ verify_jwt = false
 
 [functions.send-invoice-reminder]
 verify_jwt = false
+
+[functions.recover-access-code]
+verify_jwt = false
+

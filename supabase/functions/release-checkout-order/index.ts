@@ -74,10 +74,14 @@ serve(async (req) => {
       total_revenue: Number(checkout.total_revenue || 0) + Number(order.amount),
     }).eq('id', order.checkout_id);
 
-    // Get area name
+    // Get area info
     const { data: area } = await supabase
-      .from('simple_members_areas').select('name').eq('id', checkout.integration_id).single();
+      .from('simple_members_areas').select('name, slug').eq('id', checkout.integration_id).single();
     const areaName = area?.name || checkout.item_name || 'Área de Membros';
+    const origin = req.headers.get('origin') || 'https://outapp.com.br';
+    const accessLink = area?.slug
+      ? `${origin}/members/${area.slug}?code=${accessCode}`
+      : null;
 
     // Send email
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
@@ -95,6 +99,15 @@ serve(async (req) => {
             <p style="font-size: 12px; color: #666; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 1px;">Seu Código de Acesso</p>
             <p style="font-size: 32px; font-weight: bold; color: #8B5CF6; margin: 0; letter-spacing: 4px; font-family: monospace;">${accessCode}</p>
           </div>
+          ${accessLink ? `
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${accessLink}" style="display: inline-block; background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              Acessar Área de Membros
+            </a>
+            <p style="font-size: 12px; color: #888; margin-top: 12px; word-break: break-all;">
+              Ou copie o link: <a href="${accessLink}" style="color:#8B5CF6;">${accessLink}</a>
+            </p>
+          </div>` : ''}
           <p style="font-size: 14px; color: #555;">Guarde este código com segurança.</p>
         </div>`;
       await fetch('https://api.resend.com/emails', {
@@ -108,6 +121,7 @@ serve(async (req) => {
         }),
       });
     }
+
 
     return new Response(JSON.stringify({ success: true, accessCode }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
