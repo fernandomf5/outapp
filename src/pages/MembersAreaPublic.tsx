@@ -220,6 +220,38 @@ export default function MembersAreaPublic() {
     }
   };
 
+  const handleRecoverCode = async () => {
+    if (!area || !recoverEmail.trim()) {
+      toast.error('Informe o email de compra');
+      return;
+    }
+    setRecoverLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('recover-access-code', {
+        body: { slug: area.slug, email: recoverEmail.trim().toLowerCase() },
+      });
+      if (error) throw error;
+      toast.success('Se o email tiver acesso, enviaremos seu código.');
+      setRecoverOpen(false);
+      setRecoverEmail('');
+    } catch (e: any) {
+      toast.error('Erro ao recuperar código');
+    } finally {
+      setRecoverLoading(false);
+    }
+  };
+
+  const handleContactManager = () => {
+    const phone = (area?.manager_whatsapp || '').replace(/\D/g, '');
+    if (!phone) {
+      toast.error('O gerente desta área ainda não configurou um WhatsApp');
+      return;
+    }
+    const msg = encodeURIComponent(`Olá! Preciso de ajuda para recuperar minha senha de acesso à área de membros "${area?.name}".`);
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  };
+
+
   const handleLogout = () => {
     setIsAuthenticated(false);
     setPasswordInput('');
