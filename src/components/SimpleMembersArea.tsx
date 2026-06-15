@@ -225,6 +225,7 @@ export function SimpleMembersArea() {
   const [adClients, setAdClients] = useState<{ id: string; name: string }[]>([]);
   const defaultAreaFormData = {
     name: '',
+    slug: '',
     description: '',
     password: '',
     access_type: 'password' as string,
@@ -237,6 +238,7 @@ export function SimpleMembersArea() {
     area_type: 'course' as string,
     enable_questions: false as boolean,
     manager_whatsapp: '',
+
 
     // Design da tela de login
     login_background_color: '#1a1a2e',
@@ -351,7 +353,7 @@ export function SimpleMembersArea() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const slug = areaFormData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const slug = (areaFormData.slug || areaFormData.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
       // Get customer name if customer is selected
       const selectedCustomer = areaFormData.customer_id 
@@ -635,6 +637,8 @@ export function SimpleMembersArea() {
     setEditingArea(area);
     setAreaFormData({
       name: area.name,
+      slug: area.slug || '',
+
       description: area.description,
       password: area.password,
       access_type: area.access_type || 'password',
@@ -675,8 +679,10 @@ export function SimpleMembersArea() {
         .from('simple_members_areas' as any)
         .update({
           name: areaFormData.name,
+          slug: (areaFormData.slug || areaFormData.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
           description: areaFormData.description,
           password: areaFormData.access_type === 'email_code' ? 'email_code_access' : areaFormData.password,
+
           primary_color: areaFormData.primary_color,
           secondary_color: areaFormData.secondary_color,
           logo_url: areaFormData.logo_url || null,
@@ -1863,6 +1869,16 @@ export function SimpleMembersArea() {
                   />
                 </div>
                 <div>
+                  <Label>Slug (URL personalizada)</Label>
+                  <Input
+                    value={areaFormData.slug}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                    placeholder="curso-marketing (opcional, gerado pelo nome)"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Link: /members/{areaFormData.slug || areaFormData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}</p>
+                </div>
+
+                <div>
                   <Label>Descrição</Label>
                   <Textarea
                     value={areaFormData.description}
@@ -2141,6 +2157,16 @@ export function SimpleMembersArea() {
                     placeholder="Ex: Curso de Marketing Digital"
                   />
                 </div>
+                <div>
+                  <Label>Slug (URL personalizada)</Label>
+                  <Input
+                    value={areaFormData.slug}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                    placeholder="curso-marketing"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Link: /members/{areaFormData.slug || areaFormData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}</p>
+                </div>
+
                 <div>
                   <Label>Descrição</Label>
                   <Textarea
