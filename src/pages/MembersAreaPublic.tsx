@@ -783,12 +783,82 @@ export default function MembersAreaPublic() {
               >
                 Acessar Conteúdo
               </Button>
+
+              <div className="flex flex-col gap-2 pt-2 border-t" style={{ borderColor: `${loginTextColor}15` }}>
+                <button
+                  type="button"
+                  onClick={() => setRecoverOpen(true)}
+                  className="text-xs hover:underline transition-opacity"
+                  style={{ color: `${loginTextColor}80` }}
+                >
+                  Esqueci meu código de acesso
+                </button>
+                <button
+                  type="button"
+                  onClick={handleContactManager}
+                  className="text-xs hover:underline transition-opacity flex items-center justify-center gap-1.5"
+                  style={{ color: `${loginTextColor}80` }}
+                >
+                  <MessageSquare className="w-3 h-3" />
+                  Esqueci minha senha — falar com o gerente
+                </button>
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {recoverOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+            onClick={() => setRecoverOpen(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl p-6 shadow-xl"
+              style={{ backgroundColor: loginBackgroundColor, color: loginTextColor, border: `1px solid ${loginTextColor}20` }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-bold mb-2">Recuperar código de acesso</h3>
+              <p className="text-sm mb-4" style={{ color: `${loginTextColor}99` }}>
+                Informe o email usado na compra. Enviaremos seu código por email.
+              </p>
+              <Input
+                type="email"
+                placeholder="seu@email.com"
+                value={recoverEmail}
+                onChange={(e) => setRecoverEmail(e.target.value)}
+                style={{
+                  backgroundColor: `${loginTextColor}08`,
+                  borderColor: `${loginTextColor}20`,
+                  color: loginTextColor,
+                }}
+              />
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant="ghost"
+                  className="flex-1"
+                  style={{ color: loginTextColor }}
+                  onClick={() => setRecoverOpen(false)}
+                  disabled={recoverLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="flex-1 text-white"
+                  style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
+                  onClick={handleRecoverCode}
+                  disabled={recoverLoading}
+                >
+                  {recoverLoading ? 'Enviando...' : 'Enviar código'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
+
 
   // Internal Members Area with Sidebar
   const currentSection = area.sections.find(s => s.id === activeSection) || area.sections[0];
