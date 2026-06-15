@@ -148,7 +148,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
         container.removeEventListener('scroll', handleScroll);
       }
     };
-  }, [userId, effectiveUserId]);
+  }, [userId, effectiveUserId, refreshKey]);
 
   const fetchData = async () => {
     try {
