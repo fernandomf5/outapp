@@ -303,52 +303,47 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => moveItem(index, 'up')}
-                              disabled={index === 0}
-                              title="Subir"
-                            >
-                              <ArrowUp className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => moveItem(index, 'down')}
-                              disabled={index === items.length - 1}
-                              title="Descer"
-                            >
-                              <ArrowDown className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => handleViewDetails(item)}
-                              title="Ver Detalhes"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => handleEdit(item)}
-                              title="Editar"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => confirmDelete(item.id, item.name)}
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              title="Excluir"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" title="Ações">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem
+                                onClick={() => moveItem(index, 'up')}
+                                disabled={index === 0}
+                              >
+                                <ArrowUp className="h-4 w-4 mr-2" />
+                                Subir
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => moveItem(index, 'down')}
+                                disabled={index === items.length - 1}
+                              >
+                                <ArrowDown className="h-4 w-4 mr-2" />
+                                Descer
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleViewDetails(item)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => confirmDelete(item.id, item.name)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))
