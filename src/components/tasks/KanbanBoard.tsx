@@ -431,6 +431,10 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
             <Layout className="h-4 w-4 text-primary" />
             Criar Bloco
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setIsBulkTaskDialogOpen(true)} className="gap-2 border-primary/20 hover:bg-primary/5">
+            <ListPlus className="h-4 w-4 text-primary" />
+            Em Massa
+          </Button>
           <Button size="sm" onClick={() => { setEditingTask(null); setIsTaskDialogOpen(true); }} className="gap-2 shadow-md bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4" />
             Nova Tarefa
