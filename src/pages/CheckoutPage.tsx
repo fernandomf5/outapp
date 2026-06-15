@@ -145,8 +145,26 @@ const CheckoutPage = () => {
   const [isManualPix, setIsManualPix] = useState(false);
 
   const [customerData, setCustomerData] = useState({
-    name: '', email: '', phone: '', cpf: '',
+    name: '', email: '', emailConfirm: '', phone: '', cpf: '',
   });
+
+  const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  const formatCpf = (v: string) => {
+    const d = v.replace(/\D/g, '').slice(0, 11);
+    return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
+  const isValidCpf = (cpf: string) => {
+    const d = cpf.replace(/\D/g, '');
+    if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+    let s = 0;
+    for (let i = 0; i < 9; i++) s += parseInt(d[i]) * (10 - i);
+    let r = (s * 10) % 11; if (r === 10) r = 0;
+    if (r !== parseInt(d[9])) return false;
+    s = 0;
+    for (let i = 0; i < 10; i++) s += parseInt(d[i]) * (11 - i);
+    r = (s * 10) % 11; if (r === 10) r = 0;
+    return r === parseInt(d[10]);
+  };
 
   useEffect(() => { loadCheckout(); }, [checkoutId]);
 
