@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { toast } from "sonner";
@@ -10,6 +10,13 @@ import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface RegistrationManagerPanelProps {
   categoryId: string | null;
@@ -257,7 +264,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Data de Cadastro</TableHead>
-                    <TableHead className="w-[150px]">Ações</TableHead>
+                    <TableHead className="w-[100px] text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -296,52 +303,47 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => moveItem(index, 'up')}
-                              disabled={index === 0}
-                              title="Subir"
-                            >
-                              <ArrowUp className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => moveItem(index, 'down')}
-                              disabled={index === items.length - 1}
-                              title="Descer"
-                            >
-                              <ArrowDown className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => handleViewDetails(item)}
-                              title="Ver Detalhes"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => handleEdit(item)}
-                              title="Editar"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => confirmDelete(item.id, item.name)}
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              title="Excluir"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" title="Ações">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem
+                                onClick={() => moveItem(index, 'up')}
+                                disabled={index === 0}
+                              >
+                                <ArrowUp className="h-4 w-4 mr-2" />
+                                Subir
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => moveItem(index, 'down')}
+                                disabled={index === items.length - 1}
+                              >
+                                <ArrowDown className="h-4 w-4 mr-2" />
+                                Descer
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleViewDetails(item)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => confirmDelete(item.id, item.name)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))
