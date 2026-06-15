@@ -436,24 +436,6 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                 <Label className="text-slate-700 font-medium">Data de Nascimento</Label>
                 <Switch checked={formData.custom_settings.show_field_birth} onCheckedChange={(v) => updateSetting('show_field_birth', v)} />
               </div>
-              <div className="pt-2 border-t border-slate-200">
-                <div className="flex items-center justify-between">
-                  <Label className="text-slate-700 font-bold">Endereço de Entrega</Label>
-                  <Switch checked={formData.custom_settings.show_field_address} onCheckedChange={(v) => updateSetting('show_field_address', v)} />
-                </div>
-                {formData.custom_settings.show_field_address && (
-                  <div className="mt-2 space-y-2 pl-4 border-l-2 border-slate-200">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-slate-500 text-xs">CEP</Label>
-                      <Switch checked={formData.custom_settings.show_field_zip} onCheckedChange={(v) => updateSetting('show_field_zip', v)} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-slate-500 text-xs">Cidade/Estado</Label>
-                      <Switch checked={formData.custom_settings.show_field_city} onCheckedChange={(v) => updateSetting('show_field_city', v)} />
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         );
