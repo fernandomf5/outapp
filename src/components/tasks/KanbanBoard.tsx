@@ -515,9 +515,46 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         onConfirm={executeDelete}
-        title={`Excluir ${pendingDelete?.type === "task" ? "tarefa" : "bloco"}?`}
-        description={`Tem certeza que deseja excluir "${pendingDelete?.name || ""}"? Esta ação não pode ser desfeita.`}
+        title="Excluir bloco?"
+        description={`Tem certeza que deseja excluir o bloco "${pendingDelete?.name || ""}"? Esta ação não pode ser desfeita.`}
       />
+
+      <Dialog open={taskDeleteOpen} onOpenChange={(o) => { if (!taskDeleteLoading) setTaskDeleteOpen(o); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Excluir tarefa</DialogTitle>
+            <DialogDescription>
+              O que deseja fazer com <span className="font-semibold text-foreground">"{pendingTaskDelete?.name}"</span>?
+              Você pode guardar no histórico do cliente ou excluir definitivamente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              onClick={handleArchiveTask}
+              disabled={taskDeleteLoading}
+              className="w-full justify-start gap-2"
+              variant="default"
+            >
+              <Archive className="h-4 w-4" />
+              Guardar no histórico
+            </Button>
+            <Button
+              onClick={handleDeleteTaskPermanent}
+              disabled={taskDeleteLoading}
+              className="w-full justify-start gap-2"
+              variant="destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              Excluir definitivamente
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setTaskDeleteOpen(false)} disabled={taskDeleteLoading}>
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
