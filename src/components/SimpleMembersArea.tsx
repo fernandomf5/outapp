@@ -225,6 +225,7 @@ export function SimpleMembersArea() {
   const [adClients, setAdClients] = useState<{ id: string; name: string }[]>([]);
   const defaultAreaFormData = {
     name: '',
+    slug: '',
     description: '',
     password: '',
     access_type: 'password' as string,
@@ -237,6 +238,7 @@ export function SimpleMembersArea() {
     area_type: 'course' as string,
     enable_questions: false as boolean,
     manager_whatsapp: '',
+
 
     // Design da tela de login
     login_background_color: '#1a1a2e',
