@@ -346,6 +346,9 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
             <h3 className="font-bold text-lg text-slate-900">Detalhes do Produto</h3>
             <div className="space-y-3">
               <div>
+                <CheckoutImageUpload label="Imagem do Produto" value={formData.item_image_url} onChange={(url) => setFormData((prev: any) => ({...prev, item_image_url: url}))} />
+              </div>
+              <div>
                 <Label className="text-slate-700 font-semibold mb-1.5 block">Nome do Produto</Label>
                 <Input value={formData.item_name} onChange={(e) => setFormData((prev: any) => ({...prev, item_name: e.target.value}))} className="bg-white border-slate-200 text-slate-900" />
               </div>
