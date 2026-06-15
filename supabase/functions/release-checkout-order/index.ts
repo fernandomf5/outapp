@@ -18,13 +18,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const userClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) throw new Error('Não autenticado');
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      console.error('getUser failed:', userErr);
+      throw new Error('Não autenticado');
+    }
+    const user = userData.user;
 
     const { orderId } = await req.json();
     if (!orderId) throw new Error('orderId obrigatório');
