@@ -37,6 +37,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
   const [selectedUser, setSelectedUser] = useState<UserRegistration | null>(null);
   const [loading, setLoading] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [kanbanRefreshKey, setKanbanRefreshKey] = useState(0);
 
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
