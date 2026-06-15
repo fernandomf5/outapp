@@ -171,15 +171,15 @@ export const TransparentCheckout = ({
   };
 
   const handlePixPayment = async () => {
-    if (pixKey) {
+    if (pixKey?.trim()) {
       // Manual PIX flow — build a valid PIX EMV BR Code
       const brcode = generatePixBRCode({
-        pixKey,
-        amount,
-        merchantName: "RECEBEDOR",
-        merchantCity: "SAO PAULO",
+        pixKey: pixKey.trim(),
+        amount: Number(amount.toFixed(2)),
+        merchantName: "PAGAMENTO PIX",
+        merchantCity: "BRASIL",
         description: itemName,
-        txid: orderId.replace(/-/g, "").slice(0, 25) || "***",
+        txid: "***",
       });
       setPixPending(true);
       setPixQrCode(brcode);
@@ -249,8 +249,25 @@ export const TransparentCheckout = ({
     }, 30 * 60 * 1000);
   }, [orderId, onSuccess]);
 
-  const copyPixCode = () => {
-    navigator.clipboard.writeText(pixQrCode);
+  const copyPixCode = async () => {
+    const code = pixQrCode || pixKey || "";
+    if (!code) {
+      toast({ title: "Gere o QR Code PIX primeiro", variant: "destructive" });
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = code;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
     setPixCopied(true);
     toast({ title: "Código PIX copiado!" });
     setTimeout(() => setPixCopied(false), 3000);
