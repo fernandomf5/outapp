@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { MessageCircle, Send, CheckCircle2 } from "lucide-react";
+import { MessageCircle, Send, CheckCircle2, Pencil, Trash2, X, Check } from "lucide-react";
 
 interface Question {
   id: string;
