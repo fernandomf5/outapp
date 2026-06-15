@@ -408,24 +408,35 @@ export const TransparentCheckout = ({
                 {pixKey ? (
                   <div className="py-4 space-y-4">
                     <div className="flex justify-center mb-4">
-                      <div className="p-3 bg-white rounded-xl shadow-sm border">
-                        <QRCodeCanvas value={pixKey} size={180} />
+                      <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>
+                        <QRCodeCanvas
+                          value={pixQrCode || pixKey}
+                          size={220}
+                          level="H"
+                          includeMargin={false}
+                          bgColor="#ffffff"
+                          fgColor="#0f172a"
+                        />
                       </div>
                     </div>
                     <div className="p-4 bg-white rounded-xl border shadow-inner">
-                      <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Chave PIX para Pagamento</p>
-                      <p className="text-lg font-black break-all text-slate-900">{pixKey}</p>
+                      <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">PIX Copia e Cola</p>
+                      <p className="text-xs font-mono break-all text-slate-700 leading-relaxed">{pixQrCode || pixKey}</p>
                     </div>
                     <p className="text-xs leading-relaxed" style={{ color: subtitleColor }}>
-                      Após o pagamento, clique no botão abaixo para finalizar seu pedido e enviar o comprovante.
+                      Escaneie o QR Code no app do seu banco ou use o código copia e cola. Após pagar, clique no botão abaixo para enviar o comprovante.
                     </p>
                   </div>
                 ) : pixQrCodeBase64 && (
-                  <img
-                    src={`data:image/png;base64,${pixQrCodeBase64}`}
-                    alt="QR Code PIX"
-                    className="w-48 h-48 mx-auto rounded-lg"
-                  />
+                  <div className="flex justify-center">
+                    <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>
+                      <img
+                        src={`data:image/png;base64,${pixQrCodeBase64}`}
+                        alt="QR Code PIX"
+                        className="w-56 h-56 mx-auto"
+                      />
+                    </div>
+                  </div>
                 )}
                 {!pixKey && <p className="text-sm font-medium" style={{ color: textColor }}>Escaneie o QR Code ou copie o código PIX</p>}
                 <Button
