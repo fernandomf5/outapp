@@ -24,6 +24,7 @@ import {
   User as UserIcon,
   ListChecks,
   Trash2,
+  ArchiveRestore,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -238,6 +239,20 @@ export const TaskHistoryDialog = ({
     }
   };
 
+  const handleUnarchiveTask = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ archived: false, archived_at: null } as any)
+        .eq("id", id);
+      if (error) throw error;
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+      toast.success("Tarefa desarquivada e restaurada ao bloco original.");
+    } catch (e: any) {
+      toast.error("Erro ao desarquivar: " + (e?.message || ""));
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -395,6 +410,15 @@ export const TaskHistoryDialog = ({
                                           {block.name}
                                         </Badge>
                                       )}
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                        onClick={() => handleUnarchiveTask(t.id)}
+                                        title="Desarquivar (voltar ao bloco)"
+                                      >
+                                        <ArchiveRestore className="h-3.5 w-3.5" />
+                                      </Button>
                                       <Button
                                         variant="ghost"
                                         size="icon"
