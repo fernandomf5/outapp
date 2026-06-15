@@ -200,6 +200,7 @@ const SortableSection = ({ id, children }: { id: string; children: React.ReactNo
 
 export function SimpleMembersArea() {
   const [areas, setAreas] = useState<MembersArea[]>([]);
+  const [linkedCheckouts, setLinkedCheckouts] = useState<Record<string, { id: string; name: string; slug: string }[]>>({});
   const [selectedArea, setSelectedArea] = useState<MembersArea | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -313,7 +314,28 @@ export function SimpleMembersArea() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAreas((data || []) as any as MembersArea[]);
+      const loadedAreas = (data || []) as any as MembersArea[];
+      setAreas(loadedAreas);
+
+      // Load checkouts linked to these members areas
+      const areaIds = loadedAreas.map(a => a.id);
+      if (areaIds.length > 0) {
+        const { data: checkoutsData } = await supabase
+          .from('checkouts')
+          .select('id, name, slug, integration_id')
+          .eq('user_id', user.id)
+          .eq('integration_type', 'members_area')
+          .in('integration_id', areaIds);
+        const map: Record<string, { id: string; name: string; slug: string }[]> = {};
+        (checkoutsData || []).forEach((c: any) => {
+          if (!c.integration_id) return;
+          if (!map[c.integration_id]) map[c.integration_id] = [];
+          map[c.integration_id].push({ id: c.id, name: c.name, slug: c.slug });
+        });
+        setLinkedCheckouts(map);
+      } else {
+        setLinkedCheckouts({});
+      }
     } catch (error: any) {
       toast.error('Erro ao carregar áreas: ' + error.message);
     }
@@ -595,6 +617,12 @@ export function SimpleMembersArea() {
     const link = `${window.location.origin}/members/${area.slug}`;
     navigator.clipboard.writeText(link);
     toast.success('Link copiado!');
+  };
+
+  const handleCopyCheckoutLink = (checkout: { id: string; slug: string }) => {
+    const link = `${window.location.origin}/checkout/${checkout.id}/${checkout.slug}`;
+    navigator.clipboard.writeText(link);
+    toast.success('Link do checkout copiado!');
   };
 
   const handleOpenEditDialog = (area: MembersArea) => {
@@ -1736,6 +1764,32 @@ export function SimpleMembersArea() {
                       <MessageSquare className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
                       Gerenciar Dúvidas
                     </Button>
+                  )}
+                  {(linkedCheckouts[area.id] || []).length > 0 && (
+                    <div className="pt-2 border-t space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground">Checkouts vinculados</p>
+                      {linkedCheckouts[area.id].map((co) => (
+                        <div key={co.id} className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="default"
+                            className="flex-1 h-10 sm:h-9 text-sm justify-start"
+                            onClick={(e) => { e.stopPropagation(); handleCopyCheckoutLink(co); }}
+                          >
+                            <LinkIcon className="w-4 h-4 mr-2" />
+                            <span className="truncate">{co.name}</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="default"
+                            className="h-10 sm:h-9 px-3"
+                            onClick={(e) => { e.stopPropagation(); window.open(`/checkout/${co.id}/${co.slug}`, '_blank'); }}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </CardContent>
