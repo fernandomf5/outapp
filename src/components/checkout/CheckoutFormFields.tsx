@@ -41,7 +41,7 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
       if (!user) return;
       const { data } = await supabase
         .from('simple_members_areas' as any)
-        .select('id,title,name')
+        .select('id,name')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       setMembersAreas(data || []);
