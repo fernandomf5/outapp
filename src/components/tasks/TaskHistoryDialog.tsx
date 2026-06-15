@@ -51,6 +51,8 @@ interface HistoryTask {
   client_id: string | null;
   block_id: string | null;
   checklist: ChecklistItem[] | null;
+  archived?: boolean | null;
+  archived_at?: string | null;
 }
 
 interface Block {
