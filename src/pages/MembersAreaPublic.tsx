@@ -124,7 +124,9 @@ interface MembersArea {
   customer_name?: string;
   enable_questions?: boolean;
   user_id?: string;
+  manager_whatsapp?: string;
 }
+
 
 export default function MembersAreaPublic() {
   const { slug } = useParams();
