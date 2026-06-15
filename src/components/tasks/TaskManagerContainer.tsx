@@ -10,7 +10,9 @@ import {
   LayoutGrid, 
   FolderOpen,
   User,
-  History
+  History,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { KanbanBoard } from "./KanbanBoard";
 import { TaskHistoryDialog } from "./TaskHistoryDialog";
@@ -63,6 +65,47 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
     }
   };
 
+  const getOrderKey = (categoryId: string) => `task-users-order-${categoryId}`;
+
+  const applyCustomOrder = (list: UserRegistration[], categoryId: string): UserRegistration[] => {
+    try {
+      const stored = localStorage.getItem(getOrderKey(categoryId));
+      if (!stored) return list;
+      const orderIds: string[] = JSON.parse(stored);
+      const indexOf = (id: string) => {
+        const i = orderIds.indexOf(id);
+        return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+      };
+      return [...list].sort((a, b) => {
+        const ai = indexOf(a.id);
+        const bi = indexOf(b.id);
+        if (ai !== bi) return ai - bi;
+        return a.name.localeCompare(b.name);
+      });
+    } catch {
+      return list;
+    }
+  };
+
+  const saveOrder = (list: UserRegistration[], categoryId: string) => {
+    try {
+      localStorage.setItem(getOrderKey(categoryId), JSON.stringify(list.map((i) => i.id)));
+    } catch {}
+  };
+
+  const moveUser = (index: number, direction: 'up' | 'down') => {
+    if (!selectedCategory) return;
+    setUsers((prev) => {
+      const next = [...prev];
+      const newIndex = direction === 'up' ? Math.max(0, index - 1) : Math.min(next.length - 1, index + 1);
+      if (newIndex === index) return prev;
+      const [item] = next.splice(index, 1);
+      next.splice(newIndex, 0, item);
+      saveOrder(next, selectedCategory.id);
+      return next;
+    });
+  };
+
   const fetchUsers = async (categoryId: string) => {
     try {
       setLoading(true);
@@ -73,7 +116,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
         .order("name");
 
       if (error) throw error;
-      setUsers(data || []);
+      setUsers(applyCustomOrder(data || [], categoryId));
       setView("users");
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -193,7 +236,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
               </CardContent>
             </Card>
           ) : (
-            users.map((userReg) => (
+            users.map((userReg, index) => (
               <Card 
                 key={userReg.id} 
                 className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:border-primary/50"
@@ -206,6 +249,28 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{userReg.name}</h3>
                     <p className="text-sm text-muted-foreground truncate">{userReg.email || "Sem e-mail"}</p>
+                  </div>
+                  <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      disabled={index === 0}
+                      onClick={(e) => { e.stopPropagation(); moveUser(index, 'up'); }}
+                      title="Mover para cima"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      disabled={index === users.length - 1}
+                      onClick={(e) => { e.stopPropagation(); moveUser(index, 'down'); }}
+                      title="Mover para baixo"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </CardContent>
