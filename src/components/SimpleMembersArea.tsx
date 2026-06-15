@@ -1820,43 +1820,6 @@ export function SimpleMembersArea() {
                     bucketName="business-logos"
                   />
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <Label>Vincular a Negócio (opcional)</Label>
-                    <Select 
-                      value={areaFormData.business_id} 
-                      onValueChange={(value) => setAreaFormData({ ...areaFormData, business_id: value === 'none' ? '' : value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um negócio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum</SelectItem>
-                        {businesses.map((b) => (
-                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Vincular a Cliente (opcional)</Label>
-                    <Select 
-                      value={areaFormData.customer_id} 
-                      onValueChange={(value) => setAreaFormData({ ...areaFormData, customer_id: value === 'none' ? '' : value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum</SelectItem>
-                        {customers.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1">O cliente verá uma saudação personalizada com o nome dele ao acessar</p>
-                  </div>
-                </div>
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2">
                     🔐 Design da Tela de Login
