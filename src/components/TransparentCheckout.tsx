@@ -172,10 +172,18 @@ export const TransparentCheckout = ({
 
   const handlePixPayment = async () => {
     if (pixKey) {
-      // Manual PIX flow
+      // Manual PIX flow — build a valid PIX EMV BR Code
+      const brcode = generatePixBRCode({
+        pixKey,
+        amount,
+        merchantName: "RECEBEDOR",
+        merchantCity: "SAO PAULO",
+        description: itemName,
+        txid: orderId.replace(/-/g, "").slice(0, 25) || "***",
+      });
       setPixPending(true);
-      setPixQrCode(pixKey); 
-      setPixQrCodeBase64(""); // Clear base64 for manual key
+      setPixQrCode(brcode);
+      setPixQrCodeBase64("");
       return;
     }
 
