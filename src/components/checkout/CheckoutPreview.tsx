@@ -256,30 +256,10 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
                       </div>
                     )}
                     
-                    {checkout.show_field_address && (
-                      <div className="pt-4 border-t space-y-3 animate-in fade-in slide-in-from-top-2">
-                        <h4 className="font-bold flex items-center gap-2" style={{ color: textColor }}>
-                          <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center" style={{ backgroundColor: primaryColor }}>2</span>
-                          Endereço de Entrega
-                        </h4>
-                        <div className="grid grid-cols-3 gap-2">
-                          {checkout.show_field_zip !== false && (
-                            <div className="col-span-1 space-y-1">
-                              <Label className="text-[10px]" style={{ color: subtitleColor }}>CEP</Label>
-                              <Input disabled placeholder="00000-000" className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
-                            </div>
-                          )}
-                          <div className="col-span-2 space-y-1">
-                            <Label className="text-[10px]" style={{ color: subtitleColor }}>Rua</Label>
-                            <Input disabled placeholder="Nome da rua..." className="h-9 border-slate-200 text-xs" style={{ backgroundColor: checkout.custom_settings?.field_color || '#ffffff', color: textColor }} />
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   <Button className={`w-full h-12 font-bold rounded-xl shadow-lg transition-transform active:scale-95 mt-4 ${ctaEffectClasses} ${activeTab === 'cta' ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-slate-900 animate-pulse scale-105' : ''}`} style={{ backgroundColor: primaryColor, color: checkout.button_text_color || '#ffffff' }}>
-                    {checkout.show_field_address ? 'Calcular Frete' : 'Próximo Passo'}
+                    Próximo Passo
                   </Button>
                 </>
               ) : (
