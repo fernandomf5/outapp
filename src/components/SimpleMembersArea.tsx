@@ -314,7 +314,28 @@ export function SimpleMembersArea() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAreas((data || []) as any as MembersArea[]);
+      const loadedAreas = (data || []) as any as MembersArea[];
+      setAreas(loadedAreas);
+
+      // Load checkouts linked to these members areas
+      const areaIds = loadedAreas.map(a => a.id);
+      if (areaIds.length > 0) {
+        const { data: checkoutsData } = await supabase
+          .from('checkouts')
+          .select('id, name, slug, integration_id')
+          .eq('user_id', user.id)
+          .eq('integration_type', 'members_area')
+          .in('integration_id', areaIds);
+        const map: Record<string, { id: string; name: string; slug: string }[]> = {};
+        (checkoutsData || []).forEach((c: any) => {
+          if (!c.integration_id) return;
+          if (!map[c.integration_id]) map[c.integration_id] = [];
+          map[c.integration_id].push({ id: c.id, name: c.name, slug: c.slug });
+        });
+        setLinkedCheckouts(map);
+      } else {
+        setLinkedCheckouts({});
+      }
     } catch (error: any) {
       toast.error('Erro ao carregar áreas: ' + error.message);
     }
