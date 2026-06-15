@@ -686,6 +686,8 @@ export function SimpleMembersArea() {
           area_type: areaFormData.area_type,
           enable_questions: areaFormData.enable_questions,
           access_type: areaFormData.access_type,
+          manager_whatsapp: areaFormData.manager_whatsapp || null,
+
           login_background_color: areaFormData.login_background_color,
           login_text_color: areaFormData.login_text_color,
           background_color: areaFormData.background_color,
