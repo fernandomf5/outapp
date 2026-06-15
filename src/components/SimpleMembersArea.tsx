@@ -19,6 +19,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMembersAreaPreview";
 import { ManageQuestionsDialog } from "@/components/members-area/ManageQuestionsDialog";
 import { AccessCodesDialog } from "@/components/members-area/AccessCodesDialog";
+import { PendingOrdersDialog } from "@/components/members-area/PendingOrdersDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 interface ContentBlock {
@@ -208,6 +209,7 @@ export function SimpleMembersArea() {
   const [areaToDelete, setAreaToDelete] = useState<MembersArea | null>(null);
   const [questionsAreaId, setQuestionsAreaId] = useState<{ id: string; name: string } | null>(null);
   const [codesArea, setCodesArea] = useState<{ id: string; slug: string; name: string } | null>(null);
+  const [pendingOrdersArea, setPendingOrdersArea] = useState<{ id: string; name: string } | null>(null);
   const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
   const [isEditSectionDialogOpen, setIsEditSectionDialogOpen] = useState(false);
@@ -1768,6 +1770,15 @@ export function SimpleMembersArea() {
                   {(linkedCheckouts[area.id] || []).length > 0 && (
                     <div className="pt-2 border-t space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground">Checkouts vinculados</p>
+                      <Button
+                        variant="default"
+                        size="default"
+                        className="w-full h-10 sm:h-9 text-sm"
+                        onClick={(e) => { e.stopPropagation(); setPendingOrdersArea({ id: area.id, name: area.name }); }}
+                      >
+                        <CheckSquare className="w-4 h-4 mr-2" />
+                        Liberar Alunos (PIX Manual)
+                      </Button>
                       {linkedCheckouts[area.id].map((co) => (
                         <div key={co.id} className="flex gap-2">
                           <Button
@@ -1814,6 +1825,15 @@ export function SimpleMembersArea() {
           areaId={codesArea.id}
           areaSlug={codesArea.slug}
           areaName={codesArea.name}
+        />
+      )}
+
+      {pendingOrdersArea && (
+        <PendingOrdersDialog
+          open={!!pendingOrdersArea}
+          onOpenChange={(o) => !o && setPendingOrdersArea(null)}
+          areaId={pendingOrdersArea.id}
+          areaName={pendingOrdersArea.name}
         />
       )}
 
