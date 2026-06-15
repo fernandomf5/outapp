@@ -428,11 +428,11 @@ export const TransparentCheckout = ({
                       <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>
                         <QRCodeCanvas
                           value={pixQrCode || pixKey}
-                          size={220}
+                          size={236}
                           level="H"
-                          includeMargin={false}
+                          includeMargin={true}
                           bgColor="#ffffff"
-                          fgColor="#0f172a"
+                          fgColor="#000000"
                         />
                       </div>
                     </div>
