@@ -282,8 +282,8 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const handleDeleteTask = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
-    setPendingDelete({ type: "task", id: taskId, name: task.title });
-    setConfirmOpen(true);
+    setPendingTaskDelete({ id: taskId, name: task.title });
+    setTaskDeleteOpen(true);
   };
 
   const handleDeleteBlock = (blockId: string) => {
@@ -293,35 +293,61 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     setConfirmOpen(true);
   };
 
+  const handleArchiveTask = async () => {
+    if (!pendingTaskDelete) return;
+    try {
+      setTaskDeleteLoading(true);
+      const { error } = await supabase
+        .from("tasks")
+        .update({ archived: true, archived_at: new Date().toISOString() } as any)
+        .eq("id", pendingTaskDelete.id);
+      if (error) throw error;
+      setTasks(tasks.filter(t => t.id !== pendingTaskDelete.id));
+      toast.success("Tarefa guardada no histórico");
+      setTaskDeleteOpen(false);
+      setPendingTaskDelete(null);
+    } catch {
+      toast.error("Erro ao arquivar tarefa");
+    } finally {
+      setTaskDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteTaskPermanent = async () => {
+    if (!pendingTaskDelete) return;
+    try {
+      setTaskDeleteLoading(true);
+      const { error } = await supabase.from("tasks").delete().eq("id", pendingTaskDelete.id);
+      if (error) throw error;
+      setTasks(tasks.filter(t => t.id !== pendingTaskDelete.id));
+      toast.success("Tarefa excluída definitivamente");
+      setTaskDeleteOpen(false);
+      setPendingTaskDelete(null);
+    } catch {
+      toast.error("Erro ao excluir tarefa");
+    } finally {
+      setTaskDeleteLoading(false);
+    }
+  };
+
   const executeDelete = async () => {
     if (!pendingDelete) return;
 
-    if (pendingDelete.type === "task") {
-      try {
-        const { error } = await supabase.from("tasks").delete().eq("id", pendingDelete.id);
-        if (error) throw error;
-        setTasks(tasks.filter(t => t.id !== pendingDelete.id));
-        toast.success("Tarefa removida");
-      } catch (error) {
-        toast.error("Erro ao remover tarefa");
-      }
-    } else {
-      const hasTasks = tasks.some(t => t.block_id === pendingDelete.id);
-      if (hasTasks) {
-        toast.error("Não é possível excluir um bloco que contém tarefas.");
-        setConfirmOpen(false);
-        setPendingDelete(null);
-        return;
-      }
+    const hasTasks = tasks.some(t => t.block_id === pendingDelete.id);
+    if (hasTasks) {
+      toast.error("Não é possível excluir um bloco que contém tarefas.");
+      setConfirmOpen(false);
+      setPendingDelete(null);
+      return;
+    }
 
-      try {
-        const { error } = await supabase.from("task_blocks").delete().eq("id", pendingDelete.id);
-        if (error) throw error;
-        setBlocks(blocks.filter(b => b.id !== pendingDelete.id));
-        toast.success("Bloco removido");
-      } catch (error) {
-        toast.error("Erro ao remover bloco");
-      }
+    try {
+      const { error } = await supabase.from("task_blocks").delete().eq("id", pendingDelete.id);
+      if (error) throw error;
+      setBlocks(blocks.filter(b => b.id !== pendingDelete.id));
+      toast.success("Bloco removido");
+    } catch {
+      toast.error("Erro ao remover bloco");
     }
 
     setConfirmOpen(false);
