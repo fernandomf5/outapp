@@ -378,6 +378,11 @@ export const TaskHistoryDialog = ({
                                       {t.title}
                                     </h4>
                                     <div className="flex items-center gap-1">
+                                      {t.archived && (
+                                        <Badge className="bg-blue-500/15 text-blue-600 hover:bg-blue-500/15 border-blue-500/30" variant="outline">
+                                          Arquivada
+                                        </Badge>
+                                      )}
                                       {block && (
                                         <Badge
                                           variant="outline"
