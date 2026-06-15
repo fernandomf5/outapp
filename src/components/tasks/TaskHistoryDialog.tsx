@@ -24,6 +24,7 @@ import {
   User as UserIcon,
   ListChecks,
   Trash2,
+  ArchiveRestore,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
