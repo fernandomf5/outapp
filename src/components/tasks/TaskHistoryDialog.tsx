@@ -348,7 +348,7 @@ export const TaskHistoryDialog = ({
                           const block = t.block_id
                             ? blocks[t.block_id]
                             : undefined;
-                          const done = isDoneBlock(block?.name);
+                          const done = isTaskDone(t);
                           const checklist = Array.isArray(t.checklist)
                             ? t.checklist
                             : [];
