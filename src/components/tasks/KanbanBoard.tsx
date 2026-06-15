@@ -17,7 +17,11 @@ import {
   PointerSensor, 
   useSensor, 
   useSensors,
-  closestCorners
+  pointerWithin,
+  rectIntersection,
+  getFirstCollision,
+  closestCenter,
+  CollisionDetection
 } from "@dnd-kit/core";
 import { 
   arrayMove 
