@@ -3,9 +3,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CheckCircle, Loader2, Mail, Phone, User } from "lucide-react";
+import { Archive, ArchiveRestore, CheckCircle, Loader2, Mail, Phone, Trash2, User } from "lucide-react";
 
 interface PendingOrdersDialogProps {
   open: boolean;
@@ -29,7 +34,8 @@ interface Order {
 export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: PendingOrdersDialogProps) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
-  const [releasingId, setReleasingId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"pending" | "archived">("pending");
 
   const load = async () => {
     setLoading(true);
@@ -61,7 +67,7 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
   useEffect(() => { if (open) load(); }, [open, areaId]);
 
   const handleRelease = async (orderId: string) => {
-    setReleasingId(orderId);
+    setBusyId(orderId);
     try {
       const { data, error } = await supabase.functions.invoke('release-checkout-order', {
         body: { orderId },
@@ -73,9 +79,106 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
     } catch (err: any) {
       toast.error('Erro ao liberar: ' + (err.message || 'Desconhecido'));
     } finally {
-      setReleasingId(null);
+      setBusyId(null);
     }
   };
+
+  const handleArchive = async (orderId: string, archive: boolean) => {
+    setBusyId(orderId);
+    try {
+      const { error } = await supabase
+        .from('checkout_orders')
+        .update({ status: archive ? 'archived' : 'pending' })
+        .eq('id', orderId);
+      if (error) throw error;
+      toast.success(archive ? 'Pedido arquivado' : 'Pedido restaurado');
+      await load();
+    } catch (err: any) {
+      toast.error('Erro: ' + err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDelete = async (orderId: string) => {
+    setBusyId(orderId);
+    try {
+      const { error } = await supabase.from('checkout_orders').delete().eq('id', orderId);
+      if (error) throw error;
+      toast.success('Pedido excluído');
+      await load();
+    } catch (err: any) {
+      toast.error('Erro ao excluir: ' + err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const pending = orders.filter((o) => o.status !== 'archived');
+  const archived = orders.filter((o) => o.status === 'archived');
+
+  const renderOrder = (o: Order, archivedView: boolean) => (
+    <div key={o.id} className="border rounded-lg p-4 space-y-2">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4" />
+          <span className="font-semibold">{o.customer_name || 'Sem nome'}</span>
+          <Badge variant={o.status === 'pending' ? 'secondary' : 'outline'}>{o.status}</Badge>
+          {o.payment_method && <Badge variant="outline">{o.payment_method}</Badge>}
+        </div>
+        <span className="font-bold text-primary">R$ {Number(o.amount).toFixed(2)}</span>
+      </div>
+      <div className="text-sm text-muted-foreground space-y-1">
+        {o.customer_email && <div className="flex items-center gap-2"><Mail className="w-3 h-3" />{o.customer_email}</div>}
+        {o.customer_phone && <div className="flex items-center gap-2"><Phone className="w-3 h-3" />{o.customer_phone}</div>}
+        <div className="text-xs">{new Date(o.created_at).toLocaleString('pt-BR')}</div>
+      </div>
+      {!archivedView ? (
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="flex-1"
+            disabled={busyId === o.id}
+            onClick={() => handleRelease(o.id)}
+          >
+            {busyId === o.id ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
+            Liberar acesso
+          </Button>
+          <Button size="sm" variant="outline" disabled={busyId === o.id} onClick={() => handleArchive(o.id, true)}>
+            <Archive className="w-4 h-4 mr-2" />
+            Arquivar
+          </Button>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="flex-1" disabled={busyId === o.id} onClick={() => handleArchive(o.id, false)}>
+            <ArchiveRestore className="w-4 h-4 mr-2" />
+            Restaurar
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="destructive" disabled={busyId === o.id}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Excluir
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir pedido?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação não pode ser desfeita. O pedido será removido permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => handleDelete(o.id)}>Excluir</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,52 +186,40 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
         <DialogHeader>
           <DialogTitle>Liberar Alunos - {areaName}</DialogTitle>
           <DialogDescription>
-            Pedidos pendentes dos checkouts vinculados. Libere o acesso após confirmar o pagamento via PIX.
+            Libere o acesso após confirmar o pagamento. Arquive os que não confirmarem.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[60vh] pr-4">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin" />
-            </div>
-          ) : orders.length === 0 ? (
-            <p className="text-center text-muted-foreground py-12">Nenhum pedido pendente.</p>
-          ) : (
-            <div className="space-y-3">
-              {orders.map((o) => (
-                <div key={o.id} className="border rounded-lg p-4 space-y-2">
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      <span className="font-semibold">{o.customer_name || 'Sem nome'}</span>
-                      <Badge variant={o.status === 'pending' ? 'secondary' : 'outline'}>{o.status}</Badge>
-                      {o.payment_method && <Badge variant="outline">{o.payment_method}</Badge>}
-                    </div>
-                    <span className="font-bold text-primary">R$ {Number(o.amount).toFixed(2)}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    {o.customer_email && <div className="flex items-center gap-2"><Mail className="w-3 h-3" />{o.customer_email}</div>}
-                    {o.customer_phone && <div className="flex items-center gap-2"><Phone className="w-3 h-3" />{o.customer_phone}</div>}
-                    <div className="text-xs">{new Date(o.created_at).toLocaleString('pt-BR')}</div>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    disabled={releasingId === o.id}
-                    onClick={() => handleRelease(o.id)}
-                  >
-                    {releasingId === o.id ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                    )}
-                    Liberar acesso e enviar e-mail
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+
+        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="pending">Pendentes ({pending.length})</TabsTrigger>
+            <TabsTrigger value="archived">Arquivados ({archived.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pending">
+            <ScrollArea className="max-h-[55vh] pr-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
+              ) : pending.length === 0 ? (
+                <p className="text-center text-muted-foreground py-12">Nenhum pedido pendente.</p>
+              ) : (
+                <div className="space-y-3">{pending.map((o) => renderOrder(o, false))}</div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="archived">
+            <ScrollArea className="max-h-[55vh] pr-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
+              ) : archived.length === 0 ? (
+                <p className="text-center text-muted-foreground py-12">Nenhum pedido arquivado.</p>
+              ) : (
+                <div className="space-y-3">{archived.map((o) => renderOrder(o, true))}</div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
