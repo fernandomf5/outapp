@@ -272,6 +272,16 @@ export function SimpleMembersArea() {
     loadCustomersAndBusinesses();
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const manageId = params.get('manageQuestions');
+    if (!manageId || areas.length === 0) return;
+    const area = areas.find(a => a.id === manageId);
+    if (area) {
+      setQuestionsAreaId({ id: area.id, name: area.name });
+    }
+  }, [areas]);
+
   const loadCustomersAndBusinesses = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
