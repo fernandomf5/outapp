@@ -128,6 +128,7 @@ interface MembersArea {
 
 export default function MembersAreaPublic() {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
   const [area, setArea] = useState<MembersArea | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessCodeId, setAccessCodeId] = useState<string | null>(null);
@@ -143,6 +144,14 @@ export default function MembersAreaPublic() {
   useEffect(() => {
     loadArea();
   }, [slug]);
+
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      setLoginMode('code');
+      setPasswordInput(code.toUpperCase());
+    }
+  }, [searchParams]);
 
   const loadArea = async () => {
     try {
