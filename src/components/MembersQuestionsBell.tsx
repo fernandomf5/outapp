@@ -47,6 +47,7 @@ export const MembersQuestionsBell = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<QuestionNotification[]>([]);
   const [seen, setSeen] = useState<Set<string>>(getSeen());
+  const [dismissed, setDismissed] = useState<Set<string>>(getDismissed());
   const [isOpen, setIsOpen] = useState(false);
   const [hasEnabledArea, setHasEnabledArea] = useState(false);
 
