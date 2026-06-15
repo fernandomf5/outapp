@@ -239,6 +239,20 @@ export const TaskHistoryDialog = ({
     }
   };
 
+  const handleUnarchiveTask = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ archived: false, archived_at: null } as any)
+        .eq("id", id);
+      if (error) throw error;
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+      toast.success("Tarefa desarquivada e restaurada ao bloco original.");
+    } catch (e: any) {
+      toast.error("Erro ao desarquivar: " + (e?.message || ""));
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
