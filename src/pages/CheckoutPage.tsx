@@ -523,14 +523,27 @@ const CheckoutPage = () => {
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>E-mail para entrega *</Label>
                           <Input className="h-12 rounded-xl border-none shadow-sm" type="email" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.email} onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })} placeholder="Onde enviaremos seu acesso?" />
+                          {customerData.email && !isValidEmail(customerData.email) && (
+                            <p className="text-[10px] text-destructive font-semibold">E-mail inválido</p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>Confirme o E-mail *</Label>
+                          <Input className="h-12 rounded-xl border-none shadow-sm" type="email" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.emailConfirm} onChange={(e) => setCustomerData({ ...customerData, emailConfirm: e.target.value })} placeholder="Digite o e-mail novamente" onPaste={(e) => e.preventDefault()} />
+                          {customerData.emailConfirm && customerData.email.trim().toLowerCase() !== customerData.emailConfirm.trim().toLowerCase() && (
+                            <p className="text-[10px] text-destructive font-semibold">Os e-mails não coincidem</p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>WhatsApp</Label>
                           <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.phone} onChange={(e) => setCustomerData({ ...customerData, phone: e.target.value })} placeholder="(00) 00000-0000" />
                         </div>
                          <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>CPF / CNPJ *</Label>
-                          <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: e.target.value })} placeholder="000.000.000-00" />
+                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>CPF *</Label>
+                          <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: formatCpf(e.target.value) })} placeholder="000.000.000-00" inputMode="numeric" maxLength={14} />
+                          {customerData.cpf && !isValidCpf(customerData.cpf) && (
+                            <p className="text-[10px] text-destructive font-semibold">CPF inválido</p>
+                          )}
                         </div>
                       </div>
                     </div>
