@@ -245,12 +245,12 @@ const CheckoutPage = () => {
 
   const handleProceedToPayment = async () => {
     if (!checkout) return;
-    if (!customerData.name.trim() || !customerData.email.trim()) {
-      alert('Preencha nome e email para continuar'); return;
+    if (!customerData.name.trim()) { alert('Preencha seu nome completo'); return; }
+    if (!isValidEmail(customerData.email)) { alert('E-mail inválido'); return; }
+    if (customerData.email.trim().toLowerCase() !== customerData.emailConfirm.trim().toLowerCase()) {
+      alert('Os e-mails não coincidem. O código de acesso será enviado a este e-mail.'); return;
     }
-    if (!customerData.cpf.trim()) {
-      alert('Preencha o CPF para pagamento'); return;
-    }
+    if (!isValidCpf(customerData.cpf)) { alert('CPF inválido'); return; }
 
     try {
       const totalAmount = calculateTotal();
