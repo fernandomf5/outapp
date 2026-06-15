@@ -140,6 +140,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         effectiveUserId={effectiveUserId}
+        onChanged={() => setKanbanRefreshKey((k) => k + 1)}
       />
 
       {view === "categories" && (
