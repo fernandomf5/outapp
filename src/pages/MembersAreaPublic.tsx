@@ -13,6 +13,7 @@ import { AdsDashboardBlock } from "@/components/members-area/AdsDashboardBlock";
 import { PaymentHistoryBlock } from "@/components/members-area/PaymentHistoryBlock";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { VideoQuestions } from "@/components/members-area/VideoQuestions";
 
 const SecretContentBlock = ({ content, title, accentColor, textColor }: { content: string; title?: string; accentColor: string; textColor: string }) => {
   const [visible, setVisible] = useState(false);
