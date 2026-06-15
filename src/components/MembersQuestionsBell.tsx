@@ -23,24 +23,31 @@ interface QuestionNotification {
 }
 
 const STORAGE_KEY = "members_questions_seen_ids";
+const DISMISSED_KEY = "members_questions_dismissed_ids";
 
-const getSeen = (): Set<string> => {
+const getStored = (key: string): Set<string> => {
   try {
-    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+    return new Set(JSON.parse(localStorage.getItem(key) || "[]"));
   } catch {
     return new Set();
   }
 };
 
-const saveSeen = (set: Set<string>) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(set)));
+const saveStored = (key: string, set: Set<string>) => {
+  localStorage.setItem(key, JSON.stringify(Array.from(set)));
 };
+
+const getSeen = () => getStored(STORAGE_KEY);
+const saveSeen = (s: Set<string>) => saveStored(STORAGE_KEY, s);
+const getDismissed = () => getStored(DISMISSED_KEY);
+const saveDismissed = (s: Set<string>) => saveStored(DISMISSED_KEY, s);
 
 export const MembersQuestionsBell = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<QuestionNotification[]>([]);
   const [seen, setSeen] = useState<Set<string>>(getSeen());
+  const [dismissed, setDismissed] = useState<Set<string>>(getDismissed());
   const [isOpen, setIsOpen] = useState(false);
   const [hasEnabledArea, setHasEnabledArea] = useState(false);
 
@@ -96,11 +103,12 @@ export const MembersQuestionsBell = () => {
 
   if (!hasEnabledArea) return null;
 
-  const unreadCount = notifications.filter((n) => !seen.has(n.id)).length;
+  const visible = notifications.filter((n) => !dismissed.has(n.id));
+  const unreadCount = visible.filter((n) => !seen.has(n.id)).length;
 
   const markAllRead = () => {
     const next = new Set(seen);
-    notifications.forEach((n) => next.add(n.id));
+    visible.forEach((n) => next.add(n.id));
     setSeen(next);
     saveSeen(next);
   };
@@ -114,22 +122,12 @@ export const MembersQuestionsBell = () => {
     navigate(`/dashboard?tab=area-membros&manageQuestions=${n.area_id}`);
   };
 
-  const handleDismiss = async (id: string, e: React.MouseEvent) => {
+  const handleDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const prev = notifications;
-    setNotifications((curr) => curr.filter((n) => n.id !== id));
-    const { error } = await supabase
-      .from("members_area_video_questions" as any)
-      .delete()
-      .eq("id", id);
-    if (error) {
-      setNotifications(prev);
-      return;
-    }
-    const next = new Set(seen);
+    const next = new Set(dismissed);
     next.add(id);
-    setSeen(next);
-    saveSeen(next);
+    setDismissed(next);
+    saveDismissed(next);
   };
 
   return (
@@ -157,14 +155,14 @@ export const MembersQuestionsBell = () => {
           )}
         </div>
         <ScrollArea className="h-96">
-          {notifications.length === 0 ? (
+          {visible.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Bell className="w-12 h-12 mx-auto mb-2 opacity-20" />
               <p>Nenhuma dúvida</p>
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.map((n) => {
+              {visible.map((n) => {
                 const isUnread = !seen.has(n.id);
                 return (
                   <div
