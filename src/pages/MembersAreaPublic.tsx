@@ -182,6 +182,8 @@ export default function MembersAreaPublic() {
           toast.error('Código de acesso inválido ou expirado');
           return;
         }
+        setAccessCodeId((codeData as any).id);
+        setStudentName((codeData as any).customer_name || 'Aluno');
         setIsAuthenticated(true);
         toast.success('Acesso liberado!');
       } catch {
