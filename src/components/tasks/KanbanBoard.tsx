@@ -91,6 +91,9 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{ type: "task" | "block"; id: string; name: string } | null>(null);
+  const [taskDeleteOpen, setTaskDeleteOpen] = useState(false);
+  const [pendingTaskDelete, setPendingTaskDelete] = useState<{ id: string; name: string } | null>(null);
+  const [taskDeleteLoading, setTaskDeleteLoading] = useState(false);
 
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
