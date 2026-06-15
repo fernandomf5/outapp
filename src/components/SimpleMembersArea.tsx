@@ -596,6 +596,7 @@ export function SimpleMembersArea() {
       customer_name: area.customer_name || '',
       business_id: area.business_id || '',
       area_type: area.area_type || 'course',
+      enable_questions: (area as any).enable_questions || false,
       login_background_color: (area as any).login_background_color || '#1a1a2e',
       login_text_color: (area as any).login_text_color || '#ffffff',
       background_color: area.background_color || '#ffffff',
