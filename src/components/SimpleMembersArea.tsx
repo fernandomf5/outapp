@@ -1819,6 +1819,15 @@ export function SimpleMembersArea() {
         />
       )}
 
+      {pendingOrdersArea && (
+        <PendingOrdersDialog
+          open={!!pendingOrdersArea}
+          onOpenChange={(o) => !o && setPendingOrdersArea(null)}
+          areaId={pendingOrdersArea.id}
+          areaName={pendingOrdersArea.name}
+        />
+      )}
+
 
       <Dialog modal={false} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
