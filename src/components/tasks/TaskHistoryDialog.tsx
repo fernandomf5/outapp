@@ -427,7 +427,7 @@ export const TaskHistoryDialog = ({
                                         variant="ghost"
                                         size="icon"
                                         className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                                        onClick={() => handleDeleteTask(t.id)}
+                                        onClick={() => setConfirmDeleteId(t.id)}
                                         title="Excluir esta tarefa"
                                       >
                                         <Trash2 className="h-3.5 w-3.5" />
