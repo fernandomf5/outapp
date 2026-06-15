@@ -18,6 +18,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } 
 import { CSS } from '@dnd-kit/utilities';
 import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMembersAreaPreview";
 import { ManageQuestionsDialog } from "@/components/members-area/ManageQuestionsDialog";
+import { AccessCodesDialog } from "@/components/members-area/AccessCodesDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 interface ContentBlock {
