@@ -6018,6 +6018,66 @@ export type Database = {
           },
         ]
       }
+      members_area_video_questions: {
+        Row: {
+          access_code_id: string | null
+          answer: string | null
+          answered_at: string | null
+          area_id: string
+          block_id: string
+          created_at: string
+          id: string
+          owner_user_id: string
+          question: string
+          student_name: string
+          updated_at: string
+          video_index: number
+        }
+        Insert: {
+          access_code_id?: string | null
+          answer?: string | null
+          answered_at?: string | null
+          area_id: string
+          block_id: string
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          question: string
+          student_name?: string
+          updated_at?: string
+          video_index?: number
+        }
+        Update: {
+          access_code_id?: string | null
+          answer?: string | null
+          answered_at?: string | null
+          area_id?: string
+          block_id?: string
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          question?: string
+          student_name?: string
+          updated_at?: string
+          video_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_video_questions_access_code_id_fkey"
+            columns: ["access_code_id"]
+            isOneToOne: false
+            referencedRelation: "members_area_access_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_area_video_questions_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "simple_members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mind_maps: {
         Row: {
           created_at: string
@@ -7921,6 +7981,7 @@ export type Database = {
           customer_id: string | null
           customer_name: string | null
           description: string | null
+          enable_questions: boolean
           header_background_color: string | null
           id: string
           is_active: boolean | null
@@ -7949,6 +8010,7 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           description?: string | null
+          enable_questions?: boolean
           header_background_color?: string | null
           id?: string
           is_active?: boolean | null
@@ -7977,6 +8039,7 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           description?: string | null
+          enable_questions?: boolean
           header_background_color?: string | null
           id?: string
           is_active?: boolean | null
