@@ -6,7 +6,8 @@ import {
   Layout,
   Loader2,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  ListPlus
 } from "lucide-react";
 import { 
   DndContext, 
@@ -38,6 +39,7 @@ import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
 import { TaskDialog } from "./TaskDialog";
 import { BlockDialog } from "./BlockDialog";
+import { BulkTaskDialog } from "./BulkTaskDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ChecklistItem {
@@ -85,6 +87,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [isBulkTaskDialogOpen, setIsBulkTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingBlock, setEditingBlock] = useState<Block | null>(null);
@@ -428,6 +431,10 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
             <Layout className="h-4 w-4 text-primary" />
             Criar Bloco
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setIsBulkTaskDialogOpen(true)} className="gap-2 border-primary/20 hover:bg-primary/5">
+            <ListPlus className="h-4 w-4 text-primary" />
+            Em Massa
+          </Button>
           <Button size="sm" onClick={() => { setEditingTask(null); setIsTaskDialogOpen(true); }} className="gap-2 shadow-md bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4" />
             Nova Tarefa
@@ -496,6 +503,15 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         open={isTaskDialogOpen}
         onOpenChange={setIsTaskDialogOpen}
         task={editingTask}
+        blocks={blocks}
+        userId={userId}
+        effectiveUserId={effectiveUserId}
+        onSuccess={fetchData}
+      />
+
+      <BulkTaskDialog
+        open={isBulkTaskDialogOpen}
+        onOpenChange={setIsBulkTaskDialogOpen}
         blocks={blocks}
         userId={userId}
         effectiveUserId={effectiveUserId}
