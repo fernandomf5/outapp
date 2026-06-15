@@ -96,6 +96,7 @@ export const TaskHistoryDialog = ({
   const [selectedClient, setSelectedClient] = useState<string>("all");
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open && effectiveUserId) fetchAll();
