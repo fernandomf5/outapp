@@ -377,7 +377,7 @@ const Index = () => {
           <span className="text-[10px] xs:text-xs sm:text-sm font-bold text-[#0C101B] dark:text-primary hidden xs:inline">Menu</span>
         </button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[260px] xs:w-[280px] sm:w-[320px] md:w-[350px] lg:w-[400px] p-0 flex flex-col bg-gradient-to-b from-background via-background to-background/95 border-l border-primary/20">
+      <SheetContent side="right" className="w-[88vw] xs:w-[380px] sm:w-[420px] md:w-[460px] lg:w-[500px] p-0 flex flex-col bg-gradient-to-b from-background via-background to-background/95 border-l border-primary/20">
         {/* Header com Logo */}
         <SheetHeader className="px-4 xs:px-5 sm:px-6 py-5 xs:py-6 sm:py-8 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
           <div className="flex flex-col items-center gap-2 xs:gap-3 sm:gap-4">
