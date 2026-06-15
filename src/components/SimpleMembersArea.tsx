@@ -1869,6 +1869,16 @@ export function SimpleMembersArea() {
                   />
                 </div>
                 <div>
+                  <Label>Slug (URL personalizada)</Label>
+                  <Input
+                    value={areaFormData.slug}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                    placeholder="curso-marketing (opcional, gerado pelo nome)"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Link: /members/{areaFormData.slug || areaFormData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}</p>
+                </div>
+
+                <div>
                   <Label>Descrição</Label>
                   <Textarea
                     value={areaFormData.description}
