@@ -2077,6 +2077,22 @@ export function SimpleMembersArea() {
                       : 'Área exclusiva sem acompanhamento de progresso'}
                   </p>
                 </div>
+                {areaFormData.area_type === 'course' && (
+                  <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm">Habilitar dúvidas dos alunos</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Cada aluno poderá comentar abaixo dos vídeos para tirar dúvidas. Apenas o próprio aluno vê suas perguntas e suas respostas.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-5 w-5 cursor-pointer"
+                      checked={areaFormData.enable_questions}
+                      onChange={(e) => setAreaFormData({ ...areaFormData, enable_questions: e.target.checked })}
+                    />
+                  </div>
+                )}
                 <div>
                   <ImageUpload
                     label="Logo (opcional)"
