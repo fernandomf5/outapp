@@ -8408,6 +8408,8 @@ export type Database = {
       }
       tasks: {
         Row: {
+          archived: boolean
+          archived_at: string | null
           block_id: string | null
           business_id: string | null
           category: string | null
@@ -8426,6 +8428,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived?: boolean
+          archived_at?: string | null
           block_id?: string | null
           business_id?: string | null
           category?: string | null
@@ -8444,6 +8448,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived?: boolean
+          archived_at?: string | null
           block_id?: string | null
           business_id?: string | null
           category?: string | null

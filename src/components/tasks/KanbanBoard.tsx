@@ -158,6 +158,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         .select("*")
         .eq("user_id", effectiveUserId)
         .eq("client_id", userId)
+        .eq("archived", false)
         .order("task_order");
 
       if (tasksError) {
