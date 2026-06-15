@@ -2206,6 +2206,18 @@ export function SimpleMembersArea() {
                   </div>
                 )}
                 <div>
+                  <Label>WhatsApp do gerente (recuperação de senha)</Label>
+                  <Input
+                    value={areaFormData.manager_whatsapp}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, manager_whatsapp: e.target.value })}
+                    placeholder="Ex: 5511999999999 (com DDI e DDD)"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O aluno verá um botão para falar com você no WhatsApp caso esqueça a senha.
+                  </p>
+                </div>
+
+                <div>
                   <Label>Tipo de Área</Label>
                   <Select 
                     value={areaFormData.area_type} 
