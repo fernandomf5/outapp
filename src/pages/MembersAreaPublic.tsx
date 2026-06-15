@@ -546,7 +546,7 @@ export default function MembersAreaPublic() {
           }
         }
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-6">
             {videos.map((video, idx) => (
               <VideoGalleryItem key={idx} video={video} accentColor={accentColor} cardTextColor={cardTextColor} />
             ))}
