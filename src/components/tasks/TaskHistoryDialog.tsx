@@ -470,8 +470,8 @@ export const TaskHistoryDialog = ({
         onOpenChange={setConfirmClearOpen}
         onConfirm={handleClearHistory}
         title="Zerar histórico?"
-        description={`Isso excluirá permanentemente ${stats.done} tarefa(s) concluída(s) do filtro atual. Esta ação não pode ser desfeita.`}
-        
+        description={`Isso excluirá permanentemente ${stats.done} tarefa(s) arquivada(s) do filtro atual. Esta ação não pode ser desfeita.`}
+        className="z-[100]"
       />
     </>
   );
