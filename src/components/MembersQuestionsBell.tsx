@@ -114,18 +114,9 @@ export const MembersQuestionsBell = () => {
     navigate(`/dashboard?tab=area-membros&manageQuestions=${n.area_id}`);
   };
 
-  const handleDismiss = async (id: string, e: React.MouseEvent) => {
+  const handleDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const prev = notifications;
     setNotifications((curr) => curr.filter((n) => n.id !== id));
-    const { error } = await supabase
-      .from("members_area_video_questions" as any)
-      .delete()
-      .eq("id", id);
-    if (error) {
-      setNotifications(prev);
-      return;
-    }
     const next = new Set(seen);
     next.add(id);
     setSeen(next);
