@@ -268,7 +268,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                       </TableCell>
                     </TableRow>
                   ) : (
-                    items.map((item) => (
+                    items.map((item, index) => (
                        <TableRow key={item.id}>
                          <TableCell>
                            <Avatar className="h-8 w-8">
@@ -297,7 +297,43 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                           {new Date(item.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveItem(index, 'top')}
+                              disabled={index === 0}
+                              title="Mover para o topo"
+                            >
+                              <ChevronsUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveItem(index, 'up')}
+                              disabled={index === 0}
+                              title="Subir"
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveItem(index, 'down')}
+                              disabled={index === items.length - 1}
+                              title="Descer"
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveItem(index, 'bottom')}
+                              disabled={index === items.length - 1}
+                              title="Mover para o fim"
+                            >
+                              <ChevronsDown className="h-4 w-4" />
+                            </Button>
                             <Button 
                               variant="ghost" 
                               size="icon" 
