@@ -515,6 +515,7 @@ const Dashboard = () => {
                     {!isTeamMember && <ConversationNotificationBell />}
                     {!isTeamMember && <NotificationBell />}
                     {!isTeamMember && <TicketNotificationBell />}
+                    {!isTeamMember && <MembersQuestionsBell />}
                     <div className="hidden md:flex items-center gap-1">
                       <LanguageSelector />
                       <ThemeToggle />
