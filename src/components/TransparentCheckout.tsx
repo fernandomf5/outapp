@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Loader2, QrCode, Copy, CheckCircle2, AlertCircle, Smartphone } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
+import { generatePixBRCode } from "@/lib/pix";
 
 interface TransparentCheckoutProps {
   checkoutId: string;
