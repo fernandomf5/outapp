@@ -1743,6 +1743,16 @@ export function SimpleMembersArea() {
         />
       )}
 
+      {codesArea && (
+        <AccessCodesDialog
+          open={!!codesArea}
+          onOpenChange={(o) => !o && setCodesArea(null)}
+          areaId={codesArea.id}
+          areaSlug={codesArea.slug}
+          areaName={codesArea.name}
+        />
+      )}
+
 
       <Dialog modal={false} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
