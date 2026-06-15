@@ -499,7 +499,19 @@ export const TaskHistoryDialog = ({
         onConfirm={handleClearHistory}
         title="Zerar histórico?"
         description={`Isso excluirá permanentemente ${stats.done} tarefa(s) arquivada(s) do filtro atual. Esta ação não pode ser desfeita.`}
-        className="z-[100]"
+      />
+
+      <DeleteConfirmDialog
+        open={!!confirmDeleteId}
+        onOpenChange={(o) => !o && setConfirmDeleteId(null)}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            handleDeleteTask(confirmDeleteId);
+            setConfirmDeleteId(null);
+          }
+        }}
+        title="Excluir tarefa?"
+        description="Esta tarefa será removida permanentemente do histórico. Esta ação não pode ser desfeita."
       />
     </>
   );
