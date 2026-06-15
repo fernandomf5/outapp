@@ -36,6 +36,7 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<"pending" | "archived">("pending");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
