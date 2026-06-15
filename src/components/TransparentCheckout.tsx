@@ -440,15 +440,14 @@ export const TransparentCheckout = ({
                 )}
                 {!pixKey && <p className="text-sm font-medium" style={{ color: textColor }}>Escaneie o QR Code ou copie o código PIX</p>}
                 <Button
-                  variant="outline"
-                  className="w-full"
+                  className="w-full h-12 font-bold rounded-xl shadow-md"
                   onClick={copyPixCode}
-                  style={{ color: textColor, borderColor: subtitleColor }}
+                  style={{ backgroundColor: primaryColor, color: '#ffffff', borderColor: primaryColor }}
                 >
                   {pixCopied ? (
-                    <><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />Copiado!</>
+                    <><CheckCircle2 className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiado!</>
                   ) : (
-                    <><Copy className="w-4 h-4 mr-2" />Copiar Código PIX</>
+                    <><Copy className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiar Código PIX</>
                   )}
                 </Button>
 
