@@ -154,10 +154,18 @@ export function ManageQuestionsDialog({ open, onOpenChange, areaId, areaName }: 
                         value={answers[q.id] ?? q.answer ?? ""}
                         onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
                       />
-                      <Button onClick={() => handleAnswer(q)} disabled={loading}>
-                        <Send className="w-4 h-4 mr-1" />
-                        {q.answer ? "Atualizar" : "Responder"}
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button onClick={() => handleAnswer(q)} disabled={loading}>
+                          <Send className="w-4 h-4 mr-1" />
+                          {q.answer ? "Atualizar" : "Responder"}
+                        </Button>
+                        {q.answer && (
+                          <Button variant="outline" onClick={() => clearAnswer(q)}>
+                            <Eraser className="w-4 h-4 mr-1" />
+                            Excluir resposta
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
