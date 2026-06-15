@@ -96,6 +96,7 @@ export const TaskHistoryDialog = ({
   const [selectedClient, setSelectedClient] = useState<string>("all");
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open && effectiveUserId) fetchAll();
@@ -426,7 +427,7 @@ export const TaskHistoryDialog = ({
                                         variant="ghost"
                                         size="icon"
                                         className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                                        onClick={() => handleDeleteTask(t.id)}
+                                        onClick={() => setConfirmDeleteId(t.id)}
                                         title="Excluir esta tarefa"
                                       >
                                         <Trash2 className="h-3.5 w-3.5" />
@@ -498,7 +499,19 @@ export const TaskHistoryDialog = ({
         onConfirm={handleClearHistory}
         title="Zerar histórico?"
         description={`Isso excluirá permanentemente ${stats.done} tarefa(s) arquivada(s) do filtro atual. Esta ação não pode ser desfeita.`}
-        className="z-[100]"
+      />
+
+      <DeleteConfirmDialog
+        open={!!confirmDeleteId}
+        onOpenChange={(o) => !o && setConfirmDeleteId(null)}
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            handleDeleteTask(confirmDeleteId);
+            setConfirmDeleteId(null);
+          }
+        }}
+        title="Excluir tarefa?"
+        description="Esta tarefa será removida permanentemente do histórico. Esta ação não pode ser desfeita."
       />
     </>
   );
