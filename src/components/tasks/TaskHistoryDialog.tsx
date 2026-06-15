@@ -33,6 +33,7 @@ interface TaskHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   effectiveUserId: string;
+  onChanged?: () => void;
 }
 
 interface ChecklistItem {
