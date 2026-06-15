@@ -335,6 +335,7 @@ export function SimpleMembersArea() {
           customer_name: selectedCustomer?.name || null,
           business_id: areaFormData.business_id || null,
           area_type: areaFormData.area_type,
+          enable_questions: areaFormData.enable_questions,
           access_type: areaFormData.access_type,
           login_background_color: areaFormData.login_background_color,
           login_text_color: areaFormData.login_text_color,
