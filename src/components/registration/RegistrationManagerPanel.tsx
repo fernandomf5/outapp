@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { toast } from "sonner";
@@ -301,15 +301,6 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => moveItem(index, 'top')}
-                              disabled={index === 0}
-                              title="Mover para o topo"
-                            >
-                              <ChevronsUp className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
                               onClick={() => moveItem(index, 'up')}
                               disabled={index === 0}
                               title="Subir"
@@ -324,15 +315,6 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                               title="Descer"
                             >
                               <ArrowDown className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => moveItem(index, 'bottom')}
-                              disabled={index === items.length - 1}
-                              title="Mover para o fim"
-                            >
-                              <ChevronsDown className="h-4 w-4" />
                             </Button>
                             <Button 
                               variant="ghost" 
