@@ -6,7 +6,8 @@ import {
   Layout,
   Loader2,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  ListPlus
 } from "lucide-react";
 import { 
   DndContext, 
