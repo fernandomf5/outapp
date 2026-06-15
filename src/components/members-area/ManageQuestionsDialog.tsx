@@ -75,6 +75,17 @@ export function ManageQuestionsDialog({ open, onOpenChange, areaId, areaName }: 
     setAnswers((a) => ({ ...a, [q.id]: "" }));
   };
 
+  const clearAnswer = async (q: Question) => {
+    if (!confirm("Excluir esta resposta? Você poderá responder novamente.")) return;
+    const { error } = await supabase
+      .from("members_area_video_questions" as any)
+      .update({ answer: null, answered_at: null })
+      .eq("id", q.id);
+    if (error) return toast.error("Erro ao excluir resposta");
+    setAnswers((a) => ({ ...a, [q.id]: "" }));
+    toast.success("Resposta removida");
+  };
+
   const handleDelete = async () => {
     if (!toDelete) return;
     const { error } = await supabase
