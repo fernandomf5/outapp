@@ -65,6 +65,47 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
     }
   };
 
+  const getOrderKey = (categoryId: string) => `task-users-order-${categoryId}`;
+
+  const applyCustomOrder = (list: UserRegistration[], categoryId: string): UserRegistration[] => {
+    try {
+      const stored = localStorage.getItem(getOrderKey(categoryId));
+      if (!stored) return list;
+      const orderIds: string[] = JSON.parse(stored);
+      const indexOf = (id: string) => {
+        const i = orderIds.indexOf(id);
+        return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+      };
+      return [...list].sort((a, b) => {
+        const ai = indexOf(a.id);
+        const bi = indexOf(b.id);
+        if (ai !== bi) return ai - bi;
+        return a.name.localeCompare(b.name);
+      });
+    } catch {
+      return list;
+    }
+  };
+
+  const saveOrder = (list: UserRegistration[], categoryId: string) => {
+    try {
+      localStorage.setItem(getOrderKey(categoryId), JSON.stringify(list.map((i) => i.id)));
+    } catch {}
+  };
+
+  const moveUser = (index: number, direction: 'up' | 'down') => {
+    if (!selectedCategory) return;
+    setUsers((prev) => {
+      const next = [...prev];
+      const newIndex = direction === 'up' ? Math.max(0, index - 1) : Math.min(next.length - 1, index + 1);
+      if (newIndex === index) return prev;
+      const [item] = next.splice(index, 1);
+      next.splice(newIndex, 0, item);
+      saveOrder(next, selectedCategory.id);
+      return next;
+    });
+  };
+
   const fetchUsers = async (categoryId: string) => {
     try {
       setLoading(true);
@@ -75,7 +116,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
         .order("name");
 
       if (error) throw error;
-      setUsers(data || []);
+      setUsers(applyCustomOrder(data || [], categoryId));
       setView("users");
     } catch (error) {
       console.error("Error fetching users:", error);
