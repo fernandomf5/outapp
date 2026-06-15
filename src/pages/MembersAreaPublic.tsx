@@ -180,7 +180,12 @@ export default function MembersAreaPublic() {
           .maybeSingle();
         
         if (error || !codeData) {
-          toast.error('Código de acesso inválido ou expirado');
+          toast.error('Código de acesso inválido');
+          return;
+        }
+        const expiresAt = (codeData as any).expires_at;
+        if (expiresAt && new Date(expiresAt).getTime() < Date.now()) {
+          toast.error('Este código expirou');
           return;
         }
         setAccessCodeId((codeData as any).id);
