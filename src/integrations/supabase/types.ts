@@ -7988,6 +7988,7 @@ export type Database = {
           login_background_color: string | null
           login_text_color: string | null
           logo_url: string | null
+          manager_whatsapp: string | null
           name: string
           password: string
           primary_color: string | null
@@ -8017,6 +8018,7 @@ export type Database = {
           login_background_color?: string | null
           login_text_color?: string | null
           logo_url?: string | null
+          manager_whatsapp?: string | null
           name: string
           password: string
           primary_color?: string | null
@@ -8046,6 +8048,7 @@ export type Database = {
           login_background_color?: string | null
           login_text_color?: string | null
           logo_url?: string | null
+          manager_whatsapp?: string | null
           name?: string
           password?: string
           primary_color?: string | null
