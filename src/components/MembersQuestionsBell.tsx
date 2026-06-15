@@ -155,14 +155,14 @@ export const MembersQuestionsBell = () => {
           )}
         </div>
         <ScrollArea className="h-96">
-          {notifications.length === 0 ? (
+          {visible.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Bell className="w-12 h-12 mx-auto mb-2 opacity-20" />
               <p>Nenhuma dúvida</p>
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.map((n) => {
+              {visible.map((n) => {
                 const isUnread = !seen.has(n.id);
                 return (
                   <div
