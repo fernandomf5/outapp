@@ -38,6 +38,8 @@ export function VideoQuestions({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
   const load = async () => {
     const { data } = await supabase
