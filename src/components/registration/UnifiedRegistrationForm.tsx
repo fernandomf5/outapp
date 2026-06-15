@@ -62,12 +62,16 @@ export function UnifiedRegistrationForm({
     setLoading(true);
 
     try {
+      const cleanUrls = urls
+        .filter((u) => u.url.trim())
+        .map((u) => ({ label: u.label.trim(), url: normalizeUrl(u.url.trim()) }));
+
       if (initialData?.id) {
-        // Update existing registration
         const { error } = await supabase
           .from('contacts')
           .update({
             ...data,
+            urls: cleanUrls as any,
             registration_category_id: categoryId,
           })
           .eq('id', initialData.id);
@@ -75,11 +79,11 @@ export function UnifiedRegistrationForm({
         if (error) throw error;
         toast.success(`${categoryName} atualizado com sucesso!`);
       } else {
-        // Insert new registration
         const { error } = await supabase
           .from('contacts')
           .insert([{
             ...data,
+            urls: cleanUrls as any,
             user_id: user.id,
             registration_category_id: categoryId,
           }]);
@@ -88,8 +92,8 @@ export function UnifiedRegistrationForm({
         toast.success(`${categoryName} cadastrado com sucesso!`);
       }
 
-      toast.success(`${categoryName} cadastrado com sucesso!`);
       reset();
+
       
       // Emit event to refresh sidebar if needed
       window.dispatchEvent(new CustomEvent('registration-items-updated'));
