@@ -206,6 +206,7 @@ export function SimpleMembersArea() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [areaToDelete, setAreaToDelete] = useState<MembersArea | null>(null);
   const [questionsAreaId, setQuestionsAreaId] = useState<{ id: string; name: string } | null>(null);
+  const [codesArea, setCodesArea] = useState<{ id: string; slug: string; name: string } | null>(null);
   const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
   const [isEditSectionDialogOpen, setIsEditSectionDialogOpen] = useState(false);
