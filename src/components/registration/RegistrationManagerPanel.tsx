@@ -63,6 +63,49 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     }
   };
 
+  const getOrderKey = () => `registration-order-${categoryId}`;
+
+  const applyCustomOrder = (list: RegisteredItem[]): RegisteredItem[] => {
+    try {
+      const stored = localStorage.getItem(getOrderKey());
+      if (!stored) return list;
+      const orderIds: string[] = JSON.parse(stored);
+      const indexOf = (id: string) => {
+        const i = orderIds.indexOf(id);
+        return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+      };
+      return [...list].sort((a, b) => {
+        const ai = indexOf(a.id);
+        const bi = indexOf(b.id);
+        if (ai !== bi) return ai - bi;
+        return a.name.localeCompare(b.name);
+      });
+    } catch {
+      return list;
+    }
+  };
+
+  const saveOrder = (list: RegisteredItem[]) => {
+    try {
+      localStorage.setItem(getOrderKey(), JSON.stringify(list.map((i) => i.id)));
+    } catch {}
+  };
+
+  const moveItem = (index: number, direction: 'up' | 'down' | 'top' | 'bottom') => {
+    setItems((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      let newIndex = index;
+      if (direction === 'up') newIndex = Math.max(0, index - 1);
+      else if (direction === 'down') newIndex = Math.min(next.length, index + 1);
+      else if (direction === 'top') newIndex = 0;
+      else if (direction === 'bottom') newIndex = next.length;
+      next.splice(newIndex, 0, item);
+      saveOrder(next);
+      return next;
+    });
+  };
+
   const fetchItems = async () => {
     try {
       setLoading(true);
@@ -73,8 +116,9 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         .order('name');
 
       if (error) throw error;
-      setItems(data || []);
-      
+      const ordered = applyCustomOrder(data || []);
+      setItems(ordered);
+
       // If there are items, default to the list tab
       if (data && data.length > 0) {
         setActiveTab("list");
