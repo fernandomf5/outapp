@@ -228,6 +228,7 @@ export function SimpleMembersArea() {
     customer_name: '',
     business_id: '',
     area_type: 'course' as string,
+    enable_questions: false as boolean,
     // Design da tela de login
     login_background_color: '#1a1a2e',
     login_text_color: '#ffffff',
