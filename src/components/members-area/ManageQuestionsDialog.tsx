@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
-import { MessageCircle, Trash2, Send, CheckCircle2 } from "lucide-react";
+import { MessageCircle, Trash2, Send, CheckCircle2, Eraser } from "lucide-react";
 
 interface Question {
   id: string;
