@@ -832,7 +832,7 @@ const Index = () => {
       <FAQSection hideSupportCTA />
 
       {/* CTA Section */}
-      <section className="py-6 xs:py-8 sm:py-10 md:py-14 lg:py-18 3xl:py-24 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 gradient-primary relative overflow-hidden">
+      <section className="py-6 xs:py-8 sm:py-10 md:py-14 lg:py-18 3xl:py-24 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-5 xs:top-10 right-5 xs:right-10 w-24 xs:w-32 sm:w-40 md:w-56 lg:w-72 h-24 xs:h-32 sm:h-40 md:h-56 lg:h-72 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-5 xs:bottom-10 left-5 xs:left-10 w-32 xs:w-48 sm:w-56 md:w-72 lg:w-88 h-32 xs:h-48 sm:h-56 md:h-72 lg:h-88 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
