@@ -78,9 +78,10 @@ interface KanbanBoardProps {
   userId: string;
   userName: string;
   teamContext?: any;
+  refreshKey?: number;
 }
 
-export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps) => {
+export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: KanbanBoardProps) => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -147,7 +148,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         container.removeEventListener('scroll', handleScroll);
       }
     };
-  }, [userId, effectiveUserId]);
+  }, [userId, effectiveUserId, refreshKey]);
 
   const fetchData = async () => {
     try {

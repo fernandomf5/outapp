@@ -37,6 +37,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
   const [selectedUser, setSelectedUser] = useState<UserRegistration | null>(null);
   const [loading, setLoading] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [kanbanRefreshKey, setKanbanRefreshKey] = useState(0);
 
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
@@ -139,6 +140,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         effectiveUserId={effectiveUserId}
+        onChanged={() => setKanbanRefreshKey((k) => k + 1)}
       />
 
       {view === "categories" && (
@@ -218,6 +220,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
           userId={selectedUser.id} 
           userName={selectedUser.name} 
           teamContext={teamContext}
+          refreshKey={kanbanRefreshKey}
         />
       )}
     </div>
