@@ -66,6 +66,7 @@ export const TransparentCheckout = ({
 
   // Load MercadoPago SDK
   useEffect(() => {
+    if (!enableMp || !mpPublicKey) { setSdkLoaded(true); return; }
     if (window.MercadoPago) {
       const mpInstance = new window.MercadoPago(mpPublicKey, { locale: 'pt-BR' });
       setMp(mpInstance);
@@ -83,7 +84,7 @@ export const TransparentCheckout = ({
     };
     script.onerror = () => onError('Erro ao carregar SDK do Mercado Pago');
     document.body.appendChild(script);
-  }, [mpPublicKey]);
+  }, [mpPublicKey, enableMp]);
 
   // Get installments when card number changes
   useEffect(() => {
