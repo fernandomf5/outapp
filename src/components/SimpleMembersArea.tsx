@@ -1765,6 +1765,32 @@ export function SimpleMembersArea() {
                       Gerenciar Dúvidas
                     </Button>
                   )}
+                  {(linkedCheckouts[area.id] || []).length > 0 && (
+                    <div className="pt-2 border-t space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground">Checkouts vinculados</p>
+                      {linkedCheckouts[area.id].map((co) => (
+                        <div key={co.id} className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="default"
+                            className="flex-1 h-10 sm:h-9 text-sm justify-start"
+                            onClick={(e) => { e.stopPropagation(); handleCopyCheckoutLink(co); }}
+                          >
+                            <LinkIcon className="w-4 h-4 mr-2" />
+                            <span className="truncate">{co.name}</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="default"
+                            className="h-10 sm:h-9 px-3"
+                            onClick={(e) => { e.stopPropagation(); window.open(`/checkout/${co.id}/${co.slug}`, '_blank'); }}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
