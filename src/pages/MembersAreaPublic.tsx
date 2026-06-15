@@ -129,6 +129,8 @@ export default function MembersAreaPublic() {
   const { slug } = useParams();
   const [area, setArea] = useState<MembersArea | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [accessCodeId, setAccessCodeId] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState<string>('Aluno');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginMode, setLoginMode] = useState<'password' | 'code'>('password');
