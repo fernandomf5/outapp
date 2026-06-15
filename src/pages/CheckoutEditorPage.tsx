@@ -173,7 +173,7 @@ const CheckoutEditorPage = () => {
   }, [id, navigate]);
 
   const ALLOWED_COLUMNS = new Set([
-    'name','description','item_name','item_description','item_image_url','price',
+    'name','slug','description','item_name','item_description','item_image_url','price',
     'primary_color','background_color','text_color','footer_color','footer_text','logo_url',
     'banner_url','success_message','redirect_url','mp_access_token','mp_public_key',
     'thank_you_title','thank_you_message','thank_you_image_url','thank_you_button_text',
@@ -184,6 +184,14 @@ const CheckoutEditorPage = () => {
     'downsell_product_id','integration_type','integration_id','product_type','is_active',
     'custom_settings'
   ]);
+
+  const slugify = (s: string) =>
+    (s || 'checkout')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'checkout';
 
   const preparePayload = () => {
     const payload: any = {};
@@ -204,6 +212,11 @@ const CheckoutEditorPage = () => {
     payload.upsell_price = formData.upsell_price ? parseFloat(formData.upsell_price) : null;
     payload.downsell_price = formData.downsell_price ? parseFloat(formData.downsell_price) : null;
     if (payload.integration_id === '') payload.integration_id = null;
+    if (!payload.slug || !String(payload.slug).trim()) {
+      payload.slug = slugify(payload.name) + '-' + Math.random().toString(36).slice(2, 7);
+    } else {
+      payload.slug = slugify(payload.slug);
+    }
     return payload;
   };
 
