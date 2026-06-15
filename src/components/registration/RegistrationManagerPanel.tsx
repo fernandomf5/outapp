@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { toast } from "sonner";
@@ -63,6 +63,49 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     }
   };
 
+  const getOrderKey = () => `registration-order-${categoryId}`;
+
+  const applyCustomOrder = (list: RegisteredItem[]): RegisteredItem[] => {
+    try {
+      const stored = localStorage.getItem(getOrderKey());
+      if (!stored) return list;
+      const orderIds: string[] = JSON.parse(stored);
+      const indexOf = (id: string) => {
+        const i = orderIds.indexOf(id);
+        return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+      };
+      return [...list].sort((a, b) => {
+        const ai = indexOf(a.id);
+        const bi = indexOf(b.id);
+        if (ai !== bi) return ai - bi;
+        return a.name.localeCompare(b.name);
+      });
+    } catch {
+      return list;
+    }
+  };
+
+  const saveOrder = (list: RegisteredItem[]) => {
+    try {
+      localStorage.setItem(getOrderKey(), JSON.stringify(list.map((i) => i.id)));
+    } catch {}
+  };
+
+  const moveItem = (index: number, direction: 'up' | 'down' | 'top' | 'bottom') => {
+    setItems((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      let newIndex = index;
+      if (direction === 'up') newIndex = Math.max(0, index - 1);
+      else if (direction === 'down') newIndex = Math.min(next.length, index + 1);
+      else if (direction === 'top') newIndex = 0;
+      else if (direction === 'bottom') newIndex = next.length;
+      next.splice(newIndex, 0, item);
+      saveOrder(next);
+      return next;
+    });
+  };
+
   const fetchItems = async () => {
     try {
       setLoading(true);
@@ -73,8 +116,9 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         .order('name');
 
       if (error) throw error;
-      setItems(data || []);
-      
+      const ordered = applyCustomOrder(data || []);
+      setItems(ordered);
+
       // If there are items, default to the list tab
       if (data && data.length > 0) {
         setActiveTab("list");
@@ -224,7 +268,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                       </TableCell>
                     </TableRow>
                   ) : (
-                    items.map((item) => (
+                    items.map((item, index) => (
                        <TableRow key={item.id}>
                          <TableCell>
                            <Avatar className="h-8 w-8">
@@ -253,7 +297,43 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                           {new Date(item.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveItem(index, 'top')}
+                              disabled={index === 0}
+                              title="Mover para o topo"
+                            >
+                              <ChevronsUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveItem(index, 'up')}
+                              disabled={index === 0}
+                              title="Subir"
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveItem(index, 'down')}
+                              disabled={index === items.length - 1}
+                              title="Descer"
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveItem(index, 'bottom')}
+                              disabled={index === items.length - 1}
+                              title="Mover para o fim"
+                            >
+                              <ChevronsDown className="h-4 w-4" />
+                            </Button>
                             <Button 
                               variant="ghost" 
                               size="icon" 
