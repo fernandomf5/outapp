@@ -264,7 +264,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Data de Cadastro</TableHead>
-                    <TableHead className="w-[150px]">Ações</TableHead>
+                    <TableHead className="w-[100px] text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
