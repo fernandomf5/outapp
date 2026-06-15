@@ -679,8 +679,10 @@ export function SimpleMembersArea() {
         .from('simple_members_areas' as any)
         .update({
           name: areaFormData.name,
+          slug: (areaFormData.slug || areaFormData.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
           description: areaFormData.description,
           password: areaFormData.access_type === 'email_code' ? 'email_code_access' : areaFormData.password,
+
           primary_color: areaFormData.primary_color,
           secondary_color: areaFormData.secondary_color,
           logo_url: areaFormData.logo_url || null,
