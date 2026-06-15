@@ -448,7 +448,7 @@ export const TransparentCheckout = ({
                   {pixCopied ? (
                     <><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />Copiado!</>
                   ) : (
-                    <><Copy className="w-4 h-4 mr-2" />Copiar {pixKey ? 'Chave' : 'Código'} PIX</>
+                    <><Copy className="w-4 h-4 mr-2" />Copiar Código PIX</>
                   )}
                 </Button>
 
