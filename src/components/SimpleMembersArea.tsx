@@ -1770,6 +1770,15 @@ export function SimpleMembersArea() {
                   {(linkedCheckouts[area.id] || []).length > 0 && (
                     <div className="pt-2 border-t space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground">Checkouts vinculados</p>
+                      <Button
+                        variant="default"
+                        size="default"
+                        className="w-full h-10 sm:h-9 text-sm"
+                        onClick={(e) => { e.stopPropagation(); setPendingOrdersArea({ id: area.id, name: area.name }); }}
+                      >
+                        <CheckSquare className="w-4 h-4 mr-2" />
+                        Liberar Alunos (PIX Manual)
+                      </Button>
                       {linkedCheckouts[area.id].map((co) => (
                         <div key={co.id} className="flex gap-2">
                           <Button
