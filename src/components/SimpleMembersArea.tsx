@@ -236,6 +236,8 @@ export function SimpleMembersArea() {
     business_id: '',
     area_type: 'course' as string,
     enable_questions: false as boolean,
+    manager_whatsapp: '',
+
     // Design da tela de login
     login_background_color: '#1a1a2e',
     login_text_color: '#ffffff',
