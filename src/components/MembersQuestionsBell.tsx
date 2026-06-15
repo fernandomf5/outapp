@@ -42,20 +42,23 @@ export const MembersQuestionsBell = () => {
   const [notifications, setNotifications] = useState<QuestionNotification[]>([]);
   const [seen, setSeen] = useState<Set<string>>(getSeen());
   const [isOpen, setIsOpen] = useState(false);
+  const [hasEnabledArea, setHasEnabledArea] = useState(false);
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
     const { data: areas } = await supabase
       .from("simple_members_areas" as any)
-      .select("id, name")
+      .select("id, name, enable_questions")
       .eq("user_id", user.id);
-    const areaList = (areas as any) || [];
-    if (areaList.length === 0) {
+    const allAreas = (areas as any) || [];
+    const enabledAreas = allAreas.filter((a: any) => a.enable_questions);
+    setHasEnabledArea(enabledAreas.length > 0);
+    if (enabledAreas.length === 0) {
       setNotifications([]);
       return;
     }
     const areaMap = new Map<string, string>(
-      areaList.map((a: any) => [a.id, a.name])
+      enabledAreas.map((a: any) => [a.id, a.name])
     );
     const { data: qs } = await supabase
       .from("members_area_video_questions" as any)
@@ -80,11 +83,18 @@ export const MembersQuestionsBell = () => {
         { event: "*", schema: "public", table: "members_area_video_questions" },
         () => fetchAll()
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "simple_members_areas", filter: `user_id=eq.${user.id}` },
+        () => fetchAll()
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user, fetchAll]);
+
+  if (!hasEnabledArea) return null;
 
   const unreadCount = notifications.filter((n) => !seen.has(n.id)).length;
 
