@@ -152,7 +152,7 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
                 <div className="p-3 rounded-full bg-muted mb-3">
                   <Plus className="w-6 h-6 text-muted-foreground" />
                 </div>
-                <p className="font-medium text-muted-foreground">Criar Novo Negócio</p>
+                <p className="font-medium text-muted-foreground">Adicionar Outra Gestão</p>
               </CardContent>
             </Card>
           </div>
