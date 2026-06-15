@@ -1707,6 +1707,15 @@ export function SimpleMembersArea() {
                       <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
+                  <Button
+                    variant="secondary"
+                    size="default"
+                    className="w-full h-11 sm:h-9 text-base sm:text-sm"
+                    onClick={(e) => { e.stopPropagation(); setCodesArea({ id: area.id, slug: area.slug, name: area.name }); }}
+                  >
+                    <Key className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
+                    Códigos de Acesso
+                  </Button>
                   {(area as any).enable_questions && (
                     <Button
                       variant="secondary"
