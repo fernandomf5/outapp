@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImageUpload } from '../ImageUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Plus, Trash2, ExternalLink } from 'lucide-react';
 
 interface UnifiedRegistrationFormProps {
   categoryId: string;
@@ -38,17 +39,39 @@ export function UnifiedRegistrationForm({
 
   const avatarUrl = watch('avatar_url');
 
+  const [urls, setUrls] = useState<Array<{ label: string; url: string }>>(() => {
+    const raw = initialData?.urls;
+    if (Array.isArray(raw)) {
+      return raw.map((u: any) =>
+        typeof u === 'string' ? { label: '', url: u } : { label: u?.label || '', url: u?.url || '' }
+      );
+    }
+    return [];
+  });
+
+  const addUrl = () => setUrls((p) => [...p, { label: '', url: '' }]);
+  const removeUrl = (i: number) => setUrls((p) => p.filter((_, idx) => idx !== i));
+  const updateUrl = (i: number, field: 'label' | 'url', val: string) =>
+    setUrls((p) => p.map((u, idx) => (idx === i ? { ...u, [field]: val } : u)));
+
+  const normalizeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
+
+
   const onSubmit = async (data: any) => {
     if (!user || isViewOnly) return;
     setLoading(true);
 
     try {
+      const cleanUrls = urls
+        .filter((u) => u.url.trim())
+        .map((u) => ({ label: u.label.trim(), url: normalizeUrl(u.url.trim()) }));
+
       if (initialData?.id) {
-        // Update existing registration
         const { error } = await supabase
           .from('contacts')
           .update({
             ...data,
+            urls: cleanUrls as any,
             registration_category_id: categoryId,
           })
           .eq('id', initialData.id);
@@ -56,11 +79,11 @@ export function UnifiedRegistrationForm({
         if (error) throw error;
         toast.success(`${categoryName} atualizado com sucesso!`);
       } else {
-        // Insert new registration
         const { error } = await supabase
           .from('contacts')
           .insert([{
             ...data,
+            urls: cleanUrls as any,
             user_id: user.id,
             registration_category_id: categoryId,
           }]);
@@ -69,8 +92,8 @@ export function UnifiedRegistrationForm({
         toast.success(`${categoryName} cadastrado com sucesso!`);
       }
 
-      toast.success(`${categoryName} cadastrado com sucesso!`);
       reset();
+
       
       // Emit event to refresh sidebar if needed
       window.dispatchEvent(new CustomEvent('registration-items-updated'));
@@ -236,6 +259,53 @@ export function UnifiedRegistrationForm({
               disabled={isViewOnly}
             />
           </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>URLs do Cliente (Drive, Site, etc.)</Label>
+              {!isViewOnly && (
+                <Button type="button" variant="outline" size="sm" onClick={addUrl}>
+                  <Plus className="w-4 h-4 mr-1" /> Adicionar URL
+                </Button>
+              )}
+            </div>
+            {urls.length === 0 && (
+              <p className="text-sm text-muted-foreground">Nenhuma URL cadastrada.</p>
+            )}
+            {urls.map((u, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                {isViewOnly ? (
+                  <a
+                    href={normalizeUrl(u.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted text-primary underline break-all"
+                  >
+                    <ExternalLink className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{u.label ? `${u.label} — ${u.url}` : u.url}</span>
+                  </a>
+                ) : (
+                  <>
+                    <Input
+                      placeholder="Rótulo (opcional)"
+                      value={u.label}
+                      onChange={(e) => updateUrl(i, 'label', e.target.value)}
+                      className="md:max-w-[200px]"
+                    />
+                    <Input
+                      placeholder="https://exemplo.com"
+                      value={u.url}
+                      onChange={(e) => updateUrl(i, 'url', e.target.value)}
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeUrl(i)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>

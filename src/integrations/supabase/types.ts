@@ -3813,6 +3813,7 @@ export type Database = {
           status: string
           tags: Json | null
           updated_at: string
+          urls: Json
           user_id: string
           website: string | null
         }
@@ -3837,6 +3838,7 @@ export type Database = {
           status?: string
           tags?: Json | null
           updated_at?: string
+          urls?: Json
           user_id: string
           website?: string | null
         }
@@ -3861,6 +3863,7 @@ export type Database = {
           status?: string
           tags?: Json | null
           updated_at?: string
+          urls?: Json
           user_id?: string
           website?: string | null
         }
