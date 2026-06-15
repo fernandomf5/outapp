@@ -110,8 +110,7 @@ export function VideoQuestions({
     const { error } = await supabase
       .from("members_area_video_questions" as any)
       .update({ question: editText.trim() })
-      .eq("id", id)
-      .is("answer", null);
+      .eq("id", id);
     if (error) {
       toast.error("Erro ao editar dúvida");
       return;
@@ -126,8 +125,7 @@ export function VideoQuestions({
     const { error } = await supabase
       .from("members_area_video_questions" as any)
       .delete()
-      .eq("id", id)
-      .is("answer", null);
+      .eq("id", id);
     if (error) {
       toast.error("Erro ao excluir dúvida");
       return;
