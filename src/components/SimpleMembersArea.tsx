@@ -637,6 +637,8 @@ export function SimpleMembersArea() {
     setEditingArea(area);
     setAreaFormData({
       name: area.name,
+      slug: area.slug || '',
+
       description: area.description,
       password: area.password,
       access_type: area.access_type || 'password',
