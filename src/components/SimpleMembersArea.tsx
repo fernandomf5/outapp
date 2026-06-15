@@ -200,6 +200,7 @@ const SortableSection = ({ id, children }: { id: string; children: React.ReactNo
 
 export function SimpleMembersArea() {
   const [areas, setAreas] = useState<MembersArea[]>([]);
+  const [linkedCheckouts, setLinkedCheckouts] = useState<Record<string, { id: string; name: string; slug: string }[]>>({});
   const [selectedArea, setSelectedArea] = useState<MembersArea | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
