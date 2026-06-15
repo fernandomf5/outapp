@@ -83,6 +83,7 @@ export const TaskHistoryDialog = ({
   open,
   onOpenChange,
   effectiveUserId,
+  onChanged,
 }: TaskHistoryDialogProps) => {
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<HistoryTask[]>([]);
