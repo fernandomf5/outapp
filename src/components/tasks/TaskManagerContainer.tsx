@@ -220,6 +220,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
           userId={selectedUser.id} 
           userName={selectedUser.name} 
           teamContext={teamContext}
+          refreshKey={kanbanRefreshKey}
         />
       )}
     </div>
