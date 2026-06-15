@@ -159,14 +159,6 @@ export const BlockDialog = ({
             />
           </div>
 
-          <div className="space-y-2">
-            <ImageUpload 
-              label="Logo do Bloco"
-              currentImage={formData.logo_url}
-              onImageSelect={(url) => setFormData({ ...formData, logo_url: url })}
-              bucketName="task-media"
-            />
-          </div>
 
           <div className="space-y-3">
             <Label>Cor de Destaque</Label>
