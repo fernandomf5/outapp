@@ -142,6 +142,10 @@ export default function MembersAreaPublic() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeView, setActiveView] = useState<'home' | 'content' | 'account'>('content');
+  const [recoverOpen, setRecoverOpen] = useState(false);
+  const [recoverEmail, setRecoverEmail] = useState('');
+  const [recoverLoading, setRecoverLoading] = useState(false);
+
 
   useEffect(() => {
     loadArea();
