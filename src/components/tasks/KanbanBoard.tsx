@@ -448,7 +448,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={collisionDetectionStrategy}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
