@@ -150,13 +150,18 @@ export const TaskHistoryDialog = ({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [tasks, contacts]);
 
+  const isTaskDone = (t: HistoryTask) => {
+    if (t.archived) return true;
+    const block = t.block_id ? blocks[t.block_id] : undefined;
+    return isDoneBlock(block?.name);
+  };
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return tasks.filter((t) => {
       if (selectedClient !== "all" && t.client_id !== selectedClient)
         return false;
-      const block = t.block_id ? blocks[t.block_id] : undefined;
-      const done = isDoneBlock(block?.name);
+      const done = isTaskDone(t);
       if (statusFilter === "done" && !done) return false;
       if (statusFilter === "pending" && done) return false;
       if (!q) return true;
@@ -174,8 +179,7 @@ export const TaskHistoryDialog = ({
   const stats = useMemo(() => {
     let done = 0;
     filtered.forEach((t) => {
-      const block = t.block_id ? blocks[t.block_id] : undefined;
-      if (isDoneBlock(block?.name)) done++;
+      if (isTaskDone(t)) done++;
     });
     return { total: filtered.length, done, pending: filtered.length - done };
   }, [filtered, blocks]);
