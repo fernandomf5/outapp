@@ -36,11 +36,15 @@ declare global {
 export const TransparentCheckout = ({
   checkoutId, orderId, amount, customerName, customerEmail, customerCpf,
   primaryColor, itemName, textColor, subtitleColor, fieldColor, fieldTextColor, onSuccess, onError, mpPublicKey, pixKey, pixWhatsapp,
-}: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string }) => {
+  enableMp = true, enablePixManual,
+}: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string, enableMp?: boolean, enablePixManual?: boolean }) => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("credit_card");
+  const showCard = enableMp && !!mpPublicKey;
+  const showPix = enablePixManual ?? !!pixKey;
+  const hasMpPix = enableMp && !!mpPublicKey && !enablePixManual;
+  const [activeTab, setActiveTab] = useState<string>(showCard ? "credit_card" : "pix");
   const [processing, setProcessing] = useState(false);
-  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(!enableMp || !mpPublicKey);
   const [mp, setMp] = useState<any>(null);
 
   // Card form state
@@ -62,6 +66,7 @@ export const TransparentCheckout = ({
 
   // Load MercadoPago SDK
   useEffect(() => {
+    if (!enableMp || !mpPublicKey) { setSdkLoaded(true); return; }
     if (window.MercadoPago) {
       const mpInstance = new window.MercadoPago(mpPublicKey, { locale: 'pt-BR' });
       setMp(mpInstance);
@@ -79,7 +84,7 @@ export const TransparentCheckout = ({
     };
     script.onerror = () => onError('Erro ao carregar SDK do Mercado Pago');
     document.body.appendChild(script);
-  }, [mpPublicKey]);
+  }, [mpPublicKey, enableMp]);
 
   // Get installments when card number changes
   useEffect(() => {
@@ -255,22 +260,27 @@ export const TransparentCheckout = ({
     <div className="space-y-6">
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2" style={{ backgroundColor: `${primaryColor}10` }}>
-          <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{ 
-            color: activeTab === 'credit_card' ? primaryColor : textColor,
-            backgroundColor: activeTab === 'credit_card' ? 'white' : 'transparent'
-          }}>
-            <CreditCard className="w-4 h-4" />
-            Cartão de Crédito
-          </TabsTrigger>
-          <TabsTrigger value="pix" className="flex items-center gap-2" style={{ 
-            color: activeTab === 'pix' ? primaryColor : textColor,
-            backgroundColor: activeTab === 'pix' ? 'white' : 'transparent'
-          }}>
-            <QrCode className="w-4 h-4" />
-            PIX
-          </TabsTrigger>
+        <TabsList className={`grid w-full ${showCard && showPix ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ backgroundColor: `${primaryColor}10` }}>
+          {showCard && (
+            <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{
+              color: activeTab === 'credit_card' ? primaryColor : textColor,
+              backgroundColor: activeTab === 'credit_card' ? 'white' : 'transparent'
+            }}>
+              <CreditCard className="w-4 h-4" />
+              Mercado Pago
+            </TabsTrigger>
+          )}
+          {showPix && (
+            <TabsTrigger value="pix" className="flex items-center gap-2" style={{
+              color: activeTab === 'pix' ? primaryColor : textColor,
+              backgroundColor: activeTab === 'pix' ? 'white' : 'transparent'
+            }}>
+              <QrCode className="w-4 h-4" />
+              {pixKey ? 'PIX Manual' : 'PIX'}
+            </TabsTrigger>
+          )}
         </TabsList>
+
 
         <TabsContent value="credit_card" className="space-y-4 mt-4">
           <div className="space-y-3">

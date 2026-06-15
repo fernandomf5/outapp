@@ -145,8 +145,26 @@ const CheckoutPage = () => {
   const [isManualPix, setIsManualPix] = useState(false);
 
   const [customerData, setCustomerData] = useState({
-    name: '', email: '', phone: '', cpf: '',
+    name: '', email: '', emailConfirm: '', phone: '', cpf: '',
   });
+
+  const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  const formatCpf = (v: string) => {
+    const d = v.replace(/\D/g, '').slice(0, 11);
+    return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
+  const isValidCpf = (cpf: string) => {
+    const d = cpf.replace(/\D/g, '');
+    if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+    let s = 0;
+    for (let i = 0; i < 9; i++) s += parseInt(d[i]) * (10 - i);
+    let r = (s * 10) % 11; if (r === 10) r = 0;
+    if (r !== parseInt(d[9])) return false;
+    s = 0;
+    for (let i = 0; i < 10; i++) s += parseInt(d[i]) * (11 - i);
+    r = (s * 10) % 11; if (r === 10) r = 0;
+    return r === parseInt(d[10]);
+  };
 
   useEffect(() => { loadCheckout(); }, [checkoutId]);
 
@@ -227,12 +245,12 @@ const CheckoutPage = () => {
 
   const handleProceedToPayment = async () => {
     if (!checkout) return;
-    if (!customerData.name.trim() || !customerData.email.trim()) {
-      alert('Preencha nome e email para continuar'); return;
+    if (!customerData.name.trim()) { alert('Preencha seu nome completo'); return; }
+    if (!isValidEmail(customerData.email)) { alert('E-mail inválido'); return; }
+    if (customerData.email.trim().toLowerCase() !== customerData.emailConfirm.trim().toLowerCase()) {
+      alert('Os e-mails não coincidem. O código de acesso será enviado a este e-mail.'); return;
     }
-    if (!customerData.cpf.trim()) {
-      alert('Preencha o CPF para pagamento'); return;
-    }
+    if (!isValidCpf(customerData.cpf)) { alert('CPF inválido'); return; }
 
     try {
       const totalAmount = calculateTotal();
@@ -505,47 +523,72 @@ const CheckoutPage = () => {
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>E-mail para entrega *</Label>
                           <Input className="h-12 rounded-xl border-none shadow-sm" type="email" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.email} onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })} placeholder="Onde enviaremos seu acesso?" />
+                          {customerData.email && !isValidEmail(customerData.email) && (
+                            <p className="text-[10px] text-destructive font-semibold">E-mail inválido</p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>Confirme o E-mail *</Label>
+                          <Input className="h-12 rounded-xl border-none shadow-sm" type="email" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.emailConfirm} onChange={(e) => setCustomerData({ ...customerData, emailConfirm: e.target.value })} placeholder="Digite o e-mail novamente" onPaste={(e) => e.preventDefault()} />
+                          {customerData.emailConfirm && customerData.email.trim().toLowerCase() !== customerData.emailConfirm.trim().toLowerCase() && (
+                            <p className="text-[10px] text-destructive font-semibold">Os e-mails não coincidem</p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>WhatsApp</Label>
                           <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.phone} onChange={(e) => setCustomerData({ ...customerData, phone: e.target.value })} placeholder="(00) 00000-0000" />
                         </div>
                          <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>CPF / CNPJ *</Label>
-                          <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: e.target.value })} placeholder="000.000.000-00" />
+                          <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>CPF *</Label>
+                          <Input className="h-12 rounded-xl border-none shadow-sm" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: formatCpf(e.target.value) })} placeholder="000.000.000-00" inputMode="numeric" maxLength={14} />
+                          {customerData.cpf && !isValidCpf(customerData.cpf) && (
+                            <p className="text-[10px] text-destructive font-semibold">CPF inválido</p>
+                          )}
                         </div>
                       </div>
                     </div>
                   )}
 
                   <div className="mt-8">
-                    {showPayment && orderId && mpPublicKey ? (
-                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                         <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2 mb-6" style={{ color: textColor }}>
-                          <span className="w-6 h-6 rounded-full text-white text-[10px] flex items-center justify-center font-black" style={{ backgroundColor: primaryColor }}>2</span>
-                          Escolha a forma de pagamento
-                        </h4>
-                        <TransparentCheckout
-                          checkoutId={checkout.id} orderId={orderId} amount={total}
-                          customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
-                          primaryColor={primaryColor} itemName={checkout.item_name}
-                          textColor={textColor} subtitleColor={subtitleColor}
-                          fieldColor={checkout.custom_settings?.field_color}
-                          fieldTextColor={checkout.custom_settings?.field_text_color}
-                          onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey}
-                          pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
-                        />
-                      </div>
-                    ) : !showPayment ? (
-                      <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden ${ctaEffectClasses}`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
-                        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
-                        <CreditCard className="w-6 h-6 mr-3" /> {buttonText.toUpperCase()}
-                      </Button>
-                    ) : !mpPublicKey ? (
-                      <div className="text-center p-6 bg-destructive/5 rounded-2xl border-2 border-dashed border-destructive/20 text-destructive font-bold">
-                        Mercado Pago não configurado corretamente.
-                      </div>
-                    ) : null}
+                    {(() => {
+                      const enablePixManual = !!(checkout.custom_settings?.enable_pix && checkout.custom_settings?.pix_key);
+                      const enableMp = !!(checkout.custom_settings?.enable_mp && mpPublicKey);
+                      const anyPayment = enablePixManual || enableMp;
+                      if (showPayment && orderId && anyPayment) {
+                        return (
+                          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2 mb-6" style={{ color: textColor }}>
+                              <span className="w-6 h-6 rounded-full text-white text-[10px] flex items-center justify-center font-black" style={{ backgroundColor: primaryColor }}>2</span>
+                              Escolha a forma de pagamento
+                            </h4>
+                            <TransparentCheckout
+                              checkoutId={checkout.id} orderId={orderId} amount={total}
+                              customerName={customerData.name} customerEmail={customerData.email} customerCpf={customerData.cpf}
+                              primaryColor={primaryColor} itemName={checkout.item_name}
+                              textColor={textColor} subtitleColor={subtitleColor}
+                              fieldColor={checkout.custom_settings?.field_color}
+                              fieldTextColor={checkout.custom_settings?.field_text_color}
+                              onSuccess={handlePaymentSuccess} onError={handlePaymentError} mpPublicKey={mpPublicKey || ''}
+                              pixKey={checkout.custom_settings?.pix_key} pixWhatsapp={checkout.custom_settings?.pix_whatsapp}
+                              enableMp={enableMp} enablePixManual={enablePixManual}
+                            />
+                          </div>
+                        );
+                      }
+                      if (!showPayment) {
+                        return (
+                          <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden ${ctaEffectClasses}`} style={{ backgroundColor: primaryColor }} onClick={handleProceedToPayment}>
+                            <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                            <CreditCard className="w-6 h-6 mr-3" /> {buttonText.toUpperCase()}
+                          </Button>
+                        );
+                      }
+                      return (
+                        <div className="text-center p-6 bg-destructive/5 rounded-2xl border-2 border-dashed border-destructive/20 text-destructive font-bold">
+                          Nenhum método de pagamento configurado.
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </CardContent>
