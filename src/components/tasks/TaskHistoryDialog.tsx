@@ -250,6 +250,7 @@ export const TaskHistoryDialog = ({
       if (error) throw error;
       setTasks((prev) => prev.filter((t) => t.id !== id));
       toast.success("Tarefa desarquivada e restaurada ao bloco original.");
+      onChanged?.();
     } catch (e: any) {
       toast.error("Erro ao desarquivar: " + (e?.message || ""));
     }
