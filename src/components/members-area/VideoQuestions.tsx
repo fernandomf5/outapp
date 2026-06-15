@@ -173,24 +173,22 @@ export function VideoQuestions({
                   <p className="whitespace-pre-wrap flex-1">
                     <span className="font-medium">Você:</span> {q.question}
                   </p>
-                  {!q.answer && (
-                    <div className="flex gap-1 shrink-0">
-                      <button
-                        onClick={() => startEdit(q)}
-                        className="opacity-60 hover:opacity-100 transition"
-                        title="Editar"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => removeQuestion(q.id)}
-                        className="opacity-60 hover:opacity-100 transition text-red-600"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => startEdit(q)}
+                      className="opacity-60 hover:opacity-100 transition"
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => removeQuestion(q.id)}
+                      className="opacity-60 hover:opacity-100 transition text-red-600"
+                      title="Excluir"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               )}
               {q.answer ? (
