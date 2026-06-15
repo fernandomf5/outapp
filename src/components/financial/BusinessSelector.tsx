@@ -5,9 +5,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Building2, User, Plus, ArrowRight, Briefcase, Layers } from "lucide-react";
+import { Building2, User, Plus, ArrowRight, Briefcase, Layers, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Business {
@@ -22,13 +39,22 @@ interface BusinessSelectorProps {
   onSelectBusiness: (businessId: string) => void;
   onSelectMultipleBusinesses?: (businessIds: string[]) => void;
   onCreateBusiness: (data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
+  onUpdateBusiness?: (id: string, data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
+  onDeleteBusiness?: (id: string) => void;
 }
 
-export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipleBusinesses, onCreateBusiness }: BusinessSelectorProps) => {
+export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipleBusinesses, onCreateBusiness, onUpdateBusiness, onDeleteBusiness }: BusinessSelectorProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+  const [deletingBusiness, setDeletingBusiness] = useState<Business | null>(null);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
+    name: '',
+    business_type: 'personal' as 'personal' | 'company',
+    description: ''
+  });
+  const [editFormData, setEditFormData] = useState({
     name: '',
     business_type: 'personal' as 'personal' | 'company',
     description: ''
@@ -53,6 +79,27 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
     onCreateBusiness(formData);
     setIsCreateDialogOpen(false);
     setFormData({ name: '', business_type: 'personal', description: '' });
+  };
+
+  const openEdit = (b: Business) => {
+    setEditingBusiness(b);
+    setEditFormData({
+      name: b.name,
+      business_type: b.business_type,
+      description: b.description || '',
+    });
+  };
+
+  const handleUpdate = () => {
+    if (!editingBusiness) return;
+    onUpdateBusiness?.(editingBusiness.id, editFormData);
+    setEditingBusiness(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingBusiness) return;
+    onDeleteBusiness?.(deletingBusiness.id);
+    setDeletingBusiness(null);
   };
 
   return (
@@ -94,7 +141,7 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
               <Card 
                 key={business.id} 
                 className={cn(
-                  "cursor-pointer hover:border-primary hover:shadow-lg transition-all group",
+                  "cursor-pointer hover:border-primary hover:shadow-lg transition-all group relative",
                   multiSelectMode && selectedIds.has(business.id) && "border-primary ring-2 ring-primary/30"
                 )}
                 onClick={() => {
@@ -105,6 +152,33 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
                   }
                 }}
               >
+                {!multiSelectMode && (onUpdateBusiness || onDeleteBusiness) && (
+                  <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {onUpdateBusiness && (
+                          <DropdownMenuItem onClick={() => openEdit(business)}>
+                            <Pencil className="h-4 w-4 mr-2" /> Editar
+                          </DropdownMenuItem>
+                        )}
+                        {onUpdateBusiness && onDeleteBusiness && <DropdownMenuSeparator />}
+                        {onDeleteBusiness && (
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => setDeletingBusiness(business)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -126,9 +200,6 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
                         )}
                       </div>
                     </div>
-                    {!multiSelectMode && (
-                      <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                    )}
                   </div>
                   <h3 className="font-semibold text-lg mb-1">{business.name}</h3>
                   <Badge variant="secondary" className="text-xs">
@@ -233,6 +304,85 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingBusiness} onOpenChange={(open) => !open && setEditingBusiness(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Gestão</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div>
+              <Label>Nome do Negócio</Label>
+              <Input
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Tipo</Label>
+              <Select 
+                value={editFormData.business_type} 
+                onValueChange={(v: 'personal' | 'company') => setEditFormData({ ...editFormData, business_type: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Pessoa Física (CPF)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="company">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      Pessoa Jurídica (CNPJ)
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Descrição (opcional)</Label>
+              <Input
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingBusiness(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdate} disabled={!editFormData.name.trim()}>
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingBusiness} onOpenChange={(open) => !open && setDeletingBusiness(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir gestão "{deletingBusiness?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Todos os dados vinculados a esta gestão podem ser perdidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleConfirmDelete}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
