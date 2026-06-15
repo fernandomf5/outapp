@@ -204,10 +204,7 @@ export const TaskHistoryDialog = ({
     try {
       setClearing(true);
       const ids = filtered
-        .filter((t) => {
-          const block = t.block_id ? blocks[t.block_id] : undefined;
-          return isDoneBlock(block?.name);
-        })
+        .filter((t) => isTaskDone(t))
         .map((t) => t.id);
 
       if (ids.length === 0) {
