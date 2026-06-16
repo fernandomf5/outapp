@@ -266,6 +266,10 @@ const CheckoutPage = () => {
     if (customerData.email.trim().toLowerCase() !== customerData.emailConfirm.trim().toLowerCase()) {
       alert('Os e-mails não coincidem. O código de acesso será enviado a este e-mail.'); return;
     }
+    if (emailInUseName) {
+      alert(`Este e-mail já está em uso por ${emailInUseName}. Use outro e-mail para efetuar a compra.`);
+      return;
+    }
     if (!isValidCpf(customerData.cpf)) { alert('CPF inválido'); return; }
 
     try {
@@ -543,8 +547,8 @@ const CheckoutPage = () => {
                             <p className="text-[10px] text-destructive font-semibold">E-mail inválido</p>
                           )}
                           {emailInUseName && isValidEmail(customerData.email) && (
-                            <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-                              ⚠ Este e-mail já está em uso por <strong>{emailInUseName}</strong>. Se prosseguir, o acesso existente será reutilizado.
+                            <p className="text-[11px] font-semibold text-destructive">
+                              ⚠ Este e-mail já está em uso por <strong>{emailInUseName}</strong>. Use outro e-mail para efetuar a compra.
                             </p>
                           )}
                         </div>
