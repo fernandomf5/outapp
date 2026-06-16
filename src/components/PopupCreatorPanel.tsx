@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
+import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
 
 interface Popup {
   id: string;
@@ -884,6 +885,14 @@ export const PopupCreatorPanel = () => {
                             {popup.views > 0 ? ((popup.clicks / popup.views) * 100).toFixed(1) : 0}%
                           </p>
                         </div>
+                      </div>
+                      <div className="mt-3">
+                        <LinkCustomerButton
+                          resourceType="popup"
+                          resourceId={popup.id}
+                          resourceTitle={popup.name}
+                          compact
+                        />
                       </div>
                     </div>
 
