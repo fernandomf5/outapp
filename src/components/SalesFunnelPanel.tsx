@@ -1192,8 +1192,8 @@ export default function SalesFunnelPanel() {
           {selectedFunnel && (
             <LinkCustomerButton
               resourceType="funnel"
-              resourceId={selectedFunnel}
-              resourceTitle={funnels.find(f => f.id === selectedFunnel)?.name}
+              resourceId={selectedFunnel.id}
+              resourceTitle={selectedFunnel.name}
               resourceUrl="/dashboard"
               size="sm"
             />
