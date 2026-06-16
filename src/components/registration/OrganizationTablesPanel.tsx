@@ -1363,7 +1363,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       resourceType="organization_table"
                       resourceId={table.id}
                       resourceTitle={table.name}
-                      resourceUrl={`/organization-table/${table.id}`}
+                      resourceUrl={`/tabela-completa/${table.id}`}
                       size="sm"
                       variant="ghost"
                       compact
