@@ -1564,41 +1564,48 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           setIsAddClientDialogOpen(open);
           if (!open) resetClientDialog();
         }}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Novo Cliente para Anúncios</DialogTitle>
-              <DialogDescription>Crie um novo cliente ou vincule um existente</DialogDescription>
+          <DialogContent className="max-w-2xl sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="space-y-2 pb-3 border-b border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center shadow-glow shrink-0">
+                  <Megaphone className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-xl">Novo Cliente para Anúncios</DialogTitle>
+                  <DialogDescription className="text-sm">Crie um novo cliente ou vincule um existente</DialogDescription>
+                </div>
+              </div>
             </DialogHeader>
             
             {/* Mode Selection Tabs */}
-            <div className="flex gap-2 border-b pb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-4">
               <Button
                 variant={addClientMode === 'new' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setAddClientMode('new')}
-                className="flex-1"
+                className="w-full justify-center"
               >
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-4 w-4 mr-1.5" />
                 Criar Novo
               </Button>
               <Button
                 variant={addClientMode === 'existing_customer' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setAddClientMode('existing_customer')}
-                className="flex-1"
+                className="w-full justify-center"
                 disabled={existingCustomers.length === 0}
               >
-                <User className="h-4 w-4 mr-1" />
+                <User className="h-4 w-4 mr-1.5" />
                 Cliente Existente
               </Button>
               <Button
                 variant={addClientMode === 'existing_business' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setAddClientMode('existing_business')}
-                className="flex-1"
+                className="w-full justify-center"
                 disabled={existingBusinesses.length === 0}
               >
-                <Building2 className="h-4 w-4 mr-1" />
+                <Building2 className="h-4 w-4 mr-1.5" />
                 Negócio Existente
               </Button>
             </div>
@@ -1606,25 +1613,27 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             <div className="grid gap-4 py-4">
               {addClientMode === 'new' && (
                 <>
-                  <div className="grid gap-2">
-                    <Label>Nome *</Label>
-                    <Input 
-                      value={clientFormData.name}
-                      onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
-                      placeholder="Ex: Loja ABC"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Tipo</Label>
-                    <Select value={clientFormData.client_type} onValueChange={(value: any) => setClientFormData({...clientFormData, client_type: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="personal">Pessoal</SelectItem>
-                        <SelectItem value="company">Empresa</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label>Nome *</Label>
+                      <Input 
+                        value={clientFormData.name}
+                        onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
+                        placeholder="Ex: Loja ABC"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Tipo</Label>
+                      <Select value={clientFormData.client_type} onValueChange={(value: any) => setClientFormData({...clientFormData, client_type: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="personal">Pessoal</SelectItem>
+                          <SelectItem value="company">Empresa</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label>Descrição</Label>
@@ -1695,15 +1704,17 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 </div>
               )}
 
-              <div className="grid gap-2">
-                <Label>Caixa para Anúncios (R$) *</Label>
+              <div className="grid gap-2 p-4 rounded-lg bg-muted/30 border border-border/50">
+                <Label className="text-base font-semibold">Caixa para Anúncios (R$) *</Label>
                 <Input 
                   type="number"
                   step="0.01"
                   value={clientFormData.cashbox}
                   onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
-                  placeholder="0.00"
+                  placeholder="0,00"
+                  className="text-lg font-semibold"
                 />
+                <p className="text-xs text-muted-foreground">Valor inicial disponível para investir em anúncios</p>
               </div>
             </div>
             
