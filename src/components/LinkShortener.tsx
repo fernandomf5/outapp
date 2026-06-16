@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Copy, Link2, Trash2, ExternalLink, Plus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
 
 interface ShortLink {
   id: string;
@@ -315,6 +316,15 @@ export const LinkShortener = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+              <div className="pt-2">
+                <LinkCustomerButton
+                  resourceType="short_link"
+                  resourceId={link.id}
+                  resourceTitle={link.custom_name || link.short_code}
+                  resourceUrl={`/s/${link.short_code}`}
+                  compact
+                />
               </div>
             </div>
           </Card>

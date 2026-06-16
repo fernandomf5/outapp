@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import CatalogDashboard from "./catalog/CatalogDashboard";
 import CatalogProductSelector from "./catalog/CatalogProductSelector";
+import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
 
 interface Catalog {
   id: string;
@@ -513,6 +514,15 @@ export default function CatalogCreatorPanel() {
                       </Badge>
                     )}
                   </div>
+                </div>
+                <div className="pt-2">
+                  <LinkCustomerButton
+                    resourceType="catalog"
+                    resourceId={catalog.id}
+                    resourceTitle={catalog.name}
+                    resourceUrl={`/${catalog.slug}`}
+                    compact
+                  />
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
