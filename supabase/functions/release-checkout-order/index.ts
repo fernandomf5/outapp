@@ -50,19 +50,36 @@ serve(async (req) => {
       throw new Error('Checkout não está integrado a uma área de membros');
     }
 
-    // Generate access code
-    const { data: codeData } = await supabase.rpc('generate_checkout_access_code');
-    const accessCode = codeData || Math.random().toString(36).substring(2, 10).toUpperCase();
+    // Check if email already has an active code for this area — reuse it to avoid duplicates
+    let accessCode: string | null = null;
+    let reused = false;
+    if (order.customer_email) {
+      const { data: existing } = await supabase
+        .from('members_area_access_codes')
+        .select('access_code, customer_name')
+        .eq('members_area_id', checkout.integration_id)
+        .eq('customer_email', order.customer_email)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (existing?.access_code) {
+        accessCode = existing.access_code;
+        reused = true;
+      }
+    }
 
-    await supabase.from('members_area_access_codes').insert({
-      members_area_id: checkout.integration_id,
-      checkout_order_id: orderId,
-      user_id: checkout.user_id,
-      access_code: accessCode,
-      customer_name: order.customer_name,
-      customer_email: order.customer_email,
-      is_active: true,
-    });
+    if (!accessCode) {
+      const { data: codeData } = await supabase.rpc('generate_checkout_access_code');
+      accessCode = codeData || Math.random().toString(36).substring(2, 10).toUpperCase();
+      await supabase.from('members_area_access_codes').insert({
+        members_area_id: checkout.integration_id,
+        checkout_order_id: orderId,
+        user_id: checkout.user_id,
+        access_code: accessCode,
+        customer_name: order.customer_name,
+        customer_email: order.customer_email,
+        is_active: true,
+      });
+    }
 
     await supabase.from('checkout_orders').update({
       status: 'approved',
@@ -123,7 +140,7 @@ serve(async (req) => {
     }
 
 
-    return new Response(JSON.stringify({ success: true, accessCode }), {
+    return new Response(JSON.stringify({ success: true, accessCode, reused }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {

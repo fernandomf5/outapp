@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Archive, ArchiveRestore, CheckCircle, Loader2, Mail, Phone, Trash2, User } from "lucide-react";
+import { AlertTriangle, Archive, ArchiveRestore, CheckCircle, Loader2, Mail, Phone, Trash2, User } from "lucide-react";
 
 interface PendingOrdersDialogProps {
   open: boolean;
@@ -37,6 +37,7 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<"pending" | "archived">("pending");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [existingByEmail, setExistingByEmail] = useState<Record<string, string>>({});
 
   const load = async () => {
     setLoading(true);
@@ -58,6 +59,18 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
 
       if (error) throw error;
       setOrders(data || []);
+
+      // Load existing access codes for this area, indexed by email -> customer_name
+      const { data: codes } = await supabase
+        .from('members_area_access_codes')
+        .select('customer_email, customer_name')
+        .eq('members_area_id', areaId)
+        .eq('is_active', true);
+      const map: Record<string, string> = {};
+      (codes || []).forEach((c: any) => {
+        if (c.customer_email) map[c.customer_email.toLowerCase()] = c.customer_name || 'sem nome';
+      });
+      setExistingByEmail(map);
     } catch (err: any) {
       toast.error('Erro ao carregar pedidos: ' + err.message);
     } finally {
@@ -75,7 +88,7 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success(`Acesso liberado! Código: ${data.accessCode}`);
+      toast.success(data?.reused ? `Email já cadastrado — código existente reutilizado: ${data.accessCode}` : `Acesso liberado! Código: ${data.accessCode}`);
       await load();
     } catch (err: any) {
       toast.error('Erro ao liberar: ' + (err.message || 'Desconhecido'));
@@ -118,7 +131,9 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
   const pending = orders.filter((o) => o.status !== 'archived');
   const archived = orders.filter((o) => o.status === 'archived');
 
-  const renderOrder = (o: Order, archivedView: boolean) => (
+  const renderOrder = (o: Order, archivedView: boolean) => {
+    const existingName = o.customer_email ? existingByEmail[o.customer_email.toLowerCase()] : null;
+    return (
     <div key={o.id} className="border rounded-lg p-4 space-y-2">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
@@ -129,6 +144,12 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
         </div>
         <span className="font-bold text-primary">R$ {Number(o.amount).toFixed(2)}</span>
       </div>
+      {existingName && (
+        <div className="flex items-start gap-2 p-2 rounded bg-amber-500/10 border border-amber-500/30 text-xs text-amber-700 dark:text-amber-300">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>Este e-mail já possui acesso cadastrado como <strong>{existingName}</strong>. Ao liberar, o código existente será reutilizado (não será criado um novo).</span>
+        </div>
+      )}
       <div className="text-sm text-muted-foreground space-y-1">
         {o.customer_email && <div className="flex items-center gap-2"><Mail className="w-3 h-3" />{o.customer_email}</div>}
         {o.customer_phone && <div className="flex items-center gap-2"><Phone className="w-3 h-3" />{o.customer_phone}</div>}
@@ -168,7 +189,8 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
