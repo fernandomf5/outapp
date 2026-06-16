@@ -143,6 +143,7 @@ const CheckoutPage = () => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [isManualPix, setIsManualPix] = useState(false);
+  const [emailInUseName, setEmailInUseName] = useState<string | null>(null);
 
   const [customerData, setCustomerData] = useState({
     name: '', email: '', emailConfirm: '', phone: '', cpf: '',
