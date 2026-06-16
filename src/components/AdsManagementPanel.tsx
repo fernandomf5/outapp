@@ -1578,190 +1578,177 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               </div>
             </DialogHeader>
             
-            {/* Mode Selection Tabs */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-4">
-              <Button
-                variant={addClientMode === 'new' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setAddClientMode('new')}
-                className="w-full justify-center"
-              >
-                <Plus className="h-4 w-4 mr-1.5" />
-                Criar Novo
-              </Button>
-              <Button
-                variant={addClientMode === 'existing_customer' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setAddClientMode('existing_customer')}
-                className="w-full justify-center"
-                disabled={existingCustomers.length === 0}
-              >
-                <User className="h-4 w-4 mr-1.5" />
-                Cliente Existente
-              </Button>
-              <Button
-                variant={addClientMode === 'existing_business' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setAddClientMode('existing_business')}
-                className="w-full justify-center"
-                disabled={existingBusinesses.length === 0}
-              >
-                <Building2 className="h-4 w-4 mr-1.5" />
-                Negócio Existente
-              </Button>
-            </div>
-
             <div className="grid gap-4 py-4">
-              {addClientMode === 'new' && (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label>Nome *</Label>
-                      <Input 
-                        value={clientFormData.name}
-                        onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
-                        placeholder="Ex: Loja ABC"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Tipo</Label>
-                      <Select value={clientFormData.client_type} onValueChange={(value: any) => setClientFormData({...clientFormData, client_type: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="personal">Pessoal</SelectItem>
-                          <SelectItem value="company">Empresa</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Descrição</Label>
-                    <Input 
-                      value={clientFormData.description}
-                      onChange={(e) => setClientFormData({...clientFormData, description: e.target.value})}
-                      placeholder="Informações adicionais"
-                    />
-                  </div>
-                </>
-              )}
-
-              {addClientMode === 'existing_customer' && (
-                <div className="grid gap-2">
-                  <Label>Selecionar Cliente</Label>
-                  <Select value={selectedExistingCustomerId} onValueChange={setSelectedExistingCustomerId}>
+              {/* Optional: link existing customer or business */}
+              {(existingCustomers.length > 0 || existingBusinesses.length > 0) && (
+                <div className="grid gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                  <Label className="text-sm font-medium">Vincular cadastro existente (opcional)</Label>
+                  <Select
+                    value={
+                      selectedExistingCustomerId
+                        ? `customer:${selectedExistingCustomerId}`
+                        : selectedExistingBusinessId
+                        ? `business:${selectedExistingBusinessId}`
+                        : ''
+                    }
+                    onValueChange={(value) => {
+                      if (!value) {
+                        setSelectedExistingCustomerId('');
+                        setSelectedExistingBusinessId('');
+                        return;
+                      }
+                      const [kind, id] = value.split(':');
+                      if (kind === 'customer') {
+                        setSelectedExistingCustomerId(id);
+                        setSelectedExistingBusinessId('');
+                        const c = existingCustomers.find((x) => x.id === id);
+                        if (c) {
+                          setClientFormData((prev) => ({
+                            ...prev,
+                            name: c.name,
+                            client_type: 'personal',
+                            description: c.company || c.email || prev.description,
+                          }));
+                        }
+                      } else if (kind === 'business') {
+                        setSelectedExistingBusinessId(id);
+                        setSelectedExistingCustomerId('');
+                        const b = existingBusinesses.find((x) => x.id === id);
+                        if (b) {
+                          setClientFormData((prev) => ({
+                            ...prev,
+                            name: b.name,
+                            client_type: 'company',
+                            description: b.company_name || prev.description,
+                          }));
+                        }
+                      }
+                    }}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Escolha um cliente cadastrado" />
+                      <SelectValue placeholder="Selecione um cliente ou negócio cadastrado" />
                     </SelectTrigger>
                     <SelectContent>
-                      {existingCustomers.map((customer) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            <span>{customer.name}</span>
-                            {customer.company && (
-                              <span className="text-muted-foreground text-xs">({customer.company})</span>
-                            )}
+                      {existingCustomers.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            Clientes
                           </div>
-                        </SelectItem>
-                      ))}
+                          {existingCustomers.map((customer) => (
+                            <SelectItem key={`c-${customer.id}`} value={`customer:${customer.id}`}>
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                <span>{customer.name}</span>
+                                {customer.company && (
+                                  <span className="text-muted-foreground text-xs">({customer.company})</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {existingBusinesses.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-1">
+                            Negócios
+                          </div>
+                          {existingBusinesses.map((business) => (
+                            <SelectItem key={`b-${business.id}`} value={`business:${business.id}`}>
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4" />
+                                <span>{business.name}</span>
+                                {business.company_name && (
+                                  <span className="text-muted-foreground text-xs">({business.company_name})</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
-                  {selectedExistingCustomerId && (
-                    <p className="text-sm text-muted-foreground">
-                      O cliente será adicionado como Pessoal
+                  {(selectedExistingCustomerId || selectedExistingBusinessId) && (
+                    <p className="text-xs text-muted-foreground">
+                      Os dados foram preenchidos automaticamente. Você ainda pode ajustá-los abaixo.
                     </p>
                   )}
                 </div>
               )}
 
-              {addClientMode === 'existing_business' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label>Selecionar Negócio</Label>
-                  <Select value={selectedExistingBusinessId} onValueChange={setSelectedExistingBusinessId}>
+                  <Label>Nome *</Label>
+                  <Input
+                    value={clientFormData.name}
+                    onChange={(e) => setClientFormData({ ...clientFormData, name: e.target.value })}
+                    placeholder="Ex: Loja ABC"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tipo</Label>
+                  <Select
+                    value={clientFormData.client_type}
+                    onValueChange={(value: any) => setClientFormData({ ...clientFormData, client_type: value })}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Escolha um negócio cadastrado" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {existingBusinesses.map((business) => (
-                        <SelectItem key={business.id} value={business.id}>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4" />
-                            <span>{business.name}</span>
-                            {business.company_name && (
-                              <span className="text-muted-foreground text-xs">({business.company_name})</span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="personal">Pessoal</SelectItem>
+                      <SelectItem value="company">Empresa</SelectItem>
                     </SelectContent>
                   </Select>
-                  {selectedExistingBusinessId && (
-                    <p className="text-sm text-muted-foreground">
-                      O negócio será adicionado como Empresa
-                    </p>
-                  )}
                 </div>
-              )}
+              </div>
+              <div className="grid gap-2">
+                <Label>Descrição</Label>
+                <Input
+                  value={clientFormData.description}
+                  onChange={(e) => setClientFormData({ ...clientFormData, description: e.target.value })}
+                  placeholder="Informações adicionais"
+                />
+              </div>
 
               <div className="grid gap-2 p-4 rounded-lg bg-muted/30 border border-border/50">
                 <Label className="text-base font-semibold">Caixa para Anúncios (R$) *</Label>
-                <Input 
+                <Input
                   type="number"
                   step="0.01"
                   value={clientFormData.cashbox}
-                  onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
+                  onChange={(e) => setClientFormData({ ...clientFormData, cashbox: e.target.value })}
                   placeholder="0,00"
                   className="text-lg font-semibold"
                 />
                 <p className="text-xs text-muted-foreground">Valor inicial disponível para investir em anúncios</p>
               </div>
             </div>
-            
+
             <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setIsAddClientDialogOpen(false);
-                resetClientDialog();
-              }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsAddClientDialogOpen(false);
+                  resetClientDialog();
+                }}
+              >
                 Cancelar
               </Button>
-              {addClientMode === 'new' && (
-                <Button 
-                  onClick={() => {
-                    handleCreateClientFromSelector({
-                      name: clientFormData.name,
-                      client_type: clientFormData.client_type,
-                      description: clientFormData.description,
-                      cashbox: clientFormData.cashbox
-                    });
-                    resetClientDialog();
-                    setIsAddClientDialogOpen(false);
-                  }} 
-                  className="gradient-primary"
-                  disabled={!clientFormData.name.trim()}
-                >
-                  Criar Cliente
-                </Button>
-              )}
-              {addClientMode === 'existing_customer' && (
-                <Button 
-                  onClick={handleAddFromExistingCustomer} 
-                  className="gradient-primary"
-                  disabled={!selectedExistingCustomerId}
-                >
-                  Vincular Cliente
-                </Button>
-              )}
-              {addClientMode === 'existing_business' && (
-                <Button 
-                  onClick={handleAddFromExistingBusiness} 
-                  className="gradient-primary"
-                  disabled={!selectedExistingBusinessId}
-                >
-                  Vincular Negócio
-                </Button>
-              )}
+              <Button
+                onClick={() => {
+                  handleCreateClientFromSelector({
+                    name: clientFormData.name,
+                    client_type: clientFormData.client_type,
+                    description: clientFormData.description,
+                    cashbox: clientFormData.cashbox,
+                  });
+                  resetClientDialog();
+                  setIsAddClientDialogOpen(false);
+                }}
+                className="gradient-primary"
+                disabled={!clientFormData.name.trim()}
+              >
+                Salvar Cliente
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
