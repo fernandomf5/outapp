@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
-import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
+
 
 interface Proposal {
   id: string;
@@ -495,13 +495,6 @@ export function ProposalCreatorPanel() {
                             <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProposal(proposal)} title="Excluir proposta">
                               <Trash2 className="h-4 w-4" />
                             </Button>
-                            <LinkCustomerButton
-                              resourceType="proposal"
-                              resourceId={proposal.id}
-                              resourceTitle={proposal.title}
-                              resourceUrl={proposal.slug ? `/proposta/${proposal.slug}` : undefined}
-                              compact
-                            />
                           </div>
                         </div>
                       </CardContent>

@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -1359,15 +1359,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                     </div>
                   </div>
                   <div className="flex gap-1 items-center" onClick={(e) => e.stopPropagation()}>
-                    <LinkCustomerButton
-                      resourceType="organization_table"
-                      resourceId={table.id}
-                      resourceTitle={table.name}
-                      resourceUrl={`/tabela-completa/${table.id}`}
-                      size="sm"
-                      variant="ghost"
-                      compact
-                    />
                     <Button 
                       variant="ghost" 
                       size="icon" 
