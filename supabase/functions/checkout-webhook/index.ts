@@ -225,6 +225,28 @@ async function handleCatalogIntegration(supabase: any, checkout: any, orderData:
 
 async function handleMembersAreaIntegration(supabase: any, checkout: any, orderData: any, orderId: string): Promise<string | null> {
   try {
+    const normalizedEmail = String(orderData.customer_email || '').trim().toLowerCase();
+    if (normalizedEmail) {
+      const { data: existingAccess, error: existingAccessError } = await supabase
+        .from('members_area_access_codes')
+        .select('customer_name')
+        .eq('members_area_id', checkout.integration_id)
+        .ilike('customer_email', normalizedEmail)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .limit(1);
+
+      if (existingAccessError) throw existingAccessError;
+      if (existingAccess?.[0]) {
+        console.error(`Access blocked: email already used by ${existingAccess[0].customer_name || 'outro aluno'}`);
+        await supabase
+          .from('checkout_orders')
+          .update({ status: 'email_in_use', metadata: { email_in_use_by: existingAccess[0].customer_name || 'outro aluno' } })
+          .eq('id', orderId);
+        return null;
+      }
+    }
+
     // Generate unique access code
     const { data: codeData } = await supabase.rpc('generate_checkout_access_code');
     const accessCode = codeData || Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -238,7 +260,7 @@ async function handleMembersAreaIntegration(supabase: any, checkout: any, orderD
         user_id: checkout.user_id,
         access_code: accessCode,
         customer_name: orderData.customer_name,
-        customer_email: orderData.customer_email,
+        customer_email: normalizedEmail || orderData.customer_email,
         is_active: true,
       });
 
