@@ -34,7 +34,8 @@ import {
   Download,
   ExternalLink,
   History,
-  Wallet
+  Wallet,
+  Megaphone
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
