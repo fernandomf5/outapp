@@ -87,3 +87,7 @@ verify_jwt = false
 [functions.recover-access-code]
 verify_jwt = false
 
+[functions.check-members-email]
+verify_jwt = false
+
+
