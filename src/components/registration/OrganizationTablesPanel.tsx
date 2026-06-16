@@ -1357,14 +1357,22 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       <CardDescription className="line-clamp-1">{table.description || "Sem descrição"}</CardDescription>
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 items-center" onClick={(e) => e.stopPropagation()}>
+                    <LinkCustomerButton
+                      resourceType="organization_table"
+                      resourceId={table.id}
+                      resourceTitle={table.name}
+                      resourceUrl={`/organization-table/${table.id}`}
+                      size="sm"
+                      variant="ghost"
+                      compact
+                    />
                     <Button 
                       variant="ghost" 
                       size="icon" 
                       className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Abrindo modal de edição para:", table.name);
                         setEditingTable(table);
                       }}
                       title="Editar"
@@ -1377,7 +1385,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Abrindo modal de exclusão para:", table.name);
                         handleDeleteTable(e, table);
                       }}
                       title="Excluir"
