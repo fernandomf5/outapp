@@ -189,7 +189,8 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
