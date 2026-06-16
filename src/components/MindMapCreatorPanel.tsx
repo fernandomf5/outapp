@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { LinkCustomerButton } from '@/components/customer/LinkCustomerButton';
 
 interface MindMapNode {
   id: string;
