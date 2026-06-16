@@ -62,7 +62,7 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
 import InvoicePublicPage from "./pages/InvoicePublicPage";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { CookieNotice } from "@/components/CookieNotice";
+
 
 const queryClient = new QueryClient();
 
@@ -193,7 +193,7 @@ const App = () => (
               <ErrorBoundary>
                 <AppContent />
               </ErrorBoundary>
-              <CookieNotice />
+              
             </TooltipProvider>
           </TeamMemberProvider>
         </AuthProvider>
