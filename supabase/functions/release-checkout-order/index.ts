@@ -140,7 +140,7 @@ serve(async (req) => {
     }
 
 
-    return new Response(JSON.stringify({ success: true, accessCode }), {
+    return new Response(JSON.stringify({ success: true, accessCode, reused }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
