@@ -55,7 +55,7 @@ export function CustomerPicker({
       }
       const [{ data: cats }, { data: custs }] = await Promise.all([
         supabase
-          .from("customer_categories")
+          .from("registration_categories")
           .select("id, name, color")
           .eq("user_id", userData.user.id)
           .order("name"),
