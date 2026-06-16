@@ -147,13 +147,13 @@ export const LandingHeader = () => {
             </div>
 
             {/* Logo */}
-            <div className="flex justify-center py-8 border-b border-border/50">
+            <div className="flex justify-center py-4 border-b border-border/50">
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
                 <img 
                   src={currentLogo() || logoLion} 
                   alt="Logo" 
-                  className="h-20 w-auto object-contain relative z-10"
+                  className="h-10 w-auto object-contain relative z-10"
                 />
               </div>
             </div>
