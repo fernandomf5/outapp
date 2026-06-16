@@ -197,7 +197,7 @@ async function generateAccessCode(supabase: any, checkout: any, orderId: string,
   const { data: codeData } = await supabase.rpc('generate_checkout_access_code');
   const accessCode = codeData || Math.random().toString(36).substring(2, 10).toUpperCase();
 
-  await supabase.from('members_area_access_codes').insert({
+  const { error: insertError } = await supabase.from('members_area_access_codes').insert({
     members_area_id: checkout.integration_id,
     checkout_order_id: orderId,
     user_id: checkout.user_id,
@@ -206,6 +206,7 @@ async function generateAccessCode(supabase: any, checkout: any, orderId: string,
     customer_email: customerEmail,
     is_active: true,
   });
+  if (insertError) throw insertError;
 
   await supabase.from('checkout_orders').update({
     metadata: { access_code: accessCode, members_area_id: checkout.integration_id },
