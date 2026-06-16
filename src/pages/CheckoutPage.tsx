@@ -143,6 +143,7 @@ const CheckoutPage = () => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [isManualPix, setIsManualPix] = useState(false);
+  const [emailInUseName, setEmailInUseName] = useState<string | null>(null);
 
   const [customerData, setCustomerData] = useState({
     name: '', email: '', emailConfirm: '', phone: '', cpf: '',
@@ -167,6 +168,21 @@ const CheckoutPage = () => {
   };
 
   useEffect(() => { loadCheckout(); }, [checkoutId]);
+
+  useEffect(() => {
+    const email = customerData.email.trim();
+    if (!checkoutId || !isValidEmail(email)) { setEmailInUseName(null); return; }
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await supabase.functions.invoke('check-members-email', {
+          body: { checkoutId, email },
+        });
+        if (data?.exists) setEmailInUseName(data.customerName || 'outro aluno');
+        else setEmailInUseName(null);
+      } catch { setEmailInUseName(null); }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [customerData.email, checkoutId]);
 
   const cs = (checkout?.custom_settings && typeof checkout.custom_settings === 'object' ? checkout.custom_settings : checkout) || {};
   const effectClasses = useEffectClasses(cs);
@@ -525,6 +541,11 @@ const CheckoutPage = () => {
                           <Input className="h-12 rounded-xl border-none shadow-sm" type="email" style={{ backgroundColor: checkout.field_color || 'rgba(0,0,0,0.05)', color: textColor }} value={customerData.email} onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })} placeholder="Onde enviaremos seu acesso?" />
                           {customerData.email && !isValidEmail(customerData.email) && (
                             <p className="text-[10px] text-destructive font-semibold">E-mail inválido</p>
+                          )}
+                          {emailInUseName && isValidEmail(customerData.email) && (
+                            <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                              ⚠ Este e-mail já está em uso por <strong>{emailInUseName}</strong>. Se prosseguir, o acesso existente será reutilizado.
+                            </p>
                           )}
                         </div>
                         <div className="space-y-2">
