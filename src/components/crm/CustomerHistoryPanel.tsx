@@ -29,7 +29,7 @@ import {
   Activity
 } from "lucide-react";
 import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
-import { CustomerActivitiesTab } from "@/components/customer/CustomerActivitiesTab";
+
 
 interface ServiceHistory {
   id: string;

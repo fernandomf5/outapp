@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/ImageUpload";
-import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
+
 import { 
   FileText, 
   Plus,
@@ -1146,14 +1146,6 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <LinkCustomerButton
-                        resourceType="briefing"
-                        resourceId={briefing.id}
-                        resourceTitle={briefing.title}
-                        resourceUrl={`/briefing/${briefing.id}`}
-                        size="sm"
-                        compact
-                      />
                       <Button 
                         variant="outline" 
                         size="sm" 

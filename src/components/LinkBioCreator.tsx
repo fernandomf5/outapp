@@ -54,7 +54,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
+
 
 interface SocialLink {
   platform: string;
@@ -879,15 +879,6 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
-                  </div>
-                  <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                    <LinkCustomerButton
-                      resourceType="link_bio"
-                      resourceId={bio.id}
-                      resourceTitle={bio.display_name || bio.username}
-                      resourceUrl={`/bio/${bio.username}`}
-                      compact
-                    />
                   </div>
                 </Card>
               ))}

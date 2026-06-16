@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText, Code, Pencil, ShoppingCart, Clock, Mail, FileCode } from "lucide-react";
 import { AnalyticsPanel } from "./cloner/AnalyticsPanel";
 import { LeadsManager } from "./cloner/LeadsManager";
-import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
+
 
 interface ClonedPage {
   id: string;
@@ -649,13 +649,6 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
                     >
                       <Users className="w-4 h-4" />
                     </Button>
-                    <LinkCustomerButton
-                      resourceType="cloned_page"
-                      resourceId={page.id}
-                      resourceTitle={page.original_url}
-                      resourceUrl={page.cloned_url}
-                      compact
-                    />
                     <Button
                       size="sm"
                       variant="outline"

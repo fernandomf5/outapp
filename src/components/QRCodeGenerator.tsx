@@ -26,7 +26,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaTwitter, FaLinkedin } from 'react-icons/fa';
-import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
+
 
 interface SavedQRCode {
   id: string;
@@ -1150,12 +1150,6 @@ export function QRCodeGenerator() {
                     >
                       <Edit2 className="w-3 h-3" />
                     </Button>
-                    <LinkCustomerButton
-                      resourceType="qr_code"
-                      resourceId={qr.id}
-                      resourceTitle={qr.name}
-                      compact
-                    />
                     <Button
                       size="sm"
                       variant="destructive"

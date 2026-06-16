@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
+
 import { 
   Dialog, 
   DialogContent, 
@@ -350,15 +350,7 @@ export const TaskDialog = ({
 
 
           <DialogFooter className="pt-4 gap-2 sm:justify-between">
-            {task?.id ? (
-              <LinkCustomerButton
-                resourceType="task"
-                resourceId={task.id}
-                resourceTitle={task.title}
-                resourceUrl="/dashboard"
-                size="sm"
-              />
-            ) : <div />}
+            <div />
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
