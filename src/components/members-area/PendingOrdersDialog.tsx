@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Archive, ArchiveRestore, CheckCircle, Loader2, Mail, Phone, Trash2, User } from "lucide-react";
+import { AlertTriangle, Archive, ArchiveRestore, CheckCircle, Loader2, Mail, Phone, Trash2, User } from "lucide-react";
 
 interface PendingOrdersDialogProps {
   open: boolean;
