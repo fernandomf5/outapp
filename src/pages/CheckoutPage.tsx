@@ -169,6 +169,21 @@ const CheckoutPage = () => {
 
   useEffect(() => { loadCheckout(); }, [checkoutId]);
 
+  useEffect(() => {
+    const email = customerData.email.trim();
+    if (!checkoutId || !isValidEmail(email)) { setEmailInUseName(null); return; }
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await supabase.functions.invoke('check-members-email', {
+          body: { checkoutId, email },
+        });
+        if (data?.exists) setEmailInUseName(data.customerName || 'outro aluno');
+        else setEmailInUseName(null);
+      } catch { setEmailInUseName(null); }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [customerData.email, checkoutId]);
+
   const cs = (checkout?.custom_settings && typeof checkout.custom_settings === 'object' ? checkout.custom_settings : checkout) || {};
   const effectClasses = useEffectClasses(cs);
   const ctaEffectClasses = useCtaEffectClasses(cs);
