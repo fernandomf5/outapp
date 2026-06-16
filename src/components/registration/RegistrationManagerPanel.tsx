@@ -343,6 +343,10 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedItem(item); setIsViewOnly(false); setActiveTab("history"); }}>
+                                <History className="h-4 w-4 mr-2" />
+                                Ver Histórico
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onClick={() => confirmDelete(item.id, item.name)}
