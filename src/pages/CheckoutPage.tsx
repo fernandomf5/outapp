@@ -150,6 +150,14 @@ const CheckoutPage = () => {
   });
 
   const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  const checkMembersEmailUsage = async (email: string) => {
+    if (!checkoutId || !isValidEmail(email)) return null;
+    const { data, error } = await supabase.functions.invoke('check-members-email', {
+      body: { checkoutId, email: email.trim().toLowerCase() },
+    });
+    if (error) throw error;
+    return data?.exists ? (data.customerName || 'outro aluno') : null;
+  };
   const formatCpf = (v: string) => {
     const d = v.replace(/\D/g, '').slice(0, 11);
     return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
@@ -172,16 +180,14 @@ const CheckoutPage = () => {
   useEffect(() => {
     const email = customerData.email.trim();
     if (!checkoutId || !isValidEmail(email)) { setEmailInUseName(null); return; }
+    let cancelled = false;
     const t = setTimeout(async () => {
       try {
-        const { data } = await supabase.functions.invoke('check-members-email', {
-          body: { checkoutId, email },
-        });
-        if (data?.exists) setEmailInUseName(data.customerName || 'outro aluno');
-        else setEmailInUseName(null);
-      } catch { setEmailInUseName(null); }
+        const duplicateName = await checkMembersEmailUsage(email);
+        if (!cancelled) setEmailInUseName(duplicateName);
+      } catch { if (!cancelled) setEmailInUseName(null); }
     }, 500);
-    return () => clearTimeout(t);
+    return () => { cancelled = true; clearTimeout(t); };
   }, [customerData.email, checkoutId]);
 
   const cs = (checkout?.custom_settings && typeof checkout.custom_settings === 'object' ? checkout.custom_settings : checkout) || {};
@@ -261,25 +267,29 @@ const CheckoutPage = () => {
 
   const handleProceedToPayment = async () => {
     if (!checkout) return;
+    const normalizedEmail = customerData.email.trim().toLowerCase();
     if (!customerData.name.trim()) { alert('Preencha seu nome completo'); return; }
-    if (!isValidEmail(customerData.email)) { alert('E-mail inválido'); return; }
-    if (customerData.email.trim().toLowerCase() !== customerData.emailConfirm.trim().toLowerCase()) {
+    if (!isValidEmail(normalizedEmail)) { alert('E-mail inválido'); return; }
+    if (normalizedEmail !== customerData.emailConfirm.trim().toLowerCase()) {
       alert('Os e-mails não coincidem. O código de acesso será enviado a este e-mail.'); return;
-    }
-    if (emailInUseName) {
-      alert(`Este e-mail já está em uso por ${emailInUseName}. Use outro e-mail para efetuar a compra.`);
-      return;
     }
     if (!isValidCpf(customerData.cpf)) { alert('CPF inválido'); return; }
 
     try {
+      const duplicateName = await checkMembersEmailUsage(normalizedEmail);
+      if (duplicateName) {
+        setEmailInUseName(duplicateName);
+        alert(`Este e-mail já está em uso por ${duplicateName}. Use outro e-mail para efetuar a compra.`);
+        return;
+      }
+
       const totalAmount = calculateTotal();
       const extras = getSelectedExtras();
 
       const { data: order, error: orderError } = await supabase
         .from('checkout_orders').insert({
           checkout_id: checkout.id, user_id: checkout.user_id,
-          customer_name: customerData.name, customer_email: customerData.email,
+          customer_name: customerData.name, customer_email: normalizedEmail,
           customer_phone: customerData.phone || null, customer_cpf: customerData.cpf || null,
           amount: totalAmount, status: 'pending',
           additional_items: extras,
