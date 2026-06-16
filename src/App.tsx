@@ -193,7 +193,7 @@ const App = () => (
               <ErrorBoundary>
                 <AppContent />
               </ErrorBoundary>
-              <CookieNotice />
+              
             </TooltipProvider>
           </TeamMemberProvider>
         </AuthProvider>
