@@ -542,6 +542,11 @@ const CheckoutPage = () => {
                           {customerData.email && !isValidEmail(customerData.email) && (
                             <p className="text-[10px] text-destructive font-semibold">E-mail inválido</p>
                           )}
+                          {emailInUseName && isValidEmail(customerData.email) && (
+                            <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                              ⚠ Este e-mail já está em uso por <strong>{emailInUseName}</strong>. Se prosseguir, o acesso existente será reutilizado.
+                            </p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase opacity-70" style={{ color: textColor }}>Confirme o E-mail *</Label>
