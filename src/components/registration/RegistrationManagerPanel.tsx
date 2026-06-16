@@ -224,7 +224,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
             setActiveTab(val);
           }
         }} className="w-full md:w-auto">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={`grid w-full ${selectedItem ? "grid-cols-3" : "grid-cols-2"}`}>
             <TabsTrigger value="form" className="gap-2">
               <PlusCircle className="h-4 w-4" />
               Cadastrar
@@ -233,6 +233,12 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               <List className="h-4 w-4" />
               Ver Lista
             </TabsTrigger>
+            {selectedItem && (
+              <TabsTrigger value="history" className="gap-2">
+                <History className="h-4 w-4" />
+                Histórico
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
       </div>
@@ -255,6 +261,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               setSelectedItem(null);
             }}
           />
+        ) : activeTab === "history" && selectedItem ? (
+          <ContactHistoryPanel contactId={selectedItem.id} contactName={selectedItem.name} />
         ) : (
           <Card>
             <CardContent className="p-0">
