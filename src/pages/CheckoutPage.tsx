@@ -266,6 +266,10 @@ const CheckoutPage = () => {
     if (customerData.email.trim().toLowerCase() !== customerData.emailConfirm.trim().toLowerCase()) {
       alert('Os e-mails não coincidem. O código de acesso será enviado a este e-mail.'); return;
     }
+    if (emailInUseName) {
+      alert(`Este e-mail já está em uso por ${emailInUseName}. Use outro e-mail para efetuar a compra.`);
+      return;
+    }
     if (!isValidCpf(customerData.cpf)) { alert('CPF inválido'); return; }
 
     try {
