@@ -50,20 +50,21 @@ serve(async (req) => {
       throw new Error('Checkout não está integrado a uma área de membros');
     }
 
-    // Check if email already has an active code for this area — reuse it to avoid duplicates
+    // Check if email already has an active code for this area — block duplicate student emails
     let accessCode: string | null = null;
-    let reused = false;
+    const normalizedEmail = String(order.customer_email || '').trim().toLowerCase();
     if (order.customer_email) {
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('members_area_access_codes')
-        .select('access_code, customer_name')
+        .select('customer_name')
         .eq('members_area_id', checkout.integration_id)
-        .eq('customer_email', order.customer_email)
+        .ilike('customer_email', normalizedEmail)
         .eq('is_active', true)
-        .maybeSingle();
-      if (existing?.access_code) {
-        accessCode = existing.access_code;
-        reused = true;
+        .order('created_at', { ascending: true })
+        .limit(1);
+      if (existingError) throw existingError;
+      if (existing?.[0]) {
+        throw new Error(`Este e-mail já está em uso por ${existing[0].customer_name || 'outro aluno'}. Use outro e-mail para efetuar a compra.`);
       }
     }
 
@@ -76,7 +77,7 @@ serve(async (req) => {
         user_id: checkout.user_id,
         access_code: accessCode,
         customer_name: order.customer_name,
-        customer_email: order.customer_email,
+        customer_email: normalizedEmail || order.customer_email,
         is_active: true,
       });
     }
@@ -140,7 +141,7 @@ serve(async (req) => {
     }
 
 
-    return new Response(JSON.stringify({ success: true, accessCode, reused }), {
+    return new Response(JSON.stringify({ success: true, accessCode }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
