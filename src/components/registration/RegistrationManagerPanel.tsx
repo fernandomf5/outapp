@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
+import { ContactHistoryPanel } from "./ContactHistoryPanel";
 import { toast } from "sonner";
 import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -223,7 +224,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
             setActiveTab(val);
           }
         }} className="w-full md:w-auto">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={`grid w-full ${selectedItem ? "grid-cols-3" : "grid-cols-2"}`}>
             <TabsTrigger value="form" className="gap-2">
               <PlusCircle className="h-4 w-4" />
               Cadastrar
@@ -232,6 +233,12 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               <List className="h-4 w-4" />
               Ver Lista
             </TabsTrigger>
+            {selectedItem && (
+              <TabsTrigger value="history" className="gap-2">
+                <History className="h-4 w-4" />
+                Histórico
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
       </div>
@@ -254,6 +261,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               setSelectedItem(null);
             }}
           />
+        ) : activeTab === "history" && selectedItem ? (
+          <ContactHistoryPanel contactId={selectedItem.id} contactName={selectedItem.name} />
         ) : (
           <Card>
             <CardContent className="p-0">
@@ -333,6 +342,10 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                               <DropdownMenuItem onClick={() => handleEdit(item)}>
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedItem(item); setIsViewOnly(false); setActiveTab("history"); }}>
+                                <History className="h-4 w-4 mr-2" />
+                                Ver Histórico
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
