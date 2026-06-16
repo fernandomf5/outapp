@@ -193,49 +193,51 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>Liberar Alunos - {areaName}</DialogTitle>
-          <DialogDescription>
-            Libere o acesso após confirmar o pagamento. Arquive os que não confirmarem.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Liberar Alunos - {areaName}</DialogTitle>
+            <DialogDescription>
+              Libere o acesso após confirmar o pagamento. Arquive os que não confirmarem.
+            </DialogDescription>
+          </DialogHeader>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="pending">Pendentes ({pending.length})</TabsTrigger>
-            <TabsTrigger value="archived">Arquivados ({archived.length})</TabsTrigger>
-          </TabsList>
+          <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="pending">Pendentes ({pending.length})</TabsTrigger>
+              <TabsTrigger value="archived">Arquivados ({archived.length})</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="pending">
-            <ScrollArea className="max-h-[55vh] pr-4">
-              {loading ? (
-                <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
-              ) : pending.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12">Nenhum pedido pendente.</p>
-              ) : (
-                <div className="space-y-3">{pending.map((o) => renderOrder(o, false))}</div>
-              )}
-            </ScrollArea>
-          </TabsContent>
+            <TabsContent value="pending">
+              <ScrollArea className="max-h-[55vh] pr-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
+                ) : pending.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-12">Nenhum pedido pendente.</p>
+                ) : (
+                  <div className="space-y-3">{pending.map((o) => renderOrder(o, false))}</div>
+                )}
+              </ScrollArea>
+            </TabsContent>
 
-          <TabsContent value="archived">
-            <ScrollArea className="max-h-[55vh] pr-4">
-              {loading ? (
-                <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
-              ) : archived.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12">Nenhum pedido arquivado.</p>
-              ) : (
-                <div className="space-y-3">{archived.map((o) => renderOrder(o, true))}</div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
+            <TabsContent value="archived">
+              <ScrollArea className="max-h-[55vh] pr-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
+                ) : archived.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-12">Nenhum pedido arquivado.</p>
+                ) : (
+                  <div className="space-y-3">{archived.map((o) => renderOrder(o, true))}</div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
-        <AlertDialogContent className="z-[100]">
+        <AlertDialogContent className="z-[200]">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir pedido?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -258,6 +260,6 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Dialog>
+    </>
   );
 };
