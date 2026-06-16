@@ -1189,6 +1189,15 @@ export default function SalesFunnelPanel() {
               ))}
             </SelectContent>
           </Select>
+          {selectedFunnel && (
+            <LinkCustomerButton
+              resourceType="funnel"
+              resourceId={selectedFunnel}
+              resourceTitle={funnels.find(f => f.id === selectedFunnel)?.name}
+              resourceUrl="/dashboard"
+              size="sm"
+            />
+          )}
           <Dialog open={showFunnelDialog} onOpenChange={(open) => { setShowFunnelDialog(open); if (!open) resetFunnelForm(); }}>
             <DialogTrigger asChild>
               <Button size="sm">
