@@ -25,9 +25,11 @@ import {
   Download,
   CheckCircle2,
   Upload,
-  Loader2
+  Loader2,
+  Activity
 } from "lucide-react";
 import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
+import { CustomerActivitiesTab } from "@/components/customer/CustomerActivitiesTab";
 
 interface ServiceHistory {
   id: string;
@@ -571,8 +573,11 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
         </Card>
       </div>
 
-      <Tabs defaultValue="services" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="activities" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="activities" className="text-xs">
+            <Activity className="w-3 h-3 mr-1" /> Atividades
+          </TabsTrigger>
           <TabsTrigger value="services" className="text-xs">
             <Wrench className="w-3 h-3 mr-1" /> Serviços ({servicesHistory.length})
           </TabsTrigger>
@@ -586,6 +591,17 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             <FileText className="w-3 h-3 mr-1" /> Contratos ({contracts.length})
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="activities" className="space-y-3">
+          {entityType === 'customer' && entityId ? (
+            <CustomerActivitiesTab customerId={entityId} />
+          ) : (
+            <Card className="p-6 text-center text-sm text-muted-foreground">
+              Histórico de atividades disponível apenas para clientes do Cadastro.
+            </Card>
+          )}
+        </TabsContent>
+
 
         {/* Services Tab - Only custom/avulso */}
         <TabsContent value="services" className="space-y-3">

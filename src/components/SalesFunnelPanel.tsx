@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2, ChevronDown, ChevronUp, Users, Folder, FolderOpen, Search, UserPlus } from 'lucide-react';
 import FunnelChart from './FunnelChart';
+import { LinkCustomerButton } from '@/components/customer/LinkCustomerButton';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -1189,6 +1190,15 @@ export default function SalesFunnelPanel() {
               ))}
             </SelectContent>
           </Select>
+          {selectedFunnel && (
+            <LinkCustomerButton
+              resourceType="funnel"
+              resourceId={selectedFunnel.id}
+              resourceTitle={selectedFunnel.name}
+              resourceUrl="/dashboard"
+              size="sm"
+            />
+          )}
           <Dialog open={showFunnelDialog} onOpenChange={(open) => { setShowFunnelDialog(open); if (!open) resetFunnelForm(); }}>
             <DialogTrigger asChild>
               <Button size="sm">

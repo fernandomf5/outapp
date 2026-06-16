@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
 
 interface Note {
   id: string;
@@ -401,7 +402,16 @@ export const QuickNotesPanel = () => {
                       }
                     })()}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 items-center">
+                      <LinkCustomerButton
+                        resourceType="quick_note"
+                        resourceId={note.id}
+                        resourceTitle={note.title}
+                        resourceUrl="/quick-notes"
+                        size="sm"
+                        variant="ghost"
+                        compact
+                      />
                       <Button
                         variant="ghost"
                         size="icon"

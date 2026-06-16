@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { LinkCustomerButton } from "@/components/customer/LinkCustomerButton";
 import { 
   Dialog, 
   DialogContent, 
@@ -348,13 +349,24 @@ export const TaskDialog = ({
           </div>
 
 
-          <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : task ? "Salvar Alterações" : "Criar Tarefa"}
-            </Button>
+          <DialogFooter className="pt-4 gap-2 sm:justify-between">
+            {task?.id ? (
+              <LinkCustomerButton
+                resourceType="task"
+                resourceId={task.id}
+                resourceTitle={task.title}
+                resourceUrl="/dashboard"
+                size="sm"
+              />
+            ) : <div />}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Salvando..." : task ? "Salvar Alterações" : "Criar Tarefa"}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

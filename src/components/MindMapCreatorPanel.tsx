@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { LinkCustomerButton } from '@/components/customer/LinkCustomerButton';
 
 interface MindMapNode {
   id: string;
@@ -984,7 +985,16 @@ export const MindMapCreatorPanel = () => {
                               </Badge>
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 items-center">
+                            <LinkCustomerButton
+                              resourceType="mind_map"
+                              resourceId={map.id}
+                              resourceTitle={map.name}
+                              resourceUrl="/dashboard"
+                              size="sm"
+                              variant="ghost"
+                              compact
+                            />
                             <Button size="sm" onClick={() => loadMap(map)}>
                               <Edit3 className="w-4 h-4 mr-1" />
                               Abrir
