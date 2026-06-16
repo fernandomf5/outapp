@@ -41,6 +41,24 @@ serve(async (req) => {
 
     if (checkoutError || !checkout) throw new Error('Checkout não encontrado ou inativo');
 
+    const normalizedPayerEmail = String(payerEmail || '').trim().toLowerCase();
+    if (checkout.integration_type === 'members_area' && checkout.integration_id && normalizedPayerEmail) {
+      const { data: existingAccess, error: existingAccessError } = await supabase
+        .from('members_area_access_codes')
+        .select('customer_name')
+        .eq('members_area_id', checkout.integration_id)
+        .ilike('customer_email', normalizedPayerEmail)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .limit(1);
+
+      if (existingAccessError) throw existingAccessError;
+      const existingStudent = existingAccess?.[0];
+      if (existingStudent) {
+        throw new Error(`Este e-mail já está em uso por ${existingStudent.customer_name || 'outro aluno'}. Use outro e-mail para efetuar a compra.`);
+      }
+    }
+
     let accessToken = checkout.mp_access_token;
     if (!accessToken) {
       const { data: mpSettings } = await supabase
@@ -135,7 +153,7 @@ serve(async (req) => {
 
       // Handle members area integration
       if (checkout.integration_type === 'members_area' && checkout.integration_id) {
-        const accessCode = await generateAccessCode(supabase, checkout, orderId, payerName, payerEmail);
+        const accessCode = await generateAccessCode(supabase, checkout, orderId, payerName, normalizedPayerEmail || payerEmail);
         
         // Send email with access code
         await sendAccessCodeEmail(supabase, payerEmail, payerName, accessCode, checkout.item_name);
