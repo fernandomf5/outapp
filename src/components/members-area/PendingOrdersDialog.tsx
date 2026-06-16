@@ -37,6 +37,7 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<"pending" | "archived">("pending");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [existingByEmail, setExistingByEmail] = useState<Record<string, string>>({});
 
   const load = async () => {
     setLoading(true);
@@ -58,6 +59,18 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
 
       if (error) throw error;
       setOrders(data || []);
+
+      // Load existing access codes for this area, indexed by email -> customer_name
+      const { data: codes } = await supabase
+        .from('members_area_access_codes')
+        .select('customer_email, customer_name')
+        .eq('members_area_id', areaId)
+        .eq('is_active', true);
+      const map: Record<string, string> = {};
+      (codes || []).forEach((c: any) => {
+        if (c.customer_email) map[c.customer_email.toLowerCase()] = c.customer_name || 'sem nome';
+      });
+      setExistingByEmail(map);
     } catch (err: any) {
       toast.error('Erro ao carregar pedidos: ' + err.message);
     } finally {
