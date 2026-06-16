@@ -4447,47 +4447,6 @@ export type Database = {
           },
         ]
       }
-      customer_resource_links: {
-        Row: {
-          created_at: string
-          customer_id: string
-          id: string
-          resource_id: string
-          resource_title: string | null
-          resource_type: string
-          resource_url: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          customer_id: string
-          id?: string
-          resource_id: string
-          resource_title?: string | null
-          resource_type: string
-          resource_url?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          customer_id?: string
-          id?: string
-          resource_id?: string
-          resource_title?: string | null
-          resource_type?: string
-          resource_url?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "customer_resource_links_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       customer_services_history: {
         Row: {
           contact_id: string | null
