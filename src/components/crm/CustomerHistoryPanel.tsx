@@ -25,9 +25,11 @@ import {
   Download,
   CheckCircle2,
   Upload,
-  Loader2
+  Loader2,
+  Activity
 } from "lucide-react";
 import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
+import { CustomerActivitiesTab } from "@/components/customer/CustomerActivitiesTab";
 
 interface ServiceHistory {
   id: string;
