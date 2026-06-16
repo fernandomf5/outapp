@@ -401,7 +401,16 @@ export const QuickNotesPanel = () => {
                       }
                     })()}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 items-center">
+                      <LinkCustomerButton
+                        resourceType="quick_note"
+                        resourceId={note.id}
+                        resourceTitle={note.title}
+                        resourceUrl="/quick-notes"
+                        size="sm"
+                        variant="ghost"
+                        compact
+                      />
                       <Button
                         variant="ghost"
                         size="icon"
