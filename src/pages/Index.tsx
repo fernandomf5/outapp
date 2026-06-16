@@ -939,6 +939,7 @@ const Index = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <CookieNotice />
     </div>
   );
 };
