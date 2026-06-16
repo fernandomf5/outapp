@@ -88,7 +88,7 @@ export const PendingOrdersDialog = ({ open, onOpenChange, areaId, areaName }: Pe
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success(`Acesso liberado! Código: ${data.accessCode}`);
+      toast.success(data?.reused ? `Email já cadastrado — código existente reutilizado: ${data.accessCode}` : `Acesso liberado! Código: ${data.accessCode}`);
       await load();
     } catch (err: any) {
       toast.error('Erro ao liberar: ' + (err.message || 'Desconhecido'));
