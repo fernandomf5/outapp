@@ -163,7 +163,7 @@ export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaNa
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 max-h-[50vh] mt-2">
+        <ScrollArea className="flex-1 min-h-0 mt-2">
           <div className="space-y-2 pr-3">
             {loading ? (
               <p className="text-sm text-muted-foreground text-center py-6">Carregando...</p>
