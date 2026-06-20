@@ -119,7 +119,7 @@ export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaNa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[700px] h-[calc(100dvh-2rem)] sm:h-[90dvh] max-h-[90dvh] flex flex-col overflow-hidden">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[700px] h-[calc(100dvh-2rem)] sm:h-[90dvh] !max-h-[90dvh] !flex flex-col !overflow-hidden">
         <DialogHeader className="shrink-0 pr-8">
           <DialogTitle className="flex items-center gap-2">
             <Key className="w-5 h-5" />
