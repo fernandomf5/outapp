@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, Copy, Key, ExternalLink, Clock } from "lucide-react";
@@ -120,8 +119,8 @@ export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaNa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[700px] h-[calc(100dvh-2rem)] sm:h-[90dvh] !max-h-[90dvh] !flex flex-col !overflow-hidden">
+        <DialogHeader className="shrink-0 pr-8">
           <DialogTitle className="flex items-center gap-2">
             <Key className="w-5 h-5" />
             Códigos de Acesso — {areaName}
@@ -131,7 +130,7 @@ export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaNa
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_180px_auto] gap-2 items-end border rounded-md p-3 bg-muted/30">
+        <div className="shrink-0 grid grid-cols-1 sm:grid-cols-[1fr_180px_auto] gap-2 items-end border rounded-md p-3 bg-muted/30">
           <div>
             <Label className="text-xs">Nome (opcional)</Label>
             <Input
@@ -163,8 +162,8 @@ export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaNa
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 min-h-0 mt-2">
-          <div className="space-y-2 pr-3">
+        <div className="flex-1 min-h-0 mt-2 overflow-y-auto overscroll-contain pr-3">
+          <div className="space-y-2 pb-2">
             {loading ? (
               <p className="text-sm text-muted-foreground text-center py-6">Carregando...</p>
             ) : codes.length === 0 ? (
@@ -236,7 +235,7 @@ export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaNa
               })
             )}
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
