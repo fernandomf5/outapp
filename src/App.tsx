@@ -48,6 +48,7 @@ import AgentResetPassword from "./pages/AgentResetPassword";
 import MindMapPresentation from "./pages/MindMapPresentation";
 import MindMapFullEditor from "./pages/MindMapFullEditor";
 import ProposalPublicView from "./pages/ProposalPublicView";
+import ContractPublicView from "./pages/ContractPublicView";
 import AprovaJobClient from "./pages/AprovaJobClient";
 
 import InstallApp from "./pages/InstallApp";
