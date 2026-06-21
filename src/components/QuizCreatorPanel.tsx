@@ -840,7 +840,7 @@ export const QuizCreatorPanel = () => {
                       <div className="grid gap-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-xs text-muted-foreground">
-                            Opções (cada uma com pontuação)
+                            Opções (cada uma direciona para um perfil/oferta)
                           </Label>
                           <Button
                             type="button"
@@ -861,15 +861,21 @@ export const QuizCreatorPanel = () => {
                               placeholder={`Opção ${oIndex + 1}`}
                               className="flex-1"
                             />
-                            <Input
-                              type="number"
-                              value={option.points}
+                            <select
+                              value={option.profile_id || ""}
                               onChange={(e) =>
-                                handleUpdateOption(qIndex, oIndex, "points", e.target.value)
+                                handleUpdateOption(qIndex, oIndex, "profile_id", e.target.value)
                               }
-                              className="w-20"
-                              title="Pontos"
-                            />
+                              className="h-10 rounded-md border border-input bg-background px-2 text-sm min-w-[160px]"
+                              title="Perfil/Oferta que esta resposta direciona"
+                            >
+                              <option value="">— Sem perfil —</option>
+                              {formData.result_profiles.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name || "Perfil sem nome"}
+                                </option>
+                              ))}
+                            </select>
                             {question.options.length > 1 && (
                               <Button
                                 type="button"
