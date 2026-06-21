@@ -445,6 +445,7 @@ const Dashboard = () => {
     <>
       <GlobalChatNotification />
       <AgendaReminders />
+      <RoutineReminders />
       <PushNotificationPrompt />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
