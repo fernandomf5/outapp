@@ -48,6 +48,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (categoryId && user) {
