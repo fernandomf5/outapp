@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Phone, Mail, Edit, Trash2, Filter, FolderPlus, Settings2, Folder, Tag } from "lucide-react";
+import { Download, Phone, Mail, Edit, Trash2, Filter, FolderPlus, Settings2, Folder, Tag, Copy, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -60,6 +61,14 @@ export function GeneralCRMPanel() {
   const [editingCategory, setEditingCategory] = useState<LeadCategory | null>(null);
   const [categoryToDelete, setCategoryToDelete] = useState<LeadCategory | null>(null);
   const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [copyMode, setCopyMode] = useState<"selected" | "category">("selected");
+  const [copySourceCategoryId, setCopySourceCategoryId] = useState<string>("");
+  const [copyTargetCategoryId, setCopyTargetCategoryId] = useState<string>("");
+
 
   // Get unique sources for filter dropdown
   const uniqueSources = useMemo(() => {
@@ -167,11 +176,41 @@ export function GeneralCRMPanel() {
         });
       }
 
+      // 1b. Buscar leads do Cadastro (tabela contacts)
+      const { data: regCats } = await supabase
+        .from('registration_categories')
+        .select('id, name')
+        .eq('user_id', user.id);
+      const regCatMap = new Map<string, string>((regCats || []).map((r: any) => [r.id, r.name]));
+
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('id, name, email, phone, source, registration_category_id, created_at')
+        .eq('user_id', user.id);
+
+      if (contacts) {
+        contacts.forEach((c: any) => {
+          existingLeadIds.add(`contacts-${c.id}`);
+          allLeads.push({
+            id: `contact-${c.id}`,
+            originalId: c.id,
+            originalSource: 'contacts',
+            name: c.name || 'N/A',
+            email: c.email || 'N/A',
+            phone: c.phone || 'N/A',
+            source: 'Cadastro',
+            sourceName: regCatMap.get(c.registration_category_id) || c.source || 'Cadastro',
+            createdAt: c.created_at
+          });
+        });
+      }
+
       // 2. Buscar leads de conversas de chatbots
       const { data: chatbots } = await supabase
         .from('chatbots')
         .select('id, name')
         .eq('user_id', user.id);
+
 
       if (chatbots && chatbots.length > 0) {
         const chatbotIds = chatbots.map(c => c.id);
@@ -555,7 +594,140 @@ export function GeneralCRMPanel() {
     toast.success('Leads baixados com sucesso!');
   };
 
+  // ===== Bulk selection helpers =====
+  const toggleSelect = (leadId: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(leadId)) next.delete(leadId); else next.add(leadId);
+      return next;
+    });
+  };
+
+  const allFilteredSelected = filteredLeads.length > 0 && filteredLeads.every(l => selectedIds.has(l.id));
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        filteredLeads.forEach(l => next.delete(l.id));
+        return next;
+      });
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        filteredLeads.forEach(l => next.add(l.id));
+        return next;
+      });
+    }
+  };
+
+  const selectedLeads = useMemo(() => leads.filter(l => selectedIds.has(l.id)), [leads, selectedIds]);
+
+  const downloadSelectedCSV = () => {
+    if (selectedLeads.length === 0) {
+      toast.error('Nenhum lead selecionado');
+      return;
+    }
+    const csv = [
+      'Nome,Email,Telefone,Origem,Fonte,Categoria,Data',
+      ...selectedLeads.map(lead => {
+        const category = getCategoryById(lead.categoryId);
+        return `"${lead.name}","${lead.email}","${lead.phone}","${lead.source}","${lead.sourceName}","${category?.name || ''}","${new Date(lead.createdAt).toLocaleString('pt-BR')}"`;
+      })
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `leads-selecionados.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success(`${selectedLeads.length} leads baixados!`);
+  };
+
+  const bulkAssignCategory = async (categoryId: string | null) => {
+    if (!user || selectedLeads.length === 0) {
+      toast.error('Nenhum lead selecionado');
+      return;
+    }
+    try {
+      const targets = selectedLeads.filter(l => l.originalSource && l.originalId);
+      // Remove existing assignments
+      await Promise.all(targets.map(l =>
+        supabase.from('lead_category_assignments').delete()
+          .eq('user_id', user.id)
+          .eq('lead_source', l.originalSource!)
+          .eq('lead_id', l.originalId!)
+      ));
+      if (categoryId) {
+        const rows = targets.map(l => ({
+          user_id: user.id,
+          category_id: categoryId,
+          lead_source: l.originalSource!,
+          lead_id: l.originalId!,
+        }));
+        if (rows.length > 0) {
+          const { error } = await supabase.from('lead_category_assignments').insert(rows);
+          if (error) throw error;
+        }
+      }
+      toast.success(`Categoria aplicada a ${targets.length} leads`);
+      setSelectedIds(new Set());
+      fetchCategoryAssignments();
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Erro ao aplicar categoria em massa');
+    }
+  };
+
+  const copyCategoryLeads = async () => {
+    if (!user || !copyTargetCategoryId) {
+      toast.error('Selecione a categoria de destino');
+      return;
+    }
+    try {
+      let sourceLeads: Lead[] = [];
+      if (copyMode === 'selected') {
+        sourceLeads = selectedLeads;
+      } else {
+        if (!copySourceCategoryId) {
+          toast.error('Selecione a categoria de origem');
+          return;
+        }
+        sourceLeads = leads.filter(l => l.categoryId === copySourceCategoryId);
+      }
+      const targets = sourceLeads.filter(l => l.originalSource && l.originalId);
+      if (targets.length === 0) {
+        toast.error('Nenhum lead encontrado para copiar');
+        return;
+      }
+      const rows = targets.map(l => ({
+        user_id: user.id,
+        category_id: copyTargetCategoryId,
+        lead_source: l.originalSource!,
+        lead_id: l.originalId!,
+      }));
+      // Schema only allows one category per lead, so we move (delete any existing then insert)
+      await Promise.all(targets.map(l =>
+        supabase.from('lead_category_assignments').delete()
+          .eq('user_id', user.id)
+          .eq('lead_source', l.originalSource!)
+          .eq('lead_id', l.originalId!)
+      ));
+      const { error } = await supabase.from('lead_category_assignments').insert(rows);
+      if (error) throw error;
+      toast.success(`${targets.length} leads copiados para a categoria`);
+      setCopyDialogOpen(false);
+      setCopySourceCategoryId('');
+      setCopyTargetCategoryId('');
+      fetchCategoryAssignments();
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Erro ao copiar leads');
+    }
+  };
+
   return (
+
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -673,10 +845,64 @@ export function GeneralCRMPanel() {
               </Button>
               <Button onClick={downloadAllLeads} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
-                Baixar CSV
+                Baixar CSV (filtrados)
+              </Button>
+              <Button
+                onClick={() => { setCopyMode('category'); setCopyDialogOpen(true); }}
+                variant="outline"
+                size="sm"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar categoria → categoria
               </Button>
             </div>
           </div>
+
+          {/* Bulk actions bar (visible when items selected) */}
+          {selectedIds.size > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-2 p-3 rounded-md border bg-muted/40">
+              <CheckSquare className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">{selectedIds.size} selecionados</span>
+              <div className="ml-auto flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={downloadSelectedCSV}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Baixar selecionados
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <Tag className="h-4 w-4 mr-2" />
+                      Atribuir categoria
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="end">
+                    <div className="space-y-1">
+                      <Button variant="ghost" size="sm" className="w-full justify-start"
+                        onClick={() => bulkAssignCategory(null)}>
+                        <span className="text-muted-foreground">Remover categoria</span>
+                      </Button>
+                      {categories.map(cat => (
+                        <Button key={cat.id} variant="ghost" size="sm" className="w-full justify-start"
+                          onClick={() => bulkAssignCategory(cat.id)}>
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
+                          {cat.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button size="sm" variant="outline"
+                  onClick={() => { setCopyMode('selected'); setCopyDialogOpen(true); }}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar para categoria
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+                  Limpar
+                </Button>
+              </div>
+            </div>
+          )}
+
 
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -693,6 +919,13 @@ export function GeneralCRMPanel() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={allFilteredSelected}
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Selecionar todos"
+                      />
+                    </TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>E-mail</TableHead>
                     <TableHead>Telefone</TableHead>
@@ -707,7 +940,17 @@ export function GeneralCRMPanel() {
                     const category = getCategoryById(lead.categoryId);
                     return (
                       <TableRow key={lead.id}>
-                        <TableCell className="font-medium">{lead.name}</TableCell>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.has(lead.id)}
+                            onCheckedChange={() => toggleSelect(lead.id)}
+                            aria-label="Selecionar"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {lead.name}
+                          <div className="text-xs text-muted-foreground font-normal">{lead.sourceName}</div>
+                        </TableCell>
                         <TableCell>{lead.email}</TableCell>
                         <TableCell>{lead.phone}</TableCell>
                         <TableCell>
@@ -947,6 +1190,60 @@ export function GeneralCRMPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog: copiar leads para categoria */}
+      <Dialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {copyMode === 'selected' ? 'Mover selecionados para categoria' : 'Mover leads entre categorias'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Cada lead pode estar em apenas uma categoria, portanto esta ação move os leads para a categoria de destino.
+            </p>
+            {copyMode === 'category' && (
+              <div>
+                <Label>Categoria de origem</Label>
+                <Select value={copySourceCategoryId} onValueChange={setCopySourceCategoryId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.color }} />
+                          {c.name} ({leads.filter(l => l.categoryId === c.id).length})
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div>
+              <Label>Categoria de destino</Label>
+              <Select value={copyTargetCategoryId} onValueChange={setCopyTargetCategoryId}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {categories.filter(c => c.id !== copySourceCategoryId).map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.color }} />
+                        {c.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setCopyDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={copyCategoryLeads}>Confirmar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
