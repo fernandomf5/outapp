@@ -176,11 +176,41 @@ export function GeneralCRMPanel() {
         });
       }
 
+      // 1b. Buscar leads do Cadastro (tabela contacts)
+      const { data: regCats } = await supabase
+        .from('registration_categories')
+        .select('id, name')
+        .eq('user_id', user.id);
+      const regCatMap = new Map<string, string>((regCats || []).map((r: any) => [r.id, r.name]));
+
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('id, name, email, phone, source, registration_category_id, created_at')
+        .eq('user_id', user.id);
+
+      if (contacts) {
+        contacts.forEach((c: any) => {
+          existingLeadIds.add(`contacts-${c.id}`);
+          allLeads.push({
+            id: `contact-${c.id}`,
+            originalId: c.id,
+            originalSource: 'contacts',
+            name: c.name || 'N/A',
+            email: c.email || 'N/A',
+            phone: c.phone || 'N/A',
+            source: 'Cadastro',
+            sourceName: regCatMap.get(c.registration_category_id) || c.source || 'Cadastro',
+            createdAt: c.created_at
+          });
+        });
+      }
+
       // 2. Buscar leads de conversas de chatbots
       const { data: chatbots } = await supabase
         .from('chatbots')
         .select('id, name')
         .eq('user_id', user.id);
+
 
       if (chatbots && chatbots.length > 0) {
         const chatbotIds = chatbots.map(c => c.id);
