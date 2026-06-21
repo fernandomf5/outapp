@@ -611,57 +611,39 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   };
 
   const handleUpdateRowBold = async (rowId: string, isBold: boolean) => {
+    setRows(prev => prev.map(r => r.id === rowId ? { ...r, is_bold: isBold } : r));
     const { error } = await supabase
       .from("organization_table_rows")
       .update({ is_bold: isBold })
       .eq("id", rowId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar negrito da linha", variant: "destructive" });
-    } else {
-      fetchTableDetails(selectedTable.id);
-    }
+    if (error) toast({ title: "Erro ao atualizar negrito da linha", variant: "destructive" });
   };
 
   const handleUpdateRowTextColor = async (rowId: string, color: string) => {
+    setRows(prev => prev.map(r => r.id === rowId ? { ...r, row_text_color: color } : r));
     const { error } = await supabase
       .from("organization_table_rows")
       .update({ row_text_color: color })
       .eq("id", rowId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar cor do texto da linha", variant: "destructive" });
-    } else {
-      fetchTableDetails(selectedTable.id);
-    }
+    if (error) toast({ title: "Erro ao atualizar cor do texto da linha", variant: "destructive" });
   };
 
   const handleUpdateRowColor = async (rowId: string, color: string) => {
+    setRows(prev => prev.map(r => r.id === rowId ? { ...r, row_background_color: color } : r));
     const { error } = await supabase
       .from("organization_table_rows")
       .update({ row_background_color: color })
       .eq("id", rowId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar cor da linha", variant: "destructive" });
-    } else {
-      fetchTableDetails(selectedTable.id);
-    }
+    if (error) toast({ title: "Erro ao atualizar cor da linha", variant: "destructive" });
   };
   
   const handleUpdateRowOrder = async (rowId: string, newOrder: number) => {
-    // Basic logic: update the specific row. 
-    // If the user wants to "move" a row to position 4, they can type 4.
+    setRows(prev => prev.map(r => r.id === rowId ? { ...r, order_index: newOrder } : r).sort((a,b)=>a.order_index-b.order_index));
     const { error } = await supabase
       .from("organization_table_rows")
       .update({ order_index: newOrder })
       .eq("id", rowId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar posição", variant: "destructive" });
-    } else {
-      fetchTableDetails(selectedTable.id);
-    }
+    if (error) toast({ title: "Erro ao atualizar posição", variant: "destructive" });
   };
 
 
