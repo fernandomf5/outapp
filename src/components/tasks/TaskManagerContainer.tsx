@@ -228,58 +228,80 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
       )}
 
       {view === "users" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {users.length === 0 ? (
-            <Card className="col-span-full border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <Users className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
-                <h3 className="text-lg font-semibold">Nenhum usuário cadastrado</h3>
-                <p className="text-muted-foreground">Adicione usuários nesta categoria em "Cadastro".</p>
-              </CardContent>
-            </Card>
-          ) : (
-            users.map((userReg, index) => (
-              <Card 
-                key={userReg.id} 
-                className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:border-primary/50"
-                onClick={() => handleUserClick(userReg)}
+        <>
+          {users.length > 1 && (
+            <div className="flex items-center justify-end gap-3">
+              {reorderMode && (
+                <p className="text-sm text-muted-foreground mr-auto">
+                  Use as setas para reordenar os usuários.
+                </p>
+              )}
+              <Button
+                variant={reorderMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setReorderMode((v) => !v)}
               >
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                    <User className="h-6 w-6 text-secondary-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{userReg.name}</h3>
-                    <p className="text-sm text-muted-foreground truncate">{userReg.email || "Sem e-mail"}</p>
-                  </div>
-                  <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      disabled={index === 0}
-                      onClick={(e) => { e.stopPropagation(); moveUser(index, 'up'); }}
-                      title="Mover para cima"
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      disabled={index === users.length - 1}
-                      onClick={(e) => { e.stopPropagation(); moveUser(index, 'down'); }}
-                      title="Mover para baixo"
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                <GripVertical className="w-4 h-4 mr-2" />
+                {reorderMode ? "Concluir Ordenação" : "Reordenar"}
+              </Button>
+            </div>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {users.length === 0 ? (
+              <Card className="col-span-full border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <Users className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+                  <h3 className="text-lg font-semibold">Nenhum usuário cadastrado</h3>
+                  <p className="text-muted-foreground">Adicione usuários nesta categoria em "Cadastro".</p>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
+            ) : (
+              users.map((userReg, index) => (
+                <Card 
+                  key={userReg.id} 
+                  className={`group transition-all duration-200 ${reorderMode ? "" : "cursor-pointer hover:shadow-md hover:border-primary/50"}`}
+                  onClick={() => { if (!reorderMode) handleUserClick(userReg); }}
+                >
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                      <User className="h-6 w-6 text-secondary-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{userReg.name}</h3>
+                      <p className="text-sm text-muted-foreground truncate">{userReg.email || "Sem e-mail"}</p>
+                    </div>
+                    {reorderMode ? (
+                      <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          disabled={index === 0}
+                          onClick={(e) => { e.stopPropagation(); moveUser(index, 'up'); }}
+                          title="Mover para cima"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          disabled={index === users.length - 1}
+                          onClick={(e) => { e.stopPropagation(); moveUser(index, 'down'); }}
+                          title="Mover para baixo"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </>
       )}
 
       {view === "kanban" && selectedUser && (
