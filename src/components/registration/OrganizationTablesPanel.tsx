@@ -574,6 +574,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
+    markCellDirty(rowId, columnId);
   };
 
   const handleCellBoldUpdate = (rowId: string, columnId: string, isBold: boolean) => {
@@ -591,6 +592,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
+    markCellDirty(rowId, columnId);
   };
 
   const handleUpdateRowBold = async (rowId: string, isBold: boolean) => {
