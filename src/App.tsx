@@ -109,7 +109,7 @@ const AppContent = () => {
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
-               <Route path="/quiz/:quizId" element={<QuizPage />} />
+               <Route path="/q/:questionnaireId" element={<QuestionnairePage />} />
                <Route path="/anotacoes" element={<ProtectedRoute><QuickNotesPage /></ProtectedRoute>} />
           {/* MembersAreaView removed - only Simple Members Area is used */}
           {/* MembersAreaAuth removed - using simple members area with password */}
