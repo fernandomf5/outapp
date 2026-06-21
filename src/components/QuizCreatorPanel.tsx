@@ -559,10 +559,10 @@ export const QuizCreatorPanel = () => {
                       <Target className="h-5 w-5 text-accent" />
                       <div>
                         <Label className="text-base font-semibold">
-                          Perfis de Resultado (lógica inteligente)
+                          Perfis de Resultado (ofertas por resposta)
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Cada perfil é exibido conforme a faixa de pontuação total das respostas
+                          Crie os perfis aqui e, em cada opção de pergunta, escolha para qual perfil ela direciona
                         </p>
                       </div>
                     </div>
