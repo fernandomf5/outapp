@@ -234,6 +234,21 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       };
     });
 
+    // Preserve any locally edited (dirty) cells so background refetches don't revert user changes.
+    const dirty = dirtyCellsRef.current;
+    if (dirty.size > 0) {
+      const localRows = rowsRef.current;
+      formattedRows.forEach(fr => {
+        const localRow = localRows.find(lr => lr.id === fr.id);
+        if (!localRow) return;
+        Object.keys(localRow.cells).forEach(colId => {
+          if (dirty.has(`${fr.id}:${colId}`)) {
+            fr.cells[colId] = localRow.cells[colId];
+          }
+        });
+      });
+    }
+
     setRows(formattedRows);
   };
 
