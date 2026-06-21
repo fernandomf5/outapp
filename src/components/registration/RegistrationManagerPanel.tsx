@@ -305,7 +305,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         ) : (
           <Card>
             <CardContent className="p-0">
-              <div className="p-4 border-b">
+              <div className="p-4 border-b space-y-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -314,6 +314,42 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
                   />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!selectionMode ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectionMode(true)}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Excluir em Massa
+                    </Button>
+                  ) : (
+                    <>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedIds.size} selecionado(s)
+                      </span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={selectedIds.size === 0}
+                        onClick={() => setBulkDeleteOpen(true)}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Excluir Selecionados
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}
+                      >
+                        Cancelar
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
               <Table>
