@@ -33,13 +33,32 @@ export function UnifiedRegistrationForm({
 }: UnifiedRegistrationFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Draft persistence key (per user + category + edited id). Skip in view-only.
+  const draftKey = !isViewOnly
+    ? `registration-draft:${user?.id || 'anon'}:${categoryId}:${initialData?.id || 'new'}`
+    : null;
+
+  const loadDraft = (): any => {
+    if (!draftKey) return null;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const draft = loadDraft();
+
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
-    defaultValues: initialData || {}
+    defaultValues: draft?.fields || initialData || {}
   });
 
   const avatarUrl = watch('avatar_url');
 
   const [urls, setUrls] = useState<Array<{ label: string; url: string }>>(() => {
+    if (draft?.urls && Array.isArray(draft.urls)) return draft.urls;
     const raw = initialData?.urls;
     if (Array.isArray(raw)) {
       return raw.map((u: any) =>
@@ -48,6 +67,22 @@ export function UnifiedRegistrationForm({
     }
     return [];
   });
+
+  // Persist draft whenever any field or urls change
+  const allFields = watch();
+  const skipFirstSave = useRef(true);
+  useEffect(() => {
+    if (!draftKey) return;
+    if (skipFirstSave.current) {
+      skipFirstSave.current = false;
+      return;
+    }
+    try {
+      localStorage.setItem(draftKey, JSON.stringify({ fields: allFields, urls }));
+    } catch {
+      // ignore quota errors
+    }
+  }, [allFields, urls, draftKey]);
 
   const addUrl = () => setUrls((p) => [...p, { label: '', url: '' }]);
   const removeUrl = (i: number) => setUrls((p) => p.filter((_, idx) => idx !== i));
