@@ -210,7 +210,10 @@ export const QuizCreatorPanel = () => {
   ) => {
     const newQs = [...formData.questions];
     const opts = [...newQs[qIndex].options];
-    opts[oIndex] = { ...opts[oIndex], [field]: field === "points" ? Number(value) || 0 : value };
+    opts[oIndex] = {
+      ...opts[oIndex],
+      [field]: field === "points" ? Number(value) || 0 : value,
+    };
     newQs[qIndex] = { ...newQs[qIndex], options: opts };
     setFormData({ ...formData, questions: newQs });
   };
@@ -219,7 +222,7 @@ export const QuizCreatorPanel = () => {
     const newQs = [...formData.questions];
     newQs[qIndex] = {
       ...newQs[qIndex],
-      options: [...newQs[qIndex].options, { text: "", points: 0 }],
+      options: [...newQs[qIndex].options, { text: "", points: 0, profile_id: "" }],
     };
     setFormData({ ...formData, questions: newQs });
   };
