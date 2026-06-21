@@ -3940,6 +3940,122 @@ export type Database = {
           },
         ]
       }
+      contract_history: {
+        Row: {
+          contract_id: string
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_history_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          access_code: string
+          client_document: string | null
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          client_signature: string | null
+          client_signed_at: string | null
+          client_signer_ip: string | null
+          client_signer_name: string | null
+          company_document: string | null
+          company_name: string | null
+          company_signature: string | null
+          company_signed_at: string | null
+          company_signer_name: string | null
+          content: string
+          created_at: string
+          id: string
+          public_slug: string
+          sent_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          access_code: string
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          client_signature?: string | null
+          client_signed_at?: string | null
+          client_signer_ip?: string | null
+          client_signer_name?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          company_signature?: string | null
+          company_signed_at?: string | null
+          company_signer_name?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          public_slug?: string
+          sent_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          access_code?: string
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          client_signature?: string | null
+          client_signed_at?: string | null
+          client_signer_ip?: string | null
+          client_signer_name?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          company_signature?: string | null
+          company_signed_at?: string | null
+          company_signer_name?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          public_slug?: string
+          sent_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
       conversion_events: {
         Row: {
           created_at: string
