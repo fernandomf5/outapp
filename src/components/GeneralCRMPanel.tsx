@@ -740,10 +740,16 @@ export function GeneralCRMPanel() {
                 Todos os leads e clientes: gestão de clientes, chatbots, chat online e páginas clonadas
               </CardDescription>
             </div>
-            <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
-              <Settings2 className="h-4 w-4 mr-2" />
-              Gerenciar Categorias
-            </Button>
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={() => setCategoriesDialogOpen(true)} aria-label="Gerenciar Categorias">
+                    <Settings2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Gerenciar Categorias</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </CardHeader>
         <CardContent>
