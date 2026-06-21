@@ -725,7 +725,7 @@ export const QuizCreatorPanel = () => {
                           Oferta única (fallback)
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Usada quando nenhum perfil corresponde à pontuação
+                          Usada quando nenhuma resposta direcionou a um perfil
                         </p>
                       </div>
                     </div>
