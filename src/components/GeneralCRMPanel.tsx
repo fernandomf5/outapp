@@ -892,43 +892,59 @@ export function GeneralCRMPanel() {
             <div className="mb-4 flex flex-wrap items-center gap-2 p-3 rounded-md border bg-muted/40">
               <CheckSquare className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">{selectedIds.size} selecionados</span>
-              <div className="ml-auto flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={downloadSelectedCSV}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Baixar selecionados
-                </Button>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button size="sm" variant="outline">
-                      <Tag className="h-4 w-4 mr-2" />
-                      Atribuir categoria
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56 p-2" align="end">
-                    <div className="space-y-1">
-                      <Button variant="ghost" size="sm" className="w-full justify-start"
-                        onClick={() => bulkAssignCategory(null)}>
-                        <span className="text-muted-foreground">Remover categoria</span>
+              <TooltipProvider delayDuration={150}>
+                <div className="ml-auto flex items-center gap-1 rounded-md border bg-card p-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={downloadSelectedCSV} aria-label="Baixar selecionados">
+                        <Download className="h-4 w-4" />
                       </Button>
-                      {categories.map(cat => (
-                        <Button key={cat.id} variant="ghost" size="sm" className="w-full justify-start"
-                          onClick={() => bulkAssignCategory(cat.id)}>
-                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
-                          {cat.name}
+                    </TooltipTrigger>
+                    <TooltipContent>Baixar selecionados</TooltipContent>
+                  </Tooltip>
+                  <Popover>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <PopoverTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Atribuir categoria">
+                            <Tag className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>Atribuir categoria</TooltipContent>
+                    </Tooltip>
+                    <PopoverContent className="w-56 p-2" align="end">
+                      <div className="space-y-1">
+                        <Button variant="ghost" size="sm" className="w-full justify-start"
+                          onClick={() => bulkAssignCategory(null)}>
+                          <span className="text-muted-foreground">Remover categoria</span>
                         </Button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <Button size="sm" variant="outline"
-                  onClick={() => { setCopyMode('selected'); setCopyDialogOpen(true); }}>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copiar para categoria
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
-                  Limpar
-                </Button>
-              </div>
+                        {categories.map(cat => (
+                          <Button key={cat.id} variant="ghost" size="sm" className="w-full justify-start"
+                            onClick={() => bulkAssignCategory(cat.id)}>
+                            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
+                            {cat.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button size="icon" variant="ghost" className="h-8 w-8"
+                        onClick={() => { setCopyMode('selected'); setCopyDialogOpen(true); }}
+                        aria-label="Copiar para categoria">
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copiar para categoria</TooltipContent>
+                  </Tooltip>
+                  <Separator orientation="vertical" className="mx-1 h-6" />
+                  <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedIds(new Set())}>
+                    Limpar
+                  </Button>
+                </div>
+              </TooltipProvider>
             </div>
           )}
 
