@@ -67,6 +67,40 @@ export function ContractCreatorPanel() {
 
   useEffect(() => { load(); }, []);
 
+  // Realtime: live status updates + popup when client signs
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`contracts-rt-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "contracts", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const newRow: any = payload.new;
+          const oldRow: any = payload.old;
+          setContracts(prev => prev.map(c => c.id === newRow.id ? { ...c, ...newRow } : c));
+          if (oldRow?.status !== "signed_by_client" && newRow.status === "signed_by_client") {
+            toast.success(`✍️ ${newRow.client_name || "O cliente"} assinou o contrato!`, {
+              description: newRow.title,
+              duration: 10000,
+              action: { label: "Ver", onClick: () => setSignOpen(newRow) },
+            });
+            try {
+              if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Contrato assinado pelo cliente", { body: `${newRow.client_name || "Cliente"} assinou: ${newRow.title}` });
+              } else if ("Notification" in window && Notification.permission !== "denied") {
+                Notification.requestPermission();
+              }
+            } catch {}
+          } else if (oldRow?.status !== "completed" && newRow.status === "completed") {
+            toast.success(`Contrato concluído: ${newRow.title}`);
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
   async function load() {
     if (!user) return;
     setLoading(true);
