@@ -231,19 +231,37 @@ function DroppableStageColumn({ stage, leads, children, onAddLead }: {
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col min-w-[280px] max-w-[280px] bg-muted/30 rounded-lg border transition-colors ${isOver ? 'bg-primary/10 border-primary' : 'border-border'}`}
+      className={`flex flex-col min-w-[290px] max-w-[290px] rounded-xl border-2 backdrop-blur-sm shadow-lg transition-all duration-300 ${isOver ? 'scale-[1.02] shadow-2xl ring-2 ring-primary/40' : 'hover:shadow-xl'}`}
+      style={{
+        background: `linear-gradient(180deg, ${stage.color}14 0%, hsl(var(--card)) 60%)`,
+        borderColor: isOver ? stage.color : stage.color + '55',
+      }}
     >
-      <div className="p-3 border-b" style={{ borderColor: stage.color + '40' }}>
+      <div
+        className="p-3 rounded-t-xl relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${stage.color}33, ${stage.color}10)`,
+          borderBottom: `2px solid ${stage.color}55`,
+        }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-1" style={{ background: stage.color }} />
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stage.color }} />
-            <span className="font-semibold text-sm">{stage.name}</span>
+            <div className="w-3 h-3 rounded-full ring-2 ring-background shadow" style={{ backgroundColor: stage.color, boxShadow: `0 0 12px ${stage.color}` }} />
+            <span className="font-bold text-sm tracking-tight">{stage.name}</span>
           </div>
-          <Badge variant="secondary" className="text-xs">{leads.length}</Badge>
+          <Badge
+            className="text-xs font-bold border-0 text-white shadow"
+            style={{ backgroundColor: stage.color }}
+          >
+            {leads.length}
+          </Badge>
         </div>
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>Total: R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={onAddLead}>
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-semibold" style={{ color: stage.color }}>
+            R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </span>
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-background/60" onClick={onAddLead}>
             <Plus className="w-3 h-3 mr-1" />
             Add
           </Button>
@@ -1277,6 +1295,78 @@ export default function SalesFunnelPanel() {
         </div>
       )}
 
+      {/* Kanban Board */}
+      {selectedFunnel ? (
+        <div className="rounded-2xl border bg-gradient-to-br from-card via-card to-muted/20 p-4 shadow-xl">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-primary to-primary/40" />
+              <h3 className="text-base font-bold tracking-tight">Quadro Kanban</h3>
+              <Badge variant="outline" className="ml-2">{leads.length} leads</Badge>
+            </div>
+          </div>
+          <div className="overflow-x-auto pb-2">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="flex gap-4" style={{ minWidth: stages.length * 306 }}>
+                {stages.map((stage) => {
+                  const stageLeads = leads.filter(l => l.stage_id === stage.id);
+                  return (
+                    <DroppableStageColumn
+                      key={stage.id}
+                      stage={stage}
+                      leads={stageLeads}
+                      onAddLead={() => openAddLeadToStage(stage.id)}
+                    >
+                      {stageLeads.map((lead) => (
+                        <DraggableLeadCard
+                          key={lead.id}
+                          lead={lead}
+                          stages={stages}
+                          onEdit={openEditLead}
+                          onDelete={handleDeleteLead}
+                          onView={handleViewLead}
+                        />
+                      ))}
+                      {stageLeads.length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground text-xs italic">
+                          Arraste leads para cá
+                        </div>
+                      )}
+                    </DroppableStageColumn>
+                  );
+                })}
+              </div>
+              <DragOverlay>
+                {activeDragId ? (
+                  <div className="bg-card border-2 border-primary rounded-lg p-3 shadow-2xl opacity-95">
+                    <span className="font-medium text-sm">
+                      {leads.find(l => l.id === activeDragId)?.name}
+                    </span>
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+          </div>
+        </div>
+      ) : (
+        <Card className="p-12">
+          <div className="text-center">
+            <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum funil selecionado</h3>
+            <p className="text-muted-foreground mb-4">Crie seu primeiro funil de vendas para começar</p>
+            <Button onClick={() => setShowFunnelDialog(true)}>
+              <Plus className="w-4 h-4 mr-1" />
+              Criar Funil
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Funnel Chart Visualization */}
       {selectedFunnel && stages.length > 0 && (
         <div className="space-y-2">
@@ -1810,68 +1900,6 @@ export default function SalesFunnelPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* Kanban Board */}
-      {selectedFunnel ? (
-        <div className="overflow-x-auto pb-4">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="flex gap-4" style={{ minWidth: stages.length * 296 }}>
-              {stages.map((stage) => {
-                const stageLeads = leads.filter(l => l.stage_id === stage.id);
-                return (
-                  <DroppableStageColumn 
-                    key={stage.id} 
-                    stage={stage} 
-                    leads={stageLeads}
-                    onAddLead={() => openAddLeadToStage(stage.id)}
-                  >
-                    {stageLeads.map((lead) => (
-                      <DraggableLeadCard
-                        key={lead.id}
-                        lead={lead}
-                        stages={stages}
-                        onEdit={openEditLead}
-                        onDelete={handleDeleteLead}
-                        onView={handleViewLead}
-                      />
-                    ))}
-                    {stageLeads.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground text-sm">
-                        Arraste leads para cá
-                      </div>
-                    )}
-                  </DroppableStageColumn>
-                );
-              })}
-            </div>
-            <DragOverlay>
-              {activeDragId ? (
-                <div className="bg-card border rounded-lg p-3 shadow-lg opacity-90">
-                  <span className="font-medium text-sm">
-                    {leads.find(l => l.id === activeDragId)?.name}
-                  </span>
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
-        </div>
-      ) : (
-        <Card className="p-12">
-          <div className="text-center">
-            <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum funil selecionado</h3>
-            <p className="text-muted-foreground mb-4">Crie seu primeiro funil de vendas para começar</p>
-            <Button onClick={() => setShowFunnelDialog(true)}>
-              <Plus className="w-4 h-4 mr-1" />
-              Criar Funil
-            </Button>
-          </div>
-        </Card>
-      )}
     </div>
   );
 }
