@@ -254,6 +254,10 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         </div>
         
         <div className="flex items-center gap-2 w-full md:w-auto">
+          <Button variant="outline" size="sm" onClick={() => setPhotoOpen(true)} className="gap-2">
+            <Camera className="h-4 w-4" />
+            Cadastrar por Foto
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setBulkOpen(true)} className="gap-2">
             <Upload className="h-4 w-4" />
             Cadastro em Massa
