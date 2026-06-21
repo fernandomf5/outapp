@@ -64,8 +64,12 @@ const normalizeOptions = (opts: any[]): QuizOption[] =>
   Array.isArray(opts)
     ? opts.map((o) =>
         typeof o === "string"
-          ? { text: o, points: 0 }
-          : { text: String(o?.text ?? ""), points: Number(o?.points ?? 0) }
+          ? { text: o, points: 0, profile_id: "" }
+          : {
+              text: String(o?.text ?? ""),
+              points: Number(o?.points ?? 0),
+              profile_id: String(o?.profile_id ?? ""),
+            }
       )
     : [];
 
