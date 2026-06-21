@@ -62,6 +62,14 @@ export function GeneralCRMPanel() {
   const [categoryToDelete, setCategoryToDelete] = useState<LeadCategory | null>(null);
   const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false);
 
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [copyMode, setCopyMode] = useState<"selected" | "category">("selected");
+  const [copySourceCategoryId, setCopySourceCategoryId] = useState<string>("");
+  const [copyTargetCategoryId, setCopyTargetCategoryId] = useState<string>("");
+
+
   // Get unique sources for filter dropdown
   const uniqueSources = useMemo(() => {
     const sources = [...new Set(leads.map(lead => lead.source))];
