@@ -61,6 +61,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         .from('financial_businesses')
         .select('*')
         .eq('user_id', targetUserId)
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
