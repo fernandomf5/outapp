@@ -221,30 +221,36 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
           </p>
         </div>
         
-        <Tabs value={activeTab} onValueChange={(val) => {
-          if (val === "form" && activeTab !== "form") {
-            handleAddNew();
-          } else {
-            setActiveTab(val);
-          }
-        }} className="w-full md:w-auto">
-          <TabsList className={`grid w-full ${selectedItem ? "grid-cols-3" : "grid-cols-2"}`}>
-            <TabsTrigger value="form" className="gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Cadastrar
-            </TabsTrigger>
-            <TabsTrigger value="list" className="gap-2">
-              <List className="h-4 w-4" />
-              Ver Lista
-            </TabsTrigger>
-            {selectedItem && (
-              <TabsTrigger value="history" className="gap-2">
-                <History className="h-4 w-4" />
-                Histórico
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Button variant="outline" size="sm" onClick={() => setBulkOpen(true)} className="gap-2">
+            <Upload className="h-4 w-4" />
+            Cadastro em Massa
+          </Button>
+          <Tabs value={activeTab} onValueChange={(val) => {
+            if (val === "form" && activeTab !== "form") {
+              handleAddNew();
+            } else {
+              setActiveTab(val);
+            }
+          }} className="w-full md:w-auto">
+            <TabsList className={`grid w-full ${selectedItem ? "grid-cols-3" : "grid-cols-2"}`}>
+              <TabsTrigger value="form" className="gap-2">
+                <PlusCircle className="h-4 w-4" />
+                Cadastrar
               </TabsTrigger>
-            )}
-          </TabsList>
-        </Tabs>
+              <TabsTrigger value="list" className="gap-2">
+                <List className="h-4 w-4" />
+                Ver Lista
+              </TabsTrigger>
+              {selectedItem && (
+                <TabsTrigger value="history" className="gap-2">
+                  <History className="h-4 w-4" />
+                  Histórico
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       <div className="mt-6">
