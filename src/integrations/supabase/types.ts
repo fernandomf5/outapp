@@ -7134,6 +7134,7 @@ export type Database = {
       }
       quick_notes: {
         Row: {
+          checklist: Json
           content: string
           created_at: string
           id: string
@@ -7144,6 +7145,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          checklist?: Json
           content: string
           created_at?: string
           id?: string
@@ -7154,6 +7156,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          checklist?: Json
           content?: string
           created_at?: string
           id?: string
