@@ -373,6 +373,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
