@@ -600,26 +600,6 @@ export const QuizCreatorPanel = () => {
                             placeholder="Ex: Iniciante"
                           />
                         </div>
-                        <div className="grid gap-2">
-                          <Label>Pontuação mínima</Label>
-                          <Input
-                            type="number"
-                            value={profile.min_score}
-                            onChange={(e) =>
-                              handleUpdateProfile(pIdx, "min_score", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Pontuação máxima</Label>
-                          <Input
-                            type="number"
-                            value={profile.max_score}
-                            onChange={(e) =>
-                              handleUpdateProfile(pIdx, "max_score", e.target.value)
-                            }
-                          />
-                        </div>
                         <div className="grid gap-2 md:col-span-3">
                           <Label>Título exibido</Label>
                           <Input
