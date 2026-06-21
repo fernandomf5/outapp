@@ -41,6 +41,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
   const [loading, setLoading] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [kanbanRefreshKey, setKanbanRefreshKey] = useState(0);
+  const [reorderMode, setReorderMode] = useState(false);
 
   const effectiveUserId = teamContext?.adminUserId || user?.id;
 
