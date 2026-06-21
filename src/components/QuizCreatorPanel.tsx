@@ -439,7 +439,7 @@ export const QuizCreatorPanel = () => {
             <DialogHeader>
               <DialogTitle>{editingQuizId ? "Editar Quiz" : "Criar Novo Quiz"}</DialogTitle>
               <DialogDescription>
-                Configure perguntas com pontuação, perfis de resultado e ofertas
+                Configure perfis de resultado e direcione cada resposta para uma oferta
               </DialogDescription>
             </DialogHeader>
 
