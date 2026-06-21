@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, FileText, Copy, Eye, Trash2, Download, PenLine, History, Send } from "lucide-react";
-import SignatureCanvas from "react-signature-canvas";
+import SignaturePadField from "./SignaturePadField";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 
@@ -54,7 +54,7 @@ export function ContractCreatorPanel() {
   const [history, setHistory] = useState<any[]>([]);
   const [signOpen, setSignOpen] = useState<Contract | null>(null);
   const [editing, setEditing] = useState<Contract | null>(null);
-  const sigRef = useRef<SignatureCanvas | null>(null);
+  const [companySignature, setCompanySignature] = useState<string | null>(null);
   const [companySigner, setCompanySigner] = useState("");
 
   const [form, setForm] = useState({
@@ -178,11 +178,10 @@ export function ContractCreatorPanel() {
 
   async function signAsCompany() {
     if (!signOpen) return;
-    if (!sigRef.current || sigRef.current.isEmpty()) return toast.error("Desenhe sua assinatura");
+    if (!companySignature) return toast.error("Faça ou digite sua assinatura");
     if (!companySigner.trim()) return toast.error("Informe o nome do signatário");
-    const dataUrl = sigRef.current.toDataURL("image/png");
     const { error } = await supabase.from("contracts").update({
-      company_signature: dataUrl,
+      company_signature: companySignature,
       company_signer_name: companySigner,
       company_signed_at: new Date().toISOString(),
       status: "completed",
@@ -192,6 +191,7 @@ export function ContractCreatorPanel() {
     toast.success("Contrato assinado e concluído!");
     setSignOpen(null);
     setCompanySigner("");
+    setCompanySignature(null);
     load();
   }
 
@@ -233,7 +233,7 @@ export function ContractCreatorPanel() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" onClick={() => copyLink(c)}><Copy className="h-4 w-4 mr-1" />Link</Button>
-                    <Button size="sm" variant="outline" onClick={() => window.open(publicLink(c), "_blank")}><Eye className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="outline" asChild><a href={publicLink(c)} target="_blank" rel="noopener noreferrer"><Eye className="h-4 w-4" /></a></Button>
                     <Button size="sm" variant="outline" onClick={() => openHistory(c)}><History className="h-4 w-4" /></Button>
                     {c.status === "signed_by_client" && (
                       <Button size="sm" onClick={() => setSignOpen(c)}><PenLine className="h-4 w-4 mr-1" />Assinar</Button>
@@ -302,11 +302,8 @@ export function ContractCreatorPanel() {
           <div className="space-y-3">
             <div><Label>Nome do Signatário</Label><Input value={companySigner} onChange={e => setCompanySigner(e.target.value)} /></div>
             <div>
-              <Label>Desenhe sua assinatura</Label>
-              <div className="border rounded bg-white">
-                <SignatureCanvas ref={sigRef} canvasProps={{ width: 500, height: 180, className: "w-full" }} />
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => sigRef.current?.clear()}>Limpar</Button>
+              <Label>Sua Assinatura</Label>
+              <SignaturePadField onChange={setCompanySignature} defaultName={companySigner} />
             </div>
           </div>
           <DialogFooter>
