@@ -112,17 +112,6 @@ const SortableUserCard = ({ userReg, index, total, reorderMode, onSelect, onMove
   );
 };
 
-interface Category {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface UserRegistration {
-  id: string;
-  name: string;
-  email: string | null;
-}
 
 export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => {
   const { user } = useAuth();
