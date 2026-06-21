@@ -134,13 +134,6 @@ export function GeneralCRMPanel() {
     }
   };
 
-  const getCategoryForLead = (leadSource: string, leadId: string): string | undefined => {
-    const assignment = categoryAssignments.find(
-      a => a.lead_source === leadSource && a.lead_id === leadId
-    );
-    return assignment?.category_id;
-  };
-
   const getCategoryById = (id: string | undefined) => {
     if (!id) return null;
     return categories.find(c => c.id === id);
