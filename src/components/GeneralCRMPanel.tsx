@@ -594,7 +594,141 @@ export function GeneralCRMPanel() {
     toast.success('Leads baixados com sucesso!');
   };
 
+  // ===== Bulk selection helpers =====
+  const toggleSelect = (leadId: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(leadId)) next.delete(leadId); else next.add(leadId);
+      return next;
+    });
+  };
+
+  const allFilteredSelected = filteredLeads.length > 0 && filteredLeads.every(l => selectedIds.has(l.id));
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        filteredLeads.forEach(l => next.delete(l.id));
+        return next;
+      });
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        filteredLeads.forEach(l => next.add(l.id));
+        return next;
+      });
+    }
+  };
+
+  const selectedLeads = useMemo(() => leads.filter(l => selectedIds.has(l.id)), [leads, selectedIds]);
+
+  const downloadSelectedCSV = () => {
+    if (selectedLeads.length === 0) {
+      toast.error('Nenhum lead selecionado');
+      return;
+    }
+    const csv = [
+      'Nome,Email,Telefone,Origem,Fonte,Categoria,Data',
+      ...selectedLeads.map(lead => {
+        const category = getCategoryById(lead.categoryId);
+        return `"${lead.name}","${lead.email}","${lead.phone}","${lead.source}","${lead.sourceName}","${category?.name || ''}","${new Date(lead.createdAt).toLocaleString('pt-BR')}"`;
+      })
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `leads-selecionados.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success(`${selectedLeads.length} leads baixados!`);
+  };
+
+  const bulkAssignCategory = async (categoryId: string | null) => {
+    if (!user || selectedLeads.length === 0) {
+      toast.error('Nenhum lead selecionado');
+      return;
+    }
+    try {
+      const targets = selectedLeads.filter(l => l.originalSource && l.originalId);
+      // Remove existing assignments
+      await Promise.all(targets.map(l =>
+        supabase.from('lead_category_assignments').delete()
+          .eq('user_id', user.id)
+          .eq('lead_source', l.originalSource!)
+          .eq('lead_id', l.originalId!)
+      ));
+      if (categoryId) {
+        const rows = targets.map(l => ({
+          user_id: user.id,
+          category_id: categoryId,
+          lead_source: l.originalSource!,
+          lead_id: l.originalId!,
+        }));
+        if (rows.length > 0) {
+          const { error } = await supabase.from('lead_category_assignments').insert(rows);
+          if (error) throw error;
+        }
+      }
+      toast.success(`Categoria aplicada a ${targets.length} leads`);
+      setSelectedIds(new Set());
+      fetchCategoryAssignments();
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Erro ao aplicar categoria em massa');
+    }
+  };
+
+  const copyCategoryLeads = async () => {
+    if (!user || !copyTargetCategoryId) {
+      toast.error('Selecione a categoria de destino');
+      return;
+    }
+    try {
+      let sourceLeads: Lead[] = [];
+      if (copyMode === 'selected') {
+        sourceLeads = selectedLeads;
+      } else {
+        if (!copySourceCategoryId) {
+          toast.error('Selecione a categoria de origem');
+          return;
+        }
+        sourceLeads = leads.filter(l => l.categoryId === copySourceCategoryId);
+      }
+      const targets = sourceLeads.filter(l => l.originalSource && l.originalId);
+      if (targets.length === 0) {
+        toast.error('Nenhum lead encontrado para copiar');
+        return;
+      }
+      const rows = targets.map(l => ({
+        user_id: user.id,
+        category_id: copyTargetCategoryId,
+        lead_source: l.originalSource!,
+        lead_id: l.originalId!,
+      }));
+      // Upsert behavior: delete any existing for that target category first
+      await Promise.all(targets.map(l =>
+        supabase.from('lead_category_assignments').delete()
+          .eq('user_id', user.id)
+          .eq('category_id', copyTargetCategoryId)
+          .eq('lead_source', l.originalSource!)
+          .eq('lead_id', l.originalId!)
+      ));
+      const { error } = await supabase.from('lead_category_assignments').insert(rows);
+      if (error) throw error;
+      toast.success(`${targets.length} leads copiados para a categoria`);
+      setCopyDialogOpen(false);
+      setCopySourceCategoryId('');
+      setCopyTargetCategoryId('');
+      fetchCategoryAssignments();
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Erro ao copiar leads');
+    }
+  };
+
   return (
+
     <div className="space-y-6">
       <Card>
         <CardHeader>
