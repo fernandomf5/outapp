@@ -223,6 +223,7 @@ function Editor({ q, onClose }: { q: Questionnaire; onClose: () => void }) {
     capture_fields: Array.isArray(q.capture_fields) ? q.capture_fields : ["name", "email", "phone"],
   });
   const [saving, setSaving] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   const update = <K extends keyof Questionnaire>(key: K, value: Questionnaire[K]) => setData((d) => ({ ...d, [key]: value }));
 
