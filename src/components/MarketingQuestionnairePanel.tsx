@@ -324,7 +324,36 @@ function Editor({ q, onClose }: { q: Questionnaire; onClose: () => void }) {
           <Card><CardContent className="pt-6 space-y-3">
             <div><Label>Título</Label><Input value={data.title} onChange={(e) => update("title", e.target.value)} /></div>
             <div><Label>Descrição</Label><Textarea value={data.description} onChange={(e) => update("description", e.target.value)} /></div>
-            <div><Label>Imagem de capa (URL)</Label><Input value={data.cover_image || ""} onChange={(e) => update("cover_image", e.target.value)} placeholder="https://..." /></div>
+            <div>
+              <Label>Imagem de capa</Label>
+              <div className="flex items-center gap-3 mt-1">
+                {data.cover_image && (
+                  <img src={data.cover_image} alt="Capa" className="w-24 h-16 object-cover rounded border" />
+                )}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingCover}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingCover(true);
+                    const ext = file.name.split(".").pop();
+                    const path = `questionnaire-covers/${data.id}-${Date.now()}.${ext}`;
+                    const { error: upErr } = await supabase.storage.from("chatbot-media").upload(path, file, { upsert: true });
+                    if (upErr) { setUploadingCover(false); return toast.error(upErr.message); }
+                    const { data: pub } = supabase.storage.from("chatbot-media").getPublicUrl(path);
+                    update("cover_image", pub.publicUrl);
+                    setUploadingCover(false);
+                    toast.success("Imagem enviada!");
+                  }}
+                />
+                {data.cover_image && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => update("cover_image", "")}>Remover</Button>
+                )}
+              </div>
+              {uploadingCover && <p className="text-xs text-muted-foreground mt-1">Enviando...</p>}
+            </div>
             <div><Label>Cor primária</Label><Input type="color" value={data.primary_color} onChange={(e) => update("primary_color", e.target.value)} className="h-10 w-24" /></div>
             <div><Label>Título da tela final</Label><Input value={data.thank_you_title} onChange={(e) => update("thank_you_title", e.target.value)} /></div>
             <div><Label>Descrição da tela final</Label><Textarea value={data.thank_you_description} onChange={(e) => update("thank_you_description", e.target.value)} /></div>
