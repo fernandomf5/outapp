@@ -202,6 +202,24 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
     });
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  );
+
+  const handleUsersDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !selectedCategory) return;
+    setUsers((prev) => {
+      const oldIndex = prev.findIndex((u) => u.id === active.id);
+      const newIndex = prev.findIndex((u) => u.id === over.id);
+      if (oldIndex < 0 || newIndex < 0) return prev;
+      const next = arrayMove(prev, oldIndex, newIndex);
+      saveOrder(next, selectedCategory.id);
+      return next;
+    });
+  };
+
   const fetchUsers = async (categoryId: string) => {
     try {
       setLoading(true);
