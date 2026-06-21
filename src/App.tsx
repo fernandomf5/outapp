@@ -48,6 +48,7 @@ import AgentResetPassword from "./pages/AgentResetPassword";
 import MindMapPresentation from "./pages/MindMapPresentation";
 import MindMapFullEditor from "./pages/MindMapFullEditor";
 import ProposalPublicView from "./pages/ProposalPublicView";
+import ContractPublicView from "./pages/ContractPublicView";
 import AprovaJobClient from "./pages/AprovaJobClient";
 
 import InstallApp from "./pages/InstallApp";
@@ -121,6 +122,7 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           <Route path="/proposta/:slug" element={<ProposalPublicView />} />
+          <Route path="/contrato/:slug" element={<ContractPublicView />} />
           <Route path="/aprova-job/:token" element={<AprovaJobClient />} />
               <Route path="/instalar" element={<InstallApp />} />
               <Route path="/campanha/:campaignId" element={<CampaignPublicView />} />

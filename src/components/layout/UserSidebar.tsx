@@ -218,6 +218,7 @@ export function UserSidebar() {
     { title: t('popup_creator'), icon: Megaphone, path: "/dashboard", tab: "popups", hideForTeamMember: true },
     { title: t('mind_map'), icon: Brain, path: "/dashboard", tab: "mapa-mental", hideForTeamMember: true },
     { title: t('proposal_creator'), icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
+    { title: "Criador de Contratos", icon: Gavel, path: "/dashboard", tab: "contratos", hideForTeamMember: true },
     { title: t('aprova_job'), icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
     { title: t('creative_extractor'), icon: Download, path: "/dashboard", tab: "extrator-criativos", hideForTeamMember: true },
   ];
