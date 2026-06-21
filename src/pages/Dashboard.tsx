@@ -52,7 +52,7 @@ import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
-import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
+import { MarketingQuestionnairePanel } from "@/components/MarketingQuestionnairePanel";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 // MembersAreaCreator removed - only Simple Members Area is used
