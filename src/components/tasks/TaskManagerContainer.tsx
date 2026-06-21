@@ -30,6 +30,100 @@ interface UserRegistration {
   name: string;
   email: string | null;
 }
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+interface SortableUserCardProps {
+  userReg: UserRegistration;
+  index: number;
+  total: number;
+  reorderMode: boolean;
+  onSelect: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}
+
+const SortableUserCard = ({ userReg, index, total, reorderMode, onSelect, onMoveUp, onMoveDown }: SortableUserCardProps) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: userReg.id,
+    disabled: !reorderMode,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={`group relative transition-all duration-200 ${
+        reorderMode
+          ? "cursor-grab active:cursor-grabbing"
+          : "cursor-pointer hover:shadow-md hover:border-primary/50"
+      } ${isDragging ? "ring-2 ring-primary" : ""}`}
+      onClick={() => { if (!reorderMode) onSelect(); }}
+      {...(reorderMode ? attributes : {})}
+      {...(reorderMode ? listeners : {})}
+    >
+      <CardContent className="p-6 flex items-center gap-4">
+        {reorderMode && (
+          <GripVertical className="h-5 w-5 text-muted-foreground shrink-0" />
+        )}
+        <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
+          <User className="h-6 w-6 text-secondary-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{userReg.name}</h3>
+          <p className="text-sm text-muted-foreground truncate">{userReg.email || "Sem e-mail"}</p>
+        </div>
+        {reorderMode ? (
+          <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={index === 0}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+              title="Mover para cima"
+            >
+              <ArrowUp className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={index === total - 1}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+              title="Mover para baixo"
+            >
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 
 export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => {
   const { user } = useAuth();
@@ -103,6 +197,24 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
       if (newIndex === index) return prev;
       const [item] = next.splice(index, 1);
       next.splice(newIndex, 0, item);
+      saveOrder(next, selectedCategory.id);
+      return next;
+    });
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  );
+
+  const handleUsersDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !selectedCategory) return;
+    setUsers((prev) => {
+      const oldIndex = prev.findIndex((u) => u.id === active.id);
+      const newIndex = prev.findIndex((u) => u.id === over.id);
+      if (oldIndex < 0 || newIndex < 0) return prev;
+      const next = arrayMove(prev, oldIndex, newIndex);
       saveOrder(next, selectedCategory.id);
       return next;
     });
@@ -233,7 +345,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
             <div className="flex items-center justify-end gap-3">
               {reorderMode && (
                 <p className="text-sm text-muted-foreground mr-auto">
-                  Use as setas para reordenar os usuários.
+                  Arraste pelo card <GripVertical className="inline h-3 w-3" /> ou use as setas para reordenar.
                 </p>
               )}
               <Button
@@ -246,8 +358,8 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
               </Button>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {users.length === 0 ? (
+          {users.length === 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card className="col-span-full border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                   <Users className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
@@ -255,52 +367,27 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
                   <p className="text-muted-foreground">Adicione usuários nesta categoria em "Cadastro".</p>
                 </CardContent>
               </Card>
-            ) : (
-              users.map((userReg, index) => (
-                <Card 
-                  key={userReg.id} 
-                  className={`group transition-all duration-200 ${reorderMode ? "" : "cursor-pointer hover:shadow-md hover:border-primary/50"}`}
-                  onClick={() => { if (!reorderMode) handleUserClick(userReg); }}
-                >
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                      <User className="h-6 w-6 text-secondary-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{userReg.name}</h3>
-                      <p className="text-sm text-muted-foreground truncate">{userReg.email || "Sem e-mail"}</p>
-                    </div>
-                    {reorderMode ? (
-                      <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          disabled={index === 0}
-                          onClick={(e) => { e.stopPropagation(); moveUser(index, 'up'); }}
-                          title="Mover para cima"
-                        >
-                          <ArrowUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          disabled={index === users.length - 1}
-                          onClick={(e) => { e.stopPropagation(); moveUser(index, 'down'); }}
-                          title="Mover para baixo"
-                        >
-                          <ArrowDown className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+            </div>
+          ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleUsersDragEnd}>
+              <SortableContext items={users.map((u) => u.id)} strategy={rectSortingStrategy}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {users.map((userReg, index) => (
+                    <SortableUserCard
+                      key={userReg.id}
+                      userReg={userReg}
+                      index={index}
+                      total={users.length}
+                      reorderMode={reorderMode}
+                      onSelect={() => handleUserClick(userReg)}
+                      onMoveUp={() => moveUser(index, 'up')}
+                      onMoveDown={() => moveUser(index, 'down')}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
         </>
       )}
 
