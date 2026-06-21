@@ -78,6 +78,68 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
 
+  // Auto-save: track which cells were edited locally and need to be persisted
+  const dirtyCellsRef = useRef<Set<string>>(new Set()); // "rowId:colId"
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rowsRef = useRef<TableRow[]>([]);
+  useEffect(() => { rowsRef.current = rows; }, [rows]);
+
+  const markCellDirty = (rowId: string, columnId: string) => {
+    dirtyCellsRef.current.add(`${rowId}:${columnId}`);
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => { autoSaveDirtyCells(); }, 800);
+  };
+
+  const autoSaveDirtyCells = async () => {
+    const keys = Array.from(dirtyCellsRef.current);
+    if (keys.length === 0) return;
+    dirtyCellsRef.current = new Set();
+    try {
+      for (const key of keys) {
+        const [rowId, columnId] = key.split(":");
+        const row = rowsRef.current.find(r => r.id === rowId);
+        if (!row) continue;
+        const cellData = row.cells[columnId];
+        if (!cellData) continue;
+        const { data: existing } = await supabase
+          .from("organization_table_cells")
+          .select("id")
+          .eq("row_id", rowId)
+          .eq("column_id", columnId)
+          .maybeSingle();
+        const payload = {
+          value: cellData.value,
+          text_color: cellData.text_color === 'inherit' ? null : cellData.text_color,
+          is_bold: cellData.is_bold || false,
+        };
+        if (existing) {
+          await supabase.from("organization_table_cells").update(payload).eq("id", existing.id);
+        } else {
+          await supabase.from("organization_table_cells").insert({ row_id: rowId, column_id: columnId, ...payload });
+        }
+      }
+    } catch (e) {
+      console.error("Auto-save error:", e);
+      // Re-mark as dirty to retry next change
+      keys.forEach(k => dirtyCellsRef.current.add(k));
+    }
+  };
+
+  // Flush pending edits on unmount / table switch / page hide
+  useEffect(() => {
+    const flush = () => { autoSaveDirtyCells(); };
+    window.addEventListener('beforeunload', flush);
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flush();
+    });
+    return () => {
+      window.removeEventListener('beforeunload', flush);
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, []);
+
 
   useEffect(() => {
     fetchTables();
