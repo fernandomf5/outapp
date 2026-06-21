@@ -1828,68 +1828,6 @@ export default function SalesFunnelPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* Kanban Board */}
-      {selectedFunnel ? (
-        <div className="overflow-x-auto pb-4">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="flex gap-4" style={{ minWidth: stages.length * 296 }}>
-              {stages.map((stage) => {
-                const stageLeads = leads.filter(l => l.stage_id === stage.id);
-                return (
-                  <DroppableStageColumn 
-                    key={stage.id} 
-                    stage={stage} 
-                    leads={stageLeads}
-                    onAddLead={() => openAddLeadToStage(stage.id)}
-                  >
-                    {stageLeads.map((lead) => (
-                      <DraggableLeadCard
-                        key={lead.id}
-                        lead={lead}
-                        stages={stages}
-                        onEdit={openEditLead}
-                        onDelete={handleDeleteLead}
-                        onView={handleViewLead}
-                      />
-                    ))}
-                    {stageLeads.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground text-sm">
-                        Arraste leads para cá
-                      </div>
-                    )}
-                  </DroppableStageColumn>
-                );
-              })}
-            </div>
-            <DragOverlay>
-              {activeDragId ? (
-                <div className="bg-card border rounded-lg p-3 shadow-lg opacity-90">
-                  <span className="font-medium text-sm">
-                    {leads.find(l => l.id === activeDragId)?.name}
-                  </span>
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
-        </div>
-      ) : (
-        <Card className="p-12">
-          <div className="text-center">
-            <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum funil selecionado</h3>
-            <p className="text-muted-foreground mb-4">Crie seu primeiro funil de vendas para começar</p>
-            <Button onClick={() => setShowFunnelDialog(true)}>
-              <Plus className="w-4 h-4 mr-1" />
-              Criar Funil
-            </Button>
-          </div>
-        </Card>
-      )}
     </div>
   );
 }
