@@ -11,6 +11,7 @@ import { ArrowRight, RotateCcw, Gift, ExternalLink, CheckCircle2, Trophy } from 
 interface QuizOption {
   text: string;
   points: number;
+  profile_id?: string;
 }
 interface QuizQuestion {
   question: string;
