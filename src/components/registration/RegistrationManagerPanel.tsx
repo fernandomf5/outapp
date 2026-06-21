@@ -52,6 +52,35 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    try {
+      const ids = Array.from(selectedIds);
+      const { error } = await supabase.from('contacts').delete().in('id', ids);
+      if (error) throw error;
+      toast.success(`${ids.length} cadastro(s) excluído(s) com sucesso!`);
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+      fetchItems();
+    } catch (e: any) {
+      toast.error('Erro ao excluir em massa: ' + e.message);
+    } finally {
+      setBulkDeleteOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (categoryId && user) {
