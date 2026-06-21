@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, FileText, Copy, Eye, Trash2, Download, PenLine, History, Send } from "lucide-react";
 import SignaturePadField from "./SignaturePadField";
+import A4ContractPreview from "./A4ContractPreview";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 
@@ -250,12 +251,13 @@ export function ContractCreatorPanel() {
       )}
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editing ? "Editar" : "Novo"} Contrato</DialogTitle></DialogHeader>
           <Tabs defaultValue="basic">
             <TabsList>
               <TabsTrigger value="basic">Dados</TabsTrigger>
               <TabsTrigger value="content">Conteúdo</TabsTrigger>
+              <TabsTrigger value="preview">Visualizar (A4)</TabsTrigger>
             </TabsList>
             <TabsContent value="basic" className="space-y-3">
               <div><Label>Título *</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
@@ -270,8 +272,19 @@ export function ContractCreatorPanel() {
               </div>
             </TabsContent>
             <TabsContent value="content">
-              <Label>Conteúdo do Contrato</Label>
-              <Textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={20} className="font-mono text-sm" />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Conteúdo do Contrato</Label>
+                  <Textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={24} className="font-mono text-sm" />
+                </div>
+                <div>
+                  <Label>Pré-visualização ao vivo</Label>
+                  <A4ContractPreview title={form.title} companyName={form.company_name} clientName={form.client_name} content={form.content} />
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="preview">
+              <A4ContractPreview title={form.title} companyName={form.company_name} clientName={form.client_name} content={form.content} />
             </TabsContent>
           </Tabs>
           <DialogFooter>
