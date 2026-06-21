@@ -187,6 +187,24 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     }
   };
 
+  const handleReorderBusinesses = async (orderedIds: string[]) => {
+    // Optimistic local update
+    setBusinesses(prev => {
+      const map = new Map(prev.map(b => [b.id, b]));
+      return orderedIds.map(id => map.get(id)).filter(Boolean) as Business[];
+    });
+    try {
+      await Promise.all(
+        orderedIds.map((id, index) =>
+          supabase.from('financial_businesses').update({ sort_order: index }).eq('id', id)
+        )
+      );
+    } catch (error: any) {
+      toast.error('Erro ao reordenar gestões');
+      loadBusinesses();
+    }
+  };
+
   if (viewMode === 'selection') {
     return (
       <div className="container mx-auto py-6">
@@ -197,6 +215,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           onCreateBusiness={handleCreateBusiness}
           onUpdateBusiness={handleUpdateBusiness}
           onDeleteBusiness={handleDeleteBusiness}
+          onReorderBusinesses={handleReorderBusinesses}
         />
       </div>
     );
