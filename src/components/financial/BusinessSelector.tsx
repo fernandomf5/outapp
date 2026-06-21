@@ -24,8 +24,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Building2, User, Plus, ArrowRight, Briefcase, Layers, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Building2, User, Plus, ArrowRight, Briefcase, Layers, MoreVertical, Pencil, Trash2, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Business {
   id: string;
@@ -41,9 +57,165 @@ interface BusinessSelectorProps {
   onCreateBusiness: (data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
   onUpdateBusiness?: (id: string, data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
   onDeleteBusiness?: (id: string) => void;
+  onReorderBusinesses?: (orderedIds: string[]) => void;
 }
 
-export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipleBusinesses, onCreateBusiness, onUpdateBusiness, onDeleteBusiness }: BusinessSelectorProps) => {
+interface SortableBusinessCardProps {
+  business: Business;
+  multiSelectMode: boolean;
+  reorderMode: boolean;
+  selected: boolean;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onSelect: () => void;
+  onToggle: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  showActions: boolean;
+}
+
+const SortableBusinessCard = ({
+  business,
+  multiSelectMode,
+  reorderMode,
+  selected,
+  canMoveUp,
+  canMoveDown,
+  onSelect,
+  onToggle,
+  onEdit,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  showActions,
+}: SortableBusinessCardProps) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: business.id,
+    disabled: !reorderMode,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "hover:border-primary hover:shadow-lg transition-all group relative",
+        !reorderMode && "cursor-pointer",
+        reorderMode && "cursor-grab active:cursor-grabbing",
+        multiSelectMode && selected && "border-primary ring-2 ring-primary/30",
+        isDragging && "ring-2 ring-primary"
+      )}
+      onClick={() => {
+        if (reorderMode) return;
+        if (multiSelectMode) onToggle();
+        else onSelect();
+      }}
+    >
+      {reorderMode && (
+        <>
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute top-2 left-2 z-10 p-1.5 rounded-md bg-muted/80 hover:bg-muted touch-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="absolute top-2 right-2 z-10 flex gap-1" onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={!canMoveUp}
+              onClick={onMoveUp}
+            >
+              <ArrowUp className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={!canMoveDown}
+              onClick={onMoveDown}
+            >
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+          </div>
+        </>
+      )}
+      {!reorderMode && !multiSelectMode && showActions && (
+        <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onEdit && (
+                <DropdownMenuItem onClick={onEdit}>
+                  <Pencil className="h-4 w-4 mr-2" /> Editar
+                </DropdownMenuItem>
+              )}
+              {onEdit && onDelete && <DropdownMenuSeparator />}
+              {onDelete && (
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={onDelete}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+      <CardContent className="pt-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            {multiSelectMode && !reorderMode && (
+              <Checkbox
+                checked={selected}
+                onCheckedChange={onToggle}
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+            <div className={cn(
+              "p-3 rounded-lg",
+              business.business_type === 'company' ? 'bg-blue-500/10' : 'bg-green-500/10'
+            )}>
+              {business.business_type === 'company' ? (
+                <Building2 className={cn("w-6 h-6", "text-blue-600")} />
+              ) : (
+                <User className={cn("w-6 h-6", "text-green-600")} />
+              )}
+            </div>
+          </div>
+        </div>
+        <h3 className="font-semibold text-lg mb-1">{business.name}</h3>
+        <Badge variant="secondary" className="text-xs">
+          {business.business_type === 'company' ? 'Pessoa Jurídica' : 'Pessoa Física'}
+        </Badge>
+        {business.description && (
+          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+            {business.description}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipleBusinesses, onCreateBusiness, onUpdateBusiness, onDeleteBusiness, onReorderBusinesses }: BusinessSelectorProps) => {
+  const [reorderMode, setReorderMode] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
   const [deletingBusiness, setDeletingBusiness] = useState<Business | null>(null);
