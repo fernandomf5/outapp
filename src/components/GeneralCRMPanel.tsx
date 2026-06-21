@@ -940,7 +940,17 @@ export function GeneralCRMPanel() {
                     const category = getCategoryById(lead.categoryId);
                     return (
                       <TableRow key={lead.id}>
-                        <TableCell className="font-medium">{lead.name}</TableCell>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.has(lead.id)}
+                            onCheckedChange={() => toggleSelect(lead.id)}
+                            aria-label="Selecionar"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {lead.name}
+                          <div className="text-xs text-muted-foreground font-normal">{lead.sourceName}</div>
+                        </TableCell>
                         <TableCell>{lead.email}</TableCell>
                         <TableCell>{lead.phone}</TableCell>
                         <TableCell>
