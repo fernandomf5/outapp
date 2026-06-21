@@ -356,7 +356,7 @@ export function GeneralCRMPanel() {
         categoryId: getCategoryForLead(lead.originalSource || '', lead.originalId || '')
       })));
     }
-  }, [categoryAssignments]);
+  }, [categoryAssignments, leads.length]);
 
   // Category CRUD
   const handleAddCategory = async () => {
