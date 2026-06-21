@@ -126,12 +126,24 @@ export default function QuizPage() {
 
   const matchedProfile = useMemo<ResultProfile | null>(() => {
     if (!quiz?.result_profiles?.length) return null;
-    return (
-      quiz.result_profiles.find(
-        (p) => totalScore >= Number(p.min_score) && totalScore <= Number(p.max_score)
-      ) || null
-    );
-  }, [quiz, totalScore]);
+    const counts = new Map<string, number>();
+    quiz.questions.forEach((q, i) => {
+      const idx = selectedAnswers[i];
+      const opt = q.options?.[idx];
+      const pid = opt?.profile_id;
+      if (pid) counts.set(pid, (counts.get(pid) || 0) + 1);
+    });
+    if (counts.size === 0) return null;
+    let bestId: string | null = null;
+    let bestCount = -1;
+    counts.forEach((c, id) => {
+      if (c > bestCount) {
+        bestCount = c;
+        bestId = id;
+      }
+    });
+    return quiz.result_profiles.find((p) => p.id === bestId) || null;
+  }, [quiz, selectedAnswers]);
 
   const handleAnswerSelect = (answerIndex: number) => {
     const next = [...selectedAnswers];
