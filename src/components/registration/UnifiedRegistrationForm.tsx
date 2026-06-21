@@ -128,6 +128,11 @@ export function UnifiedRegistrationForm({
       }
 
       reset();
+      setUrls([]);
+      if (draftKey) {
+        try { localStorage.removeItem(draftKey); } catch {}
+      }
+
 
       
       // Emit event to refresh sidebar if needed
