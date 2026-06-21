@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { BulkRegistrationDialog } from "./BulkRegistrationDialog";
 import { ContactHistoryPanel } from "./ContactHistoryPanel";
