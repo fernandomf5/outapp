@@ -32,6 +32,7 @@ import { QuizAnalyticsPanel } from "./QuizAnalyticsPanel";
 interface QuizOption {
   text: string;
   points: number;
+  profile_id?: string;
 }
 
 interface QuizQuestion {
@@ -78,8 +79,12 @@ const normalizeOptions = (opts: any[]): QuizOption[] => {
   if (!Array.isArray(opts)) return [];
   return opts.map((o) =>
     typeof o === "string"
-      ? { text: o, points: 0 }
-      : { text: String(o?.text ?? ""), points: Number(o?.points ?? 0) }
+      ? { text: o, points: 0, profile_id: "" }
+      : {
+          text: String(o?.text ?? ""),
+          points: Number(o?.points ?? 0),
+          profile_id: String(o?.profile_id ?? ""),
+        }
   );
 };
 
@@ -93,7 +98,7 @@ const normalizeQuestions = (qs: any): QuizQuestion[] => {
 
 const emptyQuestion = (): QuizQuestion => ({
   question: "",
-  options: Array.from({ length: 4 }, () => ({ text: "", points: 0 })),
+  options: Array.from({ length: 4 }, () => ({ text: "", points: 0, profile_id: "" })),
 });
 
 const emptyProfile = (): ResultProfile => ({
