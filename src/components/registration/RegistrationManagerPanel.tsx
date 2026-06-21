@@ -538,6 +538,12 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         categoryId={category.id}
         onSuccess={() => { fetchItems(); setActiveTab("list"); }}
       />
+      <PhotoRegistrationDialog
+        open={photoOpen}
+        onOpenChange={setPhotoOpen}
+        categoryId={category.id}
+        onSuccess={() => { fetchItems(); setActiveTab("list"); }}
+      />
       <SecureDeleteDialog
         open={bulkDeleteOpen}
         onOpenChange={setBulkDeleteOpen}
