@@ -18,6 +18,18 @@ import {
 import { KanbanBoard } from "./KanbanBoard";
 import { TaskHistoryDialog } from "./TaskHistoryDialog";
 import { useAuth } from "@/contexts/AuthContext";
+
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface UserRegistration {
+  id: string;
+  name: string;
+  email: string | null;
+}
 import {
   DndContext,
   closestCenter,
