@@ -532,6 +532,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         categoryId={category.id}
         onSuccess={() => { fetchItems(); setActiveTab("list"); }}
       />
+      <SecureDeleteDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        onConfirm={handleBulkDelete}
+        title="Excluir cadastros selecionados"
+        description={`Esta ação excluirá permanentemente ${selectedIds.size} cadastro(s). Para confirmar, digite 'excluir' abaixo.`}
+        itemName={`${selectedIds.size} cadastro(s)`}
+      />
     </div>
   );
 }
