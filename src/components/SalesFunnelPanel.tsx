@@ -1365,14 +1365,6 @@ export default function SalesFunnelPanel() {
             )}
             {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={openImportDialog}
-          >
-            <Users className="w-4 h-4 mr-1" />
-            Importar de Clientes
-          </Button>
           <Dialog open={showLeadDialog} onOpenChange={(open) => { setShowLeadDialog(open); if (!open) resetLeadForm(); }}>
             <DialogTrigger asChild>
               <Button size="sm">
