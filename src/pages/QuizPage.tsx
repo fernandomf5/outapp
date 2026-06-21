@@ -188,7 +188,7 @@ export default function QuizPage() {
             email: userData.email || null,
             phone: userData.phone || userData.whatsapp || null,
             status: "lead",
-            notes: `Origem: Quiz "${quiz.title}"${matchedProfile ? ` · Perfil: ${matchedProfile.name}` : ""} · Pontuação: ${totalScore}`,
+            notes: `Origem: Quiz "${quiz.title}"${matchedProfile ? ` · Perfil: ${matchedProfile.name}` : ""}`,
             tags: ["quiz", quiz.title].filter(Boolean) as any,
           },
         ]);
