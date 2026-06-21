@@ -46,6 +46,24 @@ interface CategoryAssignment {
   lead_id: string;
 }
 
+const getLeadAssignmentKey = (leadSource?: string, leadId?: string) => {
+  return leadSource && leadId ? `${leadSource}:${leadId}` : '';
+};
+
+const applyAssignmentsToLeads = (sourceLeads: Lead[], assignments: CategoryAssignment[]) => {
+  const assignmentMap = new Map(
+    assignments.map(assignment => [
+      getLeadAssignmentKey(assignment.lead_source, assignment.lead_id),
+      assignment.category_id,
+    ])
+  );
+
+  return sourceLeads.map(lead => ({
+    ...lead,
+    categoryId: assignmentMap.get(getLeadAssignmentKey(lead.originalSource, lead.originalId)),
+  }));
+};
+
 export function GeneralCRMPanel() {
   const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -100,7 +118,6 @@ export function GeneralCRMPanel() {
   useEffect(() => {
     if (!user) return;
     fetchCategories();
-    fetchCategoryAssignments();
     fetchAllLeads();
   }, [user]);
 
@@ -135,13 +152,6 @@ export function GeneralCRMPanel() {
     }
   };
 
-  const getCategoryForLead = (leadSource: string, leadId: string): string | undefined => {
-    const assignment = categoryAssignments.find(
-      a => a.lead_source === leadSource && a.lead_id === leadId
-    );
-    return assignment?.category_id;
-  };
-
   const getCategoryById = (id: string | undefined) => {
     if (!id) return null;
     return categories.find(c => c.id === id);
@@ -154,6 +164,16 @@ export function GeneralCRMPanel() {
       setLoading(true);
       const allLeads: Lead[] = [];
       const existingLeadIds = new Set<string>();
+
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('lead_category_assignments')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (assignmentsError) throw assignmentsError;
+
+      const latestAssignments = assignmentsData || [];
+      setCategoryAssignments(latestAssignments);
 
       // 1. Buscar clientes da Gestão de Clientes (tabela customers)
       const { data: customers } = await supabase
@@ -339,9 +359,10 @@ export function GeneralCRMPanel() {
       }
 
       // Ordenar por data mais recente
-      allLeads.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const categorizedLeads = applyAssignmentsToLeads(allLeads, latestAssignments);
+      categorizedLeads.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
-      setLeads(allLeads);
+      setLeads(categorizedLeads);
     } catch (error) {
       console.error('Erro ao buscar leads:', error);
       toast.error('Erro ao carregar leads');
@@ -352,13 +373,15 @@ export function GeneralCRMPanel() {
 
   // Atualizar leads com categorias quando assignments mudar
   useEffect(() => {
-    if (leads.length > 0 && categoryAssignments.length >= 0) {
-      setLeads(prevLeads => prevLeads.map(lead => ({
-        ...lead,
-        categoryId: getCategoryForLead(lead.originalSource || '', lead.originalId || '')
-      })));
-    }
-  }, [categoryAssignments, leads.length]);
+    setLeads(prevLeads => {
+      if (prevLeads.length === 0) return prevLeads;
+
+      const categorizedLeads = applyAssignmentsToLeads(prevLeads, categoryAssignments);
+      const hasChanges = categorizedLeads.some((lead, index) => lead.categoryId !== prevLeads[index].categoryId);
+
+      return hasChanges ? categorizedLeads : prevLeads;
+    });
+  }, [categoryAssignments]);
 
   // Category CRUD
   const handleAddCategory = async () => {
