@@ -426,7 +426,32 @@ function Editor({ q, onClose }: { q: Questionnaire; onClose: () => void }) {
               </div>
               <Input value={of.title} onChange={(e) => updateOffer(of.id, { title: e.target.value })} placeholder="Título" />
               <Textarea value={of.description} onChange={(e) => updateOffer(of.id, { description: e.target.value })} placeholder="Descrição" />
-              <Input value={of.image_url || ""} onChange={(e) => updateOffer(of.id, { image_url: e.target.value })} placeholder="URL da imagem (opcional)" />
+              <div>
+                <Label className="text-xs">Imagem da oferta (opcional)</Label>
+                <div className="flex items-center gap-3 mt-1">
+                  {of.image_url && (
+                    <img src={of.image_url} alt="Oferta" className="w-20 h-14 object-cover rounded border" />
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const ext = file.name.split(".").pop();
+                      const path = `questionnaire-offers/${data.id}-${of.id}-${Date.now()}.${ext}`;
+                      const { error: upErr } = await supabase.storage.from("chatbot-media").upload(path, file, { upsert: true });
+                      if (upErr) return toast.error(upErr.message);
+                      const { data: pub } = supabase.storage.from("chatbot-media").getPublicUrl(path);
+                      updateOffer(of.id, { image_url: pub.publicUrl });
+                      toast.success("Imagem enviada!");
+                    }}
+                  />
+                  {of.image_url && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => updateOffer(of.id, { image_url: "" })}>Remover</Button>
+                  )}
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <Input value={of.button_text} onChange={(e) => updateOffer(of.id, { button_text: e.target.value })} placeholder="Texto do botão" />
                 <Input value={of.button_url} onChange={(e) => updateOffer(of.id, { button_url: e.target.value })} placeholder="URL do botão" />
