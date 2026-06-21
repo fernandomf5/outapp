@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { ContactHistoryPanel } from "./ContactHistoryPanel";
 import { toast } from "sonner";
@@ -48,6 +49,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (categoryId && user) {
@@ -266,6 +268,17 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         ) : (
           <Card>
             <CardContent className="p-0">
+              <div className="p-4 border-b">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Pesquisar por nome, email ou telefone..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -277,14 +290,25 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                        Nenhum cadastro encontrado nesta categoria.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    items.map((item, index) => (
+                  {(() => {
+                    const q = searchQuery.trim().toLowerCase();
+                    const filtered = q
+                      ? items.filter((it) =>
+                          (it.name || '').toLowerCase().includes(q) ||
+                          (it.email || '').toLowerCase().includes(q) ||
+                          (it.phone || '').toLowerCase().includes(q)
+                        )
+                      : items;
+                    if (filtered.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                            {q ? 'Nenhum cadastro corresponde à pesquisa.' : 'Nenhum cadastro encontrado nesta categoria.'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                    return filtered.map((item, index) => (
                        <TableRow key={item.id}>
                          <TableCell>
                            <Avatar className="h-8 w-8">
@@ -376,8 +400,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </TableBody>
               </Table>
             </CardContent>
