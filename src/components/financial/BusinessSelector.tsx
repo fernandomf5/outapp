@@ -285,10 +285,11 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
           Selecione um negócio para gerenciar suas finanças ou crie um novo
         </p>
         {businesses.length >= 2 && (
-          <div className="flex items-center gap-3 mt-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
             <Button
               variant={multiSelectMode ? "default" : "outline"}
               size="sm"
+              disabled={reorderMode}
               onClick={() => {
                 setMultiSelectMode(!multiSelectMode);
                 setSelectedIds(new Set());
@@ -297,6 +298,17 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
               <Layers className="w-4 h-4 mr-2" />
               {multiSelectMode ? "Cancelar Seleção" : "Juntar Negócios"}
             </Button>
+            {onReorderBusinesses && (
+              <Button
+                variant={reorderMode ? "default" : "outline"}
+                size="sm"
+                disabled={multiSelectMode}
+                onClick={() => setReorderMode(!reorderMode)}
+              >
+                <GripVertical className="w-4 h-4 mr-2" />
+                {reorderMode ? "Concluir Ordenação" : "Reordenar"}
+              </Button>
+            )}
             {multiSelectMode && selectedIds.size >= 2 && (
               <Button size="sm" onClick={handleViewConsolidated}>
                 Ver Consolidado ({selectedIds.size} selecionados)
@@ -308,97 +320,54 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
 
       {businesses.length > 0 ? (
         <div className="w-full max-w-4xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            {businesses.map((business) => (
-              <Card 
-                key={business.id} 
-                className={cn(
-                  "cursor-pointer hover:border-primary hover:shadow-lg transition-all group relative",
-                  multiSelectMode && selectedIds.has(business.id) && "border-primary ring-2 ring-primary/30"
-                )}
-                onClick={() => {
-                  if (multiSelectMode) {
-                    toggleSelection(business.id);
-                  } else {
-                    onSelectBusiness(business.id);
-                  }
-                }}
-              >
-                {!multiSelectMode && (onUpdateBusiness || onDeleteBusiness) && (
-                  <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {onUpdateBusiness && (
-                          <DropdownMenuItem onClick={() => openEdit(business)}>
-                            <Pencil className="h-4 w-4 mr-2" /> Editar
-                          </DropdownMenuItem>
-                        )}
-                        {onUpdateBusiness && onDeleteBusiness && <DropdownMenuSeparator />}
-                        {onDeleteBusiness && (
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeletingBusiness(business)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )}
-                <CardContent className="pt-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      {multiSelectMode && (
-                        <Checkbox
-                          checked={selectedIds.has(business.id)}
-                          onCheckedChange={() => toggleSelection(business.id)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      )}
-                      <div className={cn(
-                        "p-3 rounded-lg",
-                        business.business_type === 'company' ? 'bg-blue-500/10' : 'bg-green-500/10'
-                      )}>
-                        {business.business_type === 'company' ? (
-                          <Building2 className={cn("w-6 h-6", "text-blue-600")} />
-                        ) : (
-                          <User className={cn("w-6 h-6", "text-green-600")} />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-lg mb-1">{business.name}</h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {business.business_type === 'company' ? 'Pessoa Jurídica' : 'Pessoa Física'}
-                  </Badge>
-                  {business.description && (
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                      {business.description}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+          {reorderMode && (
+            <p className="text-center text-sm text-muted-foreground mb-3">
+              Arraste pelo ícone <GripVertical className="inline h-3 w-3" /> ou use as setas para reordenar.
+            </p>
+          )}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={businesses.map(b => b.id)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                {businesses.map((business, index) => (
+                  <SortableBusinessCard
+                    key={business.id}
+                    business={business}
+                    multiSelectMode={multiSelectMode}
+                    reorderMode={reorderMode}
+                    selected={selectedIds.has(business.id)}
+                    canMoveUp={index > 0}
+                    canMoveDown={index < businesses.length - 1}
+                    onSelect={() => onSelectBusiness(business.id)}
+                    onToggle={() => toggleSelection(business.id)}
+                    onEdit={onUpdateBusiness ? () => openEdit(business) : undefined}
+                    onDelete={onDeleteBusiness ? () => setDeletingBusiness(business) : undefined}
+                    onMoveUp={() => moveBy(business.id, -1)}
+                    onMoveDown={() => moveBy(business.id, 1)}
+                    showActions={!!(onUpdateBusiness || onDeleteBusiness)}
+                  />
+                ))}
 
-            {/* Create New Card */}
-            <Card 
-              className="cursor-pointer border-dashed hover:border-primary hover:bg-primary/5 transition-all"
-              onClick={() => setIsCreateDialogOpen(true)}
-            >
-              <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[160px]">
-                <div className="p-3 rounded-full bg-muted mb-3">
-                  <Plus className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <p className="font-medium text-muted-foreground">Adicionar Outra Gestão</p>
-              </CardContent>
-            </Card>
-          </div>
+                {/* Create New Card */}
+                {!reorderMode && (
+                  <Card
+                    className="cursor-pointer border-dashed hover:border-primary hover:bg-primary/5 transition-all"
+                    onClick={() => setIsCreateDialogOpen(true)}
+                  >
+                    <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[160px]">
+                      <div className="p-3 rounded-full bg-muted mb-3">
+                        <Plus className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                      <p className="font-medium text-muted-foreground">Adicionar Outra Gestão</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       ) : (
         <Card className="w-full max-w-md">
