@@ -1190,6 +1190,60 @@ export function GeneralCRMPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog: copiar leads para categoria */}
+      <Dialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {copyMode === 'selected' ? 'Mover selecionados para categoria' : 'Mover leads entre categorias'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Cada lead pode estar em apenas uma categoria, portanto esta ação move os leads para a categoria de destino.
+            </p>
+            {copyMode === 'category' && (
+              <div>
+                <Label>Categoria de origem</Label>
+                <Select value={copySourceCategoryId} onValueChange={setCopySourceCategoryId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.color }} />
+                          {c.name} ({leads.filter(l => l.categoryId === c.id).length})
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div>
+              <Label>Categoria de destino</Label>
+              <Select value={copyTargetCategoryId} onValueChange={setCopyTargetCategoryId}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {categories.filter(c => c.id !== copySourceCategoryId).map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.color }} />
+                        {c.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setCopyDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={copyCategoryLeads}>Confirmar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
