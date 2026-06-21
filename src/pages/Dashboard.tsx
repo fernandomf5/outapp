@@ -1393,11 +1393,11 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="criador-quizz">
+          <TabsContent value="questionario-marketing">
             <FeatureGate featureKey="quiz_creator">
               <ErrorBoundary>
-                <FeatureTutorialVideo featureKey="criador-quizz" />
-                <QuizCreatorPanel />
+                <FeatureTutorialVideo featureKey="questionario-marketing" />
+                <MarketingQuestionnairePanel />
               </ErrorBoundary>
             </FeatureGate>
           </TabsContent>
