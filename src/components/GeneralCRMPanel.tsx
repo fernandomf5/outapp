@@ -842,28 +842,49 @@ export function GeneralCRMPanel() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={downloadPhones} variant="outline" size="sm">
-                <Phone className="h-4 w-4 mr-2" />
-                Baixar Telefones
-              </Button>
-              <Button onClick={downloadEmails} variant="outline" size="sm">
-                <Mail className="h-4 w-4 mr-2" />
-                Baixar E-mails
-              </Button>
-              <Button onClick={downloadAllLeads} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Baixar CSV (filtrados)
-              </Button>
-              <Button
-                onClick={() => { setCopyMode('category'); setCopyDialogOpen(true); }}
-                variant="outline"
-                size="sm"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar categoria → categoria
-              </Button>
-            </div>
+            <TooltipProvider delayDuration={150}>
+              <div className="flex items-center gap-1 rounded-md border bg-card p-1 sm:ml-auto">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={downloadPhones} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar Telefones">
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Baixar Telefones</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={downloadEmails} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar E-mails">
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Baixar E-mails</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={downloadAllLeads} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar CSV filtrados">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Baixar CSV (filtrados)</TooltipContent>
+                </Tooltip>
+                <Separator orientation="vertical" className="mx-1 h-6" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => { setCopyMode('category'); setCopyDialogOpen(true); }}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      aria-label="Copiar categoria para categoria"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copiar categoria → categoria</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
 
           {/* Bulk actions bar (visible when items selected) */}
