@@ -399,8 +399,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </TableBody>
               </Table>
             </CardContent>
