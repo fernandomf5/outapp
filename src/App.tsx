@@ -37,7 +37,7 @@ import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
 import Blog from "./pages/Blog";
 import CalculatorPage from "./pages/CalculatorPage";
 import QuickNotesPage from "./pages/QuickNotesPage";
-import QuizPage from "./pages/QuizPage";
+import QuestionnairePage from "./pages/QuestionnairePage";
 import BriefingPublicPage from "./pages/BriefingPublicPage";
 import CustomPage from "./pages/CustomPage";
 // MembersAreaView removed - only Simple Members Area is used
@@ -109,7 +109,7 @@ const AppContent = () => {
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
-               <Route path="/quiz/:quizId" element={<QuizPage />} />
+               <Route path="/q/:questionnaireId" element={<QuestionnairePage />} />
                <Route path="/anotacoes" element={<ProtectedRoute><QuickNotesPage /></ProtectedRoute>} />
           {/* MembersAreaView removed - only Simple Members Area is used */}
           {/* MembersAreaAuth removed - using simple members area with password */}

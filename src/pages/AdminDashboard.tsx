@@ -1028,7 +1028,7 @@ const AdminDashboard = () => {
                   <option value="linkbio">Link na Bio</option>
                   <option value="disparador">Disparador Zap Manual</option>
                   <option value="cloner">Clonador de Páginas</option>
-                  <option value="criador-quizz">Criador de Quiz</option>
+                  <option value="questionario-marketing">Questionário Marketing</option>
                   <option value="briefing">Criador de Briefing</option>
                   <option value="area-membros">Área de Membros</option>
                   <option value="mapa-mental">Mapa Mental</option>

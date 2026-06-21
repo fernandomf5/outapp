@@ -89,14 +89,14 @@ export function CapturedLeads() {
         created_at: c.created_at, source: "Clonador de Páginas",
       }));
 
-      // 4. Quiz (quiz_responses)
-      const { data: quizLeads } = await supabase
-        .from("quiz_responses")
-        .select("id, name, email, phone, created_at, quizzes!inner(user_id)")
-        .eq("quizzes.user_id", user.id);
-      quizLeads?.forEach((c: any) => all.push({
-        id: `quiz-${c.id}`, name: c.name, email: c.email, phone: c.phone,
-        created_at: c.created_at, source: "Quiz",
+      // 4. Questionário Marketing
+      const { data: qmLeads } = await (supabase as any)
+        .from("marketing_questionnaire_responses")
+        .select("id, name, email, phone, created_at, marketing_questionnaires!inner(user_id)")
+        .eq("marketing_questionnaires.user_id", user.id);
+      qmLeads?.forEach((c: any) => all.push({
+        id: `qm-${c.id}`, name: c.name, email: c.email, phone: c.phone,
+        created_at: c.created_at, source: "Questionário Marketing",
       }));
 
       // 5. Briefing (briefing_responses)

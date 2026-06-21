@@ -52,7 +52,7 @@ import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
-import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
+import { MarketingQuestionnairePanel } from "@/components/MarketingQuestionnairePanel";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 // MembersAreaCreator removed - only Simple Members Area is used
@@ -338,7 +338,7 @@ const Dashboard = () => {
           supabase.from('short_links').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('link_bios').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('cloned_pages').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
-          supabase.from('quizzes').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          (supabase as any).from('marketing_questionnaires').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('websites').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('briefings').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('simple_members_areas').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
@@ -714,21 +714,21 @@ const Dashboard = () => {
             </Button>
           </Card>
 
-          {/* Quiz */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('criador-quizz')}>
+          {/* Questionário Marketing */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('questionario-marketing')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Quiz</h3>
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Questionário Marketing</h3>
                 <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie quizzes interativos para engajar seu público
+                  Crie questionários simples e direcione ofertas com base nas respostas
                 </p>
               </div>
               <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <HelpCircle className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                <ClipboardCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
             </div>
             <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Criar Quiz
+              Criar Questionário
             </Button>
           </Card>
 
@@ -1393,11 +1393,11 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="criador-quizz">
+          <TabsContent value="questionario-marketing">
             <FeatureGate featureKey="quiz_creator">
               <ErrorBoundary>
-                <FeatureTutorialVideo featureKey="criador-quizz" />
-                <QuizCreatorPanel />
+                <FeatureTutorialVideo featureKey="questionario-marketing" />
+                <MarketingQuestionnairePanel />
               </ErrorBoundary>
             </FeatureGate>
           </TabsContent>
