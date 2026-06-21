@@ -408,7 +408,7 @@ export default function QuizPage() {
                       {matchedProfile.title || matchedProfile.name}
                     </h3>
                     <p className="text-muted-foreground">{matchedProfile.description}</p>
-                    <p className="text-sm font-semibold">Pontuação: {totalScore}</p>
+                    
                   </div>
                   {matchedProfile.image_url && (
                     <img
