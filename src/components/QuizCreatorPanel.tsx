@@ -419,7 +419,7 @@ export const QuizCreatorPanel = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Criador de Quiz</h2>
           <p className="text-muted-foreground">
-            Quizzes inteligentes com pontuação, perfis e ofertas personalizadas
+            Quizzes inteligentes com perfis e ofertas personalizadas por resposta
           </p>
         </div>
         <Button
