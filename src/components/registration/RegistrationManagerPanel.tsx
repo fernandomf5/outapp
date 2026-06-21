@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search, Upload } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search, Upload, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { BulkRegistrationDialog } from "./BulkRegistrationDialog";
+import { PhotoRegistrationDialog } from "./PhotoRegistrationDialog";
 import { ContactHistoryPanel } from "./ContactHistoryPanel";
 import { toast } from "sonner";
 import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
@@ -53,6 +54,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
@@ -252,6 +254,10 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         </div>
         
         <div className="flex items-center gap-2 w-full md:w-auto">
+          <Button variant="outline" size="sm" onClick={() => setPhotoOpen(true)} className="gap-2">
+            <Camera className="h-4 w-4" />
+            Cadastrar por Foto
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setBulkOpen(true)} className="gap-2">
             <Upload className="h-4 w-4" />
             Cadastro em Massa
@@ -529,6 +535,12 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
       <BulkRegistrationDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}
+        categoryId={category.id}
+        onSuccess={() => { fetchItems(); setActiveTab("list"); }}
+      />
+      <PhotoRegistrationDialog
+        open={photoOpen}
+        onOpenChange={setPhotoOpen}
         categoryId={category.id}
         onSuccess={() => { fetchItems(); setActiveTab("list"); }}
       />
