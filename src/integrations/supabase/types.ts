@@ -6139,6 +6139,107 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_questionnaire_responses: {
+        Row: {
+          answers: Json
+          created_at: string
+          email: string | null
+          id: string
+          matched_offer_ids: Json
+          name: string | null
+          phone: string | null
+          questionnaire_id: string
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          email?: string | null
+          id?: string
+          matched_offer_ids?: Json
+          name?: string | null
+          phone?: string | null
+          questionnaire_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          email?: string | null
+          id?: string
+          matched_offer_ids?: Json
+          name?: string | null
+          phone?: string | null
+          questionnaire_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_questionnaire_responses_questionnaire_id_fkey"
+            columns: ["questionnaire_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_questionnaires"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_questionnaires: {
+        Row: {
+          capture_fields: Json
+          capture_lead: boolean
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          offers: Json
+          primary_color: string | null
+          questions: Json
+          send_to_crm: boolean
+          thank_you_description: string | null
+          thank_you_title: string | null
+          title: string
+          total_responses: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capture_fields?: Json
+          capture_lead?: boolean
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          offers?: Json
+          primary_color?: string | null
+          questions?: Json
+          send_to_crm?: boolean
+          thank_you_description?: string | null
+          thank_you_title?: string | null
+          title: string
+          total_responses?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capture_fields?: Json
+          capture_lead?: boolean
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          offers?: Json
+          primary_color?: string | null
+          questions?: Json
+          send_to_crm?: boolean
+          thank_you_description?: string | null
+          thank_you_title?: string | null
+          title?: string
+          total_responses?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       members_area_access_codes: {
         Row: {
           access_code: string
@@ -7162,131 +7263,6 @@ export type Database = {
           id?: string
           is_completed?: boolean
           reminder_date?: string | null
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      quiz_responses: {
-        Row: {
-          answers: Json
-          created_at: string
-          email: string | null
-          id: string
-          name: string | null
-          phone: string | null
-          quiz_id: string
-          score: number
-          whatsapp: string | null
-        }
-        Insert: {
-          answers: Json
-          created_at?: string
-          email?: string | null
-          id?: string
-          name?: string | null
-          phone?: string | null
-          quiz_id: string
-          score: number
-          whatsapp?: string | null
-        }
-        Update: {
-          answers?: Json
-          created_at?: string
-          email?: string | null
-          id?: string
-          name?: string | null
-          phone?: string | null
-          quiz_id?: string
-          score?: number
-          whatsapp?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "quiz_responses_quiz_id_fkey"
-            columns: ["quiz_id"]
-            isOneToOne: false
-            referencedRelation: "quizzes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      quizzes: {
-        Row: {
-          collect_data: boolean | null
-          collect_email: boolean | null
-          collect_name: boolean | null
-          collect_phone: boolean | null
-          collect_whatsapp: boolean | null
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          offer_button_link: string | null
-          offer_button_text: string | null
-          offer_description: string | null
-          offer_title: string | null
-          primary_color: string | null
-          questions: Json
-          redirect_url: string | null
-          responses_count: number
-          result_profiles: Json
-          secondary_color: string | null
-          send_to_crm: boolean
-          show_offer: boolean | null
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          collect_data?: boolean | null
-          collect_email?: boolean | null
-          collect_name?: boolean | null
-          collect_phone?: boolean | null
-          collect_whatsapp?: boolean | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          offer_button_link?: string | null
-          offer_button_text?: string | null
-          offer_description?: string | null
-          offer_title?: string | null
-          primary_color?: string | null
-          questions?: Json
-          redirect_url?: string | null
-          responses_count?: number
-          result_profiles?: Json
-          secondary_color?: string | null
-          send_to_crm?: boolean
-          show_offer?: boolean | null
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          collect_data?: boolean | null
-          collect_email?: boolean | null
-          collect_name?: boolean | null
-          collect_phone?: boolean | null
-          collect_whatsapp?: boolean | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          offer_button_link?: string | null
-          offer_button_text?: string | null
-          offer_description?: string | null
-          offer_title?: string | null
-          primary_color?: string | null
-          questions?: Json
-          redirect_url?: string | null
-          responses_count?: number
-          result_profiles?: Json
-          secondary_color?: string | null
-          send_to_crm?: boolean
-          show_offer?: boolean | null
           title?: string
           updated_at?: string
           user_id?: string
