@@ -78,6 +78,68 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
 
+  // Auto-save: track which cells were edited locally and need to be persisted
+  const dirtyCellsRef = useRef<Set<string>>(new Set()); // "rowId:colId"
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rowsRef = useRef<TableRow[]>([]);
+  useEffect(() => { rowsRef.current = rows; }, [rows]);
+
+  const markCellDirty = (rowId: string, columnId: string) => {
+    dirtyCellsRef.current.add(`${rowId}:${columnId}`);
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => { autoSaveDirtyCells(); }, 800);
+  };
+
+  const autoSaveDirtyCells = async () => {
+    const keys = Array.from(dirtyCellsRef.current);
+    if (keys.length === 0) return;
+    dirtyCellsRef.current = new Set();
+    try {
+      for (const key of keys) {
+        const [rowId, columnId] = key.split(":");
+        const row = rowsRef.current.find(r => r.id === rowId);
+        if (!row) continue;
+        const cellData = row.cells[columnId];
+        if (!cellData) continue;
+        const { data: existing } = await supabase
+          .from("organization_table_cells")
+          .select("id")
+          .eq("row_id", rowId)
+          .eq("column_id", columnId)
+          .maybeSingle();
+        const payload = {
+          value: cellData.value,
+          text_color: cellData.text_color === 'inherit' ? null : cellData.text_color,
+          is_bold: cellData.is_bold || false,
+        };
+        if (existing) {
+          await supabase.from("organization_table_cells").update(payload).eq("id", existing.id);
+        } else {
+          await supabase.from("organization_table_cells").insert({ row_id: rowId, column_id: columnId, ...payload });
+        }
+      }
+    } catch (e) {
+      console.error("Auto-save error:", e);
+      // Re-mark as dirty to retry next change
+      keys.forEach(k => dirtyCellsRef.current.add(k));
+    }
+  };
+
+  // Flush pending edits on unmount / table switch / page hide
+  useEffect(() => {
+    const flush = () => { autoSaveDirtyCells(); };
+    window.addEventListener('beforeunload', flush);
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flush();
+    });
+    return () => {
+      window.removeEventListener('beforeunload', flush);
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, []);
+
 
   useEffect(() => {
     fetchTables();
@@ -171,6 +233,21 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         order_index: r.order_index || 0
       };
     });
+
+    // Preserve any locally edited (dirty) cells so background refetches don't revert user changes.
+    const dirty = dirtyCellsRef.current;
+    if (dirty.size > 0) {
+      const localRows = rowsRef.current;
+      formattedRows.forEach(fr => {
+        const localRow = localRows.find(lr => lr.id === fr.id);
+        if (!localRow) return;
+        Object.keys(localRow.cells).forEach(colId => {
+          if (dirty.has(`${fr.id}:${colId}`)) {
+            fr.cells[colId] = localRow.cells[colId];
+          }
+        });
+      });
+    }
 
     setRows(formattedRows);
   };
@@ -439,7 +516,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
+    markCellDirty(rowId, columnId);
   };
+
+
+
+
 
   const handleSaveChanges = async () => {
     if (!selectedTable) return;
@@ -507,6 +589,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
+    markCellDirty(rowId, columnId);
   };
 
   const handleCellBoldUpdate = (rowId: string, columnId: string, isBold: boolean) => {
@@ -524,60 +607,43 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
+    markCellDirty(rowId, columnId);
   };
 
   const handleUpdateRowBold = async (rowId: string, isBold: boolean) => {
+    setRows(prev => prev.map(r => r.id === rowId ? { ...r, is_bold: isBold } : r));
     const { error } = await supabase
       .from("organization_table_rows")
       .update({ is_bold: isBold })
       .eq("id", rowId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar negrito da linha", variant: "destructive" });
-    } else {
-      fetchTableDetails(selectedTable.id);
-    }
+    if (error) toast({ title: "Erro ao atualizar negrito da linha", variant: "destructive" });
   };
 
   const handleUpdateRowTextColor = async (rowId: string, color: string) => {
+    setRows(prev => prev.map(r => r.id === rowId ? { ...r, row_text_color: color } : r));
     const { error } = await supabase
       .from("organization_table_rows")
       .update({ row_text_color: color })
       .eq("id", rowId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar cor do texto da linha", variant: "destructive" });
-    } else {
-      fetchTableDetails(selectedTable.id);
-    }
+    if (error) toast({ title: "Erro ao atualizar cor do texto da linha", variant: "destructive" });
   };
 
   const handleUpdateRowColor = async (rowId: string, color: string) => {
+    setRows(prev => prev.map(r => r.id === rowId ? { ...r, row_background_color: color } : r));
     const { error } = await supabase
       .from("organization_table_rows")
       .update({ row_background_color: color })
       .eq("id", rowId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar cor da linha", variant: "destructive" });
-    } else {
-      fetchTableDetails(selectedTable.id);
-    }
+    if (error) toast({ title: "Erro ao atualizar cor da linha", variant: "destructive" });
   };
   
   const handleUpdateRowOrder = async (rowId: string, newOrder: number) => {
-    // Basic logic: update the specific row. 
-    // If the user wants to "move" a row to position 4, they can type 4.
+    setRows(prev => prev.map(r => r.id === rowId ? { ...r, order_index: newOrder } : r).sort((a,b)=>a.order_index-b.order_index));
     const { error } = await supabase
       .from("organization_table_rows")
       .update({ order_index: newOrder })
       .eq("id", rowId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar posição", variant: "destructive" });
-    } else {
-      fetchTableDetails(selectedTable.id);
-    }
+    if (error) toast({ title: "Erro ao atualizar posição", variant: "destructive" });
   };
 
 
