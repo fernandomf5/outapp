@@ -18,6 +18,99 @@ import {
 import { KanbanBoard } from "./KanbanBoard";
 import { TaskHistoryDialog } from "./TaskHistoryDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+interface SortableUserCardProps {
+  userReg: UserRegistration;
+  index: number;
+  total: number;
+  reorderMode: boolean;
+  onSelect: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}
+
+const SortableUserCard = ({ userReg, index, total, reorderMode, onSelect, onMoveUp, onMoveDown }: SortableUserCardProps) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: userReg.id,
+    disabled: !reorderMode,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={`group relative transition-all duration-200 ${
+        reorderMode
+          ? "cursor-grab active:cursor-grabbing"
+          : "cursor-pointer hover:shadow-md hover:border-primary/50"
+      } ${isDragging ? "ring-2 ring-primary" : ""}`}
+      onClick={() => { if (!reorderMode) onSelect(); }}
+      {...(reorderMode ? attributes : {})}
+      {...(reorderMode ? listeners : {})}
+    >
+      <CardContent className="p-6 flex items-center gap-4">
+        {reorderMode && (
+          <GripVertical className="h-5 w-5 text-muted-foreground shrink-0" />
+        )}
+        <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
+          <User className="h-6 w-6 text-secondary-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{userReg.name}</h3>
+          <p className="text-sm text-muted-foreground truncate">{userReg.email || "Sem e-mail"}</p>
+        </div>
+        {reorderMode ? (
+          <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={index === 0}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+              title="Mover para cima"
+            >
+              <ArrowUp className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={index === total - 1}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+              title="Mover para baixo"
+            >
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 interface Category {
   id: string;
