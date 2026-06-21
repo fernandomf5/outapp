@@ -436,7 +436,7 @@ export default function QuizPage() {
                     style={{ color: primaryColor }}
                   />
                   <h3 className="text-2xl font-bold">Quiz Concluído!</h3>
-                  <p className="text-muted-foreground">Pontuação: {totalScore}</p>
+                  <p className="text-muted-foreground">Obrigado por participar!</p>
                 </div>
               )}
 
