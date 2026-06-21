@@ -1489,6 +1489,10 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
+          <TabsContent value="contratos">
+            <ContractCreatorPanel />
+          </TabsContent>
+
           <TabsContent value="agenda">
             <FeatureGate featureKey="agenda">
               <FeatureTutorialVideo featureKey="agenda" />
