@@ -54,6 +54,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
