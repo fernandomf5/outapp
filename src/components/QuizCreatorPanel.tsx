@@ -32,6 +32,7 @@ import { QuizAnalyticsPanel } from "./QuizAnalyticsPanel";
 interface QuizOption {
   text: string;
   points: number;
+  profile_id?: string;
 }
 
 interface QuizQuestion {
@@ -78,8 +79,12 @@ const normalizeOptions = (opts: any[]): QuizOption[] => {
   if (!Array.isArray(opts)) return [];
   return opts.map((o) =>
     typeof o === "string"
-      ? { text: o, points: 0 }
-      : { text: String(o?.text ?? ""), points: Number(o?.points ?? 0) }
+      ? { text: o, points: 0, profile_id: "" }
+      : {
+          text: String(o?.text ?? ""),
+          points: Number(o?.points ?? 0),
+          profile_id: String(o?.profile_id ?? ""),
+        }
   );
 };
 
@@ -93,7 +98,7 @@ const normalizeQuestions = (qs: any): QuizQuestion[] => {
 
 const emptyQuestion = (): QuizQuestion => ({
   question: "",
-  options: Array.from({ length: 4 }, () => ({ text: "", points: 0 })),
+  options: Array.from({ length: 4 }, () => ({ text: "", points: 0, profile_id: "" })),
 });
 
 const emptyProfile = (): ResultProfile => ({
@@ -205,7 +210,10 @@ export const QuizCreatorPanel = () => {
   ) => {
     const newQs = [...formData.questions];
     const opts = [...newQs[qIndex].options];
-    opts[oIndex] = { ...opts[oIndex], [field]: field === "points" ? Number(value) || 0 : value };
+    opts[oIndex] = {
+      ...opts[oIndex],
+      [field]: field === "points" ? Number(value) || 0 : value,
+    };
     newQs[qIndex] = { ...newQs[qIndex], options: opts };
     setFormData({ ...formData, questions: newQs });
   };
@@ -214,7 +222,7 @@ export const QuizCreatorPanel = () => {
     const newQs = [...formData.questions];
     newQs[qIndex] = {
       ...newQs[qIndex],
-      options: [...newQs[qIndex].options, { text: "", points: 0 }],
+      options: [...newQs[qIndex].options, { text: "", points: 0, profile_id: "" }],
     };
     setFormData({ ...formData, questions: newQs });
   };
@@ -411,7 +419,7 @@ export const QuizCreatorPanel = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Criador de Quiz</h2>
           <p className="text-muted-foreground">
-            Quizzes inteligentes com pontuação, perfis e ofertas personalizadas
+            Quizzes inteligentes com perfis e ofertas personalizadas por resposta
           </p>
         </div>
         <Button
@@ -431,7 +439,7 @@ export const QuizCreatorPanel = () => {
             <DialogHeader>
               <DialogTitle>{editingQuizId ? "Editar Quiz" : "Criar Novo Quiz"}</DialogTitle>
               <DialogDescription>
-                Configure perguntas com pontuação, perfis de resultado e ofertas
+                Configure perfis de resultado e direcione cada resposta para uma oferta
               </DialogDescription>
             </DialogHeader>
 
@@ -551,10 +559,10 @@ export const QuizCreatorPanel = () => {
                       <Target className="h-5 w-5 text-accent" />
                       <div>
                         <Label className="text-base font-semibold">
-                          Perfis de Resultado (lógica inteligente)
+                          Perfis de Resultado (ofertas por resposta)
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Cada perfil é exibido conforme a faixa de pontuação total das respostas
+                          Crie os perfis aqui e, em cada opção de pergunta, escolha para qual perfil ela direciona
                         </p>
                       </div>
                     </div>
@@ -590,26 +598,6 @@ export const QuizCreatorPanel = () => {
                             value={profile.name}
                             onChange={(e) => handleUpdateProfile(pIdx, "name", e.target.value)}
                             placeholder="Ex: Iniciante"
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Pontuação mínima</Label>
-                          <Input
-                            type="number"
-                            value={profile.min_score}
-                            onChange={(e) =>
-                              handleUpdateProfile(pIdx, "min_score", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Pontuação máxima</Label>
-                          <Input
-                            type="number"
-                            value={profile.max_score}
-                            onChange={(e) =>
-                              handleUpdateProfile(pIdx, "max_score", e.target.value)
-                            }
                           />
                         </div>
                         <div className="grid gap-2 md:col-span-3">
@@ -737,7 +725,7 @@ export const QuizCreatorPanel = () => {
                           Oferta única (fallback)
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Usada quando nenhum perfil corresponde à pontuação
+                          Usada quando nenhuma resposta direcionou a um perfil
                         </p>
                       </div>
                     </div>
@@ -852,7 +840,7 @@ export const QuizCreatorPanel = () => {
                       <div className="grid gap-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-xs text-muted-foreground">
-                            Opções (cada uma com pontuação)
+                            Opções (cada uma direciona para um perfil/oferta)
                           </Label>
                           <Button
                             type="button"
@@ -873,15 +861,21 @@ export const QuizCreatorPanel = () => {
                               placeholder={`Opção ${oIndex + 1}`}
                               className="flex-1"
                             />
-                            <Input
-                              type="number"
-                              value={option.points}
+                            <select
+                              value={option.profile_id || ""}
                               onChange={(e) =>
-                                handleUpdateOption(qIndex, oIndex, "points", e.target.value)
+                                handleUpdateOption(qIndex, oIndex, "profile_id", e.target.value)
                               }
-                              className="w-20"
-                              title="Pontos"
-                            />
+                              className="h-10 rounded-md border border-input bg-background px-2 text-sm min-w-[160px]"
+                              title="Perfil/Oferta que esta resposta direciona"
+                            >
+                              <option value="">— Sem perfil —</option>
+                              {formData.result_profiles.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name || "Perfil sem nome"}
+                                </option>
+                              ))}
+                            </select>
                             {question.options.length > 1 && (
                               <Button
                                 type="button"

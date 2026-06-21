@@ -11,6 +11,7 @@ import { ArrowRight, RotateCcw, Gift, ExternalLink, CheckCircle2, Trophy } from 
 interface QuizOption {
   text: string;
   points: number;
+  profile_id?: string;
 }
 interface QuizQuestion {
   question: string;
@@ -63,8 +64,12 @@ const normalizeOptions = (opts: any[]): QuizOption[] =>
   Array.isArray(opts)
     ? opts.map((o) =>
         typeof o === "string"
-          ? { text: o, points: 0 }
-          : { text: String(o?.text ?? ""), points: Number(o?.points ?? 0) }
+          ? { text: o, points: 0, profile_id: "" }
+          : {
+              text: String(o?.text ?? ""),
+              points: Number(o?.points ?? 0),
+              profile_id: String(o?.profile_id ?? ""),
+            }
       )
     : [];
 
@@ -121,12 +126,24 @@ export default function QuizPage() {
 
   const matchedProfile = useMemo<ResultProfile | null>(() => {
     if (!quiz?.result_profiles?.length) return null;
-    return (
-      quiz.result_profiles.find(
-        (p) => totalScore >= Number(p.min_score) && totalScore <= Number(p.max_score)
-      ) || null
-    );
-  }, [quiz, totalScore]);
+    const counts = new Map<string, number>();
+    quiz.questions.forEach((q, i) => {
+      const idx = selectedAnswers[i];
+      const opt = q.options?.[idx];
+      const pid = opt?.profile_id;
+      if (pid) counts.set(pid, (counts.get(pid) || 0) + 1);
+    });
+    if (counts.size === 0) return null;
+    let bestId: string | null = null;
+    let bestCount = -1;
+    counts.forEach((c, id) => {
+      if (c > bestCount) {
+        bestCount = c;
+        bestId = id;
+      }
+    });
+    return quiz.result_profiles.find((p) => p.id === bestId) || null;
+  }, [quiz, selectedAnswers]);
 
   const handleAnswerSelect = (answerIndex: number) => {
     const next = [...selectedAnswers];
@@ -171,7 +188,7 @@ export default function QuizPage() {
             email: userData.email || null,
             phone: userData.phone || userData.whatsapp || null,
             status: "lead",
-            notes: `Origem: Quiz "${quiz.title}"${matchedProfile ? ` · Perfil: ${matchedProfile.name}` : ""} · Pontuação: ${totalScore}`,
+            notes: `Origem: Quiz "${quiz.title}"${matchedProfile ? ` · Perfil: ${matchedProfile.name}` : ""}`,
             tags: ["quiz", quiz.title].filter(Boolean) as any,
           },
         ]);
@@ -391,7 +408,7 @@ export default function QuizPage() {
                       {matchedProfile.title || matchedProfile.name}
                     </h3>
                     <p className="text-muted-foreground">{matchedProfile.description}</p>
-                    <p className="text-sm font-semibold">Pontuação: {totalScore}</p>
+                    
                   </div>
                   {matchedProfile.image_url && (
                     <img
@@ -419,7 +436,7 @@ export default function QuizPage() {
                     style={{ color: primaryColor }}
                   />
                   <h3 className="text-2xl font-bold">Quiz Concluído!</h3>
-                  <p className="text-muted-foreground">Pontuação: {totalScore}</p>
+                  <p className="text-muted-foreground">Obrigado por participar!</p>
                 </div>
               )}
 
