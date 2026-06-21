@@ -242,6 +242,29 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
     setSelectedIds(newSet);
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = businesses.findIndex(b => b.id === active.id);
+    const newIndex = businesses.findIndex(b => b.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(businesses, oldIndex, newIndex);
+    onReorderBusinesses?.(reordered.map(b => b.id));
+  };
+
+  const moveBy = (id: string, delta: number) => {
+    const index = businesses.findIndex(b => b.id === id);
+    const target = index + delta;
+    if (index < 0 || target < 0 || target >= businesses.length) return;
+    const reordered = arrayMove(businesses, index, target);
+    onReorderBusinesses?.(reordered.map(b => b.id));
+  };
+
   const handleViewConsolidated = () => {
     if (selectedIds.size < 2) return;
     onSelectMultipleBusinesses?.(Array.from(selectedIds));
