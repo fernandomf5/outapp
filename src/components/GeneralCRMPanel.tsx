@@ -46,6 +46,24 @@ interface CategoryAssignment {
   lead_id: string;
 }
 
+const getLeadAssignmentKey = (leadSource?: string, leadId?: string) => {
+  return leadSource && leadId ? `${leadSource}:${leadId}` : '';
+};
+
+const applyAssignmentsToLeads = (sourceLeads: Lead[], assignments: CategoryAssignment[]) => {
+  const assignmentMap = new Map(
+    assignments.map(assignment => [
+      getLeadAssignmentKey(assignment.lead_source, assignment.lead_id),
+      assignment.category_id,
+    ])
+  );
+
+  return sourceLeads.map(lead => ({
+    ...lead,
+    categoryId: assignmentMap.get(getLeadAssignmentKey(lead.originalSource, lead.originalId)),
+  }));
+};
+
 export function GeneralCRMPanel() {
   const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -137,24 +155,6 @@ export function GeneralCRMPanel() {
   const getCategoryById = (id: string | undefined) => {
     if (!id) return null;
     return categories.find(c => c.id === id);
-  };
-
-  const getLeadAssignmentKey = (leadSource?: string, leadId?: string) => {
-    return leadSource && leadId ? `${leadSource}:${leadId}` : '';
-  };
-
-  const applyAssignmentsToLeads = (sourceLeads: Lead[], assignments: CategoryAssignment[]) => {
-    const assignmentMap = new Map(
-      assignments.map(assignment => [
-        getLeadAssignmentKey(assignment.lead_source, assignment.lead_id),
-        assignment.category_id,
-      ])
-    );
-
-    return sourceLeads.map(lead => ({
-      ...lead,
-      categoryId: assignmentMap.get(getLeadAssignmentKey(lead.originalSource, lead.originalId)),
-    }));
   };
 
   const fetchAllLeads = async () => {
