@@ -4891,6 +4891,7 @@ export type Database = {
           logo_url: string | null
           name: string
           order_index: number | null
+          sort_order: number
           updated_at: string
           user_id: string
         }
@@ -4902,6 +4903,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           order_index?: number | null
+          sort_order?: number
           updated_at?: string
           user_id: string
         }
@@ -4913,6 +4915,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           order_index?: number | null
+          sort_order?: number
           updated_at?: string
           user_id?: string
         }
