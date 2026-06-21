@@ -599,7 +599,7 @@ const Dashboard = () => {
         </div>
 
         {/* All Resources Grid */}
-        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 [perspective:1200px] [&>div]:transition-all [&>div]:duration-300 [&>div]:[transform-style:preserve-3d] [&>div]:shadow-lg hover:[&>div:hover]:[transform:rotateX(6deg)_rotateY(-6deg)_translateY(-6px)_scale(1.03)] [&>div:hover]:shadow-2xl [&>div:hover]:shadow-primary/30">
+        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-7 [&>div]:relative [&>div]:rounded-2xl [&>div]:border-b-[6px] [&>div]:border-r-[4px] [&>div]:border-primary/40 [&>div]:bg-gradient-to-br [&>div]:from-card [&>div]:to-card/60 [&>div]:shadow-[0_10px_0_-2px_hsl(var(--primary)/0.25),0_18px_30px_-12px_hsl(var(--primary)/0.45)] [&>div]:transition-transform [&>div]:duration-200 [&>div:hover]:translate-y-[2px] [&>div:hover]:shadow-[0_6px_0_-2px_hsl(var(--primary)/0.25),0_12px_20px_-10px_hsl(var(--primary)/0.4)]">
           {/* Chat Online */}
           {hasFeature('ai_agent') && (
             <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
