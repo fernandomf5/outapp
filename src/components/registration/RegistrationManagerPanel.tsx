@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { ContactHistoryPanel } from "./ContactHistoryPanel";
@@ -313,6 +313,22 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                           {new Date(item.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {item.phone && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Conversar no WhatsApp"
+                                onClick={() => {
+                                  const digits = (item.phone || '').replace(/\D/g, '');
+                                  const normalized = digits.length <= 11 ? `55${digits}` : digits;
+                                  window.open(`https://wa.me/${normalized}`, '_blank');
+                                }}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-500/10"
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                              </Button>
+                            )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" title="Ações">
@@ -357,6 +373,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
