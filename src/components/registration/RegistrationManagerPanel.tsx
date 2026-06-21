@@ -355,6 +355,34 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {selectionMode && (
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={(() => {
+                            const q = searchQuery.trim().toLowerCase();
+                            const filtered = q
+                              ? items.filter((it) =>
+                                  (it.name || '').toLowerCase().includes(q) ||
+                                  (it.email || '').toLowerCase().includes(q) ||
+                                  (it.phone || '').toLowerCase().includes(q)
+                                )
+                              : items;
+                            return filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id));
+                          })()}
+                          onCheckedChange={(checked) => {
+                            const q = searchQuery.trim().toLowerCase();
+                            const filtered = q
+                              ? items.filter((it) =>
+                                  (it.name || '').toLowerCase().includes(q) ||
+                                  (it.email || '').toLowerCase().includes(q) ||
+                                  (it.phone || '').toLowerCase().includes(q)
+                                )
+                              : items;
+                            setSelectedIds(checked ? new Set(filtered.map((i) => i.id)) : new Set());
+                          }}
+                        />
+                      </TableHead>
+                    )}
                     <TableHead className="w-12"></TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
@@ -375,14 +403,22 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     if (filtered.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                          <TableCell colSpan={selectionMode ? 6 : 5} className="h-24 text-center text-muted-foreground">
                             {q ? 'Nenhum cadastro corresponde à pesquisa.' : 'Nenhum cadastro encontrado nesta categoria.'}
                           </TableCell>
                         </TableRow>
                       );
                     }
                     return filtered.map((item, index) => (
-                       <TableRow key={item.id}>
+                       <TableRow key={item.id} data-state={selectedIds.has(item.id) ? 'selected' : undefined}>
+                         {selectionMode && (
+                           <TableCell>
+                             <Checkbox
+                               checked={selectedIds.has(item.id)}
+                               onCheckedChange={() => toggleSelected(item.id)}
+                             />
+                           </TableCell>
+                         )}
                          <TableCell>
                            <Avatar className="h-8 w-8">
                              <AvatarImage src={(item as any).avatar_url} />
