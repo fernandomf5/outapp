@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code, UserCog, FileCheck, Filter, Download, ClipboardCheck, Briefcase } from "lucide-react";
+import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code, UserCog, FileCheck, Filter, Download, ClipboardCheck, Briefcase, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
 import logoDark from "@/assets/logo-dark.png";
@@ -108,6 +110,19 @@ const Dashboard = () => {
   const [userFullName, setUserFullName] = useState<string>('');
   const [paymentProcessed, setPaymentProcessed] = useState(false);
   const { isTeamMember, teamMember, getAllowedIds, canAccessModule } = useTeamMember();
+  const [resourceSearch, setResourceSearch] = useState("");
+  const resourcesGridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const grid = resourcesGridRef.current;
+    if (!grid) return;
+    const query = resourceSearch.trim().toLowerCase();
+    Array.from(grid.children).forEach((child) => {
+      const el = child as HTMLElement;
+      const title = el.querySelector("h3")?.textContent?.toLowerCase() ?? "";
+      el.style.display = !query || title.includes(query) ? "" : "none";
+    });
+  }, [resourceSearch]);
   
   // Track user presence for online status
   useUserPresence();
@@ -556,13 +571,35 @@ const Dashboard = () => {
 
           <TabsContent value="overview" className="space-y-6 sm:space-y-8">
         {/* Resources Section Title */}
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-1 bg-primary rounded-full" />
-          <h2 className="text-xl font-bold tracking-tight">Recursos da Plataforma</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-1 bg-primary rounded-full" />
+            <h2 className="text-xl font-bold tracking-tight">Recursos da Plataforma</h2>
+          </div>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Buscar recurso..."
+              value={resourceSearch}
+              onChange={(e) => setResourceSearch(e.target.value)}
+              className="pl-9 pr-9 h-9"
+            />
+            {resourceSearch && (
+              <button
+                type="button"
+                onClick={() => setResourceSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                aria-label="Limpar busca"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* All Resources Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
           {/* Chat Online */}
           {hasFeature('ai_agent') && (
             <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
