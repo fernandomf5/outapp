@@ -338,7 +338,7 @@ const Dashboard = () => {
           supabase.from('short_links').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('link_bios').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('cloned_pages').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
-          supabase.from('quizzes').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          (supabase as any).from('marketing_questionnaires').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('websites').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('briefings').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('simple_members_areas').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
