@@ -504,8 +504,8 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     markCellDirty(rowId, columnId);
   };
 
-  const _ignored_handleCellUpdate_marker = () => {};
-  void _ignored_handleCellUpdate_marker;
+
+
 
 
   const handleSaveChanges = async () => {
