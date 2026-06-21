@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { BulkRegistrationDialog } from "./BulkRegistrationDialog";
 import { ContactHistoryPanel } from "./ContactHistoryPanel";
@@ -52,6 +53,35 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    try {
+      const ids = Array.from(selectedIds);
+      const { error } = await supabase.from('contacts').delete().in('id', ids);
+      if (error) throw error;
+      toast.success(`${ids.length} cadastro(s) excluído(s) com sucesso!`);
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+      fetchItems();
+    } catch (e: any) {
+      toast.error('Erro ao excluir em massa: ' + e.message);
+    } finally {
+      setBulkDeleteOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (categoryId && user) {
@@ -276,7 +306,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         ) : (
           <Card>
             <CardContent className="p-0">
-              <div className="p-4 border-b">
+              <div className="p-4 border-b space-y-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -286,10 +316,74 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     className="pl-9"
                   />
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!selectionMode ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectionMode(true)}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Excluir em Massa
+                    </Button>
+                  ) : (
+                    <>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedIds.size} selecionado(s)
+                      </span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={selectedIds.size === 0}
+                        onClick={() => setBulkDeleteOpen(true)}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Excluir Selecionados
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}
+                      >
+                        Cancelar
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {selectionMode && (
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={(() => {
+                            const q = searchQuery.trim().toLowerCase();
+                            const filtered = q
+                              ? items.filter((it) =>
+                                  (it.name || '').toLowerCase().includes(q) ||
+                                  (it.email || '').toLowerCase().includes(q) ||
+                                  (it.phone || '').toLowerCase().includes(q)
+                                )
+                              : items;
+                            return filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id));
+                          })()}
+                          onCheckedChange={(checked) => {
+                            const q = searchQuery.trim().toLowerCase();
+                            const filtered = q
+                              ? items.filter((it) =>
+                                  (it.name || '').toLowerCase().includes(q) ||
+                                  (it.email || '').toLowerCase().includes(q) ||
+                                  (it.phone || '').toLowerCase().includes(q)
+                                )
+                              : items;
+                            setSelectedIds(checked ? new Set(filtered.map((i) => i.id)) : new Set());
+                          }}
+                        />
+                      </TableHead>
+                    )}
                     <TableHead className="w-12"></TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
@@ -310,14 +404,22 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     if (filtered.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                          <TableCell colSpan={selectionMode ? 6 : 5} className="h-24 text-center text-muted-foreground">
                             {q ? 'Nenhum cadastro corresponde à pesquisa.' : 'Nenhum cadastro encontrado nesta categoria.'}
                           </TableCell>
                         </TableRow>
                       );
                     }
                     return filtered.map((item, index) => (
-                       <TableRow key={item.id}>
+                       <TableRow key={item.id} data-state={selectedIds.has(item.id) ? 'selected' : undefined}>
+                         {selectionMode && (
+                           <TableCell>
+                             <Checkbox
+                               checked={selectedIds.has(item.id)}
+                               onCheckedChange={() => toggleSelected(item.id)}
+                             />
+                           </TableCell>
+                         )}
                          <TableCell>
                            <Avatar className="h-8 w-8">
                              <AvatarImage src={(item as any).avatar_url} />
@@ -429,6 +531,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         onOpenChange={setBulkOpen}
         categoryId={category.id}
         onSuccess={() => { fetchItems(); setActiveTab("list"); }}
+      />
+      <SecureDeleteDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        onConfirm={handleBulkDelete}
+        title="Excluir cadastros selecionados"
+        description={`Esta ação excluirá permanentemente ${selectedIds.size} cadastro(s). Para confirmar, digite 'excluir' abaixo.`}
+        itemName={`${selectedIds.size} cadastro(s)`}
       />
     </div>
   );
