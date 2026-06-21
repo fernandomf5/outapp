@@ -671,6 +671,161 @@ export default function SalesFunnelPanel() {
     }
   };
 
+  // ===== Import from Cadastro (contacts) =====
+  const loadContactsAndRegCategories = async () => {
+    if (!user) return;
+    setLoadingContacts(true);
+    try {
+      const [contactsRes, categoriesRes] = await Promise.all([
+        supabase
+          .from('contacts')
+          .select('id, name, email, phone, company, registration_category_id')
+          .eq('user_id', user.id)
+          .order('name'),
+        supabase
+          .from('registration_categories')
+          .select('id, name, color')
+          .eq('user_id', user.id)
+          .order('name'),
+      ]);
+      if (contactsRes.error) throw contactsRes.error;
+      if (categoriesRes.error) throw categoriesRes.error;
+      setContacts(contactsRes.data || []);
+      setRegCategories(categoriesRes.data || []);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      toast.error('Erro ao carregar cadastros');
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  const openImportContactsDialog = () => {
+    setSelectedContacts([]);
+    setContactCategoryFilter("all");
+    setContactSearchTerm("");
+    setContactImportStageId(stages[0]?.id || "");
+    loadContactsAndRegCategories();
+    setShowImportContactsDialog(true);
+  };
+
+  const getFilteredContactsForImport = () => {
+    let filtered = [...contacts];
+    if (contactCategoryFilter !== "all") {
+      if (contactCategoryFilter === "none") {
+        filtered = filtered.filter(c => !c.registration_category_id);
+      } else {
+        filtered = filtered.filter(c => c.registration_category_id === contactCategoryFilter);
+      }
+    }
+    if (contactSearchTerm) {
+      const term = contactSearchTerm.toLowerCase();
+      filtered = filtered.filter(c =>
+        c.name?.toLowerCase().includes(term) ||
+        c.email?.toLowerCase().includes(term) ||
+        c.phone?.includes(term) ||
+        c.company?.toLowerCase().includes(term)
+      );
+    }
+    return filtered;
+  };
+
+  const toggleContactSelection = (id: string) => {
+    setSelectedContacts(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const selectAllFilteredContacts = () => {
+    setSelectedContacts(getFilteredContactsForImport().map(c => c.id));
+  };
+
+  const clearContactSelection = () => setSelectedContacts([]);
+
+  const importContactsAsLeads = async (toImport: any[], notesLabel: string) => {
+    if (!selectedFunnel) return 0;
+    const targetStageId = contactImportStageId || stages[0]?.id;
+    if (!targetStageId) {
+      toast.error('Crie pelo menos uma etapa no funil primeiro');
+      return 0;
+    }
+    let importedCount = 0;
+    for (const c of toImport) {
+      const { data: newLead, error } = await supabase
+        .from('funnel_leads')
+        .insert({
+          funnel_id: selectedFunnel.id,
+          stage_id: targetStageId,
+          name: c.name,
+          email: c.email,
+          phone: c.phone,
+          company: c.company,
+          priority: 'medium',
+          value: 0,
+        })
+        .select()
+        .single();
+      if (!error && newLead) {
+        await supabase.from('funnel_lead_history').insert({
+          lead_id: newLead.id,
+          to_stage_id: targetStageId,
+          notes: notesLabel,
+        });
+        importedCount++;
+      }
+    }
+    return importedCount;
+  };
+
+  const handleImportContacts = async () => {
+    if (!selectedFunnel || selectedContacts.length === 0) {
+      toast.error('Selecione pelo menos um cadastro para importar');
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const toImport = contacts.filter(c => selectedContacts.includes(c.id));
+      const count = await importContactsAsLeads(toImport, 'Lead importado do Cadastro');
+      if (count > 0) {
+        toast.success(`${count} lead(s) importado(s) com sucesso!`);
+        loadLeads(selectedFunnel.id);
+        setShowImportContactsDialog(false);
+      } else {
+        toast.error('Nenhum lead foi importado');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao importar cadastros');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleImportRegCategory = async (categoryId: string) => {
+    if (!selectedFunnel) return;
+    const catContacts = contacts.filter(c => c.registration_category_id === categoryId);
+    if (catContacts.length === 0) {
+      toast.error('Nenhum cadastro nesta categoria');
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const catName = regCategories.find(c => c.id === categoryId)?.name;
+      const count = await importContactsAsLeads(catContacts, `Lead importado da categoria "${catName}"`);
+      if (count > 0) {
+        toast.success(`${count} lead(s) importado(s) da categoria!`);
+        loadLeads(selectedFunnel.id);
+        setShowImportContactsDialog(false);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao importar categoria');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+
   const loadLeadHistory = async (leadId: string) => {
     try {
       const { data, error } = await supabase
