@@ -64,6 +64,7 @@ import { MindMapCreatorPanel } from "@/components/MindMapCreatorPanel";
 import { ProposalCreatorPanel } from "@/components/proposal/ProposalCreatorPanel";
 import { AgendaPanel } from "@/components/AgendaPanel";
 import { AgendaReminders } from "@/components/AgendaReminders";
+import { RoutineReminders } from "@/components/RoutineReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 
