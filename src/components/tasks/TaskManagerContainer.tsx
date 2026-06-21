@@ -12,7 +12,8 @@ import {
   User,
   History,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  GripVertical
 } from "lucide-react";
 import { KanbanBoard } from "./KanbanBoard";
 import { TaskHistoryDialog } from "./TaskHistoryDialog";
