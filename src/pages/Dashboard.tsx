@@ -110,6 +110,19 @@ const Dashboard = () => {
   const [userFullName, setUserFullName] = useState<string>('');
   const [paymentProcessed, setPaymentProcessed] = useState(false);
   const { isTeamMember, teamMember, getAllowedIds, canAccessModule } = useTeamMember();
+  const [resourceSearch, setResourceSearch] = useState("");
+  const resourcesGridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const grid = resourcesGridRef.current;
+    if (!grid) return;
+    const query = resourceSearch.trim().toLowerCase();
+    Array.from(grid.children).forEach((child) => {
+      const el = child as HTMLElement;
+      const title = el.querySelector("h3")?.textContent?.toLowerCase() ?? "";
+      el.style.display = !query || title.includes(query) ? "" : "none";
+    });
+  }, [resourceSearch]);
   
   // Track user presence for online status
   useUserPresence();
