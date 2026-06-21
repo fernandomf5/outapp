@@ -215,7 +215,7 @@ export function UserSidebar() {
     { title: t('link_in_bio'), icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
     { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
     { title: t('briefing'), icon: FileText, path: "/dashboard", tab: "briefing", moduleKey: "briefings" },
-    { title: t('quiz_creator'), icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", hideForTeamMember: true },
+    { title: "Questionário Marketing", icon: ClipboardCheck, path: "/dashboard", tab: "questionario-marketing", hideForTeamMember: true },
     { title: t('popup_creator'), icon: Megaphone, path: "/dashboard", tab: "popups", hideForTeamMember: true },
     { title: t('mind_map'), icon: Brain, path: "/dashboard", tab: "mapa-mental", hideForTeamMember: true },
     { title: t('proposal_creator'), icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
