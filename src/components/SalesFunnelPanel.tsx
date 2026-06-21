@@ -2073,6 +2073,231 @@ export default function SalesFunnelPanel() {
         </DialogContent>
       </Dialog>
 
+      {/* Import from Cadastro Dialog */}
+      <Dialog open={showImportContactsDialog} onOpenChange={setShowImportContactsDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              Importar de Cadastro
+            </DialogTitle>
+            <DialogDescription>
+              Selecione cadastros individualmente ou importe uma categoria inteira para o funil.
+            </DialogDescription>
+          </DialogHeader>
+
+          {loadingContacts ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <Label>Etapa de Destino</Label>
+                <Select value={contactImportStageId} onValueChange={setContactImportStageId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a etapa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stages.map(stage => (
+                      <SelectItem key={stage.id} value={stage.id}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: stage.color }} />
+                          {stage.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Tabs defaultValue="individual" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="individual" className="flex items-center gap-2">
+                    <User className="w-4 h-4" /> Um por Um
+                  </TabsTrigger>
+                  <TabsTrigger value="category" className="flex items-center gap-2">
+                    <Folder className="w-4 h-4" /> Por Categoria
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="individual" className="space-y-4 mt-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex-1 min-w-[200px]">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          value={contactSearchTerm}
+                          onChange={(e) => setContactSearchTerm(e.target.value)}
+                          placeholder="Buscar cadastro..."
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                    <Select value={contactCategoryFilter} onValueChange={setContactCategoryFilter}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as categorias</SelectItem>
+                        <SelectItem value="none">Sem categoria</SelectItem>
+                        {regCategories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={selectAllFilteredContacts}>
+                        Selecionar Todos ({getFilteredContactsForImport().length})
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={clearContactSelection}>
+                        Limpar Seleção
+                      </Button>
+                    </div>
+                    <Badge variant="secondary">{selectedContacts.length} selecionado(s)</Badge>
+                  </div>
+
+                  <ScrollArea className="h-[300px] border rounded-lg">
+                    <div className="p-2 space-y-1">
+                      {getFilteredContactsForImport().length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p>Nenhum cadastro encontrado</p>
+                        </div>
+                      ) : (
+                        getFilteredContactsForImport().map(contact => {
+                          const category = regCategories.find(c => c.id === contact.registration_category_id);
+                          return (
+                            <div
+                              key={contact.id}
+                              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                selectedContacts.includes(contact.id)
+                                  ? 'bg-primary/10 border-primary'
+                                  : 'hover:bg-muted border-transparent'
+                              }`}
+                              onClick={() => toggleContactSelection(contact.id)}
+                            >
+                              <Checkbox
+                                checked={selectedContacts.includes(contact.id)}
+                                onCheckedChange={() => toggleContactSelection(contact.id)}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium truncate">{contact.name}</span>
+                                  {category && (
+                                    <Badge
+                                      variant="outline"
+                                      className="text-[10px] px-1.5"
+                                      style={{ borderColor: category.color, color: category.color }}
+                                    >
+                                      {category.name}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                  {contact.email && (
+                                    <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{contact.email}</span>
+                                  )}
+                                  {contact.phone && (
+                                    <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{contact.phone}</span>
+                                  )}
+                                  {contact.company && (
+                                    <span className="flex items-center gap-1"><Building className="w-3 h-3" />{contact.company}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="category" className="mt-4">
+                  <ScrollArea className="h-[400px]">
+                    <div className="grid grid-cols-2 gap-3 p-1">
+                      {regCategories.length === 0 ? (
+                        <div className="col-span-2 text-center py-8 text-muted-foreground">
+                          <Folder className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p>Nenhuma categoria encontrada</p>
+                          <p className="text-sm">Crie categorias em Cadastro</p>
+                        </div>
+                      ) : (
+                        regCategories.map(category => {
+                          const catContacts = contacts.filter(c => c.registration_category_id === category.id);
+                          return (
+                            <Card
+                              key={category.id}
+                              className="cursor-pointer hover:border-primary transition-colors"
+                              onClick={() => handleImportRegCategory(category.id)}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div
+                                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                                    style={{ backgroundColor: (category.color || '#888') + '20' }}
+                                  >
+                                    <FolderOpen className="w-5 h-5" style={{ color: category.color || '#888' }} />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold">{category.name}</h4>
+                                    <p className="text-xs text-muted-foreground">{catContacts.length} cadastro(s)</p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  disabled={isImporting || catContacts.length === 0}
+                                  onClick={(e) => { e.stopPropagation(); handleImportRegCategory(category.id); }}
+                                >
+                                  {isImporting ? (
+                                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                  ) : (
+                                    <UserPlus className="w-4 h-4 mr-1" />
+                                  )}
+                                  Importar Categoria
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          );
+                        })
+                      )}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowImportContactsDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleImportContacts}
+              disabled={isImporting || selectedContacts.length === 0}
+            >
+              {isImporting ? (
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <UserPlus className="w-4 h-4 mr-1" />
+              )}
+              Importar {selectedContacts.length > 0 ? `(${selectedContacts.length})` : 'Selecionados'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
