@@ -599,7 +599,7 @@ const Dashboard = () => {
         </div>
 
         {/* All Resources Grid */}
-        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 [perspective:1200px] [&>div]:transition-all [&>div]:duration-300 [&>div]:[transform-style:preserve-3d] [&>div]:shadow-lg hover:[&>div:hover]:[transform:rotateX(6deg)_rotateY(-6deg)_translateY(-6px)_scale(1.03)] [&>div:hover]:shadow-2xl [&>div:hover]:shadow-primary/30">
           {/* Chat Online */}
           {hasFeature('ai_agent') && (
             <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
