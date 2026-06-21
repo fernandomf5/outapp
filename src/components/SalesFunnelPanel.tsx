@@ -1460,6 +1460,149 @@ export default function SalesFunnelPanel() {
         </div>
       )}
 
+      {/* Actions for selected funnel */}
+      {selectedFunnel && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => openEditFunnel(selectedFunnel)}>
+            <Edit className="w-4 h-4 mr-1" />
+            Editar Funil
+          </Button>
+          <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-1" />
+                Gerenciar Etapas
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Gerenciar Etapas do Funil</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Input value={stageName} onChange={(e) => setStageName(e.target.value)} placeholder="Nome da nova etapa" className="flex-1" />
+                  <input type="color" value={stageColor} onChange={(e) => setStageColor(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
+                  <Button onClick={handleSaveStage}>
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar
+                  </Button>
+                </div>
+                <DndContext
+                  sensors={stageSensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleStageDragEnd}
+                >
+                  <SortableContext items={stages.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                      {stages.map((stage) => (
+                        <SortableStageItem
+                          key={stage.id}
+                          stage={stage}
+                          leadsCount={leads.filter(l => l.stage_id === stage.id).length}
+                          onEdit={() => openEditStage(stage)}
+                          onDelete={() => handleDeleteStage(stage.id)}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isProcessingOCR}
+          >
+            {isProcessingOCR ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Camera className="w-4 h-4 mr-1" />
+            )}
+            {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={openImportContactsDialog}
+          >
+            <UserPlus className="w-4 h-4 mr-1" />
+            Importar de Cadastro
+          </Button>
+          <Dialog open={showLeadDialog} onOpenChange={(open) => { setShowLeadDialog(open); if (!open) resetLeadForm(); }}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Novo Lead
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingLead ? 'Editar Lead' : 'Novo Lead'}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <Label>Nome *</Label>
+                    <Input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Nome do lead" />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input type="email" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)} placeholder="email@exemplo.com" />
+                  </div>
+                  <div>
+                    <Label>Telefone</Label>
+                    <Input value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} placeholder="(11) 99999-9999" />
+                  </div>
+                  <div>
+                    <Label>Empresa</Label>
+                    <Input value={leadCompany} onChange={(e) => setLeadCompany(e.target.value)} placeholder="Nome da empresa" />
+                  </div>
+                  <div>
+                    <Label>Valor (R$)</Label>
+                    <Input type="number" value={leadValue} onChange={(e) => setLeadValue(e.target.value)} placeholder="0,00" />
+                  </div>
+                  <div>
+                    <Label>Prioridade</Label>
+                    <Select value={leadPriority} onValueChange={(v) => setLeadPriority(v as 'low' | 'medium' | 'high')}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Previsão de Fechamento</Label>
+                    <Input type="date" value={leadExpectedDate} onChange={(e) => setLeadExpectedDate(e.target.value)} />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Tags (separadas por vírgula)</Label>
+                    <Input value={leadTags} onChange={(e) => setLeadTags(e.target.value)} placeholder="cliente, b2b, premium" />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Observações</Label>
+                    <Textarea value={leadNotes} onChange={(e) => setLeadNotes(e.target.value)} placeholder="Anotações sobre o lead..." />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setShowLeadDialog(false); resetLeadForm(); }}>Cancelar</Button>
+                <Button onClick={handleSaveLead}>{editingLead ? 'Salvar' : 'Criar Lead'}</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button variant="destructive" size="sm" onClick={() => handleDeleteFunnel(selectedFunnel.id)}>
+            <Trash2 className="w-4 h-4 mr-1" />
+            Excluir Funil
+          </Button>
+        </div>
+      )}
+
       {/* Kanban Board */}
       {selectedFunnel ? (
         <div className="rounded-2xl border bg-gradient-to-br from-card via-card to-muted/20 p-4 shadow-xl">
@@ -1558,148 +1701,6 @@ export default function SalesFunnelPanel() {
         </div>
       )}
 
-      {/* Actions for selected funnel */}
-      {selectedFunnel && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={() => openEditFunnel(selectedFunnel)}>
-            <Edit className="w-4 h-4 mr-1" />
-            Editar Funil
-          </Button>
-          <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-1" />
-                Gerenciar Etapas
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Gerenciar Etapas do Funil</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Input value={stageName} onChange={(e) => setStageName(e.target.value)} placeholder="Nome da nova etapa" className="flex-1" />
-                  <input type="color" value={stageColor} onChange={(e) => setStageColor(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
-                  <Button onClick={handleSaveStage}>
-                    <Plus className="w-4 h-4 mr-1" />
-                    Adicionar
-                  </Button>
-                </div>
-                <DndContext
-                  sensors={stageSensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleStageDragEnd}
-                >
-                  <SortableContext items={stages.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                      {stages.map((stage) => (
-                        <SortableStageItem
-                          key={stage.id}
-                          stage={stage}
-                          leadsCount={leads.filter(l => l.stage_id === stage.id).length}
-                          onEdit={() => openEditStage(stage)}
-                          onDelete={() => handleDeleteStage(stage.id)}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isProcessingOCR}
-          >
-            {isProcessingOCR ? (
-              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-            ) : (
-              <Camera className="w-4 h-4 mr-1" />
-            )}
-            {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={openImportContactsDialog}
-          >
-            <UserPlus className="w-4 h-4 mr-1" />
-            Importar de Cadastro
-          </Button>
-          <Dialog open={showLeadDialog} onOpenChange={(open) => { setShowLeadDialog(open); if (!open) resetLeadForm(); }}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-1" />
-                Novo Lead
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>{editingLead ? 'Editar Lead' : 'Novo Lead'}</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <Label>Nome *</Label>
-                    <Input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Nome do lead" />
-                  </div>
-                  <div>
-                    <Label>Email</Label>
-                    <Input type="email" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)} placeholder="email@exemplo.com" />
-                  </div>
-                  <div>
-                    <Label>Telefone</Label>
-                    <Input value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} placeholder="(11) 99999-9999" />
-                  </div>
-                  <div>
-                    <Label>Empresa</Label>
-                    <Input value={leadCompany} onChange={(e) => setLeadCompany(e.target.value)} placeholder="Nome da empresa" />
-                  </div>
-                  <div>
-                    <Label>Valor (R$)</Label>
-                    <Input type="number" value={leadValue} onChange={(e) => setLeadValue(e.target.value)} placeholder="0,00" />
-                  </div>
-                  <div>
-                    <Label>Prioridade</Label>
-                    <Select value={leadPriority} onValueChange={(v) => setLeadPriority(v as 'low' | 'medium' | 'high')}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Baixa</SelectItem>
-                        <SelectItem value="medium">Média</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Previsão de Fechamento</Label>
-                    <Input type="date" value={leadExpectedDate} onChange={(e) => setLeadExpectedDate(e.target.value)} />
-                  </div>
-                  <div className="col-span-2">
-                    <Label>Tags (separadas por vírgula)</Label>
-                    <Input value={leadTags} onChange={(e) => setLeadTags(e.target.value)} placeholder="cliente, b2b, premium" />
-                  </div>
-                  <div className="col-span-2">
-                    <Label>Observações</Label>
-                    <Textarea value={leadNotes} onChange={(e) => setLeadNotes(e.target.value)} placeholder="Anotações sobre o lead..." />
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => { setShowLeadDialog(false); resetLeadForm(); }}>Cancelar</Button>
-                <Button onClick={handleSaveLead}>{editingLead ? 'Salvar' : 'Criar Lead'}</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Button variant="destructive" size="sm" onClick={() => handleDeleteFunnel(selectedFunnel.id)}>
-            <Trash2 className="w-4 h-4 mr-1" />
-            Excluir Funil
-          </Button>
-        </div>
-      )}
 
       {/* Stage Edit Dialog */}
       <Dialog open={showStageDialog} onOpenChange={(open) => { setShowStageDialog(open); if (!open) resetStageForm(); }}>
