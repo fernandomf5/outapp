@@ -706,11 +706,10 @@ export function GeneralCRMPanel() {
         lead_source: l.originalSource!,
         lead_id: l.originalId!,
       }));
-      // Upsert behavior: delete any existing for that target category first
+      // Schema only allows one category per lead, so we move (delete any existing then insert)
       await Promise.all(targets.map(l =>
         supabase.from('lead_category_assignments').delete()
           .eq('user_id', user.id)
-          .eq('category_id', copyTargetCategoryId)
           .eq('lead_source', l.originalSource!)
           .eq('lead_id', l.originalId!)
       ));
