@@ -501,7 +501,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
+    markCellDirty(rowId, columnId);
   };
+
+  const _ignored_handleCellUpdate_marker = () => {};
+  void _ignored_handleCellUpdate_marker;
+
 
   const handleSaveChanges = async () => {
     if (!selectedTable) return;
