@@ -7231,7 +7231,9 @@ export type Database = {
           questions: Json
           redirect_url: string | null
           responses_count: number
+          result_profiles: Json
           secondary_color: string | null
+          send_to_crm: boolean
           show_offer: boolean | null
           title: string
           updated_at: string
@@ -7255,7 +7257,9 @@ export type Database = {
           questions?: Json
           redirect_url?: string | null
           responses_count?: number
+          result_profiles?: Json
           secondary_color?: string | null
+          send_to_crm?: boolean
           show_offer?: boolean | null
           title: string
           updated_at?: string
@@ -7279,7 +7283,9 @@ export type Database = {
           questions?: Json
           redirect_url?: string | null
           responses_count?: number
+          result_profiles?: Json
           secondary_color?: string | null
+          send_to_crm?: boolean
           show_offer?: boolean | null
           title?: string
           updated_at?: string
