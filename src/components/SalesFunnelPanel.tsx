@@ -312,6 +312,16 @@ export default function SalesFunnelPanel() {
   const [importStageId, setImportStageId] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
+
+  // Import from Cadastro (contacts) states
+  const [showImportContactsDialog, setShowImportContactsDialog] = useState(false);
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [regCategories, setRegCategories] = useState<any[]>([]);
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [contactCategoryFilter, setContactCategoryFilter] = useState<string>("all");
+  const [contactSearchTerm, setContactSearchTerm] = useState("");
+  const [contactImportStageId, setContactImportStageId] = useState<string>("");
+  const [loadingContacts, setLoadingContacts] = useState(false);
   
   // Form states
   const [funnelName, setFunnelName] = useState('');
