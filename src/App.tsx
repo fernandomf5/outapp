@@ -122,6 +122,7 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           <Route path="/proposta/:slug" element={<ProposalPublicView />} />
+          <Route path="/contrato/:slug" element={<ContractPublicView />} />
           <Route path="/aprova-job/:token" element={<AprovaJobClient />} />
               <Route path="/instalar" element={<InstallApp />} />
               <Route path="/campanha/:campaignId" element={<CampaignPublicView />} />
