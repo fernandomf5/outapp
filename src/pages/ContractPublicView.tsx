@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { FileText, Lock, Download, CheckCircle2 } from "lucide-react";
-import SignatureCanvas from "react-signature-canvas";
+import SignaturePadField from "@/components/contracts/SignaturePadField";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 
@@ -19,7 +19,7 @@ export default function ContractPublicView() {
   const [authorized, setAuthorized] = useState(false);
   const [signerName, setSignerName] = useState("");
   const [signing, setSigning] = useState(false);
-  const sigRef = useRef<SignatureCanvas | null>(null);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
 
   useEffect(() => { load(); }, [slug]);
 
@@ -42,12 +42,11 @@ export default function ContractPublicView() {
   }
 
   async function sign() {
-    if (!sigRef.current || sigRef.current.isEmpty()) return toast.error("Desenhe sua assinatura");
+    if (!signatureData) return toast.error("Faça ou digite sua assinatura");
     if (!signerName.trim()) return toast.error("Informe seu nome");
     setSigning(true);
-    const dataUrl = sigRef.current.toDataURL("image/png");
     const { error } = await supabase.from("contracts").update({
-      client_signature: dataUrl,
+      client_signature: signatureData,
       client_signer_name: signerName,
       client_signed_at: new Date().toISOString(),
       status: "signed_by_client",
@@ -150,11 +149,8 @@ export default function ContractPublicView() {
             <h2 className="text-lg font-semibold flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> Assinatura Digital</h2>
             <div><Label>Seu Nome Completo</Label><Input value={signerName} onChange={e => setSignerName(e.target.value)} /></div>
             <div>
-              <Label>Desenhe sua assinatura</Label>
-              <div className="border rounded bg-white">
-                <SignatureCanvas ref={sigRef} canvasProps={{ width: 600, height: 200, className: "w-full" }} />
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => sigRef.current?.clear()}>Limpar</Button>
+              <Label>Sua Assinatura</Label>
+              <SignaturePadField onChange={setSignatureData} defaultName={signerName} />
             </div>
             <Button onClick={sign} disabled={signing} className="w-full">{signing ? "Assinando..." : "Assinar Contrato"}</Button>
           </Card>
