@@ -845,10 +845,64 @@ export function GeneralCRMPanel() {
               </Button>
               <Button onClick={downloadAllLeads} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
-                Baixar CSV
+                Baixar CSV (filtrados)
+              </Button>
+              <Button
+                onClick={() => { setCopyMode('category'); setCopyDialogOpen(true); }}
+                variant="outline"
+                size="sm"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar categoria → categoria
               </Button>
             </div>
           </div>
+
+          {/* Bulk actions bar (visible when items selected) */}
+          {selectedIds.size > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-2 p-3 rounded-md border bg-muted/40">
+              <CheckSquare className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">{selectedIds.size} selecionados</span>
+              <div className="ml-auto flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={downloadSelectedCSV}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Baixar selecionados
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <Tag className="h-4 w-4 mr-2" />
+                      Atribuir categoria
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="end">
+                    <div className="space-y-1">
+                      <Button variant="ghost" size="sm" className="w-full justify-start"
+                        onClick={() => bulkAssignCategory(null)}>
+                        <span className="text-muted-foreground">Remover categoria</span>
+                      </Button>
+                      {categories.map(cat => (
+                        <Button key={cat.id} variant="ghost" size="sm" className="w-full justify-start"
+                          onClick={() => bulkAssignCategory(cat.id)}>
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
+                          {cat.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button size="sm" variant="outline"
+                  onClick={() => { setCopyMode('selected'); setCopyDialogOpen(true); }}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar para categoria
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+                  Limpar
+                </Button>
+              </div>
+            </div>
+          )}
+
 
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">
