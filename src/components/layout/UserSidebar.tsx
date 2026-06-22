@@ -301,7 +301,7 @@ export function UserSidebar() {
       } as React.CSSProperties}
     >
       <div className={cn(
-        "flex items-center border-b border-border overflow-hidden h-[72px]",
+        "flex items-center border-b border-border overflow-hidden h-[60px] shrink-0",
         collapsed ? "justify-center p-0" : "px-4"
       )}>
         <Link 
@@ -325,7 +325,7 @@ export function UserSidebar() {
       
       {/* Search input */}
       {!collapsed && (
-        <div className="px-2 py-2 border-b border-border relative">
+        <div className="px-2 py-2 border-b border-border relative shrink-0">
           <div className="relative">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -370,7 +370,7 @@ export function UserSidebar() {
         </div>
       )}
       
-      <ScrollArea className="flex-1 overflow-x-hidden">
+      <ScrollArea className="flex-1 min-h-0 overflow-x-hidden h-full">
         <SidebarContent className={cn("p-2", collapsed && "items-center px-0")}>
           {/* Group Rendering Helper */}
           {Object.entries({
