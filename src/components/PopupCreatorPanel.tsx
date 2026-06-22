@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 
 interface Popup {
