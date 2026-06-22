@@ -1,21 +1,32 @@
 import { useEffect, useState } from "react";
 
 interface Props {
-  endsAt: string | Date;
+  endsAt?: string | Date;
+  endDate?: string | Date;
   label?: string;
   bgColor?: string;
   textColor?: string;
   className?: string;
+  onExpire?: () => void;
 }
 
-export function CountdownTimer({ endsAt, label, bgColor = "#111827", textColor = "#ffffff", className }: Props) {
-  const target = typeof endsAt === "string" ? new Date(endsAt).getTime() : endsAt.getTime();
+export function CountdownTimer({ endsAt, endDate, label, bgColor = "#111827", textColor = "#ffffff", className, onExpire }: Props) {
+  const raw = endsAt ?? endDate;
+  const target = raw ? (typeof raw === "string" ? new Date(raw).getTime() : raw.getTime()) : 0;
   const [now, setNow] = useState(Date.now());
+  const [fired, setFired] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    if (!fired && target && now >= target) {
+      setFired(true);
+      onExpire?.();
+    }
+  }, [now, target, fired, onExpire]);
 
   const diff = Math.max(0, target - now);
   const days = Math.floor(diff / 86400000);
@@ -24,7 +35,7 @@ export function CountdownTimer({ endsAt, label, bgColor = "#111827", textColor =
   const seconds = Math.floor((diff % 60000) / 1000);
 
   const Box = ({ v, l }: { v: number; l: string }) => (
-    <div className="flex flex-col items-center px-2 py-1 rounded min-w-[44px]" style={{ background: "rgba(255,255,255,0.12)" }}>
+    <div className="flex flex-col items-center px-2 py-1 rounded min-w-[44px]" style={{ background: "rgba(255,255,255,0.15)" }}>
       <span className="font-bold text-lg leading-none tabular-nums">{String(v).padStart(2, "0")}</span>
       <span className="text-[10px] uppercase opacity-80">{l}</span>
     </div>
@@ -32,7 +43,7 @@ export function CountdownTimer({ endsAt, label, bgColor = "#111827", textColor =
 
   return (
     <div
-      className={`rounded-lg p-3 my-3 ${className || ""}`}
+      className={`rounded-lg p-3 ${className || ""}`}
       style={{ background: bgColor, color: textColor }}
     >
       {label && <div className="text-xs font-medium mb-2 text-center">{label}</div>}
