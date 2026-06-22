@@ -292,11 +292,11 @@ export function UserSidebar() {
     <Sidebar 
       className={cn(
         "border-r border-border transition-all duration-300 ease-in-out",
-        collapsed ? "w-[60px]" : "w-64"
+        collapsed ? "w-[60px]" : "w-72"
       )} 
       collapsible="icon"
       style={{
-        "--sidebar-width": "16rem",
+        "--sidebar-width": "18rem",
         "--sidebar-width-icon": "60px",
       } as React.CSSProperties}
     >
