@@ -197,17 +197,17 @@ export default function QuestionnairePage() {
 
           {stage === "capture" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Antes de começar</h2>
+              <h2 className="text-xl font-semibold" style={{ color: qColor }}>Antes de começar</h2>
               {q.capture_fields.includes("name") && (
-                <div><Label>Nome</Label><Input value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} /></div>
+                <div><Label style={{ color: tColor }}>Nome</Label><Input value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} /></div>
               )}
               {q.capture_fields.includes("email") && (
-                <div><Label>E-mail</Label><Input type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} /></div>
+                <div><Label style={{ color: tColor }}>E-mail</Label><Input type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} /></div>
               )}
               {q.capture_fields.includes("phone") && (
-                <div><Label>Telefone</Label><Input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} /></div>
+                <div><Label style={{ color: tColor }}>Telefone</Label><Input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} /></div>
               )}
-              <Button className="w-full" onClick={submitCapture} style={{ backgroundColor: accent }}>
+              <Button className={`w-full ${anim}`} onClick={submitCapture} style={{ backgroundColor: btnBg, color: btnText }}>
                 Continuar <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
