@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, FileText, Copy, Eye, Trash2, Download, PenLine, History, Send } from "lucide-react";
+import { Plus, FileText, Copy, Eye, Trash2, Download, PenLine, History, Send, Files, RotateCcw } from "lucide-react";
 import SignaturePadField from "./SignaturePadField";
 import A4ContractPreview from "./A4ContractPreview";
 import jsPDF from "jspdf";
@@ -157,6 +157,44 @@ export function ContractCreatorPanel() {
     load();
   }
 
+  async function duplicate(c: Contract) {
+    if (!user) return;
+    const { id, created_at, updated_at, public_slug, views_count, sent_at,
+      client_signature, client_signer_name, client_signed_at, client_signature_ip,
+      company_signature, company_signer_name, company_signed_at,
+      status, ...rest } = c;
+    const payload = {
+      ...rest,
+      user_id: user.id,
+      title: `${c.title} (cópia)`,
+      access_code: Math.random().toString(36).slice(2, 8).toUpperCase(),
+      status: "draft",
+    };
+    const { data, error } = await supabase.from("contracts").insert(payload).select().single();
+    if (error) return toast.error(error.message);
+    await supabase.from("contract_history").insert({ contract_id: data.id, event_type: "created", description: "Contrato duplicado" });
+    toast.success("Contrato duplicado");
+    load();
+  }
+
+  async function resetSignatures(c: Contract) {
+    if (!confirm("Zerar assinaturas deste contrato? O cliente precisará assinar novamente.")) return;
+    const { error } = await supabase.from("contracts").update({
+      client_signature: null,
+      client_signer_name: null,
+      client_signed_at: null,
+      client_signature_ip: null,
+      company_signature: null,
+      company_signer_name: null,
+      company_signed_at: null,
+      status: "sent",
+    }).eq("id", c.id);
+    if (error) return toast.error(error.message);
+    await supabase.from("contract_history").insert({ contract_id: c.id, event_type: "reset", description: "Assinaturas zeradas para nova assinatura" });
+    toast.success("Assinaturas zeradas. O cliente pode assinar novamente.");
+    load();
+  }
+
   function publicLink(c: Contract) {
     return `${window.location.origin}/contrato/${c.public_slug}`;
   }
@@ -273,7 +311,11 @@ export function ContractCreatorPanel() {
                     {c.status === "signed_by_client" && (
                       <Button size="sm" onClick={() => setSignOpen(c)}><PenLine className="h-4 w-4 mr-1" />Assinar</Button>
                     )}
+                    {(c.client_signature || c.company_signature) && (
+                      <Button size="sm" variant="outline" onClick={() => resetSignatures(c)} title="Zerar assinaturas"><RotateCcw className="h-4 w-4" /></Button>
+                    )}
                     <Button size="sm" variant="outline" onClick={() => downloadPDF(c)}><Download className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="outline" onClick={() => duplicate(c)} title="Duplicar"><Files className="h-4 w-4" /></Button>
                     <Button size="sm" variant="outline" onClick={() => openEdit(c)}>Editar</Button>
                     <Button size="sm" variant="ghost" onClick={() => remove(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </div>
