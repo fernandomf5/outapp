@@ -496,6 +496,15 @@ export const PopupCreatorPanel = () => {
               className="w-full rounded-lg max-h-48 mb-4"
             />
           )}
+          {data.countdown_enabled && data.countdown_ends_at && (
+            <CountdownTimer
+              endsAt={data.countdown_ends_at}
+              label={data.countdown_label}
+              bgColor={data.countdown_bg_color}
+              textColor={data.countdown_text_color}
+              className="mb-3"
+            />
+          )}
           <h3 className="text-xl font-bold mb-2" style={{ color: data.text_color, textAlign: (data.text_align as any) || 'left' }}>{data.title || "Título do Pop-up"}</h3>
           <p className="mb-4" style={{ color: data.text_color, textAlign: (data.text_align as any) || 'left' }}>{data.content || "Conteúdo do pop-up aparecerá aqui..."}</p>
           {data.button_text && (
