@@ -204,6 +204,7 @@ export const PopupCreatorPanel = () => {
       button_animation: popup.button_animation || 'none',
       text_color: popup.text_color || '#000000',
       image_fit: popup.image_fit || 'cover',
+      text_align: popup.text_align || 'left',
     });
     setIsEditDialogOpen(true);
   };
