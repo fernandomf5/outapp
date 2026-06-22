@@ -817,7 +817,7 @@ const Index = () => {
             <Button 
               size="lg"
               onClick={() => navigate("/auth")}
-              className="gradient-primary shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl px-4 xs:px-5 sm:px-6 md:px-8 lg:px-12 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform w-full sm:w-auto max-w-xs sm:max-w-md font-semibold"
+              className="gradient-primary shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl px-4 xs:px-5 sm:px-6 md:px-8 lg:px-12 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform w-full sm:w-auto max-w-xs sm:max-w-md font-semibold animate-cta-pulse"
             >
               Começar Teste Grátis - 3 Dias
             </Button>
