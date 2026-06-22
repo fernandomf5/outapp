@@ -1017,6 +1017,21 @@ export function GeneralCRMPanel() {
                     <TooltipContent>Copiar para categoria</TooltipContent>
                   </Tooltip>
                   <Separator orientation="vertical" className="mx-1 h-6" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => { setBulkDeleteConfirmText(''); setBulkDeleteOpen(true); }}
+                        aria-label="Excluir selecionados"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Excluir selecionados</TooltipContent>
+                  </Tooltip>
+                  <Separator orientation="vertical" className="mx-1 h-6" />
                   <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedIds(new Set())}>
                     Limpar
                   </Button>
