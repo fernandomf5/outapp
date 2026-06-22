@@ -311,7 +311,11 @@ export function ContractCreatorPanel() {
                     {c.status === "signed_by_client" && (
                       <Button size="sm" onClick={() => setSignOpen(c)}><PenLine className="h-4 w-4 mr-1" />Assinar</Button>
                     )}
+                    {(c.client_signature || c.company_signature) && (
+                      <Button size="sm" variant="outline" onClick={() => resetSignatures(c)} title="Zerar assinaturas"><RotateCcw className="h-4 w-4" /></Button>
+                    )}
                     <Button size="sm" variant="outline" onClick={() => downloadPDF(c)}><Download className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="outline" onClick={() => duplicate(c)} title="Duplicar"><Files className="h-4 w-4" /></Button>
                     <Button size="sm" variant="outline" onClick={() => openEdit(c)}>Editar</Button>
                     <Button size="sm" variant="ghost" onClick={() => remove(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </div>
