@@ -197,7 +197,10 @@ export const PopupCreatorPanel = () => {
       background_image: popup.background_image || '',
       background_video: popup.background_video || '',
       button_color: popup.button_color || '#000000',
+      button_text_color: popup.button_text_color || '#ffffff',
+      button_animation: popup.button_animation || 'none',
       text_color: popup.text_color || '#000000',
+      image_fit: popup.image_fit || 'cover',
     });
     setIsEditDialogOpen(true);
   };
