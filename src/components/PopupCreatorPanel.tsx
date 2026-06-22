@@ -831,6 +831,18 @@ export const PopupCreatorPanel = () => {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        @keyframes popup-anim-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+        @keyframes popup-anim-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes popup-anim-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+        @keyframes popup-anim-ring { 0%,100%{transform:rotate(0)} 10%,30%{transform:rotate(-12deg)} 20%,40%{transform:rotate(12deg)} 50%{transform:rotate(0)} }
+        @keyframes popup-anim-glow { 0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.6)} 50%{box-shadow:0 0 0 12px rgba(255,255,255,0)} }
+        .popup-anim-pulse{animation:popup-anim-pulse 1.4s ease-in-out infinite;transform-origin:center}
+        .popup-anim-bounce{animation:popup-anim-bounce 1.2s ease-in-out infinite}
+        .popup-anim-shake{animation:popup-anim-shake 0.9s ease-in-out infinite}
+        .popup-anim-ring{animation:popup-anim-ring 1.6s ease-in-out infinite;transform-origin:center}
+        .popup-anim-glow{animation:popup-anim-glow 1.5s ease-out infinite}
+      `}</style>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Criador de Pop-ups</h2>
