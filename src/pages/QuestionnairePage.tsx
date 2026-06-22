@@ -124,12 +124,20 @@ export default function QuestionnairePage() {
         return { question: qq.text, type: "text", answer: a || "" };
       });
 
+      const extraLead: Record<string, string> = {};
+      Object.entries(lead).forEach(([k, v]) => {
+        if (!["name", "email", "phone"].includes(k) && v) extraLead[k] = v;
+      });
+      const finalAnswers = Object.keys(extraLead).length > 0
+        ? [{ question: "_lead_extra", type: "lead", answer: extraLead }, ...answerLog]
+        : answerLog;
+
       const { error } = await (supabase as any).from("marketing_questionnaire_responses").insert({
         questionnaire_id: q.id,
         name: lead.name || null,
         email: lead.email || null,
-        phone: lead.phone || null,
-        answers: answerLog,
+        phone: lead.phone || lead.whatsapp || null,
+        answers: finalAnswers,
         matched_offer_ids: matched.map((o) => o.id),
       });
       if (error) {
@@ -150,15 +158,19 @@ export default function QuestionnairePage() {
           .then(() => {}, () => {});
       } catch {}
 
-      if (q.send_to_crm && (lead.name || lead.email || lead.phone)) {
+      if (q.send_to_crm && (lead.name || lead.email || lead.phone || lead.whatsapp)) {
         try {
+          const extraNotes = Object.entries(extraLead).map(([k, v]) => {
+            const f = CAPTURE_FIELD_OPTIONS.find((x) => x.key === k);
+            return `${f?.label || k}: ${v}`;
+          }).join("\n");
           (supabase as any).from("customers").insert({
             user_id: q.user_id,
             name: lead.name || lead.email || "Lead Questionário",
             email: lead.email || null,
-            phone: lead.phone || null,
+            phone: lead.phone || lead.whatsapp || null,
             status: "lead",
-            notes: `Origem: Questionário "${q.title}"`,
+            notes: `Origem: Questionário "${q.title}"${extraNotes ? `\n\n${extraNotes}` : ""}`,
             tags: ["questionario"],
           }).then(() => {}, () => {});
         } catch {}
