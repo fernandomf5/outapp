@@ -53,7 +53,7 @@ export default function QuestionnairePage() {
   const [q, setQ] = useState<Q | null>(null);
   const [loading, setLoading] = useState(true);
   const [stage, setStage] = useState<"intro" | "capture" | "questions" | "done">("intro");
-  const [lead, setLead] = useState({ name: "", email: "", phone: "" });
+  const [lead, setLead] = useState<Record<string, string>>({});
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [current, setCurrent] = useState(0);
   const [submitting, setSubmitting] = useState(false);
