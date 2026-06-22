@@ -1123,6 +1123,11 @@ export const PopupCreatorPanel = () => {
               text_color: previewPopup.text_color || '#000000',
               image_fit: previewPopup.image_fit || 'cover',
               text_align: previewPopup.text_align || 'left',
+              countdown_enabled: !!previewPopup.countdown_enabled,
+              countdown_ends_at: previewPopup.countdown_ends_at || '',
+              countdown_bg_color: previewPopup.countdown_bg_color || '#111827',
+              countdown_text_color: previewPopup.countdown_text_color || '#ffffff',
+              countdown_label: previewPopup.countdown_label || 'Oferta termina em:',
             })}
           </DialogContent>
         </Dialog>
