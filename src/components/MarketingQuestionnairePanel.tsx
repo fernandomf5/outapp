@@ -266,26 +266,168 @@ export function MarketingQuestionnairePanel() {
         </div>
       )}
 
-      <Dialog open={!!showResponsesFor} onOpenChange={(o) => { if (!o) { setShowResponsesFor(null); setResponses(null); }}}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Respostas: {showResponsesFor?.title}</DialogTitle></DialogHeader>
-          {responses === null ? <div>Carregando...</div> :
-           responses.length === 0 ? <div className="text-muted-foreground text-center py-6">Nenhuma resposta ainda.</div> :
-           <div className="space-y-3">
-             {responses.map((r) => (
-               <Card key={r.id}><CardContent className="p-3 text-sm space-y-1">
-                 <div className="flex justify-between">
-                   <strong>{r.name || "Anônimo"}</strong>
-                   <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("pt-BR")}</span>
-                 </div>
-                 <div className="text-xs text-muted-foreground">{r.email} {r.phone && ` · ${r.phone}`}</div>
-                 <details className="text-xs mt-2">
-                   <summary className="cursor-pointer text-primary">Ver respostas</summary>
-                   <pre className="mt-2 p-2 bg-muted rounded overflow-x-auto">{JSON.stringify(r.answers, null, 2)}</pre>
-                 </details>
-               </CardContent></Card>
-             ))}
-           </div>}
+      <Dialog open={!!showResponsesFor} onOpenChange={(o) => { if (!o) { setShowResponsesFor(null); setResponses(null); setSelectedResponses(new Set()); }}}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              Respostas: {showResponsesFor?.title}
+            </DialogTitle>
+          </DialogHeader>
+
+          {responses === null ? (
+            <div className="text-center py-10 text-muted-foreground">Carregando...</div>
+          ) : responses.length === 0 ? (
+            <div className="text-muted-foreground text-center py-10">Nenhuma resposta ainda.</div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg sticky top-0 z-10">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectedResponses.size === responses.length && responses.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <span className="text-sm font-medium">
+                    {selectedResponses.size > 0
+                      ? `${selectedResponses.size} selecionada(s)`
+                      : `${responses.length} resposta(s)`}
+                  </span>
+                </div>
+                {selectedResponses.size > 0 && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => setDeleteConfirm({ ids: Array.from(selectedResponses), text: "" })}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" /> Excluir selecionadas
+                  </Button>
+                )}
+              </div>
+
+              <div className="space-y-3 mt-3">
+                {responses.map((r) => {
+                  const answers = Array.isArray(r.answers) ? r.answers : [];
+                  const leadExtra = answers.find((a: any) => a?.question === "_lead_extra")?.answer || {};
+                  const qaList = answers.filter((a: any) => a?.question !== "_lead_extra");
+                  const leadEntries: { key: string; value: string }[] = [];
+                  if (r.name) leadEntries.push({ key: "Nome", value: r.name });
+                  if (r.email) leadEntries.push({ key: "E-mail", value: r.email });
+                  if (r.phone) leadEntries.push({ key: "Telefone", value: r.phone });
+                  Object.entries(leadExtra).forEach(([k, v]) => {
+                    if (v) {
+                      const label = CAPTURE_FIELD_OPTIONS.find((f) => f.key === k)?.label || k;
+                      leadEntries.push({ key: label, value: String(v) });
+                    }
+                  });
+
+                  return (
+                    <Card key={r.id} className={selectedResponses.has(r.id) ? "ring-2 ring-primary" : ""}>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={selectedResponses.has(r.id)}
+                            onCheckedChange={() => toggleSelect(r.id)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                  <User className="w-4 h-4 text-primary" />
+                                </div>
+                                <div>
+                                  <div className="font-semibold">{r.name || "Anônimo"}</div>
+                                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {new Date(r.created_at).toLocaleString("pt-BR")}
+                                  </div>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive"
+                                onClick={() => setDeleteConfirm({ ids: [r.id], text: "" })}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+
+                            {leadEntries.length > 0 && (
+                              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {leadEntries.map((e, i) => (
+                                  <div key={i} className="flex items-start gap-2 text-sm bg-muted/40 rounded px-2 py-1.5">
+                                    {e.key === "E-mail" ? <Mail className="w-3.5 h-3.5 mt-0.5 text-muted-foreground" /> :
+                                     e.key === "Telefone" || e.key === "WhatsApp" ? <Phone className="w-3.5 h-3.5 mt-0.5 text-muted-foreground" /> :
+                                     <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-muted-foreground" />}
+                                    <div className="min-w-0 flex-1">
+                                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{e.key}</div>
+                                      <div className="truncate font-medium">{e.value}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {qaList.length > 0 && (
+                              <div className="mt-3 space-y-2">
+                                <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                                  <MessageSquare className="w-3 h-3" /> Respostas do questionário
+                                </div>
+                                {qaList.map((a: any, i: number) => (
+                                  <div key={i} className="border-l-2 border-primary/40 pl-3 py-1">
+                                    <div className="text-xs text-muted-foreground">{a.question}</div>
+                                    <div className="text-sm font-medium">
+                                      {Array.isArray(a.answer) ? a.answer.join(", ") : String(a.answer ?? "—")}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteConfirm} onOpenChange={(o) => { if (!o) setDeleteConfirm(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="w-5 h-5" /> Confirmar exclusão
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm">
+              Você está prestes a excluir <strong>{deleteConfirm?.ids.length}</strong> resposta(s).
+              Esta ação <strong>não pode ser desfeita</strong>.
+            </p>
+            <div>
+              <Label className="text-xs">Digite <strong>EXCLUIR</strong> para confirmar:</Label>
+              <Input
+                value={deleteConfirm?.text || ""}
+                onChange={(e) => setDeleteConfirm((d) => d ? { ...d, text: e.target.value } : d)}
+                placeholder="EXCLUIR"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={(deleteConfirm?.text || "").trim().toUpperCase() !== "EXCLUIR"}
+              onClick={confirmDeleteResponses}
+            >
+              Excluir definitivamente
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
