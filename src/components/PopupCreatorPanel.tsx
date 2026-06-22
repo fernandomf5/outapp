@@ -220,6 +220,11 @@ export const PopupCreatorPanel = () => {
       text_color: popup.text_color || '#000000',
       image_fit: popup.image_fit || 'cover',
       text_align: popup.text_align || 'left',
+      countdown_enabled: !!popup.countdown_enabled,
+      countdown_ends_at: popup.countdown_ends_at || '',
+      countdown_bg_color: popup.countdown_bg_color || '#111827',
+      countdown_text_color: popup.countdown_text_color || '#ffffff',
+      countdown_label: popup.countdown_label || 'Oferta termina em:',
     });
     setIsEditDialogOpen(true);
   };
