@@ -113,6 +113,8 @@ export function MarketingQuestionnairePanel() {
   const [editing, setEditing] = useState<Questionnaire | null>(null);
   const [responses, setResponses] = useState<any[] | null>(null);
   const [showResponsesFor, setShowResponsesFor] = useState<Questionnaire | null>(null);
+  const [selectedResponses, setSelectedResponses] = useState<Set<string>>(new Set());
+  const [deleteConfirm, setDeleteConfirm] = useState<{ ids: string[]; text: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
