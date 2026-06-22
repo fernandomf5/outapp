@@ -825,7 +825,47 @@ export const PopupCreatorPanel = () => {
           </div>
 
 
-          <div className="border-t pt-4 mt-4">
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base">Contador Regressivo (Escassez)</Label>
+              <Switch
+                checked={formData.countdown_enabled}
+                onCheckedChange={(v) => setFormData({ ...formData, countdown_enabled: v })}
+              />
+            </div>
+            {formData.countdown_enabled && (
+              <div className="space-y-3 p-3 border rounded-lg">
+                <div className="grid gap-2">
+                  <Label>Termina em (data e hora)</Label>
+                  <Input
+                    type="datetime-local"
+                    value={formData.countdown_ends_at ? String(formData.countdown_ends_at).slice(0, 16) : ''}
+                    onChange={(e) => setFormData({ ...formData, countdown_ends_at: e.target.value ? new Date(e.target.value).toISOString() : '' })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Rótulo (chamada acima do contador)</Label>
+                  <Input
+                    value={formData.countdown_label}
+                    onChange={(e) => setFormData({ ...formData, countdown_label: e.target.value })}
+                    placeholder="Ex: Oferta termina em:"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-2">
+                    <Label>Cor de fundo</Label>
+                    <Input type="color" value={formData.countdown_bg_color} onChange={(e) => setFormData({ ...formData, countdown_bg_color: e.target.value })} className="h-10" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Cor do texto</Label>
+                    <Input type="color" value={formData.countdown_text_color} onChange={(e) => setFormData({ ...formData, countdown_text_color: e.target.value })} className="h-10" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+
             <Label className="mb-3 block">Preview em Tempo Real</Label>
             {renderPopupPreview(formData)}
           </div>
