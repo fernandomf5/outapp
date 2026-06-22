@@ -389,6 +389,52 @@ function Editor({ q, onClose }: { q: Questionnaire; onClose: () => void }) {
               {uploadingCover && <p className="text-xs text-muted-foreground mt-1">Enviando...</p>}
             </div>
             <div><Label>Cor primária</Label><Input type="color" value={data.primary_color} onChange={(e) => update("primary_color", e.target.value)} className="h-10 w-24" /></div>
+
+            <div className="border-t pt-4 space-y-3">
+              <Label className="text-base font-semibold">Personalização visual</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label className="text-xs">Cor de fundo</Label><Input type="color" value={data.background_color || "#ffffff"} onChange={(e) => update("background_color", e.target.value)} className="h-10" /></div>
+                <div><Label className="text-xs">Cor das perguntas</Label><Input type="color" value={data.question_color || "#0f172a"} onChange={(e) => update("question_color", e.target.value)} className="h-10" /></div>
+                <div><Label className="text-xs">Cor do texto</Label><Input type="color" value={data.text_color || "#334155"} onChange={(e) => update("text_color", e.target.value)} className="h-10" /></div>
+                <div><Label className="text-xs">Cor do botão</Label><Input type="color" value={data.button_color || "#6366f1"} onChange={(e) => update("button_color", e.target.value)} className="h-10" /></div>
+                <div><Label className="text-xs">Cor do texto do botão</Label><Input type="color" value={data.button_text_color || "#ffffff"} onChange={(e) => update("button_text_color", e.target.value)} className="h-10" /></div>
+                <div>
+                  <Label className="text-xs">Animação do botão</Label>
+                  <Select value={data.button_animation || "none"} onValueChange={(v) => update("button_animation", v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhuma</SelectItem>
+                      <SelectItem value="pulse">Pulsar</SelectItem>
+                      <SelectItem value="bounce">Pra cima e pra baixo</SelectItem>
+                      <SelectItem value="shake">Ir e voltar</SelectItem>
+                      <SelectItem value="ring">Tocando como telefone</SelectItem>
+                      <SelectItem value="glow">Brilho destacado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-base font-semibold">Contador Regressivo (Escassez)</Label>
+                  <p className="text-xs text-muted-foreground">Mostra contagem regressiva no topo do questionário.</p>
+                </div>
+                <Switch checked={!!data.countdown_enabled} onCheckedChange={(v) => update("countdown_enabled", v)} />
+              </div>
+              {data.countdown_enabled && (
+                <div className="space-y-3 p-3 border rounded-lg">
+                  <div><Label>Termina em</Label><Input type="datetime-local" value={data.countdown_ends_at ? String(data.countdown_ends_at).slice(0, 16) : ""} onChange={(e) => update("countdown_ends_at", e.target.value ? new Date(e.target.value).toISOString() : null)} /></div>
+                  <div><Label>Rótulo</Label><Input value={data.countdown_label || ""} onChange={(e) => update("countdown_label", e.target.value)} placeholder="Oferta termina em:" /></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs">Cor de fundo</Label><Input type="color" value={data.countdown_bg_color || "#111827"} onChange={(e) => update("countdown_bg_color", e.target.value)} className="h-10" /></div>
+                    <div><Label className="text-xs">Cor do texto</Label><Input type="color" value={data.countdown_text_color || "#ffffff"} onChange={(e) => update("countdown_text_color", e.target.value)} className="h-10" /></div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div><Label>Título da tela final</Label><Input value={data.thank_you_title} onChange={(e) => update("thank_you_title", e.target.value)} /></div>
             <div><Label>Descrição da tela final</Label><Textarea value={data.thank_you_description} onChange={(e) => update("thank_you_description", e.target.value)} /></div>
           </CardContent></Card>
