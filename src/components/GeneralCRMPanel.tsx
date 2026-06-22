@@ -566,26 +566,47 @@ export function GeneralCRMPanel() {
     toast.success('E-mails baixados com sucesso!');
   };
 
-  const deleteLead = async (lead: Lead) => {
-    if (!confirm(`Tem certeza que deseja excluir o lead de ${lead.name}?`)) return;
-
+  const deleteLead = (lead: Lead) => {
     if (!lead.originalSource || !lead.originalId) {
       toast.error('Não foi possível identificar a origem do lead');
       return;
     }
+    setSingleDeleteText("");
+    setSingleDeleteLead(lead);
+  };
 
-    const { error } = await supabase
-      .from(lead.originalSource as any)
-      .delete()
-      .eq('id', lead.originalId);
-
-    if (error) {
-      toast.error('Erro ao excluir lead: ' + error.message);
-    } else {
-      toast.success('Lead excluído com sucesso');
+  const confirmSingleDelete = async () => {
+    if (!singleDeleteLead) return;
+    if (singleDeleteText.trim().toUpperCase() !== 'EXCLUIR') {
+      toast.error('Digite "EXCLUIR" para confirmar');
+      return;
+    }
+    setSingleDeleting(true);
+    try {
+      const { error } = await supabase
+        .from(singleDeleteLead.originalSource as any)
+        .delete()
+        .eq('id', singleDeleteLead.originalId);
+      if (error) {
+        toast.error('Erro ao excluir lead: ' + error.message);
+        return;
+      }
+      // Limpa atribuições de categoria do lead
+      if (user) {
+        await supabase.from('lead_category_assignments').delete()
+          .eq('user_id', user.id)
+          .eq('lead_source', singleDeleteLead.originalSource!)
+          .eq('lead_id', singleDeleteLead.originalId!);
+      }
+      toast.success('Lead excluído de todo o sistema');
+      setSingleDeleteLead(null);
+      setSingleDeleteText("");
       fetchAllLeads();
+    } finally {
+      setSingleDeleting(false);
     }
   };
+
 
   const openEditDialog = (lead: Lead) => {
     setEditingLead(lead);
