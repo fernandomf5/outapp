@@ -60,64 +60,75 @@ export default function QuestionnairePage() {
   const finishQuestions = async () => {
     if (!q) return;
     setSubmitting(true);
-    // compute matched offers
-    const offerSet = new Set<string>();
-    q.questions.forEach((qq) => {
-      if (qq.type === "choice") {
-        const sel = answers[qq.id];
-        const opts: string[] = Array.isArray(sel) ? sel : sel ? [sel] : [];
-        opts.forEach((oid) => {
-          const opt = qq.options.find((o) => o.id === oid);
-          opt?.offer_ids.forEach((x) => offerSet.add(x));
-        });
-      }
-    });
-    let matched = q.offers.filter((o) => offerSet.has(o.id));
-    if (matched.length === 0) matched = q.offers; // fallback: show all
+    try {
+      // compute matched offers
+      const offerSet = new Set<string>();
+      q.questions.forEach((qq) => {
+        if (qq.type === "choice") {
+          const sel = answers[qq.id];
+          const opts: string[] = Array.isArray(sel) ? sel : sel ? [sel] : [];
+          opts.forEach((oid) => {
+            const opt = qq.options.find((o) => o.id === oid);
+            opt?.offer_ids.forEach((x) => offerSet.add(x));
+          });
+        }
+      });
+      let matched = q.offers.filter((o) => offerSet.has(o.id));
+      if (matched.length === 0) matched = q.offers; // fallback: show all
 
-    const answerLog = q.questions.map((qq) => {
-      const a = answers[qq.id];
-      if (qq.type === "choice") {
-        const ids: string[] = Array.isArray(a) ? a : a ? [a] : [];
-        return { question: qq.text, type: "choice", answer: ids.map((i) => qq.options.find((o) => o.id === i)?.text).filter(Boolean) };
-      }
-      return { question: qq.text, type: "text", answer: a || "" };
-    });
+      const answerLog = q.questions.map((qq) => {
+        const a = answers[qq.id];
+        if (qq.type === "choice") {
+          const ids: string[] = Array.isArray(a) ? a : a ? [a] : [];
+          return { question: qq.text, type: "choice", answer: ids.map((i) => qq.options.find((o) => o.id === i)?.text).filter(Boolean) };
+        }
+        return { question: qq.text, type: "text", answer: a || "" };
+      });
 
-    const { error } = await (supabase as any).from("marketing_questionnaire_responses").insert({
-      questionnaire_id: q.id,
-      name: lead.name || null,
-      email: lead.email || null,
-      phone: lead.phone || null,
-      answers: answerLog,
-      matched_offer_ids: matched.map((o) => o.id),
-    });
-    if (error) { setSubmitting(false); return toast.error(error.message); }
-
-    // increment counter
-    await (supabase as any).rpc("increment_questionnaire_responses").catch(() => {});
-    // Best-effort increment via select+update (no rpc set up)
-    await (supabase as any)
-      .from("marketing_questionnaires")
-      .update({ total_responses: (q as any).total_responses ? (q as any).total_responses + 1 : 1 })
-      .eq("id", q.id);
-
-    // CRM lead
-    if (q.send_to_crm && (lead.name || lead.email || lead.phone)) {
-      await (supabase as any).from("customers").insert({
-        user_id: q.user_id,
-        name: lead.name || lead.email || "Lead Questionário",
+      const { error } = await (supabase as any).from("marketing_questionnaire_responses").insert({
+        questionnaire_id: q.id,
+        name: lead.name || null,
         email: lead.email || null,
         phone: lead.phone || null,
-        status: "lead",
-        notes: `Origem: Questionário "${q.title}"`,
-        tags: ["questionario"],
-      }).then(() => {}, () => {});
-    }
+        answers: answerLog,
+        matched_offer_ids: matched.map((o) => o.id),
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
 
-    setMatchedOffers(matched);
-    setStage("done");
-    setSubmitting(false);
+      // Show result immediately — side effects below are best-effort
+      setMatchedOffers(matched);
+      setStage("done");
+
+      // Fire-and-forget: anon user lacks privileges for these, so don't await/block UI
+      try {
+        (supabase as any)
+          .from("marketing_questionnaires")
+          .update({ total_responses: ((q as any).total_responses || 0) + 1 })
+          .eq("id", q.id)
+          .then(() => {}, () => {});
+      } catch {}
+
+      if (q.send_to_crm && (lead.name || lead.email || lead.phone)) {
+        try {
+          (supabase as any).from("customers").insert({
+            user_id: q.user_id,
+            name: lead.name || lead.email || "Lead Questionário",
+            email: lead.email || null,
+            phone: lead.phone || null,
+            status: "lead",
+            notes: `Origem: Questionário "${q.title}"`,
+            tags: ["questionario"],
+          }).then(() => {}, () => {});
+        } catch {}
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao finalizar");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const next = () => {
