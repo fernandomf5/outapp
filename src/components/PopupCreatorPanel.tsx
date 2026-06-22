@@ -313,7 +313,7 @@ export const PopupCreatorPanel = () => {
     content += '<button onclick="closePopup_' + popupId.replace(/-/g, '_') + '()" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: ${popup.text_color || '#000000'}; line-height: 1;">&times;</button>';
     
     ${popup.image_url ? `
-    content += '<img src="${popup.image_url}" alt="" style="width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px; object-fit: cover;" />';
+    content += '<img src="${popup.image_url}" alt="" style="display:block; width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 240px; object-fit: ${popup.image_fit || 'cover'}; ${popup.image_fit === 'contain' ? 'background:#f3f4f6;' : ''}" />';
     ` : ''}
     
     ${popup.video_url ? `
@@ -324,7 +324,7 @@ export const PopupCreatorPanel = () => {
     content += '<p style="margin: 0 0 16px 0; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
     
     ${popup.button_text ? `
-    content += '<a href="${popup.button_link || '#'}" target="_blank" style="display: block; width: 100%; padding: 12px 24px; background: ${popup.button_color || '#000000'}; color: #ffffff; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box;">${popup.button_text}</a>';
+    content += '<a href="${popup.button_link || '#'}" target="_blank" class="popup-anim-${popup.button_animation || 'none'}" style="display: block; width: 100%; padding: 12px 24px; background: ${popup.button_color || '#000000'}; color: ${popup.button_text_color || '#ffffff'}; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box;">${popup.button_text}</a>';
     ` : ''}
     
     popup.innerHTML = content;
