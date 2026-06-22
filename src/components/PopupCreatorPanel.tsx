@@ -50,6 +50,7 @@ interface Popup {
   button_animation?: string;
   text_color?: string;
   image_fit?: string;
+  text_align?: string;
 }
 
 export const PopupCreatorPanel = () => {
