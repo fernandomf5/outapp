@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, FileText, Copy, Eye, Trash2, Download, PenLine, History, Send } from "lucide-react";
+import { Plus, FileText, Copy, Eye, Trash2, Download, PenLine, History, Send, Files, RotateCcw } from "lucide-react";
 import SignaturePadField from "./SignaturePadField";
 import A4ContractPreview from "./A4ContractPreview";
 import jsPDF from "jspdf";
