@@ -79,9 +79,20 @@ export default function QuestionnairePage() {
   };
 
   const submitCapture = () => {
-    if (q?.capture_fields.includes("name") && !lead.name.trim()) return toast.error("Informe seu nome");
-    if (q?.capture_fields.includes("email") && !lead.email.trim()) return toast.error("Informe seu e-mail");
-    if (q?.capture_fields.includes("phone") && !lead.phone.trim()) return toast.error("Informe seu telefone");
+    if (!q) return;
+    for (const key of q.capture_fields) {
+      const f = CAPTURE_FIELD_OPTIONS.find((x) => x.key === key);
+      if (!f) continue;
+      const val = (lead[key] || "").trim();
+      if (!val) return toast.error(`Informe: ${f.label}`);
+      if (key === "email" && !isEmail(val)) return toast.error("E-mail inválido");
+      if ((key === "phone" || key === "whatsapp") && !isPhone(val)) return toast.error(`${f.label} inválido (mínimo 10 dígitos com DDD)`);
+      if (key === "cpf" && !isCPF(val)) return toast.error("CPF inválido");
+      if (key === "cnpj" && !isCNPJ(val)) return toast.error("CNPJ inválido");
+      if (key === "website" && !isUrl(val)) return toast.error("Site inválido");
+      if (key === "age" && (isNaN(Number(val)) || Number(val) <= 0 || Number(val) > 130)) return toast.error("Idade inválida");
+      if (key === "zipcode" && onlyDigits(val).length !== 8) return toast.error("CEP inválido");
+    }
     setStage("questions");
   };
 
