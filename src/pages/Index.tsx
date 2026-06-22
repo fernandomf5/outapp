@@ -378,14 +378,11 @@ const Index = () => {
         </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-[88vw] xs:w-[380px] sm:w-[420px] md:w-[460px] lg:w-[500px] p-0 flex flex-col bg-gradient-to-b from-background via-background to-background/95 border-l border-primary/20">
-        {/* Header com Logo */}
-        <SheetHeader className="px-4 xs:px-5 sm:px-6 py-5 xs:py-6 sm:py-8 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="flex flex-col items-center gap-2 xs:gap-3 sm:gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full animate-pulse" />
-              <img src={logoLion} alt="Logo" className="h-14 xs:h-16 sm:h-20 w-auto object-contain relative z-10" />
-            </div>
-            <SheetTitle className="text-lg xs:text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        {/* Header compacto com Logo pequeno */}
+        <SheetHeader className="px-4 sm:px-5 py-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+          <div className="flex items-center gap-2.5">
+            <img src={logoLion} alt="Logo" className="h-8 w-8 object-contain" />
+            <SheetTitle className="text-base sm:text-lg font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               {t('menu')}
             </SheetTitle>
           </div>
