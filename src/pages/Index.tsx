@@ -645,7 +645,7 @@ const Index = () => {
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl px-4 xs:px-5 sm:px-6 md:px-8 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform font-semibold"
+              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl px-4 xs:px-5 sm:px-6 md:px-8 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform font-semibold animate-cta-pulse"
             >
               {landingSettings.hero_cta_text}
             </Button>
