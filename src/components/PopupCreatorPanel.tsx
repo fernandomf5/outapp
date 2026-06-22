@@ -189,6 +189,11 @@ export const PopupCreatorPanel = () => {
       text_color: '#000000',
       image_fit: 'cover',
       text_align: 'left',
+      countdown_enabled: false,
+      countdown_ends_at: '',
+      countdown_bg_color: '#111827',
+      countdown_text_color: '#ffffff',
+      countdown_label: 'Oferta termina em:',
     });
   };
 
