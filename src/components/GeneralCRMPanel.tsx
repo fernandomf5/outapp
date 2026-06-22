@@ -89,6 +89,9 @@ export function GeneralCRMPanel() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState("");
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [singleDeleteLead, setSingleDeleteLead] = useState<Lead | null>(null);
+  const [singleDeleteText, setSingleDeleteText] = useState("");
+  const [singleDeleting, setSingleDeleting] = useState(false);
   const [copySourceCategoryId, setCopySourceCategoryId] = useState<string>("");
   const [copyTargetCategoryId, setCopyTargetCategoryId] = useState<string>("");
 
