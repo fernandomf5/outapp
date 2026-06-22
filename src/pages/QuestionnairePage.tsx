@@ -219,7 +219,7 @@ export default function QuestionnairePage() {
               <div className="space-y-5">
                 <Progress value={((current + 1) / q.questions.length) * 100} />
                 <p className="text-xs text-muted-foreground">Pergunta {current + 1} de {q.questions.length}</p>
-                <h2 className="text-xl font-semibold">{qq.text}</h2>
+                <h2 className="text-xl font-semibold" style={{ color: qColor }}>{qq.text}</h2>
                 {qq.type === "choice" ? (
                   <div className="space-y-2">
                     {qq.options.map((opt) => {
