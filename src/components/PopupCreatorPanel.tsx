@@ -81,6 +81,7 @@ export const PopupCreatorPanel = () => {
     button_animation: 'none',
     text_color: '#000000',
     image_fit: 'cover',
+    text_align: 'left',
   });
   
   const [uploadingMedia, setUploadingMedia] = useState(false);
