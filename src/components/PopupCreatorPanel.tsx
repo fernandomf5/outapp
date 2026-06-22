@@ -151,9 +151,10 @@ export const PopupCreatorPanel = () => {
     try {
       if (!editingPopup) return;
 
+      const updatePayload: any = { ...formData, countdown_ends_at: formData.countdown_ends_at || null };
       const { error } = await supabase
         .from('popups')
-        .update(formData)
+        .update(updatePayload)
         .eq('id', editingPopup.id);
 
       if (error) throw error;
