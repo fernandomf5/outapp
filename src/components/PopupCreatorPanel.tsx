@@ -711,7 +711,59 @@ export const PopupCreatorPanel = () => {
             </div>
           </div>
 
-          <div className="border-t pt-4 mt-4">
+          <div className="grid gap-2">
+            <Label>Cor do Texto do Botão</Label>
+            <div className="flex gap-2">
+              <Input
+                type="color"
+                value={formData.button_text_color}
+                onChange={(e) => setFormData({...formData, button_text_color: e.target.value})}
+                className="w-20 h-10"
+              />
+              <Input
+                value={formData.button_text_color}
+                onChange={(e) => setFormData({...formData, button_text_color: e.target.value})}
+                placeholder="#ffffff"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Animação do Botão (destaque)</Label>
+            <Select
+              value={formData.button_animation}
+              onValueChange={(value) => setFormData({...formData, button_animation: value})}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhuma</SelectItem>
+                <SelectItem value="pulse">Pulsar</SelectItem>
+                <SelectItem value="bounce">Pra cima e pra baixo</SelectItem>
+                <SelectItem value="shake">Ir e voltar (lado a lado)</SelectItem>
+                <SelectItem value="ring">Tocando como telefone</SelectItem>
+                <SelectItem value="glow">Brilho destacado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Exibição da Imagem</Label>
+            <Select
+              value={formData.image_fit}
+              onValueChange={(value) => setFormData({...formData, image_fit: value})}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cover">Encaixada (cortada)</SelectItem>
+                <SelectItem value="contain">Completa (imagem inteira)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
             <Label className="mb-3 block">Preview em Tempo Real</Label>
             {renderPopupPreview(formData)}
           </div>
