@@ -46,7 +46,10 @@ interface Popup {
   background_image?: string;
   background_video?: string;
   button_color?: string;
+  button_text_color?: string;
+  button_animation?: string;
   text_color?: string;
+  image_fit?: string;
 }
 
 export const PopupCreatorPanel = () => {
@@ -73,7 +76,10 @@ export const PopupCreatorPanel = () => {
     background_image: '',
     background_video: '',
     button_color: '#000000',
+    button_text_color: '#ffffff',
+    button_animation: 'none',
     text_color: '#000000',
+    image_fit: 'cover',
   });
   
   const [uploadingMedia, setUploadingMedia] = useState(false);
@@ -166,7 +172,10 @@ export const PopupCreatorPanel = () => {
       background_image: '',
       background_video: '',
       button_color: '#000000',
+      button_text_color: '#ffffff',
+      button_animation: 'none',
       text_color: '#000000',
+      image_fit: 'cover',
     });
   };
 
@@ -188,7 +197,10 @@ export const PopupCreatorPanel = () => {
       background_image: popup.background_image || '',
       background_video: popup.background_video || '',
       button_color: popup.button_color || '#000000',
+      button_text_color: popup.button_text_color || '#ffffff',
+      button_animation: popup.button_animation || 'none',
       text_color: popup.text_color || '#000000',
+      image_fit: popup.image_fit || 'cover',
     });
     setIsEditDialogOpen(true);
   };
@@ -284,6 +296,15 @@ export const PopupCreatorPanel = () => {
   function createPopup() {
     if (popupShown) return;
     popupShown = true;
+
+    // Inject animation keyframes
+    if (!document.getElementById('popup-anim-styles')) {
+      var st = document.createElement('style');
+      st.id = 'popup-anim-styles';
+      st.innerHTML = '@keyframes popup-anim-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}@keyframes popup-anim-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes popup-anim-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}@keyframes popup-anim-ring{0%,100%{transform:rotate(0)}10%,30%{transform:rotate(-12deg)}20%,40%{transform:rotate(12deg)}50%{transform:rotate(0)}}@keyframes popup-anim-glow{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.6)}50%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}.popup-anim-pulse{animation:popup-anim-pulse 1.4s ease-in-out infinite}.popup-anim-bounce{animation:popup-anim-bounce 1.2s ease-in-out infinite}.popup-anim-shake{animation:popup-anim-shake .9s ease-in-out infinite}.popup-anim-ring{animation:popup-anim-ring 1.6s ease-in-out infinite}.popup-anim-glow{animation:popup-anim-glow 1.5s ease-out infinite}';
+      document.head.appendChild(st);
+    }
+
     
     // Overlay
     var overlay = document.createElement('div');
@@ -301,7 +322,7 @@ export const PopupCreatorPanel = () => {
     content += '<button onclick="closePopup_' + popupId.replace(/-/g, '_') + '()" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: ${popup.text_color || '#000000'}; line-height: 1;">&times;</button>';
     
     ${popup.image_url ? `
-    content += '<img src="${popup.image_url}" alt="" style="width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px; object-fit: cover;" />';
+    content += '<img src="${popup.image_url}" alt="" style="display:block; width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 240px; object-fit: ${popup.image_fit || 'cover'}; ${popup.image_fit === 'contain' ? 'background:#f3f4f6;' : ''}" />';
     ` : ''}
     
     ${popup.video_url ? `
@@ -312,7 +333,7 @@ export const PopupCreatorPanel = () => {
     content += '<p style="margin: 0 0 16px 0; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
     
     ${popup.button_text ? `
-    content += '<a href="${popup.button_link || '#'}" target="_blank" style="display: block; width: 100%; padding: 12px 24px; background: ${popup.button_color || '#000000'}; color: #ffffff; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box;">${popup.button_text}</a>';
+    content += '<a href="${popup.button_link || '#'}" target="_blank" class="popup-anim-${popup.button_animation || 'none'}" style="display: block; width: 100%; padding: 12px 24px; background: ${popup.button_color || '#000000'}; color: ${popup.button_text_color || '#ffffff'}; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box;">${popup.button_text}</a>';
     ` : ''}
     
     popup.innerHTML = content;
@@ -427,11 +448,21 @@ export const PopupCreatorPanel = () => {
         )}
         <div className="relative z-10">
           {data.image_url && (
-            <img 
-              src={data.image_url} 
-              alt="Conteúdo" 
-              className="w-full rounded-lg object-cover max-h-48 mb-4"
-            />
+            <div
+              className="w-full rounded-lg mb-4 overflow-hidden bg-muted flex items-center justify-center"
+              style={{ maxHeight: '12rem' }}
+            >
+              <img
+                src={data.image_url}
+                alt="Conteúdo"
+                className="w-full"
+                style={{
+                  objectFit: (data.image_fit as any) || 'cover',
+                  maxHeight: '12rem',
+                  width: data.image_fit === 'contain' ? 'auto' : '100%',
+                }}
+              />
+            </div>
           )}
           {data.video_url && (
             <video 
@@ -446,9 +477,9 @@ export const PopupCreatorPanel = () => {
             <Button 
               style={{ 
                 backgroundColor: data.button_color,
-                color: '#ffffff'
+                color: data.button_text_color || '#ffffff'
               }}
-              className="w-full"
+              className={`w-full ${data.button_animation && data.button_animation !== 'none' ? `popup-anim-${data.button_animation}` : ''}`}
             >
               {data.button_text}
             </Button>
@@ -689,6 +720,59 @@ export const PopupCreatorPanel = () => {
             </div>
           </div>
 
+          <div className="grid gap-2">
+            <Label>Cor do Texto do Botão</Label>
+            <div className="flex gap-2">
+              <Input
+                type="color"
+                value={formData.button_text_color}
+                onChange={(e) => setFormData({...formData, button_text_color: e.target.value})}
+                className="w-20 h-10"
+              />
+              <Input
+                value={formData.button_text_color}
+                onChange={(e) => setFormData({...formData, button_text_color: e.target.value})}
+                placeholder="#ffffff"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Animação do Botão (destaque)</Label>
+            <Select
+              value={formData.button_animation}
+              onValueChange={(value) => setFormData({...formData, button_animation: value})}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhuma</SelectItem>
+                <SelectItem value="pulse">Pulsar</SelectItem>
+                <SelectItem value="bounce">Pra cima e pra baixo</SelectItem>
+                <SelectItem value="shake">Ir e voltar (lado a lado)</SelectItem>
+                <SelectItem value="ring">Tocando como telefone</SelectItem>
+                <SelectItem value="glow">Brilho destacado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Exibição da Imagem</Label>
+            <Select
+              value={formData.image_fit}
+              onValueChange={(value) => setFormData({...formData, image_fit: value})}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cover">Encaixada (cortada)</SelectItem>
+                <SelectItem value="contain">Completa (imagem inteira)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="border-t pt-4 mt-4">
             <Label className="mb-3 block">Preview em Tempo Real</Label>
             {renderPopupPreview(formData)}
@@ -756,6 +840,18 @@ export const PopupCreatorPanel = () => {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        @keyframes popup-anim-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+        @keyframes popup-anim-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes popup-anim-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+        @keyframes popup-anim-ring { 0%,100%{transform:rotate(0)} 10%,30%{transform:rotate(-12deg)} 20%,40%{transform:rotate(12deg)} 50%{transform:rotate(0)} }
+        @keyframes popup-anim-glow { 0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.6)} 50%{box-shadow:0 0 0 12px rgba(255,255,255,0)} }
+        .popup-anim-pulse{animation:popup-anim-pulse 1.4s ease-in-out infinite;transform-origin:center}
+        .popup-anim-bounce{animation:popup-anim-bounce 1.2s ease-in-out infinite}
+        .popup-anim-shake{animation:popup-anim-shake 0.9s ease-in-out infinite}
+        .popup-anim-ring{animation:popup-anim-ring 1.6s ease-in-out infinite;transform-origin:center}
+        .popup-anim-glow{animation:popup-anim-glow 1.5s ease-out infinite}
+      `}</style>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Criador de Pop-ups</h2>
@@ -980,7 +1076,10 @@ export const PopupCreatorPanel = () => {
               background_image: previewPopup.background_image || '',
               background_video: previewPopup.background_video || '',
               button_color: previewPopup.button_color || '#000000',
+              button_text_color: previewPopup.button_text_color || '#ffffff',
+              button_animation: previewPopup.button_animation || 'none',
               text_color: previewPopup.text_color || '#000000',
+              image_fit: previewPopup.image_fit || 'cover',
             })}
           </DialogContent>
         </Dialog>
