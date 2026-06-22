@@ -18,6 +18,10 @@ type Q = {
   primary_color: string; questions: Question[]; offers: Offer[];
   capture_lead: boolean; capture_fields: string[]; send_to_crm: boolean;
   thank_you_title: string; thank_you_description: string; is_active: boolean;
+  button_color?: string; button_text_color?: string; background_color?: string;
+  question_color?: string; text_color?: string; button_animation?: string;
+  countdown_enabled?: boolean; countdown_ends_at?: string | null;
+  countdown_bg_color?: string; countdown_text_color?: string; countdown_label?: string;
 };
 
 export default function QuestionnairePage() {
