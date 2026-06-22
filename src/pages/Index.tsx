@@ -455,7 +455,7 @@ const Index = () => {
             </Button>
             <Button 
               onClick={() => navigate("/auth")} 
-              className="gradient-primary shadow-glow w-full h-9 xs:h-10 sm:h-11 rounded-lg sm:rounded-xl text-sm font-medium"
+              className="gradient-primary shadow-glow w-full h-9 xs:h-10 sm:h-11 rounded-lg sm:rounded-xl text-sm font-medium animate-cta-pulse"
             >
               {t('start_free')}
             </Button>
