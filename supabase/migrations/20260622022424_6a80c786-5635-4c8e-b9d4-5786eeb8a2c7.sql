@@ -1,0 +1,1 @@
+ALTER TABLE public.popups ADD COLUMN IF NOT EXISTS text_align text DEFAULT 'left';

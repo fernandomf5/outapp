@@ -6772,6 +6772,7 @@ export type Database = {
           name: string
           position: string
           scroll_percentage: number | null
+          text_align: string | null
           text_color: string | null
           title: string
           trigger_type: string
@@ -6800,6 +6801,7 @@ export type Database = {
           name: string
           position?: string
           scroll_percentage?: number | null
+          text_align?: string | null
           text_color?: string | null
           title: string
           trigger_type: string
@@ -6828,6 +6830,7 @@ export type Database = {
           name?: string
           position?: string
           scroll_percentage?: number | null
+          text_align?: string | null
           text_color?: string | null
           title?: string
           trigger_type?: string
