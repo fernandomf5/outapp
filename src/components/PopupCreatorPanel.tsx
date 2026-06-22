@@ -51,6 +51,11 @@ interface Popup {
   text_color?: string;
   image_fit?: string;
   text_align?: string;
+  countdown_enabled?: boolean;
+  countdown_ends_at?: string | null;
+  countdown_bg_color?: string;
+  countdown_text_color?: string;
+  countdown_label?: string;
 }
 
 export const PopupCreatorPanel = () => {
