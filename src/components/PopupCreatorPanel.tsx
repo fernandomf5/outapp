@@ -777,6 +777,24 @@ export const PopupCreatorPanel = () => {
             </Select>
           </div>
 
+          <div className="grid gap-2">
+            <Label>Alinhamento do Texto (título e conteúdo)</Label>
+            <Select
+              value={formData.text_align}
+              onValueChange={(value) => setFormData({...formData, text_align: value})}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Esquerda</SelectItem>
+                <SelectItem value="center">Centralizado</SelectItem>
+                <SelectItem value="right">Direita</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+
           <div className="border-t pt-4 mt-4">
             <Label className="mb-3 block">Preview em Tempo Real</Label>
             {renderPopupPreview(formData)}
