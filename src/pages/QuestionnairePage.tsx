@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { ArrowRight, Loader2, CheckCircle2, ExternalLink } from "lucide-react";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 type Option = { id: string; text: string; offer_ids: string[] };
 type Question = { id: string; type: "choice" | "text"; text: string; required: boolean; options: Option[] };
