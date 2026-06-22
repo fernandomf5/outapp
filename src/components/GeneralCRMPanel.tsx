@@ -754,6 +754,9 @@ export function GeneralCRMPanel() {
     } finally {
       setBulkDeleting(false);
     }
+  };
+
+
 
   const copyCategoryLeads = async () => {
     if (!user || !copyTargetCategoryId) {
