@@ -9,9 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Plus, Trash2, Copy, ExternalLink, Pencil, GripVertical, Eye, ClipboardCheck, BarChart3 } from "lucide-react";
+import { Plus, Trash2, Copy, ExternalLink, Pencil, GripVertical, Eye, ClipboardCheck, BarChart3, Mail, Phone, User, Calendar, MessageSquare, CheckCircle2 } from "lucide-react";
 
 type OptionItem = { id: string; text: string; offer_ids: string[] };
 type Question = {
