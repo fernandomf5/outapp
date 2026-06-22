@@ -707,6 +707,54 @@ export function GeneralCRMPanel() {
     }
   };
 
+  const bulkDeleteSelected = async () => {
+    if (!user || selectedLeads.length === 0) {
+      toast.error('Nenhum lead selecionado');
+      return;
+    }
+    if (bulkDeleteConfirmText.trim().toUpperCase() !== 'EXCLUIR') {
+      toast.error('Digite "EXCLUIR" para confirmar');
+      return;
+    }
+    setBulkDeleting(true);
+    try {
+      const targets = selectedLeads.filter(l => l.originalSource && l.originalId);
+      // Group by source table to batch deletes
+      const bySource = new Map<string, string[]>();
+      targets.forEach(l => {
+        const arr = bySource.get(l.originalSource!) || [];
+        arr.push(l.originalId!);
+        bySource.set(l.originalSource!, arr);
+      });
+      let totalDeleted = 0;
+      let errors: string[] = [];
+      for (const [source, ids] of bySource.entries()) {
+        const { error } = await supabase.from(source as any).delete().in('id', ids);
+        if (error) errors.push(`${source}: ${error.message}`);
+        else totalDeleted += ids.length;
+      }
+      // Also clean category assignments
+      await Promise.all(targets.map(l =>
+        supabase.from('lead_category_assignments').delete()
+          .eq('user_id', user.id)
+          .eq('lead_source', l.originalSource!)
+          .eq('lead_id', l.originalId!)
+      ));
+      if (errors.length > 0) {
+        toast.error(`Alguns leads não foram excluídos: ${errors.join('; ')}`);
+      }
+      if (totalDeleted > 0) toast.success(`${totalDeleted} lead(s) excluído(s)`);
+      setSelectedIds(new Set());
+      setBulkDeleteOpen(false);
+      setBulkDeleteConfirmText('');
+      fetchAllLeads();
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Erro ao excluir leads em massa');
+    } finally {
+      setBulkDeleting(false);
+    }
+
   const copyCategoryLeads = async () => {
     if (!user || !copyTargetCategoryId) {
       toast.error('Selecione a categoria de destino');
