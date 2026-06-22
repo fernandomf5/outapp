@@ -370,7 +370,7 @@ export function UserSidebar() {
         </div>
       )}
       
-      <ScrollArea className="flex-1 overflow-x-hidden">
+      <ScrollArea className="flex-1 min-h-0 overflow-x-hidden h-full">
         <SidebarContent className={cn("p-2", collapsed && "items-center px-0")}>
           {/* Group Rendering Helper */}
           {Object.entries({
