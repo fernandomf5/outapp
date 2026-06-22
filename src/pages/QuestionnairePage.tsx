@@ -271,7 +271,7 @@ export default function QuestionnairePage() {
                     </div>
                     {o.button_url && (
                       <a href={o.button_url} target="_blank" rel="noreferrer">
-                        <Button size="sm" style={{ backgroundColor: accent }} className="text-white">
+                        <Button size="sm" style={{ backgroundColor: btnBg, color: btnText }} className={anim}>
                           {o.button_text || "Ver"} <ExternalLink className="w-3 h-3 ml-1" />
                         </Button>
                       </a>
