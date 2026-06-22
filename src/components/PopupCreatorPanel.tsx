@@ -377,6 +377,27 @@ export const PopupCreatorPanel = () => {
       popup.style.transform = '${popup.position === 'center' ? 'translate(-50%, -50%) scale(1)' : 'scale(1)'}';
     }, 10);
     
+    ${popup.countdown_enabled && popup.countdown_ends_at ? `
+    // Countdown
+    var cdEnd = new Date('${popup.countdown_ends_at}').getTime();
+    var cdRoot = document.getElementById('popup-cd-' + popupId);
+    var cdTick = function() {
+      if (!cdRoot) return;
+      var d = Math.max(0, cdEnd - Date.now());
+      var days = Math.floor(d / 86400000);
+      var hs = Math.floor((d % 86400000) / 3600000);
+      var mn = Math.floor((d % 3600000) / 60000);
+      var sc = Math.floor((d % 60000) / 1000);
+      var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+      var qd = cdRoot.querySelector('.cd-d'); if (qd) qd.textContent = pad(days);
+      var qh = cdRoot.querySelector('.cd-h'); if (qh) qh.textContent = pad(hs);
+      var qm = cdRoot.querySelector('.cd-m'); if (qm) qm.textContent = pad(mn);
+      var qs = cdRoot.querySelector('.cd-s'); if (qs) qs.textContent = pad(sc);
+    };
+    cdTick();
+    setInterval(cdTick, 1000);
+    ` : ''}
+    
     // Close on overlay click
     overlay.onclick = function() { closePopup_${popup.id.replace(/-/g, '_')}(); };
     
