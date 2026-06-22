@@ -354,6 +354,10 @@ export const PopupCreatorPanel = () => {
     content += '<video src="${popup.video_url}" controls style="width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px;"></video>';
     ` : ''}
     
+    ${popup.countdown_enabled && popup.countdown_ends_at ? `
+    content += '<div id="popup-cd-' + popupId + '" style="background:${popup.countdown_bg_color || '#111827'};color:${popup.countdown_text_color || '#ffffff'};border-radius:8px;padding:12px;margin-bottom:12px;text-align:center;font-family:system-ui,sans-serif;">${popup.countdown_label ? `<div style=\\'font-size:12px;margin-bottom:6px;font-weight:600;\\'>${popup.countdown_label}</div>` : ''}<div class="popup-cd-grid" style="display:flex;gap:6px;justify-content:center;"><div style="background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;min-width:44px;"><div class="cd-d" style="font-size:18px;font-weight:700;line-height:1;">00</div><div style="font-size:10px;opacity:.8;text-transform:uppercase;">dias</div></div><div style="background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;min-width:44px;"><div class="cd-h" style="font-size:18px;font-weight:700;line-height:1;">00</div><div style="font-size:10px;opacity:.8;text-transform:uppercase;">hs</div></div><div style="background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;min-width:44px;"><div class="cd-m" style="font-size:18px;font-weight:700;line-height:1;">00</div><div style="font-size:10px;opacity:.8;text-transform:uppercase;">min</div></div><div style="background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;min-width:44px;"><div class="cd-s" style="font-size:18px;font-weight:700;line-height:1;">00</div><div style="font-size:10px;opacity:.8;text-transform:uppercase;">seg</div></div></div></div>';
+    ` : ''}
+    
     content += '<h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; text-align: ${popup.text_align || 'left'}; color: ${popup.text_color || '#000000'};">${popup.title}</h3>';
     content += '<p style="margin: 0 0 16px 0; text-align: ${popup.text_align || 'left'}; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
     
