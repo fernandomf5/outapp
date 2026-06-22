@@ -439,11 +439,21 @@ export const PopupCreatorPanel = () => {
         )}
         <div className="relative z-10">
           {data.image_url && (
-            <img 
-              src={data.image_url} 
-              alt="Conteúdo" 
-              className="w-full rounded-lg object-cover max-h-48 mb-4"
-            />
+            <div
+              className="w-full rounded-lg mb-4 overflow-hidden bg-muted flex items-center justify-center"
+              style={{ maxHeight: '12rem' }}
+            >
+              <img
+                src={data.image_url}
+                alt="Conteúdo"
+                className="w-full"
+                style={{
+                  objectFit: (data.image_fit as any) || 'cover',
+                  maxHeight: '12rem',
+                  width: data.image_fit === 'contain' ? 'auto' : '100%',
+                }}
+              />
+            </div>
           )}
           {data.video_url && (
             <video 
@@ -458,9 +468,9 @@ export const PopupCreatorPanel = () => {
             <Button 
               style={{ 
                 backgroundColor: data.button_color,
-                color: '#ffffff'
+                color: data.button_text_color || '#ffffff'
               }}
-              className="w-full"
+              className={`w-full ${data.button_animation && data.button_animation !== 'none' ? `popup-anim-${data.button_animation}` : ''}`}
             >
               {data.button_text}
             </Button>
