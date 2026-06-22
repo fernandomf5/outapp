@@ -157,6 +157,44 @@ export function ContractCreatorPanel() {
     load();
   }
 
+  async function duplicate(c: Contract) {
+    if (!user) return;
+    const { id, created_at, updated_at, public_slug, views_count, sent_at,
+      client_signature, client_signer_name, client_signed_at, client_signature_ip,
+      company_signature, company_signer_name, company_signed_at,
+      status, ...rest } = c;
+    const payload = {
+      ...rest,
+      user_id: user.id,
+      title: `${c.title} (cópia)`,
+      access_code: Math.random().toString(36).slice(2, 8).toUpperCase(),
+      status: "draft",
+    };
+    const { data, error } = await supabase.from("contracts").insert(payload).select().single();
+    if (error) return toast.error(error.message);
+    await supabase.from("contract_history").insert({ contract_id: data.id, event_type: "created", description: "Contrato duplicado" });
+    toast.success("Contrato duplicado");
+    load();
+  }
+
+  async function resetSignatures(c: Contract) {
+    if (!confirm("Zerar assinaturas deste contrato? O cliente precisará assinar novamente.")) return;
+    const { error } = await supabase.from("contracts").update({
+      client_signature: null,
+      client_signer_name: null,
+      client_signed_at: null,
+      client_signature_ip: null,
+      company_signature: null,
+      company_signer_name: null,
+      company_signed_at: null,
+      status: "sent",
+    }).eq("id", c.id);
+    if (error) return toast.error(error.message);
+    await supabase.from("contract_history").insert({ contract_id: c.id, event_type: "reset", description: "Assinaturas zeradas para nova assinatura" });
+    toast.success("Assinaturas zeradas. O cliente pode assinar novamente.");
+    load();
+  }
+
   function publicLink(c: Contract) {
     return `${window.location.origin}/contrato/${c.public_slug}`;
   }
