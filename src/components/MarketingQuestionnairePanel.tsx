@@ -60,6 +60,27 @@ type Questionnaire = {
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
+export const CAPTURE_FIELD_OPTIONS: { key: string; label: string; type: string }[] = [
+  { key: "name", label: "Nome completo", type: "text" },
+  { key: "email", label: "E-mail", type: "email" },
+  { key: "phone", label: "Telefone", type: "tel" },
+  { key: "whatsapp", label: "WhatsApp", type: "tel" },
+  { key: "cpf", label: "CPF", type: "text" },
+  { key: "cnpj", label: "CNPJ", type: "text" },
+  { key: "company", label: "Empresa", type: "text" },
+  { key: "profession", label: "Profissão", type: "text" },
+  { key: "city", label: "Cidade", type: "text" },
+  { key: "state", label: "Estado", type: "text" },
+  { key: "address", label: "Endereço", type: "text" },
+  { key: "zipcode", label: "CEP", type: "text" },
+  { key: "birthdate", label: "Data de nascimento", type: "date" },
+  { key: "age", label: "Idade", type: "number" },
+  { key: "gender", label: "Gênero", type: "text" },
+  { key: "website", label: "Site", type: "url" },
+  { key: "instagram", label: "Instagram", type: "text" },
+  { key: "observation", label: "Observação", type: "textarea" },
+];
+
 const blank = (): Partial<Questionnaire> => ({
   title: "Novo Questionário",
   description: "",
@@ -552,14 +573,16 @@ function Editor({ q, onClose }: { q: Questionnaire; onClose: () => void }) {
             {data.capture_lead && (
               <div className="pl-4 space-y-2">
                 <Label className="text-xs">Campos a capturar:</Label>
-                {(["name", "email", "phone"] as const).map((f) => (
-                  <div key={f} className="flex items-center gap-2">
-                    <Switch checked={data.capture_fields.includes(f)} onCheckedChange={(v) => {
-                      update("capture_fields", v ? [...data.capture_fields, f] : data.capture_fields.filter((x) => x !== f));
-                    }} />
-                    <span className="text-sm capitalize">{f === "name" ? "Nome" : f === "email" ? "E-mail" : "Telefone"}</span>
-                  </div>
-                ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {CAPTURE_FIELD_OPTIONS.map((f) => (
+                    <div key={f.key} className="flex items-center gap-2">
+                      <Switch checked={data.capture_fields.includes(f.key)} onCheckedChange={(v) => {
+                        update("capture_fields", v ? [...data.capture_fields, f.key] : data.capture_fields.filter((x) => x !== f.key));
+                      }} />
+                      <span className="text-sm">{f.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
             <div className="flex items-center justify-between">

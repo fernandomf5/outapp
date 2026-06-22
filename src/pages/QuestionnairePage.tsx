@@ -10,6 +10,29 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { ArrowRight, Loader2, CheckCircle2, ExternalLink } from "lucide-react";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { CAPTURE_FIELD_OPTIONS } from "@/components/MarketingQuestionnairePanel";
+import { Textarea as TextareaUI } from "@/components/ui/textarea";
+
+const onlyDigits = (s: string) => s.replace(/\D/g, "");
+const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.trim());
+const isCPF = (s: string) => {
+  const c = onlyDigits(s); if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  let sum = 0; for (let i = 0; i < 9; i++) sum += parseInt(c[i]) * (10 - i);
+  let d1 = (sum * 10) % 11; if (d1 === 10) d1 = 0; if (d1 !== parseInt(c[9])) return false;
+  sum = 0; for (let i = 0; i < 10; i++) sum += parseInt(c[i]) * (11 - i);
+  let d2 = (sum * 10) % 11; if (d2 === 10) d2 = 0; return d2 === parseInt(c[10]);
+};
+const isCNPJ = (s: string) => {
+  const c = onlyDigits(s); if (c.length !== 14 || /^(\d)\1+$/.test(c)) return false;
+  const calc = (len: number) => {
+    let sum = 0, pos = len - 7;
+    for (let i = len; i >= 1; i--) { sum += parseInt(c[len - i]) * pos--; if (pos < 2) pos = 9; }
+    const r = sum % 11; return r < 2 ? 0 : 11 - r;
+  };
+  return calc(12) === parseInt(c[12]) && calc(13) === parseInt(c[13]);
+};
+const isPhone = (s: string) => onlyDigits(s).length >= 10;
+const isUrl = (s: string) => { try { new URL(s.startsWith("http") ? s : `https://${s}`); return true; } catch { return false; } };
 
 type Option = { id: string; text: string; offer_ids: string[] };
 type Question = { id: string; type: "choice" | "text"; text: string; required: boolean; options: Option[] };
@@ -30,7 +53,7 @@ export default function QuestionnairePage() {
   const [q, setQ] = useState<Q | null>(null);
   const [loading, setLoading] = useState(true);
   const [stage, setStage] = useState<"intro" | "capture" | "questions" | "done">("intro");
-  const [lead, setLead] = useState({ name: "", email: "", phone: "" });
+  const [lead, setLead] = useState<Record<string, string>>({});
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [current, setCurrent] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -56,9 +79,20 @@ export default function QuestionnairePage() {
   };
 
   const submitCapture = () => {
-    if (q?.capture_fields.includes("name") && !lead.name.trim()) return toast.error("Informe seu nome");
-    if (q?.capture_fields.includes("email") && !lead.email.trim()) return toast.error("Informe seu e-mail");
-    if (q?.capture_fields.includes("phone") && !lead.phone.trim()) return toast.error("Informe seu telefone");
+    if (!q) return;
+    for (const key of q.capture_fields) {
+      const f = CAPTURE_FIELD_OPTIONS.find((x) => x.key === key);
+      if (!f) continue;
+      const val = (lead[key] || "").trim();
+      if (!val) return toast.error(`Informe: ${f.label}`);
+      if (key === "email" && !isEmail(val)) return toast.error("E-mail inválido");
+      if ((key === "phone" || key === "whatsapp") && !isPhone(val)) return toast.error(`${f.label} inválido (mínimo 10 dígitos com DDD)`);
+      if (key === "cpf" && !isCPF(val)) return toast.error("CPF inválido");
+      if (key === "cnpj" && !isCNPJ(val)) return toast.error("CNPJ inválido");
+      if (key === "website" && !isUrl(val)) return toast.error("Site inválido");
+      if (key === "age" && (isNaN(Number(val)) || Number(val) <= 0 || Number(val) > 130)) return toast.error("Idade inválida");
+      if (key === "zipcode" && onlyDigits(val).length !== 8) return toast.error("CEP inválido");
+    }
     setStage("questions");
   };
 
@@ -90,12 +124,20 @@ export default function QuestionnairePage() {
         return { question: qq.text, type: "text", answer: a || "" };
       });
 
+      const extraLead: Record<string, string> = {};
+      Object.entries(lead).forEach(([k, v]) => {
+        if (!["name", "email", "phone"].includes(k) && v) extraLead[k] = v;
+      });
+      const finalAnswers = Object.keys(extraLead).length > 0
+        ? [{ question: "_lead_extra", type: "lead", answer: extraLead }, ...answerLog]
+        : answerLog;
+
       const { error } = await (supabase as any).from("marketing_questionnaire_responses").insert({
         questionnaire_id: q.id,
         name: lead.name || null,
         email: lead.email || null,
-        phone: lead.phone || null,
-        answers: answerLog,
+        phone: lead.phone || lead.whatsapp || null,
+        answers: finalAnswers,
         matched_offer_ids: matched.map((o) => o.id),
       });
       if (error) {
@@ -116,15 +158,19 @@ export default function QuestionnairePage() {
           .then(() => {}, () => {});
       } catch {}
 
-      if (q.send_to_crm && (lead.name || lead.email || lead.phone)) {
+      if (q.send_to_crm && (lead.name || lead.email || lead.phone || lead.whatsapp)) {
         try {
+          const extraNotes = Object.entries(extraLead).map(([k, v]) => {
+            const f = CAPTURE_FIELD_OPTIONS.find((x) => x.key === k);
+            return `${f?.label || k}: ${v}`;
+          }).join("\n");
           (supabase as any).from("customers").insert({
             user_id: q.user_id,
             name: lead.name || lead.email || "Lead Questionário",
             email: lead.email || null,
-            phone: lead.phone || null,
+            phone: lead.phone || lead.whatsapp || null,
             status: "lead",
-            notes: `Origem: Questionário "${q.title}"`,
+            notes: `Origem: Questionário "${q.title}"${extraNotes ? `\n\n${extraNotes}` : ""}`,
             tags: ["questionario"],
           }).then(() => {}, () => {});
         } catch {}
@@ -198,15 +244,24 @@ export default function QuestionnairePage() {
           {stage === "capture" && (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold" style={{ color: qColor }}>Antes de começar</h2>
-              {q.capture_fields.includes("name") && (
-                <div><Label style={{ color: tColor }}>Nome</Label><Input value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} /></div>
-              )}
-              {q.capture_fields.includes("email") && (
-                <div><Label style={{ color: tColor }}>E-mail</Label><Input type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} /></div>
-              )}
-              {q.capture_fields.includes("phone") && (
-                <div><Label style={{ color: tColor }}>Telefone</Label><Input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} /></div>
-              )}
+              {q.capture_fields.map((key) => {
+                const f = CAPTURE_FIELD_OPTIONS.find((x) => x.key === key);
+                if (!f) return null;
+                return (
+                  <div key={key}>
+                    <Label style={{ color: tColor }}>{f.label}</Label>
+                    {f.type === "textarea" ? (
+                      <TextareaUI value={lead[key] || ""} onChange={(e) => setLead({ ...lead, [key]: e.target.value })} />
+                    ) : (
+                      <Input
+                        type={f.type === "textarea" ? "text" : f.type}
+                        value={lead[key] || ""}
+                        onChange={(e) => setLead({ ...lead, [key]: e.target.value })}
+                      />
+                    )}
+                  </div>
+                );
+              })}
               <Button className={`w-full ${anim}`} onClick={submitCapture} style={{ backgroundColor: btnBg, color: btnText }}>
                 Continuar <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
