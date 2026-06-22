@@ -678,7 +678,7 @@ const Index = () => {
 
       {/* Video Section */}
       {videoUrl && (
-        <section className="py-10 xs:py-12 sm:py-16 md:py-20 lg:py-24 3xl:py-32 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30">
+        <section className="py-16 xs:py-20 sm:py-24 md:py-28 lg:py-32 3xl:py-40 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30 flex items-center justify-center">
           <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px]">
             <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-2">
               <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 leading-tight">
