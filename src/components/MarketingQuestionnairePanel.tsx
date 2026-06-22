@@ -60,6 +60,27 @@ type Questionnaire = {
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
+export const CAPTURE_FIELD_OPTIONS: { key: string; label: string; type: string }[] = [
+  { key: "name", label: "Nome completo", type: "text" },
+  { key: "email", label: "E-mail", type: "email" },
+  { key: "phone", label: "Telefone", type: "tel" },
+  { key: "whatsapp", label: "WhatsApp", type: "tel" },
+  { key: "cpf", label: "CPF", type: "text" },
+  { key: "cnpj", label: "CNPJ", type: "text" },
+  { key: "company", label: "Empresa", type: "text" },
+  { key: "profession", label: "Profissão", type: "text" },
+  { key: "city", label: "Cidade", type: "text" },
+  { key: "state", label: "Estado", type: "text" },
+  { key: "address", label: "Endereço", type: "text" },
+  { key: "zipcode", label: "CEP", type: "text" },
+  { key: "birthdate", label: "Data de nascimento", type: "date" },
+  { key: "age", label: "Idade", type: "number" },
+  { key: "gender", label: "Gênero", type: "text" },
+  { key: "website", label: "Site", type: "url" },
+  { key: "instagram", label: "Instagram", type: "text" },
+  { key: "observation", label: "Observação", type: "textarea" },
+];
+
 const blank = (): Partial<Questionnaire> => ({
   title: "Novo Questionário",
   description: "",
