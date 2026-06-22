@@ -228,7 +228,7 @@ export default function QuestionnairePage() {
                         <button key={opt.id} type="button"
                           onClick={() => setAnswers({ ...answers, [qq.id]: opt.id })}
                           className={`w-full text-left p-4 rounded-lg border-2 transition ${selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
-                          style={selected ? { borderColor: accent, backgroundColor: `${accent}10` } : {}}>
+                          style={selected ? { borderColor: btnBg, backgroundColor: `${btnBg}10`, color: tColor } : { color: tColor }}>
                           {opt.text}
                         </button>
                       );
