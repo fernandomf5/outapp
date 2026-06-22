@@ -764,6 +764,7 @@ export const PopupCreatorPanel = () => {
             </Select>
           </div>
 
+          <div className="border-t pt-4 mt-4">
             <Label className="mb-3 block">Preview em Tempo Real</Label>
             {renderPopupPreview(formData)}
           </div>
