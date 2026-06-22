@@ -1431,6 +1431,41 @@ export function GeneralCRMPanel() {
         </DialogContent>
       </Dialog>
 
+      <AlertDialog open={!!singleDeleteLead} onOpenChange={(o) => { if (!o) { setSingleDeleteLead(null); setSingleDeleteText(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="h-5 w-5" /> Excluir lead permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esse lead vai sair <strong>totalmente do sistema</strong> — tanto daqui do Controle de Leads
+              quanto da origem onde ele foi cadastrado
+              {singleDeleteLead?.sourceName ? <> (<strong>{singleDeleteLead.sourceName}</strong>)</> : null}.
+              Esta ação <strong>não pode ser desfeita</strong>. Deseja mesmo excluir?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">Digite <strong>EXCLUIR</strong> para confirmar:</Label>
+            <Input
+              value={singleDeleteText}
+              onChange={(e) => setSingleDeleteText(e.target.value)}
+              placeholder="EXCLUIR"
+              autoFocus
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={singleDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmSingleDelete(); }}
+              disabled={singleDeleting || singleDeleteText.trim().toUpperCase() !== 'EXCLUIR'}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {singleDeleting ? 'Excluindo...' : 'Excluir definitivamente'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={bulkDeleteOpen} onOpenChange={(o) => { setBulkDeleteOpen(o); if (!o) setBulkDeleteConfirmText(''); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
