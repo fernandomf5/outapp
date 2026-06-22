@@ -241,7 +241,7 @@ export default function QuestionnairePage() {
                   {current > 0 ? (
                     <Button variant="outline" onClick={() => setCurrent(current - 1)}>Voltar</Button>
                   ) : <span />}
-                  <Button onClick={next} disabled={submitting} style={{ backgroundColor: accent }} className="text-white">
+                  <Button onClick={next} disabled={submitting} style={{ backgroundColor: btnBg, color: btnText }} className={anim}>
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> :
                       current === q.questions.length - 1 ? "Finalizar" : <>Próxima <ArrowRight className="w-4 h-4 ml-1" /></>}
                   </Button>
