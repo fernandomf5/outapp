@@ -1394,18 +1394,23 @@ export default function MembersAreaPublic() {
                                   >
                                     {/* Render all contents stacked vertically inside the block */}
                                     <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
-                                      {blockContents.map((block, contentIndex) => (
-                                        <div key={block.id}>
-                                          <CardContent className="p-4 space-y-2">
-                                            {block.title && (
-                                              <h4 className="font-semibold text-sm" style={{ color: cardTextColor }}>
-                                                {block.title}
-                                              </h4>
-                                            )}
-                                            {renderBlock(block, accentColor, cardTextColor, cardBackgroundColor)}
-                                          </CardContent>
-                                        </div>
-                                      ))}
+                                      {blockContents.map((block, contentIndex) => {
+                                        // Block types that already render their own title internally — avoid duplicate label.
+                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'customer_history', 'payment_history', 'notes', 'faq', 'checklist', 'quiz', 'timeline', 'certificate', 'webinar', 'mindmap', 'slides'];
+                                        const showWrapperTitle = block.title && !selfTitledTypes.includes(block.type);
+                                        return (
+                                          <div key={block.id}>
+                                            <CardContent className="p-4 space-y-2">
+                                              {showWrapperTitle && (
+                                                <h4 className="font-semibold text-sm" style={{ color: cardTextColor }}>
+                                                  {block.title}
+                                                </h4>
+                                              )}
+                                              {renderBlock(block, accentColor, cardTextColor, cardBackgroundColor)}
+                                            </CardContent>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   </Card>
                                 );
