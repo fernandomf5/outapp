@@ -126,15 +126,15 @@ export const PopupCreatorPanel = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('popups')
-        .insert([{
-          user_id: user.id,
-          ...formData,
-          is_active: true,
-          views: 0,
-          clicks: 0
-        }]);
+      const payload: any = {
+        user_id: user.id,
+        ...formData,
+        countdown_ends_at: formData.countdown_ends_at || null,
+        is_active: true,
+        views: 0,
+        clicks: 0,
+      };
+      const { error } = await supabase.from('popups').insert([payload]);
 
       if (error) throw error;
 
