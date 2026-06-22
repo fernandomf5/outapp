@@ -333,8 +333,8 @@ export const PopupCreatorPanel = () => {
     content += '<video src="${popup.video_url}" controls style="width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px;"></video>';
     ` : ''}
     
-    content += '<h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; color: ${popup.text_color || '#000000'};">${popup.title}</h3>';
-    content += '<p style="margin: 0 0 16px 0; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
+    content += '<h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; text-align: ${popup.text_align || 'left'}; color: ${popup.text_color || '#000000'};">${popup.title}</h3>';
+    content += '<p style="margin: 0 0 16px 0; text-align: ${popup.text_align || 'left'}; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
     
     ${popup.button_text ? `
     content += '<a href="${popup.button_link || '#'}" target="_blank" class="popup-anim-${popup.button_animation || 'none'}" style="display: block; width: 100%; padding: 12px 24px; background: ${popup.button_color || '#000000'}; color: ${popup.button_text_color || '#ffffff'}; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box;">${popup.button_text}</a>';
