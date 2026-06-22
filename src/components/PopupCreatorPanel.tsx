@@ -992,7 +992,10 @@ export const PopupCreatorPanel = () => {
               background_image: previewPopup.background_image || '',
               background_video: previewPopup.background_video || '',
               button_color: previewPopup.button_color || '#000000',
+              button_text_color: previewPopup.button_text_color || '#ffffff',
+              button_animation: previewPopup.button_animation || 'none',
               text_color: previewPopup.text_color || '#000000',
+              image_fit: previewPopup.image_fit || 'cover',
             })}
           </DialogContent>
         </Dialog>
