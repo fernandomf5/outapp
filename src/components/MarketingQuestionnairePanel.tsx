@@ -573,14 +573,16 @@ function Editor({ q, onClose }: { q: Questionnaire; onClose: () => void }) {
             {data.capture_lead && (
               <div className="pl-4 space-y-2">
                 <Label className="text-xs">Campos a capturar:</Label>
-                {(["name", "email", "phone"] as const).map((f) => (
-                  <div key={f} className="flex items-center gap-2">
-                    <Switch checked={data.capture_fields.includes(f)} onCheckedChange={(v) => {
-                      update("capture_fields", v ? [...data.capture_fields, f] : data.capture_fields.filter((x) => x !== f));
-                    }} />
-                    <span className="text-sm capitalize">{f === "name" ? "Nome" : f === "email" ? "E-mail" : "Telefone"}</span>
-                  </div>
-                ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {CAPTURE_FIELD_OPTIONS.map((f) => (
+                    <div key={f.key} className="flex items-center gap-2">
+                      <Switch checked={data.capture_fields.includes(f.key)} onCheckedChange={(v) => {
+                        update("capture_fields", v ? [...data.capture_fields, f.key] : data.capture_fields.filter((x) => x !== f.key));
+                      }} />
+                      <span className="text-sm">{f.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
             <div className="flex items-center justify-between">
