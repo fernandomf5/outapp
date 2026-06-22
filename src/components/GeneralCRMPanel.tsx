@@ -86,6 +86,9 @@ export function GeneralCRMPanel() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [copyMode, setCopyMode] = useState<"selected" | "category">("selected");
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState("");
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [copySourceCategoryId, setCopySourceCategoryId] = useState<string>("");
   const [copyTargetCategoryId, setCopyTargetCategoryId] = useState<string>("");
 
