@@ -76,7 +76,10 @@ export const PopupCreatorPanel = () => {
     background_image: '',
     background_video: '',
     button_color: '#000000',
+    button_text_color: '#ffffff',
+    button_animation: 'none',
     text_color: '#000000',
+    image_fit: 'cover',
   });
   
   const [uploadingMedia, setUploadingMedia] = useState(false);
