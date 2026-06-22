@@ -89,6 +89,9 @@ export function GeneralCRMPanel() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState("");
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [singleDeleteLead, setSingleDeleteLead] = useState<Lead | null>(null);
+  const [singleDeleteText, setSingleDeleteText] = useState("");
+  const [singleDeleting, setSingleDeleting] = useState(false);
   const [copySourceCategoryId, setCopySourceCategoryId] = useState<string>("");
   const [copyTargetCategoryId, setCopyTargetCategoryId] = useState<string>("");
 
@@ -563,26 +566,47 @@ export function GeneralCRMPanel() {
     toast.success('E-mails baixados com sucesso!');
   };
 
-  const deleteLead = async (lead: Lead) => {
-    if (!confirm(`Tem certeza que deseja excluir o lead de ${lead.name}?`)) return;
-
+  const deleteLead = (lead: Lead) => {
     if (!lead.originalSource || !lead.originalId) {
       toast.error('Não foi possível identificar a origem do lead');
       return;
     }
+    setSingleDeleteText("");
+    setSingleDeleteLead(lead);
+  };
 
-    const { error } = await supabase
-      .from(lead.originalSource as any)
-      .delete()
-      .eq('id', lead.originalId);
-
-    if (error) {
-      toast.error('Erro ao excluir lead: ' + error.message);
-    } else {
-      toast.success('Lead excluído com sucesso');
+  const confirmSingleDelete = async () => {
+    if (!singleDeleteLead) return;
+    if (singleDeleteText.trim().toUpperCase() !== 'EXCLUIR') {
+      toast.error('Digite "EXCLUIR" para confirmar');
+      return;
+    }
+    setSingleDeleting(true);
+    try {
+      const { error } = await supabase
+        .from(singleDeleteLead.originalSource as any)
+        .delete()
+        .eq('id', singleDeleteLead.originalId);
+      if (error) {
+        toast.error('Erro ao excluir lead: ' + error.message);
+        return;
+      }
+      // Limpa atribuições de categoria do lead
+      if (user) {
+        await supabase.from('lead_category_assignments').delete()
+          .eq('user_id', user.id)
+          .eq('lead_source', singleDeleteLead.originalSource!)
+          .eq('lead_id', singleDeleteLead.originalId!);
+      }
+      toast.success('Lead excluído de todo o sistema');
+      setSingleDeleteLead(null);
+      setSingleDeleteText("");
       fetchAllLeads();
+    } finally {
+      setSingleDeleting(false);
     }
   };
+
 
   const openEditDialog = (lead: Lead) => {
     setEditingLead(lead);
@@ -1406,6 +1430,41 @@ export function GeneralCRMPanel() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!singleDeleteLead} onOpenChange={(o) => { if (!o) { setSingleDeleteLead(null); setSingleDeleteText(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="h-5 w-5" /> Excluir lead permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esse lead vai sair <strong>totalmente do sistema</strong> — tanto daqui do Controle de Leads
+              quanto da origem onde ele foi cadastrado
+              {singleDeleteLead?.sourceName ? <> (<strong>{singleDeleteLead.sourceName}</strong>)</> : null}.
+              Esta ação <strong>não pode ser desfeita</strong>. Deseja mesmo excluir?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">Digite <strong>EXCLUIR</strong> para confirmar:</Label>
+            <Input
+              value={singleDeleteText}
+              onChange={(e) => setSingleDeleteText(e.target.value)}
+              placeholder="EXCLUIR"
+              autoFocus
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={singleDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmSingleDelete(); }}
+              disabled={singleDeleting || singleDeleteText.trim().toUpperCase() !== 'EXCLUIR'}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {singleDeleting ? 'Excluindo...' : 'Excluir definitivamente'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={bulkDeleteOpen} onOpenChange={(o) => { setBulkDeleteOpen(o); if (!o) setBulkDeleteConfirmText(''); }}>
         <AlertDialogContent>
