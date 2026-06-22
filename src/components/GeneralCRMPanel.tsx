@@ -86,6 +86,9 @@ export function GeneralCRMPanel() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [copyMode, setCopyMode] = useState<"selected" | "category">("selected");
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState("");
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [copySourceCategoryId, setCopySourceCategoryId] = useState<string>("");
   const [copyTargetCategoryId, setCopyTargetCategoryId] = useState<string>("");
 
@@ -704,6 +707,57 @@ export function GeneralCRMPanel() {
     }
   };
 
+  const bulkDeleteSelected = async () => {
+    if (!user || selectedLeads.length === 0) {
+      toast.error('Nenhum lead selecionado');
+      return;
+    }
+    if (bulkDeleteConfirmText.trim().toUpperCase() !== 'EXCLUIR') {
+      toast.error('Digite "EXCLUIR" para confirmar');
+      return;
+    }
+    setBulkDeleting(true);
+    try {
+      const targets = selectedLeads.filter(l => l.originalSource && l.originalId);
+      // Group by source table to batch deletes
+      const bySource = new Map<string, string[]>();
+      targets.forEach(l => {
+        const arr = bySource.get(l.originalSource!) || [];
+        arr.push(l.originalId!);
+        bySource.set(l.originalSource!, arr);
+      });
+      let totalDeleted = 0;
+      let errors: string[] = [];
+      for (const [source, ids] of bySource.entries()) {
+        const { error } = await supabase.from(source as any).delete().in('id', ids);
+        if (error) errors.push(`${source}: ${error.message}`);
+        else totalDeleted += ids.length;
+      }
+      // Also clean category assignments
+      await Promise.all(targets.map(l =>
+        supabase.from('lead_category_assignments').delete()
+          .eq('user_id', user.id)
+          .eq('lead_source', l.originalSource!)
+          .eq('lead_id', l.originalId!)
+      ));
+      if (errors.length > 0) {
+        toast.error(`Alguns leads não foram excluídos: ${errors.join('; ')}`);
+      }
+      if (totalDeleted > 0) toast.success(`${totalDeleted} lead(s) excluído(s)`);
+      setSelectedIds(new Set());
+      setBulkDeleteOpen(false);
+      setBulkDeleteConfirmText('');
+      fetchAllLeads();
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Erro ao excluir leads em massa');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+
+
   const copyCategoryLeads = async () => {
     if (!user || !copyTargetCategoryId) {
       toast.error('Selecione a categoria de destino');
@@ -961,6 +1015,21 @@ export function GeneralCRMPanel() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Copiar para categoria</TooltipContent>
+                  </Tooltip>
+                  <Separator orientation="vertical" className="mx-1 h-6" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => { setBulkDeleteConfirmText(''); setBulkDeleteOpen(true); }}
+                        aria-label="Excluir selecionados"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Excluir selecionados</TooltipContent>
                   </Tooltip>
                   <Separator orientation="vertical" className="mx-1 h-6" />
                   <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedIds(new Set())}>
@@ -1312,6 +1381,39 @@ export function GeneralCRMPanel() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={(o) => { setBulkDeleteOpen(o); if (!o) setBulkDeleteConfirmText(''); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="h-5 w-5" /> Excluir leads selecionados
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Você está prestes a excluir <strong>{selectedIds.size}</strong> lead(s) permanentemente.
+              Esta ação <strong>não pode ser desfeita</strong> e removerá o registro original em cada origem (chat, agente, página clonada, cliente, etc.).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">Digite <strong>EXCLUIR</strong> para confirmar:</Label>
+            <Input
+              value={bulkDeleteConfirmText}
+              onChange={(e) => setBulkDeleteConfirmText(e.target.value)}
+              placeholder="EXCLUIR"
+              autoFocus
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); bulkDeleteSelected(); }}
+              disabled={bulkDeleting || bulkDeleteConfirmText.trim().toUpperCase() !== 'EXCLUIR'}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {bulkDeleting ? 'Excluindo...' : 'Excluir definitivamente'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
