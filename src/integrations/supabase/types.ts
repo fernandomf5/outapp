@@ -6182,8 +6182,17 @@ export type Database = {
       }
       marketing_questionnaires: {
         Row: {
+          background_color: string | null
+          button_animation: string | null
+          button_color: string | null
+          button_text_color: string | null
           capture_fields: Json
           capture_lead: boolean
+          countdown_bg_color: string | null
+          countdown_enabled: boolean
+          countdown_ends_at: string | null
+          countdown_label: string | null
+          countdown_text_color: string | null
           cover_image: string | null
           created_at: string
           description: string | null
@@ -6191,8 +6200,10 @@ export type Database = {
           is_active: boolean
           offers: Json
           primary_color: string | null
+          question_color: string | null
           questions: Json
           send_to_crm: boolean
+          text_color: string | null
           thank_you_description: string | null
           thank_you_title: string | null
           title: string
@@ -6201,8 +6212,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          background_color?: string | null
+          button_animation?: string | null
+          button_color?: string | null
+          button_text_color?: string | null
           capture_fields?: Json
           capture_lead?: boolean
+          countdown_bg_color?: string | null
+          countdown_enabled?: boolean
+          countdown_ends_at?: string | null
+          countdown_label?: string | null
+          countdown_text_color?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
@@ -6210,8 +6230,10 @@ export type Database = {
           is_active?: boolean
           offers?: Json
           primary_color?: string | null
+          question_color?: string | null
           questions?: Json
           send_to_crm?: boolean
+          text_color?: string | null
           thank_you_description?: string | null
           thank_you_title?: string | null
           title: string
@@ -6220,8 +6242,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          background_color?: string | null
+          button_animation?: string | null
+          button_color?: string | null
+          button_text_color?: string | null
           capture_fields?: Json
           capture_lead?: boolean
+          countdown_bg_color?: string | null
+          countdown_enabled?: boolean
+          countdown_ends_at?: string | null
+          countdown_label?: string | null
+          countdown_text_color?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
@@ -6229,8 +6260,10 @@ export type Database = {
           is_active?: boolean
           offers?: Json
           primary_color?: string | null
+          question_color?: string | null
           questions?: Json
           send_to_crm?: boolean
+          text_color?: string | null
           thank_you_description?: string | null
           thank_you_title?: string | null
           title?: string
@@ -6763,6 +6796,11 @@ export type Database = {
           button_text_color: string | null
           clicks: number
           content: string
+          countdown_bg_color: string | null
+          countdown_enabled: boolean
+          countdown_ends_at: string | null
+          countdown_label: string | null
+          countdown_text_color: string | null
           created_at: string
           delay_seconds: number | null
           id: string
@@ -6792,6 +6830,11 @@ export type Database = {
           button_text_color?: string | null
           clicks?: number
           content: string
+          countdown_bg_color?: string | null
+          countdown_enabled?: boolean
+          countdown_ends_at?: string | null
+          countdown_label?: string | null
+          countdown_text_color?: string | null
           created_at?: string
           delay_seconds?: number | null
           id?: string
@@ -6821,6 +6864,11 @@ export type Database = {
           button_text_color?: string | null
           clicks?: number
           content?: string
+          countdown_bg_color?: string | null
+          countdown_enabled?: boolean
+          countdown_ends_at?: string | null
+          countdown_label?: string | null
+          countdown_text_color?: string | null
           created_at?: string
           delay_seconds?: number | null
           id?: string

@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 
 interface Popup {
@@ -51,6 +52,11 @@ interface Popup {
   text_color?: string;
   image_fit?: string;
   text_align?: string;
+  countdown_enabled?: boolean;
+  countdown_ends_at?: string | null;
+  countdown_bg_color?: string;
+  countdown_text_color?: string;
+  countdown_label?: string;
 }
 
 export const PopupCreatorPanel = () => {
@@ -82,6 +88,11 @@ export const PopupCreatorPanel = () => {
     text_color: '#000000',
     image_fit: 'cover',
     text_align: 'left',
+    countdown_enabled: false,
+    countdown_ends_at: '' as string,
+    countdown_bg_color: '#111827',
+    countdown_text_color: '#ffffff',
+    countdown_label: 'Oferta termina em:',
   });
   
   const [uploadingMedia, setUploadingMedia] = useState(false);
@@ -115,15 +126,15 @@ export const PopupCreatorPanel = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('popups')
-        .insert([{
-          user_id: user.id,
-          ...formData,
-          is_active: true,
-          views: 0,
-          clicks: 0
-        }]);
+      const payload: any = {
+        user_id: user.id,
+        ...formData,
+        countdown_ends_at: formData.countdown_ends_at || null,
+        is_active: true,
+        views: 0,
+        clicks: 0,
+      };
+      const { error } = await supabase.from('popups').insert([payload]);
 
       if (error) throw error;
 
@@ -140,9 +151,10 @@ export const PopupCreatorPanel = () => {
     try {
       if (!editingPopup) return;
 
+      const updatePayload: any = { ...formData, countdown_ends_at: formData.countdown_ends_at || null };
       const { error } = await supabase
         .from('popups')
-        .update(formData)
+        .update(updatePayload)
         .eq('id', editingPopup.id);
 
       if (error) throw error;
@@ -179,6 +191,11 @@ export const PopupCreatorPanel = () => {
       text_color: '#000000',
       image_fit: 'cover',
       text_align: 'left',
+      countdown_enabled: false,
+      countdown_ends_at: '',
+      countdown_bg_color: '#111827',
+      countdown_text_color: '#ffffff',
+      countdown_label: 'Oferta termina em:',
     });
   };
 
@@ -205,6 +222,11 @@ export const PopupCreatorPanel = () => {
       text_color: popup.text_color || '#000000',
       image_fit: popup.image_fit || 'cover',
       text_align: popup.text_align || 'left',
+      countdown_enabled: !!popup.countdown_enabled,
+      countdown_ends_at: popup.countdown_ends_at || '',
+      countdown_bg_color: popup.countdown_bg_color || '#111827',
+      countdown_text_color: popup.countdown_text_color || '#ffffff',
+      countdown_label: popup.countdown_label || 'Oferta termina em:',
     });
     setIsEditDialogOpen(true);
   };
@@ -333,6 +355,10 @@ export const PopupCreatorPanel = () => {
     content += '<video src="${popup.video_url}" controls style="width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px;"></video>';
     ` : ''}
     
+    ${popup.countdown_enabled && popup.countdown_ends_at ? `
+    content += '<div id="popup-cd-' + popupId + '" style="background:${popup.countdown_bg_color || '#111827'};color:${popup.countdown_text_color || '#ffffff'};border-radius:8px;padding:12px;margin-bottom:12px;text-align:center;font-family:system-ui,sans-serif;">${popup.countdown_label ? `<div style=\\'font-size:12px;margin-bottom:6px;font-weight:600;\\'>${popup.countdown_label}</div>` : ''}<div class="popup-cd-grid" style="display:flex;gap:6px;justify-content:center;"><div style="background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;min-width:44px;"><div class="cd-d" style="font-size:18px;font-weight:700;line-height:1;">00</div><div style="font-size:10px;opacity:.8;text-transform:uppercase;">dias</div></div><div style="background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;min-width:44px;"><div class="cd-h" style="font-size:18px;font-weight:700;line-height:1;">00</div><div style="font-size:10px;opacity:.8;text-transform:uppercase;">hs</div></div><div style="background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;min-width:44px;"><div class="cd-m" style="font-size:18px;font-weight:700;line-height:1;">00</div><div style="font-size:10px;opacity:.8;text-transform:uppercase;">min</div></div><div style="background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:6px;min-width:44px;"><div class="cd-s" style="font-size:18px;font-weight:700;line-height:1;">00</div><div style="font-size:10px;opacity:.8;text-transform:uppercase;">seg</div></div></div></div>';
+    ` : ''}
+    
     content += '<h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; text-align: ${popup.text_align || 'left'}; color: ${popup.text_color || '#000000'};">${popup.title}</h3>';
     content += '<p style="margin: 0 0 16px 0; text-align: ${popup.text_align || 'left'}; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
     
@@ -351,6 +377,27 @@ export const PopupCreatorPanel = () => {
       popup.style.opacity = '1';
       popup.style.transform = '${popup.position === 'center' ? 'translate(-50%, -50%) scale(1)' : 'scale(1)'}';
     }, 10);
+    
+    ${popup.countdown_enabled && popup.countdown_ends_at ? `
+    // Countdown
+    var cdEnd = new Date('${popup.countdown_ends_at}').getTime();
+    var cdRoot = document.getElementById('popup-cd-' + popupId);
+    var cdTick = function() {
+      if (!cdRoot) return;
+      var d = Math.max(0, cdEnd - Date.now());
+      var days = Math.floor(d / 86400000);
+      var hs = Math.floor((d % 86400000) / 3600000);
+      var mn = Math.floor((d % 3600000) / 60000);
+      var sc = Math.floor((d % 60000) / 1000);
+      var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+      var qd = cdRoot.querySelector('.cd-d'); if (qd) qd.textContent = pad(days);
+      var qh = cdRoot.querySelector('.cd-h'); if (qh) qh.textContent = pad(hs);
+      var qm = cdRoot.querySelector('.cd-m'); if (qm) qm.textContent = pad(mn);
+      var qs = cdRoot.querySelector('.cd-s'); if (qs) qs.textContent = pad(sc);
+    };
+    cdTick();
+    setInterval(cdTick, 1000);
+    ` : ''}
     
     // Close on overlay click
     overlay.onclick = function() { closePopup_${popup.id.replace(/-/g, '_')}(); };
@@ -473,6 +520,15 @@ export const PopupCreatorPanel = () => {
               src={data.video_url} 
               controls 
               className="w-full rounded-lg max-h-48 mb-4"
+            />
+          )}
+          {data.countdown_enabled && data.countdown_ends_at && (
+            <CountdownTimer
+              endsAt={data.countdown_ends_at}
+              label={data.countdown_label}
+              bgColor={data.countdown_bg_color}
+              textColor={data.countdown_text_color}
+              className="mb-3"
             />
           )}
           <h3 className="text-xl font-bold mb-2" style={{ color: data.text_color, textAlign: (data.text_align as any) || 'left' }}>{data.title || "Título do Pop-up"}</h3>
@@ -795,6 +851,46 @@ export const PopupCreatorPanel = () => {
           </div>
 
 
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base">Contador Regressivo (Escassez)</Label>
+              <Switch
+                checked={formData.countdown_enabled}
+                onCheckedChange={(v) => setFormData({ ...formData, countdown_enabled: v })}
+              />
+            </div>
+            {formData.countdown_enabled && (
+              <div className="space-y-3 p-3 border rounded-lg">
+                <div className="grid gap-2">
+                  <Label>Termina em (data e hora)</Label>
+                  <Input
+                    type="datetime-local"
+                    value={formData.countdown_ends_at ? String(formData.countdown_ends_at).slice(0, 16) : ''}
+                    onChange={(e) => setFormData({ ...formData, countdown_ends_at: e.target.value ? new Date(e.target.value).toISOString() : '' })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Rótulo (chamada acima do contador)</Label>
+                  <Input
+                    value={formData.countdown_label}
+                    onChange={(e) => setFormData({ ...formData, countdown_label: e.target.value })}
+                    placeholder="Ex: Oferta termina em:"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-2">
+                    <Label>Cor de fundo</Label>
+                    <Input type="color" value={formData.countdown_bg_color} onChange={(e) => setFormData({ ...formData, countdown_bg_color: e.target.value })} className="h-10" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Cor do texto</Label>
+                    <Input type="color" value={formData.countdown_text_color} onChange={(e) => setFormData({ ...formData, countdown_text_color: e.target.value })} className="h-10" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="border-t pt-4 mt-4">
             <Label className="mb-3 block">Preview em Tempo Real</Label>
             {renderPopupPreview(formData)}
@@ -1103,6 +1199,11 @@ export const PopupCreatorPanel = () => {
               text_color: previewPopup.text_color || '#000000',
               image_fit: previewPopup.image_fit || 'cover',
               text_align: previewPopup.text_align || 'left',
+              countdown_enabled: !!previewPopup.countdown_enabled,
+              countdown_ends_at: previewPopup.countdown_ends_at || '',
+              countdown_bg_color: previewPopup.countdown_bg_color || '#111827',
+              countdown_text_color: previewPopup.countdown_text_color || '#ffffff',
+              countdown_label: previewPopup.countdown_label || 'Oferta termina em:',
             })}
           </DialogContent>
         </Dialog>
