@@ -952,3 +952,20 @@ All colors MUST be HSL.
     transform: rotateX(6deg) rotateY(-4deg);
   }
 }
+
+@keyframes cta-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.55), 0 10px 30px -10px hsl(var(--primary) / 0.6);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 12px hsl(var(--primary) / 0), 0 14px 36px -8px hsl(var(--primary) / 0.85);
+  }
+}
+.animate-cta-pulse {
+  animation: cta-pulse 2s ease-in-out infinite;
+}
+.animate-cta-pulse:hover {
+  animation-play-state: paused;
+}

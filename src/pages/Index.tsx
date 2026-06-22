@@ -455,7 +455,7 @@ const Index = () => {
             </Button>
             <Button 
               onClick={() => navigate("/auth")} 
-              className="gradient-primary shadow-glow w-full h-9 xs:h-10 sm:h-11 rounded-lg sm:rounded-xl text-sm font-medium"
+              className="gradient-primary shadow-glow w-full h-9 xs:h-10 sm:h-11 rounded-lg sm:rounded-xl text-sm font-medium animate-cta-pulse"
             >
               {t('start_free')}
             </Button>
@@ -645,7 +645,7 @@ const Index = () => {
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl px-4 xs:px-5 sm:px-6 md:px-8 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform font-semibold"
+              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl px-4 xs:px-5 sm:px-6 md:px-8 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform font-semibold animate-cta-pulse"
             >
               {landingSettings.hero_cta_text}
             </Button>
@@ -817,7 +817,7 @@ const Index = () => {
             <Button 
               size="lg"
               onClick={() => navigate("/auth")}
-              className="gradient-primary shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl px-4 xs:px-5 sm:px-6 md:px-8 lg:px-12 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform w-full sm:w-auto max-w-xs sm:max-w-md font-semibold"
+              className="gradient-primary shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl px-4 xs:px-5 sm:px-6 md:px-8 lg:px-12 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform w-full sm:w-auto max-w-xs sm:max-w-md font-semibold animate-cta-pulse"
             >
               Começar Teste Grátis - 3 Dias
             </Button>
@@ -845,7 +845,7 @@ const Index = () => {
           <Button 
             size="lg"
             onClick={() => navigate("/auth")}
-            className="w-full xs:w-auto max-w-xs xs:max-w-sm bg-white text-primary hover:bg-white/90 shadow-glow text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 py-2.5 xs:py-3 sm:py-3.5 md:py-4 lg:py-5 active:scale-95 transition-transform font-semibold"
+            className="w-full xs:w-auto max-w-xs xs:max-w-sm bg-white text-primary hover:bg-white/90 shadow-glow text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 py-2.5 xs:py-3 sm:py-3.5 md:py-4 lg:py-5 active:scale-95 transition-transform font-semibold animate-cta-pulse"
           >
             {landingSettings.cta_button_text}
           </Button>
