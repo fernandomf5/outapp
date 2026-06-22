@@ -1084,6 +1084,7 @@ export const PopupCreatorPanel = () => {
               button_animation: previewPopup.button_animation || 'none',
               text_color: previewPopup.text_color || '#000000',
               image_fit: previewPopup.image_fit || 'cover',
+              text_align: previewPopup.text_align || 'left',
             })}
           </DialogContent>
         </Dialog>
