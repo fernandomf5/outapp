@@ -333,6 +333,31 @@ export function GeneralCRMPanel() {
         }
       }
 
+      // 4b. Buscar leads do Questionário Marketing
+      const { data: qmResponses } = await (supabase as any)
+        .from('marketing_questionnaire_responses')
+        .select('id, name, email, phone, created_at, marketing_questionnaires!inner(user_id, title)')
+        .eq('marketing_questionnaires.user_id', user.id);
+
+      if (qmResponses) {
+        qmResponses.forEach((r: any) => {
+          existingLeadIds.add(`marketing_questionnaire_responses-${r.id}`);
+          allLeads.push({
+            id: `qm-${r.id}`,
+            originalId: r.id,
+            originalSource: 'marketing_questionnaire_responses',
+            name: r.name || 'N/A',
+            email: r.email || 'N/A',
+            phone: r.phone || 'N/A',
+            source: 'Questionário Marketing',
+            sourceName: r.marketing_questionnaires?.title || 'Questionário Marketing',
+            createdAt: r.created_at,
+          });
+        });
+      }
+
+
+
       // 5. Buscar leads órfãos dos assignments (leads que foram removidos da origem mas ainda têm categoria)
       const { data: orphanAssignments } = await supabase
         .from('lead_category_assignments')
