@@ -244,15 +244,24 @@ export default function QuestionnairePage() {
           {stage === "capture" && (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold" style={{ color: qColor }}>Antes de começar</h2>
-              {q.capture_fields.includes("name") && (
-                <div><Label style={{ color: tColor }}>Nome</Label><Input value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} /></div>
-              )}
-              {q.capture_fields.includes("email") && (
-                <div><Label style={{ color: tColor }}>E-mail</Label><Input type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} /></div>
-              )}
-              {q.capture_fields.includes("phone") && (
-                <div><Label style={{ color: tColor }}>Telefone</Label><Input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} /></div>
-              )}
+              {q.capture_fields.map((key) => {
+                const f = CAPTURE_FIELD_OPTIONS.find((x) => x.key === key);
+                if (!f) return null;
+                return (
+                  <div key={key}>
+                    <Label style={{ color: tColor }}>{f.label}</Label>
+                    {f.type === "textarea" ? (
+                      <TextareaUI value={lead[key] || ""} onChange={(e) => setLead({ ...lead, [key]: e.target.value })} />
+                    ) : (
+                      <Input
+                        type={f.type === "textarea" ? "text" : f.type}
+                        value={lead[key] || ""}
+                        onChange={(e) => setLead({ ...lead, [key]: e.target.value })}
+                      />
+                    )}
+                  </div>
+                );
+              })}
               <Button className={`w-full ${anim}`} onClick={submitCapture} style={{ backgroundColor: btnBg, color: btnText }}>
                 Continuar <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
