@@ -50,6 +50,7 @@ interface Popup {
   button_animation?: string;
   text_color?: string;
   image_fit?: string;
+  text_align?: string;
 }
 
 export const PopupCreatorPanel = () => {
@@ -80,6 +81,7 @@ export const PopupCreatorPanel = () => {
     button_animation: 'none',
     text_color: '#000000',
     image_fit: 'cover',
+    text_align: 'left',
   });
   
   const [uploadingMedia, setUploadingMedia] = useState(false);
@@ -176,6 +178,7 @@ export const PopupCreatorPanel = () => {
       button_animation: 'none',
       text_color: '#000000',
       image_fit: 'cover',
+      text_align: 'left',
     });
   };
 
@@ -201,6 +204,7 @@ export const PopupCreatorPanel = () => {
       button_animation: popup.button_animation || 'none',
       text_color: popup.text_color || '#000000',
       image_fit: popup.image_fit || 'cover',
+      text_align: popup.text_align || 'left',
     });
     setIsEditDialogOpen(true);
   };
@@ -329,8 +333,8 @@ export const PopupCreatorPanel = () => {
     content += '<video src="${popup.video_url}" controls style="width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px;"></video>';
     ` : ''}
     
-    content += '<h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; color: ${popup.text_color || '#000000'};">${popup.title}</h3>';
-    content += '<p style="margin: 0 0 16px 0; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
+    content += '<h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; text-align: ${popup.text_align || 'left'}; color: ${popup.text_color || '#000000'};">${popup.title}</h3>';
+    content += '<p style="margin: 0 0 16px 0; text-align: ${popup.text_align || 'left'}; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
     
     ${popup.button_text ? `
     content += '<a href="${popup.button_link || '#'}" target="_blank" class="popup-anim-${popup.button_animation || 'none'}" style="display: block; width: 100%; padding: 12px 24px; background: ${popup.button_color || '#000000'}; color: ${popup.button_text_color || '#ffffff'}; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box;">${popup.button_text}</a>';
@@ -471,8 +475,8 @@ export const PopupCreatorPanel = () => {
               className="w-full rounded-lg max-h-48 mb-4"
             />
           )}
-          <h3 className="text-xl font-bold mb-2" style={{ color: data.text_color }}>{data.title || "Título do Pop-up"}</h3>
-          <p className="mb-4" style={{ color: data.text_color }}>{data.content || "Conteúdo do pop-up aparecerá aqui..."}</p>
+          <h3 className="text-xl font-bold mb-2" style={{ color: data.text_color, textAlign: (data.text_align as any) || 'left' }}>{data.title || "Título do Pop-up"}</h3>
+          <p className="mb-4" style={{ color: data.text_color, textAlign: (data.text_align as any) || 'left' }}>{data.content || "Conteúdo do pop-up aparecerá aqui..."}</p>
           {data.button_text && (
             <Button 
               style={{ 
@@ -772,6 +776,24 @@ export const PopupCreatorPanel = () => {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="grid gap-2">
+            <Label>Alinhamento do Texto (título e conteúdo)</Label>
+            <Select
+              value={formData.text_align}
+              onValueChange={(value) => setFormData({...formData, text_align: value})}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Esquerda</SelectItem>
+                <SelectItem value="center">Centralizado</SelectItem>
+                <SelectItem value="right">Direita</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
 
           <div className="border-t pt-4 mt-4">
             <Label className="mb-3 block">Preview em Tempo Real</Label>
@@ -1080,6 +1102,7 @@ export const PopupCreatorPanel = () => {
               button_animation: previewPopup.button_animation || 'none',
               text_color: previewPopup.text_color || '#000000',
               image_fit: previewPopup.image_fit || 'cover',
+              text_align: previewPopup.text_align || 'left',
             })}
           </DialogContent>
         </Dialog>
