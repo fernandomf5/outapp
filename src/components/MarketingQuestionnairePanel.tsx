@@ -166,12 +166,44 @@ export function MarketingQuestionnairePanel() {
 
   const loadResponses = async (q: Questionnaire) => {
     setShowResponsesFor(q);
+    setSelectedResponses(new Set());
     const { data } = await (supabase as any)
       .from("marketing_questionnaire_responses")
       .select("*")
       .eq("questionnaire_id", q.id)
       .order("created_at", { ascending: false });
     setResponses(data || []);
+  };
+
+  const confirmDeleteResponses = async () => {
+    if (!deleteConfirm) return;
+    if (deleteConfirm.text.trim().toUpperCase() !== "EXCLUIR") {
+      toast.error('Digite "EXCLUIR" para confirmar');
+      return;
+    }
+    const { error } = await (supabase as any)
+      .from("marketing_questionnaire_responses")
+      .delete()
+      .in("id", deleteConfirm.ids);
+    if (error) return toast.error(error.message);
+    toast.success(`${deleteConfirm.ids.length} resposta(s) excluída(s)`);
+    setResponses((prev) => (prev || []).filter((r) => !deleteConfirm.ids.includes(r.id)));
+    setSelectedResponses(new Set());
+    setDeleteConfirm(null);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedResponses((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!responses) return;
+    if (selectedResponses.size === responses.length) setSelectedResponses(new Set());
+    else setSelectedResponses(new Set(responses.map((r) => r.id)));
   };
 
   if (editing) {
