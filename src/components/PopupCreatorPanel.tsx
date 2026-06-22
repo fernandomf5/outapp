@@ -46,7 +46,10 @@ interface Popup {
   background_image?: string;
   background_video?: string;
   button_color?: string;
+  button_text_color?: string;
+  button_animation?: string;
   text_color?: string;
+  image_fit?: string;
 }
 
 export const PopupCreatorPanel = () => {

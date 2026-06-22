@@ -6756,14 +6756,17 @@ export type Database = {
           background_color: string | null
           background_image: string | null
           background_video: string | null
+          button_animation: string | null
           button_color: string | null
           button_link: string | null
           button_text: string
+          button_text_color: string | null
           clicks: number
           content: string
           created_at: string
           delay_seconds: number | null
           id: string
+          image_fit: string | null
           image_url: string | null
           is_active: boolean
           name: string
@@ -6781,14 +6784,17 @@ export type Database = {
           background_color?: string | null
           background_image?: string | null
           background_video?: string | null
+          button_animation?: string | null
           button_color?: string | null
           button_link?: string | null
           button_text: string
+          button_text_color?: string | null
           clicks?: number
           content: string
           created_at?: string
           delay_seconds?: number | null
           id?: string
+          image_fit?: string | null
           image_url?: string | null
           is_active?: boolean
           name: string
@@ -6806,14 +6812,17 @@ export type Database = {
           background_color?: string | null
           background_image?: string | null
           background_video?: string | null
+          button_animation?: string | null
           button_color?: string | null
           button_link?: string | null
           button_text?: string
+          button_text_color?: string | null
           clicks?: number
           content?: string
           created_at?: string
           delay_seconds?: number | null
           id?: string
+          image_fit?: string | null
           image_url?: string | null
           is_active?: boolean
           name?: string
