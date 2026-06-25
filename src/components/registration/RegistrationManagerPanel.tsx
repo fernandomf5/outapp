@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search, Upload, Camera } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search, Upload, Camera, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UnifiedRegistrationForm, STATUS_OPTIONS } from "./UnifiedRegistrationForm";
+import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
+import { useStatusOptions } from "./statusOptions";
+import { StatusManagerDialog } from "./StatusManagerDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { BulkRegistrationDialog } from "./BulkRegistrationDialog";
@@ -61,6 +63,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [statusManagerOpen, setStatusManagerOpen] = useState(false);
+  const { options: statusOptions } = useStatusOptions();
 
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) => {
@@ -281,6 +285,10 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
             <Upload className="h-4 w-4" />
             Cadastro em Massa
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setStatusManagerOpen(true)} className="gap-2">
+            <Settings2 className="h-4 w-4" />
+            Editar Status
+          </Button>
           <Tabs value={activeTab} onValueChange={(val) => {
             if (val === "form" && activeTab !== "form") {
               handleAddNew();
@@ -471,7 +479,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                         </TableCell>
                         <TableCell>
                           {(() => {
-                            const opt = STATUS_OPTIONS.find((o) => o.value === item.status);
+                            const opt = statusOptions.find((o) => o.value === item.status);
                             return (
                               <Select
                                 value={item.status || ''}
@@ -492,7 +500,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                                   <SelectItem value="__clear__">
                                     <span className="text-muted-foreground">Sem status</span>
                                   </SelectItem>
-                                  {STATUS_OPTIONS.map((s) => (
+                                  {statusOptions.map((s) => (
                                     <SelectItem key={s.value} value={s.value}>
                                       <Badge variant="outline" className={`${s.color} font-normal`}>
                                         {s.label}
@@ -607,6 +615,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         description={`Esta ação excluirá permanentemente ${selectedIds.size} cadastro(s). Para confirmar, digite 'excluir' abaixo.`}
         itemName={`${selectedIds.size} cadastro(s)`}
       />
+      <StatusManagerDialog open={statusManagerOpen} onOpenChange={setStatusManagerOpen} />
     </div>
   );
 }
