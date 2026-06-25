@@ -6,7 +6,9 @@ import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Penci
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
+import { UnifiedRegistrationForm, STATUS_OPTIONS } from "./UnifiedRegistrationForm";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { BulkRegistrationDialog } from "./BulkRegistrationDialog";
 import { PhotoRegistrationDialog } from "./PhotoRegistrationDialog";
 import { ContactHistoryPanel } from "./ContactHistoryPanel";
@@ -39,6 +41,7 @@ interface RegisteredItem {
   name: string;
   email: string | null;
   phone: string | null;
+  status: string | null;
   created_at: string;
 }
 
@@ -82,6 +85,22 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
       toast.error('Erro ao excluir em massa: ' + e.message);
     } finally {
       setBulkDeleteOpen(false);
+    }
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    const newStatus = status === '__clear__' ? null : status;
+    const previous = items;
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: newStatus } : it)));
+    const { error } = await supabase
+      .from('contacts')
+      .update({ status: newStatus })
+      .eq('id', id);
+    if (error) {
+      setItems(previous);
+      toast.error('Erro ao atualizar status: ' + error.message);
+    } else {
+      toast.success('Status atualizado');
     }
   };
 
@@ -393,6 +412,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     <TableHead className="w-12"></TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
+                    <TableHead className="w-[170px]">Status</TableHead>
                     <TableHead>Data de Cadastro</TableHead>
                     <TableHead className="w-[100px] text-right">Ações</TableHead>
                   </TableRow>
@@ -410,7 +430,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     if (filtered.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={selectionMode ? 6 : 5} className="h-24 text-center text-muted-foreground">
+                          <TableCell colSpan={selectionMode ? 7 : 6} className="h-24 text-center text-muted-foreground">
                             {q ? 'Nenhum cadastro corresponde à pesquisa.' : 'Nenhum cadastro encontrado nesta categoria.'}
                           </TableCell>
                         </TableRow>
@@ -448,6 +468,41 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                               </div>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {(() => {
+                            const opt = STATUS_OPTIONS.find((o) => o.value === item.status);
+                            return (
+                              <Select
+                                value={item.status || ''}
+                                onValueChange={(v) => updateStatus(item.id, v)}
+                              >
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue placeholder="Definir status">
+                                    {opt ? (
+                                      <Badge variant="outline" className={`${opt.color} font-normal`}>
+                                        {opt.label}
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-muted-foreground">Sem status</span>
+                                    )}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__clear__">
+                                    <span className="text-muted-foreground">Sem status</span>
+                                  </SelectItem>
+                                  {STATUS_OPTIONS.map((s) => (
+                                    <SelectItem key={s.value} value={s.value}>
+                                      <Badge variant="outline" className={`${s.color} font-normal`}>
+                                        {s.label}
+                                      </Badge>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString('pt-BR')}

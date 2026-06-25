@@ -10,7 +10,20 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImageUpload } from '../ImageUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+export const STATUS_OPTIONS = [
+  { value: 'novo', label: 'Novo', color: 'bg-blue-500/15 text-blue-600 border-blue-500/30' },
+  { value: 'ativo', label: 'Ativo', color: 'bg-green-500/15 text-green-600 border-green-500/30' },
+  { value: 'inativo', label: 'Inativo', color: 'bg-zinc-500/15 text-zinc-600 border-zinc-500/30' },
+  { value: 'lead', label: 'Lead', color: 'bg-purple-500/15 text-purple-600 border-purple-500/30' },
+  { value: 'cliente', label: 'Cliente', color: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30' },
+  { value: 'prospecto', label: 'Prospecto', color: 'bg-amber-500/15 text-amber-600 border-amber-500/30' },
+  { value: 'em_negociacao', label: 'Em Negociação', color: 'bg-orange-500/15 text-orange-600 border-orange-500/30' },
+  { value: 'concluido', label: 'Concluído', color: 'bg-teal-500/15 text-teal-600 border-teal-500/30' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-500/15 text-red-600 border-red-500/30' },
+];
 
 interface UnifiedRegistrationFormProps {
   categoryId: string;
@@ -33,6 +46,7 @@ export function UnifiedRegistrationForm({
 }: UnifiedRegistrationFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [duplicatePhone, setDuplicatePhone] = useState<{ id: string; name: string } | null>(null);
 
   // Draft persistence key (per user + category + edited id). Skip in view-only.
   const draftKey = !isViewOnly
@@ -91,9 +105,53 @@ export function UnifiedRegistrationForm({
 
   const normalizeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
 
+  const onlyDigits = (s: string) => (s || '').replace(/\D/g, '');
+
+  const checkDuplicatePhone = async (phone: string) => {
+    const digits = onlyDigits(phone);
+    if (!user || !digits || digits.length < 8) {
+      setDuplicatePhone(null);
+      return;
+    }
+    try {
+      const { data } = await supabase
+        .from('contacts')
+        .select('id, name, phone')
+        .eq('user_id', user.id)
+        .neq('id', initialData?.id || '00000000-0000-0000-0000-000000000000')
+        .limit(50);
+      const match = (data || []).find((c: any) => onlyDigits(c.phone || '') === digits);
+      setDuplicatePhone(match ? { id: match.id, name: match.name } : null);
+    } catch {
+      setDuplicatePhone(null);
+    }
+  };
+
+
 
   const onSubmit = async (data: any) => {
     if (!user || isViewOnly) return;
+
+    // Duplicate-phone confirmation guard
+    const digits = onlyDigits(data.phone || '');
+    if (digits && digits.length >= 8) {
+      try {
+        const { data: existing } = await supabase
+          .from('contacts')
+          .select('id, name, phone')
+          .eq('user_id', user.id)
+          .neq('id', initialData?.id || '00000000-0000-0000-0000-000000000000')
+          .limit(100);
+        const match = (existing || []).find((c: any) => onlyDigits(c.phone || '') === digits);
+        if (match) {
+          const ok = window.confirm(
+            `Já existe um cadastro com este número: "${match.name}". Deseja cadastrar mesmo assim?`
+          );
+          if (!ok) return;
+        }
+      } catch {}
+    }
+
     setLoading(true);
 
     try {
@@ -232,9 +290,39 @@ export function UnifiedRegistrationForm({
               <Input
                 id="phone"
                 placeholder="(00) 00000-0000"
-                {...register('phone')}
+                {...register('phone', {
+                  onBlur: (e) => checkDuplicatePhone(e.target.value),
+                })}
                 disabled={isViewOnly}
               />
+              {duplicatePhone && (
+                <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md p-2">
+                  <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    Este número já está cadastrado para <strong>{duplicatePhone.name}</strong>.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={watch('status') || ''}
+                onValueChange={(v) => setValue('status', v, { shouldDirty: true })}
+                disabled={isViewOnly}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Selecione um status (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
