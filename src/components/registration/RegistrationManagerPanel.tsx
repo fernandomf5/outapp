@@ -469,6 +469,41 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                             )}
                           </div>
                         </TableCell>
+                        <TableCell>
+                          {(() => {
+                            const opt = STATUS_OPTIONS.find((o) => o.value === item.status);
+                            return (
+                              <Select
+                                value={item.status || ''}
+                                onValueChange={(v) => updateStatus(item.id, v)}
+                              >
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue placeholder="Definir status">
+                                    {opt ? (
+                                      <Badge variant="outline" className={`${opt.color} font-normal`}>
+                                        {opt.label}
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-muted-foreground">Sem status</span>
+                                    )}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__clear__">
+                                    <span className="text-muted-foreground">Sem status</span>
+                                  </SelectItem>
+                                  {STATUS_OPTIONS.map((s) => (
+                                    <SelectItem key={s.value} value={s.value}>
+                                      <Badge variant="outline" className={`${s.color} font-normal`}>
+                                        {s.label}
+                                      </Badge>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            );
+                          })()}
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
