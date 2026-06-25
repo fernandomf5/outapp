@@ -46,6 +46,7 @@ export function UnifiedRegistrationForm({
 }: UnifiedRegistrationFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [duplicatePhone, setDuplicatePhone] = useState<{ id: string; name: string } | null>(null);
 
   // Draft persistence key (per user + category + edited id). Skip in view-only.
   const draftKey = !isViewOnly
