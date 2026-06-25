@@ -309,7 +309,7 @@ export function UnifiedRegistrationForm({
                   <SelectValue placeholder="Selecione um status (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  {STATUS_OPTIONS.map((s) => (
+                  {statusOptions.map((s) => (
                     <SelectItem key={s.value} value={s.value}>
                       {s.label}
                     </SelectItem>
