@@ -41,6 +41,7 @@ interface RegisteredItem {
   name: string;
   email: string | null;
   phone: string | null;
+  status: string | null;
   created_at: string;
 }
 
