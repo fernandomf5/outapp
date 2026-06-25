@@ -496,16 +496,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                                 value={item.status || ''}
                                 onValueChange={(v) => updateStatus(item.id, v)}
                               >
-                                <SelectTrigger className="h-8 text-xs">
-                                  <SelectValue placeholder="Definir status">
-                                    {opt ? (
-                                      <Badge variant="outline" className={`${opt.color} font-normal`}>
-                                        {opt.label}
-                                      </Badge>
-                                    ) : (
-                                      <span className="text-muted-foreground">Sem status</span>
-                                    )}
-                                  </SelectValue>
+                                <SelectTrigger
+                                  className={`h-7 w-[160px] rounded-full border-0 px-3 text-xs font-medium [&>svg]:opacity-60 ${
+                                    opt ? opt.color : 'bg-muted/40 text-muted-foreground'
+                                  }`}
+                                >
+                                  <span className="truncate">
+                                    {opt ? opt.label : 'Sem status'}
+                                  </span>
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="__clear__">
