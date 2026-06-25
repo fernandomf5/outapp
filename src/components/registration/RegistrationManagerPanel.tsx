@@ -475,7 +475,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                         </TableCell>
                         <TableCell>
                           {(() => {
-                            const opt = STATUS_OPTIONS.find((o) => o.value === item.status);
+                            const opt = statusOptions.find((o) => o.value === item.status);
                             return (
                               <Select
                                 value={item.status || ''}
@@ -496,7 +496,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                                   <SelectItem value="__clear__">
                                     <span className="text-muted-foreground">Sem status</span>
                                   </SelectItem>
-                                  {STATUS_OPTIONS.map((s) => (
+                                  {statusOptions.map((s) => (
                                     <SelectItem key={s.value} value={s.value}>
                                       <Badge variant="outline" className={`${s.color} font-normal`}>
                                         {s.label}
