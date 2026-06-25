@@ -615,6 +615,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         description={`Esta ação excluirá permanentemente ${selectedIds.size} cadastro(s). Para confirmar, digite 'excluir' abaixo.`}
         itemName={`${selectedIds.size} cadastro(s)`}
       />
+      <StatusManagerDialog open={statusManagerOpen} onOpenChange={setStatusManagerOpen} />
     </div>
   );
 }
