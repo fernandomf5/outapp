@@ -63,6 +63,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [statusManagerOpen, setStatusManagerOpen] = useState(false);
+  const { options: statusOptions } = useStatusOptions();
 
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) => {
