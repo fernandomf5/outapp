@@ -285,6 +285,10 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
             <Upload className="h-4 w-4" />
             Cadastro em Massa
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setStatusManagerOpen(true)} className="gap-2">
+            <Settings2 className="h-4 w-4" />
+            Editar Status
+          </Button>
           <Tabs value={activeTab} onValueChange={(val) => {
             if (val === "form" && activeTab !== "form") {
               handleAddNew();
