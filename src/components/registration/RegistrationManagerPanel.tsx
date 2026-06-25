@@ -562,6 +562,20 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                                 <ArrowDown className="h-4 w-4 mr-2" />
                                 Descer
                               </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => moveItem(index, 'top')}
+                                disabled={index === 0}
+                              >
+                                <ArrowUp className="h-4 w-4 mr-2" />
+                                Mover para o topo
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => moveItem(index, 'bottom')}
+                                disabled={index === items.length - 1}
+                              >
+                                <ArrowDown className="h-4 w-4 mr-2" />
+                                Mover para o fundo
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => handleViewDetails(item)}>
                                 <Eye className="h-4 w-4 mr-2" />
