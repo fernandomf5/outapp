@@ -6,7 +6,9 @@ import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Penci
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
+import { UnifiedRegistrationForm, STATUS_OPTIONS } from "./UnifiedRegistrationForm";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { BulkRegistrationDialog } from "./BulkRegistrationDialog";
 import { PhotoRegistrationDialog } from "./PhotoRegistrationDialog";
 import { ContactHistoryPanel } from "./ContactHistoryPanel";
