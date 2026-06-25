@@ -131,6 +131,27 @@ export function UnifiedRegistrationForm({
 
   const onSubmit = async (data: any) => {
     if (!user || isViewOnly) return;
+
+    // Duplicate-phone confirmation guard
+    const digits = onlyDigits(data.phone || '');
+    if (digits && digits.length >= 8) {
+      try {
+        const { data: existing } = await supabase
+          .from('contacts')
+          .select('id, name, phone')
+          .eq('user_id', user.id)
+          .neq('id', initialData?.id || '00000000-0000-0000-0000-000000000000')
+          .limit(100);
+        const match = (existing || []).find((c: any) => onlyDigits(c.phone || '') === digits);
+        if (match) {
+          const ok = window.confirm(
+            `Já existe um cadastro com este número: "${match.name}". Deseja cadastrar mesmo assim?`
+          );
+          if (!ok) return;
+        }
+      } catch {}
+    }
+
     setLoading(true);
 
     try {
