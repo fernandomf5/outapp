@@ -290,9 +290,39 @@ export function UnifiedRegistrationForm({
               <Input
                 id="phone"
                 placeholder="(00) 00000-0000"
-                {...register('phone')}
+                {...register('phone', {
+                  onBlur: (e) => checkDuplicatePhone(e.target.value),
+                })}
                 disabled={isViewOnly}
               />
+              {duplicatePhone && (
+                <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md p-2">
+                  <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    Este número já está cadastrado para <strong>{duplicatePhone.name}</strong>.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={watch('status') || ''}
+                onValueChange={(v) => setValue('status', v, { shouldDirty: true })}
+                disabled={isViewOnly}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Selecione um status (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
