@@ -10,7 +10,20 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImageUpload } from '../ImageUpload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+export const STATUS_OPTIONS = [
+  { value: 'novo', label: 'Novo', color: 'bg-blue-500/15 text-blue-600 border-blue-500/30' },
+  { value: 'ativo', label: 'Ativo', color: 'bg-green-500/15 text-green-600 border-green-500/30' },
+  { value: 'inativo', label: 'Inativo', color: 'bg-zinc-500/15 text-zinc-600 border-zinc-500/30' },
+  { value: 'lead', label: 'Lead', color: 'bg-purple-500/15 text-purple-600 border-purple-500/30' },
+  { value: 'cliente', label: 'Cliente', color: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30' },
+  { value: 'prospecto', label: 'Prospecto', color: 'bg-amber-500/15 text-amber-600 border-amber-500/30' },
+  { value: 'em_negociacao', label: 'Em Negociação', color: 'bg-orange-500/15 text-orange-600 border-orange-500/30' },
+  { value: 'concluido', label: 'Concluído', color: 'bg-teal-500/15 text-teal-600 border-teal-500/30' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-500/15 text-red-600 border-red-500/30' },
+];
 
 interface UnifiedRegistrationFormProps {
   categoryId: string;
