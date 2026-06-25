@@ -88,6 +88,22 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     }
   };
 
+  const updateStatus = async (id: string, status: string) => {
+    const newStatus = status === '__clear__' ? null : status;
+    const previous = items;
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: newStatus } : it)));
+    const { error } = await supabase
+      .from('contacts')
+      .update({ status: newStatus })
+      .eq('id', id);
+    if (error) {
+      setItems(previous);
+      toast.error('Erro ao atualizar status: ' + error.message);
+    } else {
+      toast.success('Status atualizado');
+    }
+  };
+
   useEffect(() => {
     if (categoryId && user) {
       fetchCategory();
