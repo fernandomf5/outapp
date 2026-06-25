@@ -105,6 +105,29 @@ export function UnifiedRegistrationForm({
 
   const normalizeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
 
+  const onlyDigits = (s: string) => (s || '').replace(/\D/g, '');
+
+  const checkDuplicatePhone = async (phone: string) => {
+    const digits = onlyDigits(phone);
+    if (!user || !digits || digits.length < 8) {
+      setDuplicatePhone(null);
+      return;
+    }
+    try {
+      const { data } = await supabase
+        .from('contacts')
+        .select('id, name, phone')
+        .eq('user_id', user.id)
+        .neq('id', initialData?.id || '00000000-0000-0000-0000-000000000000')
+        .limit(50);
+      const match = (data || []).find((c: any) => onlyDigits(c.phone || '') === digits);
+      setDuplicatePhone(match ? { id: match.id, name: match.name } : null);
+    } catch {
+      setDuplicatePhone(null);
+    }
+  };
+
+
 
   const onSubmit = async (data: any) => {
     if (!user || isViewOnly) return;
