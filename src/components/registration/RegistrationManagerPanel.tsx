@@ -49,12 +49,22 @@ interface RegisteredItem {
 
 export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPanelProps) {
   const { user } = useAuth();
+
+  const sessionKey = categoryId ? `registration-panel-state:${user?.id || 'anon'}:${categoryId}` : null;
+  const initialSession = (() => {
+    if (!sessionKey) return null;
+    try {
+      const raw = sessionStorage.getItem(sessionKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<RegisteredItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("form");
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [isViewOnly, setIsViewOnly] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(initialSession?.activeTab || "form");
+  const [selectedItem, setSelectedItem] = useState<any>(initialSession?.selectedItem || null);
+  const [isViewOnly, setIsViewOnly] = useState<boolean>(initialSession?.isViewOnly || false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,6 +75,13 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   const { options: statusOptions } = useStatusOptions();
+
+  useEffect(() => {
+    if (!sessionKey) return;
+    try {
+      sessionStorage.setItem(sessionKey, JSON.stringify({ activeTab, selectedItem, isViewOnly }));
+    } catch {}
+  }, [sessionKey, activeTab, selectedItem, isViewOnly]);
 
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) => {
