@@ -164,8 +164,6 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
-  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
-  const [bulkText, setBulkText] = useState('');
   
   const [popupCodeDialogOpen, setPopupCodeDialogOpen] = useState(false);
   const [pageCodeDialogOpen, setPageCodeDialogOpen] = useState(false);
@@ -313,39 +311,6 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
     }));
   };
 
-  const [isBulkLoading, setIsBulkLoading] = useState(false);
-  const handleBulkAdd = async () => {
-    if (!bulkText.trim()) {
-      toast.error('Cole o texto do briefing');
-      return;
-    }
-    setIsBulkLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('parse-briefing-questions', {
-        body: { text: bulkText },
-      });
-      if (error) throw error;
-      const parsedFields: BriefingField[] = (data?.fields || []).map((f: any) => ({ ...f, step: 1 }));
-      if (parsedFields.length === 0) {
-        toast.error('Nenhuma pergunta identificada no texto');
-        return;
-      }
-      setFormData(prev => ({
-        ...prev,
-        title: prev.title || data?.title || prev.title,
-        description: prev.description || data?.description || prev.description,
-        fields: [...prev.fields, ...parsedFields],
-      }));
-      toast.success(`${parsedFields.length} pergunta(s) criada(s) pela IA!`);
-      setBulkText('');
-      setIsBulkDialogOpen(false);
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || 'Erro ao processar com IA');
-    } finally {
-      setIsBulkLoading(false);
-    }
-  };
 
 
   const handleSaveBriefing = async () => {
@@ -910,39 +875,6 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
                     Arraste para reordenar os campos
                   </p>
                   <div className="flex gap-2">
-                  <Dialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Criar com IA (Colar Briefing)
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px]">
-                      <DialogHeader>
-                        <DialogTitle>Criar Briefing com IA</DialogTitle>
-                        <DialogDescription>
-                          Cole aqui todo o texto do briefing (perguntas em qualquer formato — parágrafos, listas, numeradas). A IA identifica cada pergunta, escolhe o melhor tipo de campo e monta o briefing completo automaticamente.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                          <Label>Texto do briefing</Label>
-                          <Textarea
-                            value={bulkText}
-                            onChange={(e) => setBulkText(e.target.value)}
-                            rows={12}
-                            placeholder={"Cole aqui o texto completo com todas as perguntas do briefing..."}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsBulkDialogOpen(false)} disabled={isBulkLoading}>Cancelar</Button>
-                        <Button onClick={handleBulkAdd} disabled={!bulkText.trim() || isBulkLoading}>
-                          {isBulkLoading ? 'Processando com IA...' : '🤖 Gerar Briefing'}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
                   <Dialog open={isFieldDialogOpen} onOpenChange={setIsFieldDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
