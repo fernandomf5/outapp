@@ -63,6 +63,7 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
 import InvoicePublicPage from "./pages/InvoicePublicPage";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { RoutePersistence } from "@/components/RoutePersistence";
 
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const AppContent = () => {
   
   return (
     <BrowserRouter>
+            <RoutePersistence />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
