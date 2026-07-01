@@ -54,7 +54,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const initialSession = (() => {
     if (!sessionKey) return null;
     try {
-      const raw = sessionStorage.getItem(sessionKey);
+      const raw = localStorage.getItem(sessionKey) || sessionStorage.getItem(sessionKey);
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   })();
@@ -79,7 +79,9 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   useEffect(() => {
     if (!sessionKey) return;
     try {
-      sessionStorage.setItem(sessionKey, JSON.stringify({ activeTab, selectedItem, isViewOnly }));
+      const state = JSON.stringify({ activeTab, selectedItem, isViewOnly });
+      localStorage.setItem(sessionKey, state);
+      sessionStorage.setItem(sessionKey, state);
     } catch {}
   }, [sessionKey, activeTab, selectedItem, isViewOnly]);
 
@@ -203,10 +205,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
       const ordered = applyCustomOrder(data || []);
       setItems(ordered);
 
-      // If there are items, default to the list tab
-      if (data && data.length > 0) {
-        setActiveTab("list");
-      } else {
+      // Não troca automaticamente para a lista: mantém a tela onde o usuário estava.
+      if ((!data || data.length === 0) && activeTab === "list") {
         setActiveTab("form");
       }
     } catch (error) {
