@@ -313,6 +313,35 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
     }));
   };
 
+  const handleBulkAdd = () => {
+    const lines = bulkText.split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      toast.error('Digite ao menos uma pergunta');
+      return;
+    }
+    const validTypes = ['text','textarea','email','phone','number','checkbox','select','radio','rating','file','date','time','url','address','color'];
+    const newFields: BriefingField[] = lines.map((line, i) => {
+      const [rawLabel, rawType, ...rawOpts] = line.split('|').map(s => s.trim());
+      const type = (rawType && validTypes.includes(rawType)) ? rawType : bulkType;
+      const options = ['select','radio'].includes(type) && rawOpts.length
+        ? rawOpts[0].split(',').map(o => o.trim()).filter(Boolean)
+        : undefined;
+      return {
+        id: `field-${Date.now()}-${i}-${Math.random()}`,
+        type: type as any,
+        label: rawLabel,
+        placeholder: '',
+        required: false,
+        step: 1,
+        ...(options ? { options } : {})
+      };
+    });
+    setFormData(prev => ({ ...prev, fields: [...prev.fields, ...newFields] }));
+    toast.success(`${newFields.length} pergunta(s) adicionada(s)!`);
+    setBulkText('');
+    setIsBulkDialogOpen(false);
+  };
+
   const handleSaveBriefing = async () => {
     try {
       const userId = await getTargetUserId();
