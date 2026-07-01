@@ -166,7 +166,7 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [bulkText, setBulkText] = useState('');
-  const [bulkType, setBulkType] = useState<string>('text');
+  
   const [popupCodeDialogOpen, setPopupCodeDialogOpen] = useState(false);
   const [pageCodeDialogOpen, setPageCodeDialogOpen] = useState(false);
   const [selectedBriefingForPopup, setSelectedBriefingForPopup] = useState<Briefing | null>(null);
