@@ -903,6 +903,53 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
                   <p className="text-sm text-muted-foreground">
                     Arraste para reordenar os campos
                   </p>
+                  <div className="flex gap-2">
+                  <Dialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Adicionar em Massa
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Adicionar Perguntas em Massa</DialogTitle>
+                        <DialogDescription>
+                          Digite uma pergunta por linha. Opcionalmente defina o tipo por linha usando <code>|</code>.
+                          Exemplo: <code>Nome completo | text</code> ou <code>Sexo | radio | Masculino, Feminino</code>
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label>Tipo padrão (usado quando não especificado)</Label>
+                          <Select value={bulkType} onValueChange={setBulkType}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {fieldTypeOptions.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Perguntas (uma por linha)</Label>
+                          <Textarea
+                            value={bulkText}
+                            onChange={(e) => setBulkText(e.target.value)}
+                            rows={10}
+                            placeholder={"Nome completo\nE-mail | email\nTelefone | phone\nMensagem | textarea\nSexo | radio | Masculino, Feminino"}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Tipos aceitos: text, textarea, email, phone, number, checkbox, select, radio, rating, file, date, time, url, address, color
+                          </p>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsBulkDialogOpen(false)}>Cancelar</Button>
+                        <Button onClick={handleBulkAdd} disabled={!bulkText.trim()}>Adicionar Todas</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                   <Dialog open={isFieldDialogOpen} onOpenChange={setIsFieldDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
