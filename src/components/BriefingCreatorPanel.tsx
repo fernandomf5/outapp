@@ -1065,6 +1065,7 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  </div>
                 </div>
 
                 {formData.fields.length === 0 ? (
