@@ -914,45 +914,32 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
                         <Plus className="mr-2 h-4 w-4" />
-                        Adicionar em Massa
+                        Criar com IA (Colar Briefing)
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[600px]">
                       <DialogHeader>
-                        <DialogTitle>Adicionar Perguntas em Massa</DialogTitle>
+                        <DialogTitle>Criar Briefing com IA</DialogTitle>
                         <DialogDescription>
-                          Digite uma pergunta por linha. Opcionalmente defina o tipo por linha usando <code>|</code>.
-                          Exemplo: <code>Nome completo | text</code> ou <code>Sexo | radio | Masculino, Feminino</code>
+                          Cole aqui todo o texto do briefing (perguntas em qualquer formato — parágrafos, listas, numeradas). A IA identifica cada pergunta, escolhe o melhor tipo de campo e monta o briefing completo automaticamente.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                          <Label>Tipo padrão (usado quando não especificado)</Label>
-                          <Select value={bulkType} onValueChange={setBulkType}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {fieldTypeOptions.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Perguntas (uma por linha)</Label>
+                          <Label>Texto do briefing</Label>
                           <Textarea
                             value={bulkText}
                             onChange={(e) => setBulkText(e.target.value)}
-                            rows={10}
-                            placeholder={"Nome completo\nE-mail | email\nTelefone | phone\nMensagem | textarea\nSexo | radio | Masculino, Feminino"}
+                            rows={12}
+                            placeholder={"Cole aqui o texto completo com todas as perguntas do briefing..."}
                           />
-                          <p className="text-xs text-muted-foreground">
-                            Tipos aceitos: text, textarea, email, phone, number, checkbox, select, radio, rating, file, date, time, url, address, color
-                          </p>
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsBulkDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleBulkAdd} disabled={!bulkText.trim()}>Adicionar Todas</Button>
+                        <Button variant="outline" onClick={() => setIsBulkDialogOpen(false)} disabled={isBulkLoading}>Cancelar</Button>
+                        <Button onClick={handleBulkAdd} disabled={!bulkText.trim() || isBulkLoading}>
+                          {isBulkLoading ? 'Processando com IA...' : '🤖 Gerar Briefing'}
+                        </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
