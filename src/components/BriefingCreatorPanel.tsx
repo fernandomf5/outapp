@@ -313,34 +313,40 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
     }));
   };
 
-  const handleBulkAdd = () => {
-    const lines = bulkText.split('\n').map(l => l.trim()).filter(Boolean);
-    if (lines.length === 0) {
-      toast.error('Digite ao menos uma pergunta');
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
+  const handleBulkAdd = async () => {
+    if (!bulkText.trim()) {
+      toast.error('Cole o texto do briefing');
       return;
     }
-    const validTypes = ['text','textarea','email','phone','number','checkbox','select','radio','rating','file','date','time','url','address','color'];
-    const newFields: BriefingField[] = lines.map((line, i) => {
-      const [rawLabel, rawType, ...rawOpts] = line.split('|').map(s => s.trim());
-      const type = (rawType && validTypes.includes(rawType)) ? rawType : bulkType;
-      const options = ['select','radio'].includes(type) && rawOpts.length
-        ? rawOpts[0].split(',').map(o => o.trim()).filter(Boolean)
-        : undefined;
-      return {
-        id: `field-${Date.now()}-${i}-${Math.random()}`,
-        type: type as any,
-        label: rawLabel,
-        placeholder: '',
-        required: false,
-        step: 1,
-        ...(options ? { options } : {})
-      };
-    });
-    setFormData(prev => ({ ...prev, fields: [...prev.fields, ...newFields] }));
-    toast.success(`${newFields.length} pergunta(s) adicionada(s)!`);
-    setBulkText('');
-    setIsBulkDialogOpen(false);
+    setIsBulkLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('parse-briefing-questions', {
+        body: { text: bulkText },
+      });
+      if (error) throw error;
+      const parsedFields: BriefingField[] = (data?.fields || []).map((f: any) => ({ ...f, step: 1 }));
+      if (parsedFields.length === 0) {
+        toast.error('Nenhuma pergunta identificada no texto');
+        return;
+      }
+      setFormData(prev => ({
+        ...prev,
+        title: prev.title || data?.title || prev.title,
+        description: prev.description || data?.description || prev.description,
+        fields: [...prev.fields, ...parsedFields],
+      }));
+      toast.success(`${parsedFields.length} pergunta(s) criada(s) pela IA!`);
+      setBulkText('');
+      setIsBulkDialogOpen(false);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Erro ao processar com IA');
+    } finally {
+      setIsBulkLoading(false);
+    }
   };
+
 
   const handleSaveBriefing = async () => {
     try {
