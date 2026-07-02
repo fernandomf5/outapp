@@ -75,6 +75,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   const { options: statusOptions } = useStatusOptions();
+  const sortKey = categoryId ? `registration-sort:${categoryId}` : null;
+  const [sortMode, setSortMode] = useState<'custom' | 'recent' | 'oldest' | 'name'>(() => {
+    try {
+      if (!sortKey) return 'custom';
+      return (localStorage.getItem(sortKey) as any) || 'custom';
+    } catch { return 'custom'; }
+  });
+  useEffect(() => { if (sortKey) { try { localStorage.setItem(sortKey, sortMode); } catch {} } }, [sortKey, sortMode]);
 
   useEffect(() => {
     if (!sessionKey) return;
@@ -134,6 +142,11 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     }
   }, [categoryId, user]);
 
+  useEffect(() => {
+    setItems((prev) => applyCustomOrder(prev));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortMode]);
+
   const fetchCategory = async () => {
     try {
       const { data, error } = await supabase
@@ -152,6 +165,15 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const getOrderKey = () => `registration-order-${categoryId}`;
 
   const applyCustomOrder = (list: RegisteredItem[]): RegisteredItem[] => {
+    if (sortMode === 'recent') {
+      return [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+    if (sortMode === 'oldest') {
+      return [...list].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    }
+    if (sortMode === 'name') {
+      return [...list].sort((a, b) => a.name.localeCompare(b.name));
+    }
     try {
       const stored = localStorage.getItem(getOrderKey());
       if (!stored) return list;
@@ -392,6 +414,17 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  <Select value={sortMode} onValueChange={(v: any) => setSortMode(v)}>
+                    <SelectTrigger className="w-[200px] h-9">
+                      <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="custom">Ordem personalizada</SelectItem>
+                      <SelectItem value="recent">Mais recentes primeiro</SelectItem>
+                      <SelectItem value="oldest">Mais antigos primeiro</SelectItem>
+                      <SelectItem value="name">Nome (A-Z)</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {!selectionMode ? (
                     <Button
                       variant="outline"
