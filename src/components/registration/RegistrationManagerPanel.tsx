@@ -160,6 +160,15 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const getOrderKey = () => `registration-order-${categoryId}`;
 
   const applyCustomOrder = (list: RegisteredItem[]): RegisteredItem[] => {
+    if (sortMode === 'recent') {
+      return [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+    if (sortMode === 'oldest') {
+      return [...list].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    }
+    if (sortMode === 'name') {
+      return [...list].sort((a, b) => a.name.localeCompare(b.name));
+    }
     try {
       const stored = localStorage.getItem(getOrderKey());
       if (!stored) return list;
