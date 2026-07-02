@@ -192,6 +192,20 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     });
   };
 
+  const moveItemToPosition = (id: string, newPosition1Based: number) => {
+    setItems((prev) => {
+      const from = prev.findIndex((i) => i.id === id);
+      if (from === -1) return prev;
+      const target = Math.max(1, Math.min(prev.length, Math.floor(newPosition1Based))) - 1;
+      if (target === from) return prev;
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(target, 0, item);
+      saveOrder(next);
+      return next;
+    });
+  };
+
   const fetchItems = async () => {
     try {
       setLoading(true);
@@ -446,6 +460,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                       </TableHead>
                     )}
                     <TableHead className="w-12"></TableHead>
+                    <TableHead className="w-16" title="Posição na lista. Digite um número para reordenar.">#</TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead className="w-[170px]">Status</TableHead>
@@ -466,7 +481,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     if (filtered.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={selectionMode ? 7 : 6} className="h-24 text-center text-muted-foreground">
+                          <TableCell colSpan={selectionMode ? 8 : 7} className="h-24 text-center text-muted-foreground">
                             {q ? 'Nenhum cadastro corresponde à pesquisa.' : 'Nenhum cadastro encontrado nesta categoria.'}
                           </TableCell>
                         </TableRow>
@@ -487,6 +502,24 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                              <AvatarImage src={(item as any).avatar_url} />
                              <AvatarFallback>{item.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                            </Avatar>
+                         </TableCell>
+                         <TableCell>
+                           <Input
+                             type="number"
+                             min={1}
+                             max={items.length}
+                             defaultValue={items.findIndex((i) => i.id === item.id) + 1}
+                             key={`pos-${item.id}-${items.findIndex((i) => i.id === item.id)}`}
+                             onBlur={(e) => {
+                               const v = parseInt(e.target.value, 10);
+                               if (!isNaN(v)) moveItemToPosition(item.id, v);
+                             }}
+                             onKeyDown={(e) => {
+                               if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                             }}
+                             className="h-8 w-14 text-center px-1"
+                             title="Digite a posição desejada"
+                           />
                          </TableCell>
                          <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>
