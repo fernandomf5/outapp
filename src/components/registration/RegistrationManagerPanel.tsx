@@ -481,7 +481,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     if (filtered.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={selectionMode ? 7 : 6} className="h-24 text-center text-muted-foreground">
+                          <TableCell colSpan={selectionMode ? 8 : 7} className="h-24 text-center text-muted-foreground">
                             {q ? 'Nenhum cadastro corresponde à pesquisa.' : 'Nenhum cadastro encontrado nesta categoria.'}
                           </TableCell>
                         </TableRow>
