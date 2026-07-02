@@ -142,6 +142,11 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     }
   }, [categoryId, user]);
 
+  useEffect(() => {
+    setItems((prev) => applyCustomOrder(prev));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortMode]);
+
   const fetchCategory = async () => {
     try {
       const { data, error } = await supabase
