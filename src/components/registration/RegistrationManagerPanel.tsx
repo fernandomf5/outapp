@@ -192,6 +192,20 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     });
   };
 
+  const moveItemToPosition = (id: string, newPosition1Based: number) => {
+    setItems((prev) => {
+      const from = prev.findIndex((i) => i.id === id);
+      if (from === -1) return prev;
+      const target = Math.max(1, Math.min(prev.length, Math.floor(newPosition1Based))) - 1;
+      if (target === from) return prev;
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(target, 0, item);
+      saveOrder(next);
+      return next;
+    });
+  };
+
   const fetchItems = async () => {
     try {
       setLoading(true);
