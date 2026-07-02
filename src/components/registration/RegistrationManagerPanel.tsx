@@ -460,6 +460,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                       </TableHead>
                     )}
                     <TableHead className="w-12"></TableHead>
+                    <TableHead className="w-16" title="Posição na lista. Digite um número para reordenar.">#</TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead className="w-[170px]">Status</TableHead>
