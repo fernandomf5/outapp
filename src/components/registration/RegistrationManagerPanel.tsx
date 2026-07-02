@@ -520,6 +520,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                              className="h-8 w-14 text-center px-1"
                              title="Digite a posição desejada"
                            />
+                         </TableCell>
                          <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
