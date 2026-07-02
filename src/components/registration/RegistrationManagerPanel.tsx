@@ -503,6 +503,23 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                              <AvatarFallback>{item.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                            </Avatar>
                          </TableCell>
+                         <TableCell>
+                           <Input
+                             type="number"
+                             min={1}
+                             max={items.length}
+                             defaultValue={items.findIndex((i) => i.id === item.id) + 1}
+                             key={`pos-${item.id}-${items.findIndex((i) => i.id === item.id)}`}
+                             onBlur={(e) => {
+                               const v = parseInt(e.target.value, 10);
+                               if (!isNaN(v)) moveItemToPosition(item.id, v);
+                             }}
+                             onKeyDown={(e) => {
+                               if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                             }}
+                             className="h-8 w-14 text-center px-1"
+                             title="Digite a posição desejada"
+                           />
                          <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
