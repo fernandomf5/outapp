@@ -75,6 +75,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   const { options: statusOptions } = useStatusOptions();
+  const sortKey = categoryId ? `registration-sort:${categoryId}` : null;
+  const [sortMode, setSortMode] = useState<'custom' | 'recent' | 'oldest' | 'name'>(() => {
+    try {
+      if (!sortKey) return 'custom';
+      return (localStorage.getItem(sortKey) as any) || 'custom';
+    } catch { return 'custom'; }
+  });
+  useEffect(() => { if (sortKey) { try { localStorage.setItem(sortKey, sortMode); } catch {} } }, [sortKey, sortMode]);
 
   useEffect(() => {
     if (!sessionKey) return;
