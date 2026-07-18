@@ -32,6 +32,7 @@ interface Message {
   media_type?: string | null;
   metadata?: {
     buttons?: string[];
+    trigger?: string;
   };
 }
 
@@ -317,10 +318,13 @@ export default function AgentCustomerChat() {
 
       setAgentInfo(data.agent);
       setConversationId(data.conversationId);
-      // Only update messages if we actually got messages back
-      // This prevents overwriting the optimistic state if messages arrive via realtime
+      
+      // Se recebemos mensagens (histórico), carregamos elas
       if (data.messages && data.messages.length > 0) {
         setMessages(data.messages);
+      } else {
+        // Se for conversa nova, limpamos mensagens para garantir que o realtime do gatilho inicial funcione
+        setMessages([]);
       }
       
       // Set attendant status from agent data
@@ -442,8 +446,12 @@ export default function AgentCustomerChat() {
           console.log('Nova mensagem recebida via realtime:', payload);
           const newMessage = payload.new as Message;
           console.log('Dados da nova mensagem:', newMessage);
+          
+          // Se for uma mensagem automática de gatilho inicial, sempre adicionamos se a lista estiver vazia
+          const isInitialTrigger = newMessage.metadata?.trigger === 'initial';
           const key = `${newMessage.role}:${newMessage.content}`;
-          if (sentMessagesRef.current.has(key)) {
+          
+          if (!isInitialTrigger && sentMessagesRef.current.has(key)) {
             // Prevent duplicate of optimistic message
             sentMessagesRef.current.delete(key);
             return;

@@ -322,8 +322,8 @@ serve(async (req) => {
 
         // 2. Se for a primeira mensagem ou saudação genérica, procurar gatilhos globais
         if (!targetTriggerNode) {
-          const isGreeting = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!'].includes(normalizedMsg);
-          if (isFirstMessage || isGreeting) {
+          const isGreeting = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!', ''].includes(normalizedMsg);
+          if (isFirstMessage || isGreeting || normalizedMsg === '') {
             targetTriggerNode = triggerNodes.find((n: any) => 
               n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
             );
@@ -343,7 +343,7 @@ serve(async (req) => {
               role: 'agent',
               content: flowResponse,
               sender_name: agent.name,
-              metadata: { buttons } // Supondo que o front trate metadados para botões
+              metadata: { buttons, trigger: 'initial' } // Marcamos que é um gatilho inicial
             });
 
             return new Response(
@@ -365,7 +365,7 @@ serve(async (req) => {
                 role: 'agent',
                 content: flowResponse,
                 sender_name: agent.name,
-                metadata: { buttons: nextNode.data.buttons || [] }
+                metadata: { buttons: nextNode.data.buttons || [], trigger: 'initial' }
               });
 
               return new Response(
