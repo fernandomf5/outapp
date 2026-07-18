@@ -443,55 +443,72 @@ export const PropertiesPanel = ({
               </p>
               <div className="space-y-3">
                 {buttons.map((button, index) => (
-                  <Card key={index} className="p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Input
-                        value={button.text}
-                        onChange={(e) => updateButtonText(index, e.target.value)}
-                        placeholder="Texto do botão"
-                        className="text-sm font-medium"
-                      />
+                  <Card key={button.id || index} className="p-3 space-y-2 relative group">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 space-y-2">
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground uppercase font-bold">Texto do Botão</Label>
+                          <Input
+                            value={button.text}
+                            onChange={(e) => updateButtonText(index, e.target.value)}
+                            placeholder="Texto do botão"
+                            className="text-sm font-medium h-8"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground uppercase font-bold">Link (opcional)</Label>
+                          <Input
+                            value={button.url || ''}
+                            onChange={(e) => updateButtonUrl(index, e.target.value)}
+                            placeholder="https://exemplo.com"
+                            className="text-xs h-8"
+                          />
+                        </div>
+                        <div className="pt-1 flex items-center justify-between">
+                          <span className="text-[10px] bg-accent px-1.5 py-0.5 rounded text-muted-foreground font-mono">
+                            ID: {button.id?.substring(0, 6)}
+                          </span>
+                        </div>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         type="button"
                         onClick={() => removeButton(index)}
-                        className="h-8 w-8 ml-2"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
-                        <X className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Link (opcional)</Label>
-                      <Input
-                        value={button.url || ''}
-                        onChange={(e) => updateButtonUrl(index, e.target.value)}
-                        placeholder="https://exemplo.com"
-                        className="text-xs mt-1"
-                      />
                     </div>
                   </Card>
                 ))}
-                <div className="space-y-2">
-                  <Input
-                    value={newButton}
-                    onChange={(e) => setNewButton(e.target.value)}
-                    placeholder="Texto do botão..."
-                  />
-                  <Input
-                    value={newButtonUrl}
-                    onChange={(e) => setNewButtonUrl(e.target.value)}
-                    placeholder="https://exemplo.com (opcional)"
-                  />
-                  <Button 
-                    size="sm" 
-                    type="button" 
-                    onClick={addButton}
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Botão
-                  </Button>
+                <div className="bg-accent/30 p-4 rounded-lg border border-dashed border-border space-y-3">
+                  <h4 className="text-xs font-bold flex items-center gap-2">
+                    <Plus className="w-3 h-3" />
+                    NOVO BOTÃO
+                  </h4>
+                  <div className="space-y-2">
+                    <Input
+                      value={newButton}
+                      onChange={(e) => setNewButton(e.target.value)}
+                      placeholder="Texto do botão..."
+                      className="h-9"
+                    />
+                    <Input
+                      value={newButtonUrl}
+                      onChange={(e) => setNewButtonUrl(e.target.value)}
+                      placeholder="Link (opcional)..."
+                      className="h-9"
+                    />
+                    <Button 
+                      size="sm" 
+                      type="button" 
+                      onClick={addButton}
+                      className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 h-9"
+                    >
+                      Confirmar Botão
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
