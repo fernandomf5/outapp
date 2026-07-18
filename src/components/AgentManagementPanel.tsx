@@ -186,7 +186,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
           </h2>
           {!activeTab && (
             <p className="text-muted-foreground">
-              Gerencie agendamentos, pedidos e clientes do seu agente IA
+              Gerencie conversas, fluxos e clientes do seu agente IA
             </p>
           )}
         </div>
