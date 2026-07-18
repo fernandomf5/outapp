@@ -201,6 +201,63 @@ function buildPersonalityDescription(personality: any): string {
   return `Sua personalidade é ${tone}, ${formalityDesc}. Você é ${proactivityDesc} e ${empathyDesc}.`;
 }
 
+async function handleNodeProcessing(node: any, nodes: any[], edges: any[], conversationId: string, agent: any, supabase: any): Promise<Response> {
+  console.log('Processing node type:', node.type, 'ID:', node.id);
+  
+  if (node.type === 'message' || node.type === 'text' || node.type === 'button' || node.type === 'quickReply' || node.type === 'trigger') {
+    const content = node.data?.label || node.data?.content || '';
+    const buttons = node.data?.buttons || [];
+    
+    // Salvar mensagem no banco
+    await supabase.from('agent_messages').insert({
+      conversation_id: conversationId,
+      role: 'agent',
+      content: content,
+      sender_name: agent.name,
+      metadata: { 
+        buttons, 
+        nodeId: node.id 
+      }
+    });
+
+    return new Response(
+      JSON.stringify({ response: content, buttons }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } else if (node.type === 'question') {
+    const content = node.data?.label || 'Qual sua resposta?';
+    
+    await supabase.from('agent_messages').insert({
+      conversation_id: conversationId,
+      role: 'agent',
+      content: content,
+      sender_name: agent.name,
+      metadata: { 
+        nodeId: node.id,
+        is_question: true,
+        variable: node.data?.variable
+      }
+    });
+
+    return new Response(
+      JSON.stringify({ response: content }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } else if (node.type === 'condition' || node.type === 'action') {
+    // Para condição e ação na prévia/runtime simplificado, apenas seguimos para o próximo nó
+    const edge = edges.find((e: any) => e.source === node.id);
+    if (edge) {
+      const nextNode = nodes.find((n: any) => n.id === edge.target);
+      if (nextNode) return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ error: 'Fim do fluxo ou tipo de nó não suportado' }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -276,89 +333,66 @@ serve(async (req) => {
         }));
         const edges = flowConfig.edges || [];
 
-        // Tentar encontrar se já estamos no meio de um fluxo (baseado na última mensagem do agente que tinha botões)
+        // Identificar se a mensagem atual é uma resposta a botões de uma mensagem anterior
         const lastAgentMessage = [...(prevMessages || [])].reverse().find(m => m.role === 'agent');
         
         if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
-          console.log('Last agent message had buttons, checking for match...');
+          console.log('Last agent message had buttons, checking for match:', normalizedMsg);
+          const buttons = lastAgentMessage.metadata.buttons;
+          
+          let clickedButton = null;
           let clickedButtonIndex = -1;
-          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any, idx: number) => {
+
+          // 1. Tentar match exato ou parcial no texto
+          for (let i = 0; i < buttons.length; i++) {
+            const btn = buttons[i];
             const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
             const btnId = typeof btn === 'object' ? btn.id : null;
             
-            const isMatch = btnText === normalizedMsg || 
-                   normalizedMsg === btnText || 
-                   normalizedMsg.includes(btnText) ||
-                   (btnId && (normalizedMsg.includes(btnId) || normalizedMsg.includes(`btn-${btnId}`)));
-            
-            if (isMatch) clickedButtonIndex = idx;
-            return isMatch;
-          });
-
-          if (clickedButton) {
-            console.log('Button match found:', clickedButton);
-            
-            // Try to find the source node
-            let sourceNode = nodes.find((n: any) => n.id === lastAgentMessage.metadata?.nodeId);
-            
-            if (!sourceNode) {
-              // Fallback to label match if nodeId is missing
-              sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content);
+            if (btnText === normalizedMsg || 
+                normalizedMsg === btnText || 
+                normalizedMsg.includes(btnText) ||
+                (btnId && (normalizedMsg === btnId || normalizedMsg === `btn-${btnId}`))) {
+              clickedButton = btn;
+              clickedButtonIndex = i;
+              break;
             }
-
-            if (sourceNode) {
-              const buttonText = typeof clickedButton === 'string' ? clickedButton : clickedButton.text;
-              const buttonId = typeof clickedButton === 'object' ? clickedButton.id : null;
-              
-              console.log('Finding edge from node:', sourceNode.id, 'with button:', buttonText, 'or ID:', buttonId);
-
-              // 1. Try to find an edge that matches the specific button handle (ID or label)
-              let edge = edges.find((e: any) => 
-                (e.source === sourceNode.id) && 
-                ((e.sourceHandle === buttonText) || 
-                 (buttonId && (e.sourceHandle === buttonId || e.sourceHandle === `btn-${buttonId}`)) ||
-                 (buttonText && e.sourceHandle === `btn-${buttonText}`) ||
-                 (clickedButtonIndex !== -1 && (e.sourceHandle === `btn-${clickedButtonIndex}` || e.sourceHandle === `${clickedButtonIndex}`)))
-              );
-              
-              // 2. Fallback: If no specific edge for the button, look for ANY outgoing edge (linear flow)
-              if (!edge) {
-                edge = edges.find((e: any) => e.source === sourceNode.id);
-              }
-              
-              if (edge) {
-                const nextNode = nodes.find((n: any) => n.id === edge.target);
-                if (nextNode && nextNode.data?.label) {
-                   const flowResponse = nextNode.data.label;
-                   console.log('Next node found:', nextNode.id, 'Response:', flowResponse);
-
-                   await supabase.from('agent_messages').insert({
-                     conversation_id: conversationId,
-                     role: 'agent',
-                     content: flowResponse,
-                     sender_name: agent.name,
-                     metadata: { 
-                       buttons: nextNode.data.buttons || [], 
-                       nodeId: nextNode.id,
-                       source_btn: buttonText
-                     }
-                   });
-
-                   return new Response(
-                     JSON.stringify({ response: flowResponse }),
-                     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-                   );
-                }
-              } else {
-                console.log('No edge found from source node:', sourceNode.id);
-              }
-            } else {
-              console.log('Source node not found for last message');
-            }
-          } else {
-            console.log('No button text match found for:', normalizedMsg);
           }
 
+          if (clickedButton) {
+            console.log('Button match found at index:', clickedButtonIndex);
+            const sourceNodeId = lastAgentMessage.metadata?.nodeId;
+            const buttonId = typeof clickedButton === 'object' ? clickedButton.id : null;
+            const buttonText = typeof clickedButton === 'object' ? clickedButton.text : clickedButton;
+
+            // Encontrar edge que sai do nó anterior pelo handle do botão
+            const edge = edges.find((e: any) => 
+              e.source === sourceNodeId && (
+                e.sourceHandle === buttonId || 
+                e.sourceHandle === `btn-${buttonId}` || 
+                e.sourceHandle === `btn-${clickedButtonIndex}` || 
+                e.sourceHandle === `${clickedButtonIndex}` ||
+                (buttonText && e.sourceHandle === `btn-${buttonText}`) ||
+                (buttonText && e.sourceHandle === buttonText)
+              )
+            );
+
+            if (edge) {
+              const nextNode = nodes.find((n: any) => n.id === edge.target);
+              if (nextNode) {
+                console.log('Transitioning to next node:', nextNode.id);
+                // Recursivamente processar o nó (isso pode ser uma mensagem, ação, condição, etc.)
+                return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
+              }
+            } else {
+              console.log('No specific edge found for button, looking for default outgoing edge from:', sourceNodeId);
+              const defaultEdge = edges.find((e: any) => e.source === sourceNodeId && !e.sourceHandle);
+              if (defaultEdge) {
+                const nextNode = nodes.find((n: any) => n.id === defaultEdge.target);
+                if (nextNode) return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
+              }
+            }
+          }
         }
 
         const customerMessages = (prevMessages || []).filter(m => m.role === 'customer');
@@ -390,71 +424,40 @@ serve(async (req) => {
         if (targetTriggerNode) {
           console.log('Trigger found:', targetTriggerNode.data?.triggerType);
           
-          // Se for gatilho de botões, enviar a mensagem de boas-vindas e os botões
+          // Se o gatilho for do tipo 'buttons', ele já contém a mensagem e os botões
           if (targetTriggerNode.data?.triggerType === 'buttons') {
-            const flowResponse = targetTriggerNode.data.label || 'Como posso ajudar?';
-            const buttons = targetTriggerNode.data.buttons || [];
-            
-            await supabase.from('agent_messages').insert({
-              conversation_id: conversationId,
-              role: 'agent',
-              content: flowResponse,
-              sender_name: agent.name,
-              metadata: { buttons, trigger: 'initial', nodeId: targetTriggerNode.id } // Marcamos que é um gatilho inicial
-            });
-
-            return new Response(
-              JSON.stringify({ response: flowResponse, buttons }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+            return await handleNodeProcessing(targetTriggerNode, nodes, edges, conversationId, agent, supabase);
           }
 
-          // Para outros gatilhos, seguir para o próximo nó
+          // Para outros gatilhos (any, keyword), buscar o primeiro nó conectado
           const firstEdge = edges.find((e: any) => e.source === targetTriggerNode.id);
           if (firstEdge) {
             const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
-            if (nextNode && nextNode.data?.label) {
-              const flowResponse = nextNode.data.label;
-              console.log('Responding with flow content:', flowResponse);
-              
-              await supabase.from('agent_messages').insert({
-                conversation_id: conversationId,
-                role: 'agent',
-                content: flowResponse,
-                sender_name: agent.name,
-                metadata: { buttons: nextNode.data.buttons || [], trigger: 'initial', nodeId: nextNode.id }
-              });
-
-              return new Response(
-                JSON.stringify({ response: flowResponse }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-              );
+            if (nextNode) {
+              return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
             }
           }
         } else {
-          // Se houver fluxo ativo mas a mensagem não bateu com gatilho nem botão,
-          // enviar o gatilho inicial novamente se configurado para isso
+          // Fallback: se não houver match, tentar o gatilho inicial "Any" ou "Buttons"
           console.log('No trigger or button match found for flow. Sending initial trigger.');
           const initialTrigger = triggerNodes.find((n: any) => 
             n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
           );
           
           if (initialTrigger) {
-            // Se for gatilho de botões, usar o label dele, senão buscar o primeiro nó após o gatilho
-            let flowResponse = initialTrigger.data.label || 'Escolha uma opção:';
-            let buttons = initialTrigger.data.buttons || [];
-            
-            // Se o gatilho não tiver botões, tenta pegar do próximo nó
-            if (buttons.length === 0) {
-              const firstEdge = edges.find((e: any) => e.source === initialTrigger.id);
-              if (firstEdge) {
-                const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
-                if (nextNode) {
-                  flowResponse = nextNode.data.label || flowResponse;
-                  buttons = nextNode.data.buttons || [];
-                }
-              }
+            // Se for botões, processa o gatilho direto
+            if (initialTrigger.data?.triggerType === 'buttons') {
+               return await handleNodeProcessing(initialTrigger, nodes, edges, conversationId, agent, supabase);
             }
+            
+            // Senão busca o primeiro conectado
+            const firstEdge = edges.find((e: any) => e.source === initialTrigger.id);
+            if (firstEdge) {
+              const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
+              if (nextNode) return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
+            }
+          }
+        }
 
             // Adiciona um prefixo para orientar o usuário caso ele tenha digitado algo fora do fluxo
             const responseWithPrefix = `Não entendi. Por favor, escolha uma opção:\n\n${flowResponse}`;
