@@ -349,9 +349,13 @@ serve(async (req) => {
             const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
             const btnId = typeof btn === 'object' ? btn.id : null;
             
+            // Log for debugging button matching
+            console.log(`Checking button ${i}: "${btnText}" (ID: ${btnId}) against message: "${normalizedMsg}"`);
+
             if (btnText === normalizedMsg || 
                 normalizedMsg === btnText || 
-                normalizedMsg.includes(btnText) ||
+                (btnText.length > 2 && normalizedMsg.includes(btnText)) ||
+                (normalizedMsg.length > 2 && btnText.includes(normalizedMsg)) ||
                 (btnId && (normalizedMsg === btnId || normalizedMsg === `btn-${btnId}`))) {
               clickedButton = btn;
               clickedButtonIndex = i;
