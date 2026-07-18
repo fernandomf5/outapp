@@ -93,11 +93,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
     { id: "flows", label: "Fluxos", icon: <Workflow /> },
     { id: "ai", label: "Agente IA", icon: <Brain /> },
-    { id: "services", label: "Serviços", icon: <Wrench /> },
-    { id: "products", label: "Produtos", icon: <Package /> },
-    { id: "schedule", label: "Horários", icon: <Clock /> },
-    { id: "appointments", label: "Agendamentos", icon: <Calendar />, badge: pendingAppointments },
-    { id: "orders", label: "Pedidos", icon: <ShoppingBag />, badge: pendingOrders },
     { id: "customers", label: "Clientes", icon: <Users /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 /> },
   ];
@@ -110,16 +105,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
         return <AgentFlowsPanel agentId={agentId} />;
       case "ai":
         return <AgentAIPanel agentId={agentId} />;
-      case "services":
-        return <AgentServicesPanel agentId={agentId} />;
-      case "products":
-        return <AgentProductsPanel agentId={agentId} />;
-      case "schedule":
-        return <AgentSchedulePanel agentId={agentId} />;
-      case "appointments":
-        return <AgentAppointmentsPanel agentId={agentId} />;
-      case "orders":
-        return <AgentOrdersPanel agentId={agentId} />;
       case "customers":
         return <AgentCustomersPanel agentId={agentId} />;
       case "analytics":
