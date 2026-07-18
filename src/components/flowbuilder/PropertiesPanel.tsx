@@ -37,6 +37,7 @@ export const PropertiesPanel = ({
   const [documentName, setDocumentName] = useState('');
   const [delaySeconds, setDelaySeconds] = useState<number>(0);
   const [keyword, setKeyword] = useState('');
+  const [triggerType, setTriggerType] = useState<'any' | 'keyword' | 'buttons'>('any');
 
   useEffect(() => {
     if (selectedNode) {
