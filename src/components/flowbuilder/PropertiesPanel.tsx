@@ -57,6 +57,7 @@ export const PropertiesPanel = ({
       setDocumentName(selectedNode.data.documentName || '');
       setDelaySeconds(selectedNode.data.delaySeconds || 0);
       setKeyword(selectedNode.data.keyword || '');
+      setTriggerType(selectedNode.data.triggerType || 'any');
     }
   }, [selectedNode]);
 
