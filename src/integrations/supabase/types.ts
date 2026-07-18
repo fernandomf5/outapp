@@ -892,6 +892,7 @@ export type Database = {
           id: string
           media_type: string | null
           media_url: string | null
+          metadata: Json | null
           role: string
           sender_name: string | null
         }
@@ -902,6 +903,7 @@ export type Database = {
           id?: string
           media_type?: string | null
           media_url?: string | null
+          metadata?: Json | null
           role: string
           sender_name?: string | null
         }
@@ -912,6 +914,7 @@ export type Database = {
           id?: string
           media_type?: string | null
           media_url?: string | null
+          metadata?: Json | null
           role?: string
           sender_name?: string | null
         }
