@@ -106,53 +106,56 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
   const findNextNode = (currentNodeId: string, userResponse?: string): Node | null => {
     const currentNode = nodes.find(n => n.id === currentNodeId);
 
-    const checkByIndex = (idx: number) => {
-      const outgoing = edges.filter(e => e.source === currentNodeId);
-      if (outgoing.length > idx) {
-        return nodes.find(n => n.id === outgoing[idx].target) || null;
-      }
-      return null;
-    };
-
-    // Quick Reply, Botões, Perguntas e outros com handles por botão ou index
-    if (['quickReply', 'button', 'question', 'message', 'action'].includes(currentNode?.type || '') && userResponse) {
-      const btns: any[] = currentNode?.data?.buttons || [];
+    // Se o nó atual tiver botões, verificar match com a resposta do usuário
+    const btns: any[] = currentNode?.data?.buttons || [];
+    if (btns.length > 0 && userResponse) {
       const idx = btns.findIndex(b => {
         const btnText = (typeof b === 'string' ? b : b?.text || '').toLowerCase().trim();
-        return btnText === userResponse.trim().toLowerCase();
+        return btnText === userResponse.trim().toLowerCase() || userResponse.trim().toLowerCase().includes(btnText);
       });
 
       if (idx >= 0) {
         const buttonId = btns[idx]?.id;
+        // Tentar encontrar edge por sourceHandle (ID do botão ou índice)
         const edgeByHandle = edges.find(e => 
           e.source === currentNodeId && 
-          (e.sourceHandle === `btn-${idx}` || 
-           e.sourceHandle === `${idx}` || 
-           (buttonId && (e.sourceHandle === buttonId || e.sourceHandle === `btn-${buttonId}`)))
+          (e.sourceHandle === buttonId || 
+           e.sourceHandle === `btn-${buttonId}` || 
+           e.sourceHandle === `btn-${idx}` || 
+           e.sourceHandle === `${idx}` ||
+           (btns[idx].text && (e.sourceHandle === `btn-${btns[idx].text}` || e.sourceHandle === btns[idx].text)))
         );
         
         if (edgeByHandle) {
           return nodes.find(n => n.id === edgeByHandle.target) || null;
         }
-        // Fallback: usar a N-ésima aresta quando não houver sourceHandle
-        const byIndex = checkByIndex(idx);
-        if (byIndex) return byIndex;
+
+        // Fallback: se não houver handle, pegar a aresta correspondente ao índice
+        const outgoing = edges.filter(e => e.source === currentNodeId);
+        if (outgoing.length > idx) {
+           return nodes.find(n => n.id === outgoing[idx].target) || null;
+        }
       }
     }
 
     // Condição (Sim/Não)
     if (currentNode?.type === 'condition') {
-      // Simular um match simples na prévia para fins de demonstração
       const isPositive = userResponse?.toLowerCase().match(/sim|ok|quero|vou|tenho|aceito|concordo/);
       const handleId = isPositive ? 'true' : 'false';
       const edge = edges.find(e => e.source === currentNodeId && e.sourceHandle === handleId);
       if (edge) return nodes.find(n => n.id === edge.target) || null;
     }
 
-    // Fallback: primeira aresta de saída
-    const nextEdge = edges.find(e => e.source === currentNodeId);
+    // Fallback: primeira aresta de saída sem handle (fluxo linear)
+    const nextEdge = edges.find(e => e.source === currentNodeId && !e.sourceHandle);
     if (nextEdge) {
       return nodes.find(n => n.id === nextEdge.target) || null;
+    }
+
+    // Se não encontrou linear, pega qualquer primeira aresta de saída
+    const anyEdge = edges.find(e => e.source === currentNodeId);
+    if (anyEdge) {
+      return nodes.find(n => n.id === anyEdge.target) || null;
     }
 
     return null;
