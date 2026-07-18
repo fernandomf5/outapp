@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LayoutDashboard } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -27,6 +27,15 @@ export const LandingHeader = () => {
   const { settings, isLoading } = useSiteSettings();
   const [headerPages, setHeaderPages] = useState<CustomPageItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setIsAuthenticated(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setIsAuthenticated(!!session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const fetchPages = async () => {
@@ -100,15 +109,30 @@ export const LandingHeader = () => {
               <ThemeToggle />
               <LanguageSelector />
               
-              {/* Login Button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate("/auth")} 
-                className="active:scale-95 transition-transform"
-              >
-                Entrar/Cadastre-se
-              </Button>
+              
+              
+              {/* Login / Dashboard Button */}
+              {isAuthenticated ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/dashboard")}
+                  className="active:scale-95 transition-transform gap-2"
+                  title="Ir para o painel"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span className="hidden sm:inline">Painel</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/auth")}
+                  className="active:scale-95 transition-transform"
+                >
+                  Entrar/Cadastre-se
+                </Button>
+              )}
               
               {/* Menu Button - All Screens */}
               <button 

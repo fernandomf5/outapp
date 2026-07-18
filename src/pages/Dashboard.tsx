@@ -538,12 +538,21 @@ const Dashboard = () => {
                       <LanguageSelector />
                       <ThemeToggle />
                     </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open("/", "_blank")}
+                      size="icon"
+                      className="h-8 w-8 sm:h-9 sm:w-9 ml-1"
+                      title="Visitar site"
+                    >
+                      <Globe className="w-4 h-4" />
+                    </Button>
                     {!isTeamMember && (
                       <Button
                         variant="outline"
                         onClick={() => navigate("/settings")}
                         size="icon"
-                        className="h-8 w-8 sm:h-9 sm:w-9 ml-1"
+                        className="h-8 w-8 sm:h-9 sm:w-9"
                       >
                         <Settings className="w-4 h-4" />
                       </Button>
