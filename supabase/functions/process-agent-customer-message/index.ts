@@ -283,20 +283,23 @@ serve(async (req) => {
           console.log('Last agent message had buttons, checking for match...');
           const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => {
             const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
-            // Match exact or check if message is a subset of button text (common for mobile keyboards)
-            // Or if message contains the button text
-            return btnText === normalizedMsg || normalizedMsg === btnText || normalizedMsg.includes(btnText);
+            const btnId = typeof btn === 'object' ? btn.id : null;
+            
+            // Match exact, subset, or keyword mapping
+            return btnText === normalizedMsg || 
+                   normalizedMsg === btnText || 
+                   normalizedMsg.includes(btnText) ||
+                   (btnId && (normalizedMsg.includes(btnId) || normalizedMsg.includes(`btn-${btnId}`)));
           });
 
           if (clickedButton) {
             console.log('Button match found:', clickedButton);
             
-            // Try to find the source node. Check:
-            // 1. By nodeId stored in metadata (most reliable)
-            // 2. By content match (fallback)
+            // Try to find the source node
             let sourceNode = nodes.find((n: any) => n.id === lastAgentMessage.metadata?.nodeId);
             
             if (!sourceNode) {
+              // Fallback to label match if nodeId is missing
               sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content);
             }
 
@@ -306,10 +309,13 @@ serve(async (req) => {
               
               console.log('Finding edge from node:', sourceNode.id, 'with button:', buttonText, 'or ID:', buttonId);
 
-              // 1. First try to find an edge that matches the specific button handle (ID or label)
+              // 1. Try to find an edge that matches the specific button handle (ID or label)
               let edge = edges.find((e: any) => 
                 (e.source === sourceNode.id) && 
-                (e.sourceHandle === buttonText || (buttonId && e.sourceHandle === buttonId) || (buttonId && e.sourceHandle === `btn-${buttonId}`))
+                (e.sourceHandle === buttonText || 
+                 (buttonId && (e.sourceHandle === buttonId || e.sourceHandle === `btn-${buttonId}`)) ||
+                 (buttonText && e.sourceHandle === `btn-${buttonText}`) ||
+                 (buttonId && e.sourceHandle === `btn-${buttonText}`)) // Extra fallback for ID mismatch
               );
               
               // 2. Fallback: If no specific edge for the button, look for ANY outgoing edge (linear flow)
@@ -352,25 +358,26 @@ serve(async (req) => {
 
         }
 
-        const isFirstMessage = (prevMessages || []).filter(m => m.role === 'customer').length === 0;
+        const customerMessages = (prevMessages || []).filter(m => m.role === 'customer');
+        const isFirstMessage = customerMessages.length <= 1; // Including the current one if it was already inserted
+        
         const triggerNodes = nodes.filter((n: any) => n.type === 'trigger');
         let targetTriggerNode = null;
 
-        // 1. Palavra-chave sempre tem prioridade
+        // 1. Keyword check (priority)
         targetTriggerNode = triggerNodes.find((n: any) => 
           n.data?.triggerType === 'keyword' && 
           n.data?.keyword && 
           normalizedMsg.includes(n.data.keyword.toLowerCase().trim())
         );
 
-        // 2. Se for a primeira mensagem ou saudação genérica, procurar gatilhos globais
+        // 2. Greeting or first message check
         if (!targetTriggerNode) {
           const PortugueseGreetings = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!'];
           const isGreeting = PortugueseGreetings.includes(normalizedMsg) || 
                             PortugueseGreetings.some(g => normalizedMsg.startsWith(g + ' '));
-          const hasNoCustomerMessages = (prevMessages || []).filter(m => m.role === 'customer').length === 0;
           
-          if (isFirstMessage || isGreeting || normalizedMsg === '' || hasNoCustomerMessages) {
+          if (isFirstMessage || isGreeting || normalizedMsg === '') {
             targetTriggerNode = triggerNodes.find((n: any) => 
               n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
             );
