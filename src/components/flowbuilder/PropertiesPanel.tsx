@@ -497,6 +497,47 @@ export const PropertiesPanel = ({
             </div>
           </>
         )}
+        {/* Action Type */}
+        {selectedNode.type === 'action' && (
+          <div className="space-y-4">
+            <Label htmlFor="actionType">Tipo de Ação</Label>
+            <RadioGroup 
+              value={actionType} 
+              onValueChange={(val: string) => {
+                setActionType(val);
+                onUpdateNode(selectedNode.id, { actionType: val });
+              }}
+              className="grid gap-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="save_contact" id="save_contact" />
+                <Label htmlFor="save_contact">Salvar Contato</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="update_tag" id="update_tag" />
+                <Label htmlFor="update_tag">Adicionar Tag</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="notify_admin" id="notify_admin" />
+                <Label htmlFor="notify_admin">Notificar Admin</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        )}
+
+        {/* Question Variable */}
+        {selectedNode.type === 'question' && (
+          <div className="space-y-4">
+            <Label htmlFor="variable">Nome da Variável para Salvar</Label>
+            <Input
+              id="variable"
+              value={variable}
+              onChange={(e) => setVariable(e.target.value)}
+              onBlur={handleUpdate}
+              placeholder="Ex: nome_cliente, interesse, email"
+            />
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">
