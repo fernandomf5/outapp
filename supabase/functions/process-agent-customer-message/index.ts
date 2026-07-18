@@ -246,6 +246,66 @@ serve(async (req) => {
 
     console.log('Flows enabled:', flowsEnabled);
 
+    // Se houver fluxos ativos, processar o fluxo primeiro
+    if (flowsEnabled) {
+      console.log('Searching for active flows for agent:', agentId);
+      const { data: activeFlows } = await supabase
+        .from('agent_chat_flows')
+        .select('*')
+        .eq('agent_id', agentId)
+        .eq('is_active', true);
+
+      if (activeFlows && activeFlows.length > 0) {
+        console.log('Found active flows:', activeFlows.length);
+        
+        // Simular o comportamento do fluxo:
+        // Se for a primeira mensagem (oi, etc), responder com o primeiro nó do fluxo
+        const isFirstMessage = (prevMessages || []).length <= 1;
+        const normalizedMsg = message.toLowerCase().trim();
+        const isGreeting = normalizedMsg === 'oi' || normalizedMsg === 'olá' || normalizedMsg === 'bom dia' || normalizedMsg === 'boa tarde' || normalizedMsg === 'boa noite';
+
+        if (isFirstMessage || isGreeting) {
+          const mainFlow = activeFlows[0];
+          const nodes = (mainFlow.config as any)?.nodes || [];
+          // Tentar encontrar um nó de texto inicial (após o gatilho)
+          const startNode = nodes.find((n: any) => n.type === 'text' || n.type === 'trigger');
+          
+          if (startNode) {
+            let flowResponse = "";
+            if (startNode.type === 'trigger') {
+              // Se o nó inicial for um gatilho, pegamos o próximo nó conectado
+              const edges = (mainFlow.config as any)?.edges || [];
+              const firstEdge = edges.find((e: any) => e.source === startNode.id);
+              if (firstEdge) {
+                const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
+                if (nextNode && nextNode.data?.label) {
+                  flowResponse = nextNode.data.label;
+                }
+              }
+            } else if (startNode.data?.label) {
+              flowResponse = startNode.data.label;
+            }
+
+            if (flowResponse) {
+              console.log('Responding with flow content:', flowResponse);
+              await supabase.from('agent_messages').insert({
+                conversation_id: conversationId,
+                role: 'agent',
+                content: flowResponse,
+                sender_name: agent.name
+              });
+
+              return new Response(
+                JSON.stringify({ response: flowResponse }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+          }
+        }
+      }
+    }
+
+
     // Get customer info
     const { data: customerRecord } = await supabase
       .from('agent_customers')
