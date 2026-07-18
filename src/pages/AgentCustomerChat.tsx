@@ -911,6 +911,28 @@ export default function AgentCustomerChat() {
                       </a>
                     )}
                     <p className="whitespace-pre-wrap">{linkifyText(message.content)}</p>
+                    {message.metadata?.buttons && message.metadata.buttons.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {message.metadata.buttons.map((btn: any, idx: number) => (
+                          <Button
+                            key={idx}
+                            variant="outline"
+                            size="sm"
+                            className="bg-white hover:bg-white/90 text-primary border-white"
+                            onClick={() => {
+                              setInput(typeof btn === 'string' ? btn : btn.text);
+                              // Trigger send in next tick
+                              setTimeout(() => {
+                                const submitBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+                                submitBtn?.click();
+                              }, 100);
+                            }}
+                          >
+                            {typeof btn === 'string' ? btn : btn.text}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                     <span className="text-xs opacity-70 mt-1 block">
                       {new Date(message.created_at).toLocaleTimeString()}
                     </span>
