@@ -766,7 +766,7 @@ export default function AgentCustomerChat() {
 
   return (
     <div className="min-h-dvh bg-transparent">
-      <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-2 sm:p-4">
+      <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-0 sm:p-4">
         <Card className="flex-1 flex flex-col relative">
           {/* Header fixo */}
           <div className="sticky top-0 z-10 p-3 sm:p-4 border-b flex items-center justify-between gap-2" style={{ backgroundColor: primaryColor, color: 'white' }}>
