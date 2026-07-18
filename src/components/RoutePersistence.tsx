@@ -28,6 +28,13 @@ const EXCLUDED_PREFIXES = [
   "/chatbot-reset-password",
   "/agent-reset-password",
   "/blog",
+  "/briefing/",
+  "/q/",
+  "/members/",
+  "/checkout/",
+  "/contrato/",
+  "/proposta/",
+  "/fatura/",
 ];
 
 // Entry paths where we should try to restore the previous route.

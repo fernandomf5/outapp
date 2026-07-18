@@ -42,12 +42,12 @@ export default function BriefingPublicPage() {
 
       if (error) {
         console.error('Supabase error fetching briefing:', error);
-        throw error;
+        setLoading(false);
+        return;
       }
       
       if (!data) {
         console.warn('No briefing found for ID:', briefingId);
-        toast.error("Briefing não encontrado");
         setLoading(false);
         return;
       }
@@ -57,7 +57,6 @@ export default function BriefingPublicPage() {
       setBriefing(data);
     } catch (error) {
       console.error('Catch block error loading briefing:', error);
-      toast.error("Briefing não encontrado");
     } finally {
       setLoading(false);
     }
