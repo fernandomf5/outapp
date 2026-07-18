@@ -457,13 +457,13 @@ serve(async (req) => {
               const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
               if (nextNode) return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
             }
-          }
         }
       }
     }
   }
 
     // Get customer info
+
 
     const { data: customerRecord } = await supabase
       .from('agent_customers')
