@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell, Link2 } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell, Link2, Share2, Code, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -26,6 +26,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AgentNotificationsPanel from "@/components/AgentNotificationsPanel";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TeamContext {
   adminUserId: string;
@@ -295,52 +301,59 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
               </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => handleCopyLink(agent.id, agent.name)}
-                >
-                  <Copy className="w-3 h-3 mr-2" />
-                  {t('copy_link')}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => {
-                    const link = `${window.location.origin}/agent-auth/${agent.id}`;
-                    const embedCode = `<script src="${window.location.origin}/floating-chat.js" data-agent-id="${agent.id}"></script>`;
-                    navigator.clipboard.writeText(embedCode);
-                    toast({
-                      title: "Código de incorporação copiado!",
-                      description: "Cole o script no final do <body> do seu site.",
-                    });
-                  }}
-                >
-                  <Link2 className="w-3 h-3 mr-2" />
-                  Incorporar
-                </Button>
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 shadow-sm hover:shadow-md transition-all active:scale-95"
                   onClick={() => handleOpenChat(agent.id, agent.name)}
                 >
-                  <ExternalLink className="w-3 h-3 mr-2" />
+                  <ExternalLink className="w-4 h-4 mr-2" />
                   {t('open_chat')}
                 </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="px-2 shadow-sm">
+                      <Share2 className="w-4 h-4 mr-1" />
+                      <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem 
+                      onClick={() => handleCopyLink(agent.id, agent.name)}
+                      className="cursor-pointer"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      {t('copy_link')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        const embedCode = `<script src="${window.location.origin}/floating-chat.js" data-agent-id="${agent.id}"></script>`;
+                        navigator.clipboard.writeText(embedCode);
+                        toast({
+                          title: "Código de incorporação copiado!",
+                          description: "Cole o script no final do <body> do seu site.",
+                        });
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Code className="w-4 h-4 mr-2" />
+                      Incorporar Chat
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
               {onManage && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full"
+                  className="w-full bg-accent/5 hover:bg-accent/10 border-accent/20 hover:border-accent/40 transition-all"
                   onClick={() => onManage({ id: agent.id, name: agent.name, niche: agent.niche })}
                 >
-                  <Settings className="w-3 h-3 mr-2" />
+                  <Settings className="w-4 h-4 mr-2" />
                   Gerenciar
                 </Button>
               )}
