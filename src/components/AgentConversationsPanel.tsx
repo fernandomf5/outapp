@@ -814,7 +814,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                       variant="outline"
                       size="sm"
                       onClick={handleRestartConversation}
-                      className="gap-2"
+                      className="gap-2 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700 font-semibold"
                     >
                       <RefreshCw className="w-4 h-4" />
                       Reiniciar Fluxo
