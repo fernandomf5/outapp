@@ -82,11 +82,25 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const updateAttendantStatus = async (status: 'online' | 'offline' | 'busy') => {
     setAttendantStatus(status);
     
+    // Buscar config atual do agente
+    const { data: agentData } = await supabase
+      .from('ai_agents')
+      .select('config')
+      .eq('id', agentId)
+      .single();
+    
+    const currentConfig = agentData?.config as any || {};
+    
+    // Se o atendente entrar online, desabilitamos fluxos para assumir manual
+    // Se entrar offline, reabilitamos fluxos
+    const flowsEnabled = status === 'offline';
+
     const { error } = await supabase
       .from('ai_agents')
       .update({ 
         attendant_status: status,
-        attendant_name: senderName || null
+        attendant_name: senderName || null,
+        config: { ...currentConfig, flows_enabled: flowsEnabled }
       })
       .eq('id', agentId);
     
@@ -98,6 +112,11 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       });
     } else {
       toast({
+        title: "Status atualizado",
+        description: `Você está ${status === 'online' ? 'Online' : status === 'busy' ? 'Em Atendimento' : 'Offline'}. Fluxos automáticos: ${flowsEnabled ? 'Ativados' : 'Pausados'}.`,
+      });
+    }
+  };
         title: "Status atualizado",
         description: `Você está ${status === 'online' ? 'Online' : status === 'busy' ? 'Em Atendimento' : 'Offline'}`,
       });
