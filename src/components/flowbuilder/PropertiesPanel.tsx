@@ -99,7 +99,11 @@ export const PropertiesPanel = ({
 
   const addButton = () => {
     if (newButton.trim()) {
-      const updatedButtons = [...buttons, { text: newButton.trim(), url: newButtonUrl.trim() }];
+      const updatedButtons = [...buttons, { 
+        text: newButton.trim(), 
+        url: newButtonUrl.trim(), 
+        id: Math.random().toString(36).substr(2, 9) 
+      }];
       setButtons(updatedButtons);
       setNewButton('');
       setNewButtonUrl('');
