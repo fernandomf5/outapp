@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle, RefreshCw } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -369,6 +369,44 @@ export default function AgentCustomerChat() {
     }
   };
 
+
+  const handleRestartChat = async () => {
+    if (!conversationId) return;
+    
+    setLoading(true);
+    try {
+      // Archive current conversation and create a new one
+      const { error } = await supabase
+        .from('agent_conversations')
+        .update({ status: 'archived' })
+        .eq('id', conversationId);
+      
+      if (error) throw error;
+      
+      // Clear messages locally
+      setMessages([]);
+      sentMessagesRef.current = new Set();
+      
+      // Reload everything to get a new conversation and trigger initial flow
+      if (customer) {
+        await loadAgentAndConversation(customer.id, customer.name);
+      }
+      
+      toast({
+        title: "Chat reiniciado",
+        description: "O histórico foi zerado e o fluxo de atendimento reiniciado.",
+      });
+    } catch (error: any) {
+      console.error('Error restarting chat:', error);
+      toast({
+        title: "Erro ao reiniciar chat",
+        description: error.message || "Tente novamente mais tarde",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const setupPresenceTracking = () => {
     if (!conversationId || !customer?.id || !agentId) return () => {};
@@ -850,11 +888,24 @@ export default function AgentCustomerChat() {
               </div>
             </div>
             
-            {window.self === window.top && (
-              <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleRestartChat} 
+                disabled={loading}
+                title="Reiniciar Chat"
+                className="shrink-0 h-8 w-8 sm:h-10 sm:w-10 text-white hover:bg-white/20"
+              >
+                <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-            )}
+
+              {window.self === window.top && (
+                <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 h-8 w-8 sm:h-10 sm:w-10 text-white hover:bg-white/20">
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              )}
+            </div>
           </div>
 
           <div 
