@@ -540,7 +540,7 @@ const Dashboard = () => {
                     </div>
                     <Button
                       variant="outline"
-                      onClick={() => window.open("/", "_blank")}
+                      onClick={() => window.open("/?site=1", "_blank")}
                       size="icon"
                       className="h-8 w-8 sm:h-9 sm:w-9 ml-1"
                       title="Visitar site"
