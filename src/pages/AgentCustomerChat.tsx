@@ -30,6 +30,9 @@ interface Message {
   sender_name?: string;
   media_url?: string | null;
   media_type?: string | null;
+  metadata?: {
+    buttons?: string[];
+  };
 }
 
 export default function AgentCustomerChat() {
