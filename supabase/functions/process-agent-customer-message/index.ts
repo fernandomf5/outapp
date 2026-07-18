@@ -414,7 +414,7 @@ serve(async (req) => {
           const isGreeting = PortugueseGreetings.includes(normalizedMsg) || 
                             PortugueseGreetings.some(g => normalizedMsg.startsWith(g + ' '));
           
-          if (isFirstMessage || isGreeting || normalizedMsg === '') {
+          if (isFirstMessage || isGreeting || normalizedMsg === '' || normalizedMsg === 'reiniciar') {
             targetTriggerNode = triggerNodes.find((n: any) => 
               n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
             );
