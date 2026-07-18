@@ -45,9 +45,10 @@ export const PropertiesPanel = ({
       setVariable(selectedNode.data.variable || '');
       // Converter botões antigos (strings) para novo formato (objetos)
       const buttonData = selectedNode.data.buttons || [];
-      const normalizedButtons = buttonData.map((btn: any) => 
-        typeof btn === 'string' ? { text: btn, url: '' } : btn
-      );
+      const normalizedButtons = buttonData.map((btn: any) => {
+        if (typeof btn === 'string') return { text: btn, url: '', id: Math.random().toString(36).substr(2, 9) };
+        return { ...btn, id: btn.id || Math.random().toString(36).substr(2, 9) };
+      });
       setButtons(normalizedButtons);
       setActionType(selectedNode.data.actionType || '');
       setImageUrl(selectedNode.data.imageUrl || '');
