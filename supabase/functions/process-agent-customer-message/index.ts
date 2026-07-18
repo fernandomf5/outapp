@@ -314,7 +314,8 @@ serve(async (req) => {
                 (e.source === sourceNode.id) && 
                 (e.sourceHandle === buttonText || 
                  (buttonId && (e.sourceHandle === buttonId || e.sourceHandle === `btn-${buttonId}`)) ||
-                 (buttonText && e.sourceHandle === `btn-${buttonText}`))
+                 (buttonText && e.sourceHandle === `btn-${buttonText}`) ||
+                 (buttonId && e.sourceHandle === `btn-${buttonText}`)) // Extra fallback for ID mismatch
               );
               
               // 2. Fallback: If no specific edge for the button, look for ANY outgoing edge (linear flow)
