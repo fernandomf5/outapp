@@ -54,6 +54,19 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
       .single();
 
     const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
+    
+    // Se ativar IA, desativar fluxos do agente
+    if (aiEnabled) {
+      const { error: flowError } = await supabase
+        .from("agent_chat_flows")
+        .update({ is_active: false })
+        .eq("agent_id", agentId);
+        
+      if (flowError) {
+        console.error("Erro ao desativar fluxos:", flowError);
+      }
+    }
+
     const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge };
 
     const { error } = await supabase
@@ -64,7 +77,12 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
     if (error) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Configurações salvas", description: "O agente foi atualizado com sucesso." });
+      toast({ 
+        title: "Configurações salvas", 
+        description: aiEnabled 
+          ? "O agente IA foi ativado e os fluxos automáticos foram desativados." 
+          : "Configurações atualizadas com sucesso." 
+      });
     }
     setSaving(false);
   };

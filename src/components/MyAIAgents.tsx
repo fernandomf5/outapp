@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell, Link2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -305,6 +305,23 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                 >
                   <Copy className="w-3 h-3 mr-2" />
                   {t('copy_link')}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    const link = `${window.location.origin}/agent-auth/${agent.id}`;
+                    const embedCode = `<script src="${window.location.origin}/floating-chat.js" data-agent-id="${agent.id}"></script>`;
+                    navigator.clipboard.writeText(embedCode);
+                    toast({
+                      title: "Código de incorporação copiado!",
+                      description: "Cole o script no final do <body> do seu site.",
+                    });
+                  }}
+                >
+                  <Link2 className="w-3 h-3 mr-2" />
+                  Incorporar
                 </Button>
                 <Button
                   variant="default"
