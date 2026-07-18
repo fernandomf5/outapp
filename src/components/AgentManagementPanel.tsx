@@ -184,79 +184,62 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
     );
   }
 
-  // Desktop layout: tabs tradicionais
+  // Desktop layout: cards quadradas quando nenhuma aba está selecionada, conteúdo quando está
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold mb-2">Gestão: {agentName}</h2>
-        <p className="text-muted-foreground">
-          Gerencie agendamentos, pedidos e clientes do seu agente IA
-        </p>
+      <div className="flex items-center gap-4">
+        {activeTab && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setActiveTab(null)}
+            className="shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        )}
+        <div>
+          <h2 className="text-3xl font-bold mb-1">
+            {activeTab 
+              ? menuOptions.find(opt => opt.id === activeTab)?.label 
+              : `Gestão: ${agentName}`}
+          </h2>
+          {!activeTab && (
+            <p className="text-muted-foreground">
+              Gerencie agendamentos, pedidos e clientes do seu agente IA
+            </p>
+          )}
+        </div>
       </div>
 
-      <Tabs value={activeTab || "conversations"} onValueChange={setActiveTab} className="w-full">
-        <div className="bg-card border rounded-xl p-1.5 mb-6 overflow-x-auto scrollbar-none">
-          <TabsList className="flex flex-nowrap md:flex-wrap gap-1 h-auto bg-transparent p-0 min-w-max md:min-w-0">
-            {menuOptions.map((option) => (
-              <TabsTrigger 
-                key={option.id} 
-                value={option.id}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
-              >
-                <div className="shrink-0">
-                  {option.icon && React.cloneElement(option.icon as React.ReactElement, { className: "w-4 h-4" })}
-                </div>
-                <span className="text-sm font-medium whitespace-nowrap">{option.label}</span>
-                {option.badge && option.badge > 0 && (
-                  <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] px-1 ml-0.5">
-                    {option.badge}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      {!activeTab ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {menuOptions.map((option) => (
+            <Card 
+              key={option.id}
+              className="aspect-square flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-accent/50 hover:border-primary/50 transition-all hover:scale-[1.02] active:scale-95 group relative border-2"
+              onClick={() => setActiveTab(option.id)}
+            >
+              <div className="p-4 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300 shadow-sm">
+                {React.cloneElement(option.icon as React.ReactElement, { className: "w-8 h-8" })}
+              </div>
+              <span className="text-sm font-semibold tracking-tight">{option.label}</span>
+              {option.badge && option.badge > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute top-3 right-3 h-6 min-w-6 flex items-center justify-center rounded-full text-xs font-bold border-2 border-background"
+                >
+                  {option.badge}
+                </Badge>
+              )}
+            </Card>
+          ))}
         </div>
-
-        <TabsContent value="conversations">
-          <AgentConversationsPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="flows">
-          <AgentFlowsPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="ai">
-          <AgentAIPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="services">
-          <AgentServicesPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="products">
-          <AgentProductsPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="schedule">
-          <AgentSchedulePanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="appointments">
-          <AgentAppointmentsPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="orders">
-          <AgentOrdersPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="customers">
-          <AgentCustomersPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <AgentAnalyticsPanel agentId={agentId} />
-        </TabsContent>
-      </Tabs>
+      ) : (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {renderContent()}
+        </div>
+      )}
     </div>
   );
 }
