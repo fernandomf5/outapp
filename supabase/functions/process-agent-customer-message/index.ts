@@ -234,8 +234,6 @@ serve(async (req) => {
     const attendantStatus = agent.attendant_status || 'offline';
 
     // Se atendente estiver online, o fluxo não responde automaticamente (atendimento humano prioritário)
-    // A menos que o usuário queira que o fluxo responda sempre. 
-    // Mas por padrão, se estiver online, o atendente assume.
     if (attendantStatus === 'online') {
       console.log('Attendant is online, skipping auto-response');
       return new Response(
@@ -302,7 +300,6 @@ serve(async (req) => {
       }
     }
 
-
     // Get customer info
     const { data: customerRecord } = await supabase
       .from('agent_customers')
@@ -319,9 +316,6 @@ serve(async (req) => {
 
     console.log('Customer:', customerSafe.name);
 
-    // Order by created_at handled above...
-    // const { data: prevMessages } = ... already fetched above
-
     await supabase
       .from('agent_conversations')
       .update({ last_message_at: new Date().toISOString() })
@@ -334,7 +328,6 @@ serve(async (req) => {
     }));
 
     // Extract agent configuration
-    const agentConfig = agent.config || {};
     const trainingData = agent.training_data || {};
     const nicheData = trainingData.nicheData || {};
     const knowledge = trainingData.knowledge || '';
@@ -350,17 +343,14 @@ ${nicheContext}
 ${knowledge ? `CONTEXTO:\n${knowledge}\n` : ''}
 
 REGRAS (siga rigorosamente):
-- Responda em 1-2 frases curtas, diretas ao ponto
-- NÃO repita informações já ditas na conversa
-- NÃO use listas ou bullet points
-- NÃO seja formal demais, fale como uma pessoa normal
-- Responda APENAS o que foi perguntado
-- Se o cliente disse "oi", responda apenas com uma saudação curta
-- Use o nome "${customerSafe.name}" apenas na primeira interação
-- Emojis: máximo 1 por mensagem, apenas se fizer sentido
-- Se não souber algo, responda: "Não tenho essa informação no momento, mas posso te encaminhar para um atendente humano. Deseja falar com um atendente? 😊"
-- Se o cliente expressar desejo de falar com um humano, responda: "Com certeza! Vou te encaminhar para um atendente agora mesmo. Por favor, aguarde um momento. ⏳"
-- Para agendar/pedir: mencione os botões disponíveis no chat`;
+- Responda como se fosse uma pessoa real (ChatGPT-style), de forma natural e organizada
+- Se o cliente disse "oi" ou saudações, responda de forma curta e amigável
+- Se não souber algo, responda: "Ainda não tenho essa informação específica, mas posso te passar para um atendente humano. Deseja? 😊"
+- Se o cliente pedir para falar com um humano, diga: "Claro! Vou te encaminhar para um especialista agora mesmo. Só um momento. ⏳"
+- Emojis: use moderadamente (máximo 1-2 por mensagem)
+- Seja conciso e direto, mas educado
+- NÃO invente informações que não estão na base de conhecimento ou contexto
+- NÃO use bullet points excessivos`;
 
     console.log('Calling AI with system prompt length:', systemPrompt.length);
 
@@ -372,14 +362,14 @@ REGRAS (siga rigorosamente):
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.0-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           ...conversationHistory,
           { role: 'user', content: message }
         ],
         temperature: 0.8,
-        max_tokens: 150,
+        max_tokens: 350,
       }),
     });
 
