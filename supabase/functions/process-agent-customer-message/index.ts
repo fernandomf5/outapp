@@ -322,8 +322,8 @@ serve(async (req) => {
 
         // 2. Se for a primeira mensagem ou saudação genérica, procurar gatilhos globais
         if (!targetTriggerNode) {
-          const isGreeting = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!'].includes(normalizedMsg);
-          if (isFirstMessage || isGreeting) {
+          const isGreeting = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!', ''].includes(normalizedMsg);
+          if (isFirstMessage || isGreeting || normalizedMsg === '') {
             targetTriggerNode = triggerNodes.find((n: any) => 
               n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
             );
