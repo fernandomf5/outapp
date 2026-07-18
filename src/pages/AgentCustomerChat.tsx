@@ -32,6 +32,7 @@ interface Message {
   media_type?: string | null;
   metadata?: {
     buttons?: string[];
+    trigger?: string;
   };
 }
 
