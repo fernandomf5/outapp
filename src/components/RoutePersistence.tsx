@@ -49,6 +49,9 @@ export function RoutePersistence() {
     try {
       const current = location.pathname + location.search + location.hash;
       if (!ENTRY_PATHS.has(location.pathname)) return;
+      // Explicit opt-out: user clicked "Ver site" from panel
+      const params = new URLSearchParams(location.search);
+      if (params.has("site")) return;
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved && saved !== current && !isExcluded(saved.split("?")[0])) {
         navigate(saved, { replace: true });
