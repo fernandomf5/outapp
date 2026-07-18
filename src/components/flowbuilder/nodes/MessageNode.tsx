@@ -43,9 +43,10 @@ const MessageNode = ({ data, selected }: NodeProps) => {
         <div className="space-y-2 mt-3">
           {data.buttons.map((button: any, index: number) => {
             const buttonText = typeof button === 'string' ? button : (button?.text || '');
+            const buttonId = typeof button === 'object' ? button.id : `btn-${index}`;
             const hasUrl = typeof button === 'object' && !!button?.url;
             return (
-              <div key={index} className="relative">
+              <div key={buttonId} className="relative">
                 <div className="text-xs bg-chart-1/20 px-3 py-2 rounded-md text-center border border-chart-1/30 font-medium">
                   {buttonText}
                   {hasUrl && <div className="text-[10px] text-chart-1 mt-1 truncate">🔗 Link</div>}
@@ -53,7 +54,7 @@ const MessageNode = ({ data, selected }: NodeProps) => {
                 <Handle
                   type="source"
                   position={Position.Right}
-                  id={button?.id || `btn-${index}`}
+                  id={buttonId}
                   className="w-3 h-3 !bg-chart-1"
                   style={{ top: '50%', transform: 'translateY(-50%)' }}
                 />
