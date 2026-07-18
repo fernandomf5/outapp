@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Search, User, Send, Trash2, Smile, ImagePlus, FileText, X } from "lucide-react";
+import { MessageSquare, Search, User, Send, Trash2, Smile, ImagePlus, FileText, X, RefreshCw } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -584,6 +584,75 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
+  const handleRestartConversation = async () => {
+    if (!selectedConversation) return;
+
+    try {
+      setLoading(true);
+      // Arquivar conversa atual
+      const { error: archiveError } = await supabase
+        .from('agent_conversations')
+        .update({ status: 'archived' })
+        .eq('id', selectedConversation.id);
+
+      if (archiveError) throw archiveError;
+
+      // Criar nova conversa
+      const { data: newConv, error: createError } = await supabase
+        .from('agent_conversations')
+        .insert({
+          agent_id: agentId,
+          customer_id: selectedConversation.agent_customers.id,
+          status: 'active',
+          ai_enabled: true,
+          last_message_at: new Date().toISOString(),
+        })
+        .select(`
+          *,
+          agent_customers (
+            id,
+            name,
+            email
+          )
+        `)
+        .single();
+
+      if (createError) throw createError;
+
+      // Disparar gatilho inicial
+      const supabaseUrl = (supabase as any).supabaseUrl;
+      const processUrl = `${supabaseUrl}/functions/v1/process-agent-customer-message`;
+      
+      // Obter a chave anon do localStorage ou config (o browser geralmente tem acesso via client)
+      // Como estamos no frontend, usamos o client.invoke ou fetch direto
+      await supabase.functions.invoke('process-agent-customer-message', {
+        body: {
+          agentId,
+          customerId: selectedConversation.agent_customers.id,
+          conversationId: newConv.id,
+          message: '' // Gatilho inicial
+        }
+      });
+
+      setSelectedConversation(newConv as Conversation);
+      loadConversations();
+      
+      toast({
+        title: "Chat reiniciado",
+        description: "A conversa foi arquivada e um novo fluxo foi iniciado para o cliente.",
+      });
+    } catch (error: any) {
+      console.error('Error restarting conversation:', error);
+      toast({
+        title: "Erro ao reiniciar chat",
+        description: error.message || "Não foi possível reiniciar a conversa.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return <div>Carregando conversas...</div>;
   }
@@ -740,16 +809,27 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                       <p className="text-sm text-muted-foreground">{selectedConversation.agent_customers.email}</p>
                     </div>
                   </div>
-                  <Select value={selectedConversation.status} onValueChange={updateStatus}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Ativa</SelectItem>
-                      <SelectItem value="closed">Fechada</SelectItem>
-                      <SelectItem value="resolved">Resolvida</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRestartConversation}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Reiniciar Fluxo
+                    </Button>
+                    <Select value={selectedConversation.status} onValueChange={updateStatus}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Ativa</SelectItem>
+                        <SelectItem value="closed">Fechada</SelectItem>
+                        <SelectItem value="resolved">Resolvida</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardHeader>
 
