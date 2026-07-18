@@ -109,15 +109,7 @@ export const LandingHeader = () => {
               <ThemeToggle />
               <LanguageSelector />
               
-              {/* Login Button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate("/auth")} 
-                className="active:scale-95 transition-transform"
-              >
-                Entrar/Cadastre-se
-              </Button>
+              
               
               {/* Login / Dashboard Button */}
               {isAuthenticated ? (
