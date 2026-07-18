@@ -921,7 +921,7 @@ export default function AgentCustomerChat() {
           {showScrollButton && (
             <Button
               size="icon"
-              className="absolute bottom-32 right-4 rounded-full shadow-lg z-10 text-white"
+              className={`absolute right-4 rounded-full shadow-lg z-10 text-white ${window.self !== window.top ? 'bottom-24' : 'bottom-32'}`}
               style={{ backgroundColor: primaryColor }}
               onClick={scrollToBottom}
             >
