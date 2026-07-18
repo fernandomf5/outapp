@@ -281,15 +281,18 @@ serve(async (req) => {
         
         if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
           console.log('Last agent message had buttons, checking for match...');
-          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => {
+          let clickedButtonIndex = -1;
+          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any, idx: number) => {
             const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
             const btnId = typeof btn === 'object' ? btn.id : null;
             
-            // Match exact, subset, or keyword mapping
-            return btnText === normalizedMsg || 
+            const isMatch = btnText === normalizedMsg || 
                    normalizedMsg === btnText || 
                    normalizedMsg.includes(btnText) ||
                    (btnId && (normalizedMsg.includes(btnId) || normalizedMsg.includes(`btn-${btnId}`)));
+            
+            if (isMatch) clickedButtonIndex = idx;
+            return isMatch;
           });
 
           if (clickedButton) {
