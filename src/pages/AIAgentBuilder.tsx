@@ -42,6 +42,7 @@ const AIAgentBuilder = () => {
   const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#6366f1");
   const [secondaryColor, setSecondaryColor] = useState("#8b5cf6");
+  const [isFloating, setIsFloating] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
