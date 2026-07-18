@@ -266,34 +266,83 @@ serve(async (req) => {
         
         const isFirstMessage = (prevMessages || []).length === 0;
         const normalizedMsg = message.toLowerCase().trim();
-        const isGreeting = normalizedMsg === 'oi' || normalizedMsg === 'olá' || normalizedMsg === 'bom dia' || normalizedMsg === 'boa tarde' || normalizedMsg === 'boa noite';
+        const isFirstMessage = (prevMessages || []).length === 0;
 
-        if (isFirstMessage || isGreeting) {
-          const mainFlow = activeFlows[0];
-          const nodes = (mainFlow.config as any)?.nodes || [];
-          const startNode = nodes.find((n: any) => n.type === 'trigger');
+        // Tentar encontrar o gatilho correto
+        const mainFlow = activeFlows[0];
+        const flowConfig = mainFlow.config as any || {};
+        const nodes = flowConfig.nodes || [];
+        const edges = flowConfig.edges || [];
+        
+        // Encontrar todos os nós de gatilho
+        const triggerNodes = nodes.filter((n: any) => n.type === 'trigger');
+        
+        let targetTriggerNode = null;
+
+        // 1. Procurar gatilho de palavra-chave correspondente
+        targetTriggerNode = triggerNodes.find((n: any) => 
+          n.data?.triggerType === 'keyword' && 
+          n.data?.keyword && 
+          normalizedMsg.includes(n.data.keyword.toLowerCase().trim())
+        );
+
+        // 2. Se for a primeira mensagem e não houve palavra-chave, procurar gatilho "any" ou "buttons"
+        if (!targetTriggerNode && isFirstMessage) {
+          targetTriggerNode = triggerNodes.find((n: any) => 
+            n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
+          );
+        }
+
+        // 3. Se o usuário enviou uma saudação genérica, procurar gatilho "any"
+        if (!targetTriggerNode) {
+          const isGreeting = normalizedMsg === 'oi' || normalizedMsg === 'olá' || normalizedMsg === 'bom dia' || normalizedMsg === 'boa tarde' || normalizedMsg === 'boa noite';
+          if (isGreeting) {
+            targetTriggerNode = triggerNodes.find((n: any) => n.data?.triggerType === 'any');
+          }
+        }
+
+        if (targetTriggerNode) {
+          console.log('Trigger found:', targetTriggerNode.data?.triggerType);
           
-          if (startNode) {
-            const edges = (mainFlow.config as any)?.edges || [];
-            const firstEdge = edges.find((e: any) => e.source === startNode.id);
-            if (firstEdge) {
-              const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
-              if (nextNode && nextNode.data?.label) {
-                const flowResponse = nextNode.data.label;
-                console.log('Responding with flow content:', flowResponse);
-                
-                await supabase.from('agent_messages').insert({
-                  conversation_id: conversationId,
-                  role: 'agent',
-                  content: flowResponse,
-                  sender_name: agent.name
-                });
+          // Se for gatilho de botões, enviar a mensagem de boas-vindas e os botões
+          if (targetTriggerNode.data?.triggerType === 'buttons') {
+            const flowResponse = targetTriggerNode.data.label || 'Como posso ajudar?';
+            const buttons = targetTriggerNode.data.buttons || [];
+            
+            await supabase.from('agent_messages').insert({
+              conversation_id: conversationId,
+              role: 'agent',
+              content: flowResponse,
+              sender_name: agent.name,
+              metadata: { buttons } // Supondo que o front trate metadados para botões
+            });
 
-                return new Response(
-                  JSON.stringify({ response: flowResponse }),
-                  { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-                );
-              }
+            return new Response(
+              JSON.stringify({ response: flowResponse, buttons }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          // Para outros gatilhos, seguir para o próximo nó
+          const firstEdge = edges.find((e: any) => e.source === targetTriggerNode.id);
+          if (firstEdge) {
+            const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
+            if (nextNode && nextNode.data?.label) {
+              const flowResponse = nextNode.data.label;
+              console.log('Responding with flow content:', flowResponse);
+              
+              await supabase.from('agent_messages').insert({
+                conversation_id: conversationId,
+                role: 'agent',
+                content: flowResponse,
+                sender_name: agent.name,
+                metadata: { buttons: nextNode.data.buttons || [] }
+              });
+
+              return new Response(
+                JSON.stringify({ response: flowResponse }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
             }
           }
         }
