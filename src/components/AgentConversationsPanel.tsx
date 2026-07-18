@@ -117,11 +117,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       });
     }
   };
-        title: "Status atualizado",
-        description: `Você está ${status === 'online' ? 'Online' : status === 'busy' ? 'Em Atendimento' : 'Offline'}`,
-      });
-    }
-  };
 
   // Atualizar nome do atendente quando mudar
   const handleSenderNameChange = (name: string) => {
