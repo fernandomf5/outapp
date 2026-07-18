@@ -84,6 +84,7 @@ export const PropertiesPanel = ({
       documentName,
       delaySeconds,
       keyword: keyword.trim(),
+      triggerType,
     });
   };
 
