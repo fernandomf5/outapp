@@ -1,8 +1,24 @@
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { Play } from 'lucide-react';
+import { Play, MessageCircle, Key, ListFilter } from 'lucide-react';
 
 const TriggerNode = ({ data, selected }: NodeProps) => {
+  const getIcon = () => {
+    switch (data.triggerType) {
+      case 'keyword': return <Key className="w-5 h-5 text-primary" />;
+      case 'buttons': return <ListFilter className="w-5 h-5 text-primary" />;
+      default: return <MessageCircle className="w-5 h-5 text-primary" />;
+    }
+  };
+
+  const getLabel = () => {
+    switch (data.triggerType) {
+      case 'keyword': return `Palavra-chave: ${data.keyword || '...'}`;
+      case 'buttons': return `Menu de Início`;
+      default: return `Qualquer Mensagem`;
+    }
+  };
+
   return (
     <div className={`bg-card rounded-lg border-2 p-4 min-w-[220px] transition-all duration-300 cursor-pointer ${
       selected 
@@ -11,11 +27,20 @@ const TriggerNode = ({ data, selected }: NodeProps) => {
     }`}>
       <div className="flex items-center gap-3 mb-2">
         <div className="bg-primary/20 p-2 rounded-lg">
-          <Play className="w-5 h-5 text-primary" />
+          {getIcon()}
         </div>
-        <div className="font-bold text-sm text-primary">GATILHO</div>
+        <div className="font-bold text-sm text-primary uppercase tracking-wider">Gatilho</div>
       </div>
-      <div className="text-sm text-foreground">{data.label}</div>
+      <div className="text-sm text-foreground font-medium">{getLabel()}</div>
+      {data.triggerType === 'buttons' && data.buttons?.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {data.buttons.map((btn: any, i: number) => (
+            <div key={i} className="text-[10px] bg-muted px-1.5 py-0.5 rounded border border-border">
+              {typeof btn === 'string' ? btn : btn.text}
+            </div>
+          ))}
+        </div>
+      )}
       <Handle
         type="source"
         position={Position.Bottom}
