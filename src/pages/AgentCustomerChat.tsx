@@ -833,9 +833,11 @@ export default function AgentCustomerChat() {
               </div>
             </div>
             
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
+            {window.self === window.top && (
+              <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+            )}
           </div>
 
           <div 
