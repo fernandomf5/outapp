@@ -289,7 +289,7 @@ serve(async (req) => {
 
           if (clickedButton) {
             console.log('Button match found:', clickedButton);
-            const sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content);
+            const sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content || n.id === lastAgentMessage.metadata?.nodeId);
             if (sourceNode) {
               const buttonText = typeof clickedButton === 'string' ? clickedButton : clickedButton.text;
               const edge = edges.find((e: any) => e.source === sourceNode.id && e.sourceHandle === buttonText);
