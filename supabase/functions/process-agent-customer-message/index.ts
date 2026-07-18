@@ -281,9 +281,11 @@ serve(async (req) => {
         
         if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
           console.log('Last agent message had buttons, checking for match...');
-          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => 
-            (typeof btn === 'string' ? btn : btn.text).toLowerCase().trim() === normalizedMsg
-          );
+          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => {
+            const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
+            // Match exact or check if message is a subset of button text (common for mobile keyboards)
+            return btnText === normalizedMsg || normalizedMsg === btnText;
+          });
 
           if (clickedButton) {
             console.log('Button match found:', clickedButton);
