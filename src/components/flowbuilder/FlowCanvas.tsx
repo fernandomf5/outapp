@@ -100,9 +100,6 @@ const nodeTypes = {
   video: VideoNode,
   document: DocumentNode,
   humanAgent: HumanAgentNode,
-  condition: ConditionNode,
-  question: QuestionNode,
-  action: ActionNode,
 };
 
 const edgeTypes = {
