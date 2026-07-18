@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell, Link2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
