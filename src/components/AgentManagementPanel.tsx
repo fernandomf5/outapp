@@ -29,8 +29,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
   const isMobile = useIsMobile();
 
   const menuOptions: MenuOption[] = [
-
-  const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
     { id: "flows", label: "Fluxos", icon: <Workflow /> },
     { id: "ai", label: "Agente IA", icon: <Brain /> },
