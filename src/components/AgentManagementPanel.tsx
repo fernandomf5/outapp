@@ -92,7 +92,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
     { id: "flows", label: "Fluxos", icon: <Workflow /> },
-    { id: "ai", label: "Inteligência IA", icon: <Brain /> },
+    { id: "ai", label: "Agente IA", icon: <Brain /> },
     { id: "services", label: "Serviços", icon: <Wrench /> },
     { id: "products", label: "Produtos", icon: <Package /> },
     { id: "schedule", label: "Horários", icon: <Clock /> },

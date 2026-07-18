@@ -929,16 +929,18 @@ export default function AgentCustomerChat() {
 
           <div className="p-3 sm:p-4 border-t space-y-2">
             <div className="flex justify-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleHumanAttendant}
-                className="gap-2 text-xs font-medium hover:bg-primary/5 border border-dashed border-primary/20 w-full mb-2"
-                style={{ color: primaryColor }}
-              >
-                <UserCircle className="w-4 h-4" />
-                Falar com Humano
-              </Button>
+              {agentInfo?.config?.ai_enabled !== false && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleHumanAttendant}
+                  className="gap-2 text-xs font-medium hover:bg-primary/5 border border-dashed border-primary/20 w-full mb-2"
+                  style={{ color: primaryColor }}
+                >
+                  <UserCircle className="w-4 h-4" />
+                  Falar com Humano
+                </Button>
+              )}
             </div>
             {(hasServices || hasProducts) && (
               <div className={`grid gap-2 ${hasServices && hasProducts ? 'grid-cols-2' : 'grid-cols-1'}`}>
