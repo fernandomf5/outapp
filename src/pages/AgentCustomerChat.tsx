@@ -437,6 +437,7 @@ export default function AgentCustomerChat() {
         (payload) => {
           console.log('Nova mensagem recebida via realtime:', payload);
           const newMessage = payload.new as Message;
+          console.log('Dados da nova mensagem:', newMessage);
           const key = `${newMessage.role}:${newMessage.content}`;
           if (sentMessagesRef.current.has(key)) {
             // Prevent duplicate of optimistic message
