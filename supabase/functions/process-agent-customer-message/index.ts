@@ -267,7 +267,13 @@ serve(async (req) => {
         const normalizedMsg = (message || "").toLowerCase().trim();
         const mainFlow = activeFlows[0];
         const flowConfig = mainFlow.config as any || {};
-        const nodes = flowConfig.nodes || [];
+        const nodes = (flowConfig.nodes || []).map((n: any) => ({
+          ...n,
+          data: {
+            ...n.data,
+            label: n.data?.label || n.data?.content || '' // Handle both label and content
+          }
+        }));
         const edges = flowConfig.edges || [];
 
         // Tentar encontrar se já estamos no meio de um fluxo (baseado na última mensagem do agente que tinha botões)
