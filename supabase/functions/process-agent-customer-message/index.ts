@@ -264,8 +264,53 @@ serve(async (req) => {
       if (activeFlows && activeFlows.length > 0) {
         console.log('Found active flows:', activeFlows.length);
         
-        const isFirstMessage = (prevMessages || []).length === 0;
+        const isFirstMessage = (prevMessages || []).filter(m => m.role === 'customer').length === 0;
         const normalizedMsg = (message || "").toLowerCase().trim();
+
+        // Tentar encontrar se já estamos no meio de um fluxo (baseado na última mensagem do agente que tinha botões ou variável)
+        const lastAgentMessage = [...(prevMessages || [])].reverse().find(m => m.role === 'agent');
+        
+        // Se a última mensagem foi do agente e tinha botões, e o usuário respondeu, 
+        // tentamos encontrar o próximo nó baseado no texto do botão clicado
+        if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
+          console.log('Last agent message had buttons, checking for match...');
+          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => 
+            (typeof btn === 'string' ? btn : btn.text).toLowerCase().trim() === normalizedMsg
+          );
+
+          if (clickedButton) {
+            console.log('Button match found:', clickedButton);
+            // Encontrar o nó que enviou esses botões para achar a conexão correta
+            // Isso é um pouco complexo sem o ID do nó na mensagem, mas podemos tentar achar pelo conteúdo
+            const sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content);
+            if (sourceNode) {
+              const edge = edges.find((e: any) => e.source === sourceNode.id && e.sourceHandle === normalizedMsg);
+              // Se não achou pelo handle, tenta qualquer conexão do nó
+              const nextEdge = edge || edges.find((e: any) => e.source === sourceNode.id);
+              
+              if (nextEdge) {
+                const nextNode = nodes.find((n: any) => n.id === nextEdge.target);
+                if (nextNode) {
+                   // Se achou o próximo nó, vamos responder com ele
+                   // (Vou extrair a lógica de resposta para evitar repetição se possível, ou apenas replicar aqui)
+                   const flowResponse = nextNode.data.label;
+                   await supabase.from('agent_messages').insert({
+                     conversation_id: conversationId,
+                     role: 'agent',
+                     content: flowResponse,
+                     sender_name: agent.name,
+                     metadata: { buttons: nextNode.data.buttons || [] }
+                   });
+
+                   return new Response(
+                     JSON.stringify({ response: flowResponse }),
+                     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                   );
+                }
+              }
+            }
+          }
+        }
 
         // Tentar encontrar o gatilho correto
         const mainFlow = activeFlows[0];
@@ -278,23 +323,23 @@ serve(async (req) => {
         
         let targetTriggerNode = null;
 
-        // 1. Procurar gatilho de palavra-chave correspondente
+        // 1. Procurar gatilho de palavra-chave correspondente (Sempre tem prioridade)
         targetTriggerNode = triggerNodes.find((n: any) => 
           n.data?.triggerType === 'keyword' && 
           n.data?.keyword && 
           normalizedMsg.includes(n.data.keyword.toLowerCase().trim())
         );
 
-        // 2. Se for a primeira mensagem e não houve palavra-chave, procurar gatilho "any" ou "buttons"
+        // 2. Se for a primeira mensagem (do cliente) e não houve palavra-chave, procurar gatilho "any" ou "buttons"
         if (!targetTriggerNode && isFirstMessage) {
           targetTriggerNode = triggerNodes.find((n: any) => 
             n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
           );
         }
 
-        // 3. Se o usuário enviou uma saudação genérica, procurar gatilho "any"
+        // 3. Se não for a primeira mensagem, mas o usuário enviou uma saudação genérica, procurar gatilho "any"
         if (!targetTriggerNode) {
-          const isGreeting = normalizedMsg === 'oi' || normalizedMsg === 'olá' || normalizedMsg === 'bom dia' || normalizedMsg === 'boa tarde' || normalizedMsg === 'boa noite';
+          const isGreeting = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa'].includes(normalizedMsg);
           if (isGreeting) {
             targetTriggerNode = triggerNodes.find((n: any) => n.data?.triggerType === 'any');
           }
