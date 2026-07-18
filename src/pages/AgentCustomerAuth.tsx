@@ -363,7 +363,7 @@ export default function AgentCustomerAuth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-transparent">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           {logoUrl && (
