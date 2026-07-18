@@ -442,8 +442,12 @@ export default function AgentCustomerChat() {
           console.log('Nova mensagem recebida via realtime:', payload);
           const newMessage = payload.new as Message;
           console.log('Dados da nova mensagem:', newMessage);
+          
+          // Se for uma mensagem automática de gatilho inicial, sempre adicionamos se a lista estiver vazia
+          const isInitialTrigger = newMessage.metadata?.trigger === 'initial';
           const key = `${newMessage.role}:${newMessage.content}`;
-          if (sentMessagesRef.current.has(key)) {
+          
+          if (!isInitialTrigger && sentMessagesRef.current.has(key)) {
             // Prevent duplicate of optimistic message
             sentMessagesRef.current.delete(key);
             return;
