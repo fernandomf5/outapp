@@ -236,7 +236,10 @@ export const FlowCanvas = ({
       position,
       data: {
         label: defaultLabel,
-        buttons: (type === 'quickReply' || type === 'button') ? ['Opção 1', 'Opção 2'] : undefined,
+        buttons: (type === 'quickReply' || type === 'button') ? [
+          { text: 'Opção 1', id: Math.random().toString(36).substr(2, 9) }, 
+          { text: 'Opção 2', id: Math.random().toString(36).substr(2, 9) }
+        ] : undefined,
       },
     };
 

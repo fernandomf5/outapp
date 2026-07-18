@@ -46,7 +46,7 @@ const ButtonNode = ({ data, selected }: NodeProps) => {
               <Handle
                 type="source"
                 position={Position.Right}
-                id={`btn-${index}`}
+                id={button?.id || `btn-${index}`}
                 className="w-3 h-3 !bg-green-500"
                 style={{ top: '50%', transform: 'translateY(-50%)' }}
               />

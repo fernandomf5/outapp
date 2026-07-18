@@ -41,11 +41,33 @@ const TriggerNode = ({ data, selected }: NodeProps) => {
           ))}
         </div>
       )}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="w-3 h-3 !bg-primary"
-      />
+      {data.triggerType === 'buttons' && data.buttons?.length > 0 ? (
+        <div className="space-y-1.5 mt-3">
+          {data.buttons.map((button: any, index: number) => {
+            const buttonText = typeof button === 'string' ? button : (button?.text || '');
+            return (
+              <div key={index} className="relative">
+                <div className="text-xs bg-primary/10 px-2 py-1.5 rounded-md text-center border border-primary/20 font-medium truncate">
+                  {buttonText}
+                </div>
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  id={button?.id || `btn-${index}`}
+                  className="w-3 h-3 !bg-primary"
+                  style={{ top: '50%', transform: 'translateY(-50%)' }}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          className="w-3 h-3 !bg-primary"
+        />
+      )}
     </div>
   );
 };

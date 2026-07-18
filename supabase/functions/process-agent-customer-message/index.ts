@@ -281,16 +281,25 @@ serve(async (req) => {
         
         if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
           console.log('Last agent message had buttons, checking for match...');
-          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => 
-            (typeof btn === 'string' ? btn : btn.text).toLowerCase().trim() === normalizedMsg
-          );
+          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => {
+            const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
+            // Match exact or check if message is a subset of button text (common for mobile keyboards)
+            return btnText === normalizedMsg || normalizedMsg === btnText;
+          });
 
           if (clickedButton) {
             console.log('Button match found:', clickedButton);
-            const sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content);
+            const sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content || n.id === lastAgentMessage.metadata?.nodeId);
             if (sourceNode) {
               const buttonText = typeof clickedButton === 'string' ? clickedButton : clickedButton.text;
-              const edge = edges.find((e: any) => e.source === sourceNode.id && e.sourceHandle === buttonText);
+              const buttonId = typeof clickedButton === 'object' ? clickedButton.id : null;
+              
+              // Busca edge que corresponda ao texto OU ao ID do botão (sourceHandle)
+              const edge = edges.find((e: any) => 
+                (e.source === sourceNode.id) && 
+                (e.sourceHandle === buttonText || (buttonId && e.sourceHandle === buttonId) || (buttonId && e.sourceHandle === `btn-${buttonId}`))
+              );
+              
               const nextEdge = edge || edges.find((e: any) => e.source === sourceNode.id);
               
               if (nextEdge) {
@@ -302,7 +311,7 @@ serve(async (req) => {
                      role: 'agent',
                      content: flowResponse,
                      sender_name: agent.name,
-                     metadata: { buttons: nextNode.data.buttons || [] }
+                     metadata: { buttons: nextNode.data.buttons || [], nodeId: nextNode.id }
                    });
 
                    return new Response(
@@ -353,7 +362,7 @@ serve(async (req) => {
               role: 'agent',
               content: flowResponse,
               sender_name: agent.name,
-              metadata: { buttons, trigger: 'initial' } // Marcamos que é um gatilho inicial
+              metadata: { buttons, trigger: 'initial', nodeId: targetTriggerNode.id } // Marcamos que é um gatilho inicial
             });
 
             return new Response(
@@ -375,7 +384,7 @@ serve(async (req) => {
                 role: 'agent',
                 content: flowResponse,
                 sender_name: agent.name,
-                metadata: { buttons: nextNode.data.buttons || [], trigger: 'initial' }
+                metadata: { buttons: nextNode.data.buttons || [], trigger: 'initial', nodeId: nextNode.id }
               });
 
               return new Response(
@@ -417,7 +426,7 @@ serve(async (req) => {
               role: 'agent',
               content: responseWithPrefix,
               sender_name: agent.name,
-              metadata: { buttons, trigger: 'retry' }
+              metadata: { buttons, trigger: 'retry', nodeId: initialTrigger.id }
             });
 
             return new Response(
