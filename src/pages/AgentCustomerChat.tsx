@@ -739,6 +739,31 @@ export default function AgentCustomerChat() {
     );
   }
 
+  const handleHumanAttendant = async () => {
+    if (!conversationId) return;
+    
+    chatSounds.playSendSound();
+    
+    // Simular envio de mensagem solicitando humano
+    const message = "Gostaria de falar com um atendente humano.";
+    const { error } = await supabase.from('agent_messages').insert({
+      conversation_id: conversationId,
+      role: 'customer',
+      content: message,
+      sender_name: customer?.name || 'Cliente'
+    });
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível solicitar atendimento", variant: "destructive" });
+      return;
+    }
+
+    toast({
+      title: "Solicitação enviada",
+      description: "Um atendente humano foi notificado. Por favor, aguarde.",
+    });
+  };
+
   return (
     <div className="min-h-dvh" style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` }}>
       <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-2 sm:p-4">
@@ -903,6 +928,18 @@ export default function AgentCustomerChat() {
           )}
 
           <div className="p-3 sm:p-4 border-t space-y-2">
+            <div className="flex justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleHumanAttendant}
+                className="gap-2 text-xs font-medium hover:bg-primary/5 border border-dashed border-primary/20 w-full mb-2"
+                style={{ color: primaryColor }}
+              >
+                <UserCircle className="w-4 h-4" />
+                Falar com Humano
+              </Button>
+            </div>
             {(hasServices || hasProducts) && (
               <div className={`grid gap-2 ${hasServices && hasProducts ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {hasServices && (
