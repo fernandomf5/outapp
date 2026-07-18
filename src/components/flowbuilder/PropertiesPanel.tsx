@@ -286,8 +286,8 @@ export const PropertiesPanel = ({
           </div>
         )}
 
-        {/* Texto para todos os tipos exceto humanAgent */}
-        {selectedNode.type === 'humanAgent' ? null : ['image', 'audio', 'video', 'document'].includes(selectedNode.type) ? (
+        {/* Texto para todos os tipos exceto humanAgent e trigger */}
+        {selectedNode.type === 'humanAgent' || selectedNode.type === 'trigger' ? null : ['image', 'audio', 'video', 'document'].includes(selectedNode.type) ? (
           <div>
             <Label htmlFor="label">Legenda (opcional)</Label>
             <Textarea
