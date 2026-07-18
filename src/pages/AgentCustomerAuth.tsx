@@ -282,7 +282,7 @@ export default function AgentCustomerAuth() {
   // Acesso direto - apenas nome
   if (authMode === 'anonymous') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-transparent">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             {logoUrl && (
@@ -323,7 +323,7 @@ export default function AgentCustomerAuth() {
   // Escolha entre login e cadastro (para acesso público, privado ou restrito)
   if (authMode === 'choice') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-transparent">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             {logoUrl && (
@@ -363,7 +363,7 @@ export default function AgentCustomerAuth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-transparent">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           {logoUrl && (

@@ -765,9 +765,9 @@ export default function AgentCustomerChat() {
   };
 
   return (
-    <div className="min-h-dvh" style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` }}>
-      <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-2 sm:p-4">
-        <Card className="flex-1 flex flex-col relative">
+    <div className="min-h-dvh bg-transparent">
+      <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-0 sm:p-4">
+        <Card className="flex-1 flex flex-col relative rounded-none sm:rounded-lg">
           {/* Header fixo */}
           <div className="sticky top-0 z-10 p-3 sm:p-4 border-b flex items-center justify-between gap-2" style={{ backgroundColor: primaryColor, color: 'white' }}>
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
@@ -833,9 +833,11 @@ export default function AgentCustomerChat() {
               </div>
             </div>
             
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
+            {window.self === window.top && (
+              <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+            )}
           </div>
 
           <div 
@@ -919,7 +921,7 @@ export default function AgentCustomerChat() {
           {showScrollButton && (
             <Button
               size="icon"
-              className="absolute bottom-32 right-4 rounded-full shadow-lg z-10 text-white"
+              className={`absolute right-4 rounded-full shadow-lg z-10 text-white ${window.self !== window.top ? 'bottom-24' : 'bottom-32'}`}
               style={{ backgroundColor: primaryColor }}
               onClick={scrollToBottom}
             >

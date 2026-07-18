@@ -21,7 +21,7 @@ import {
   Upload,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const AIAgentBuilder = () => {
@@ -42,6 +42,7 @@ const AIAgentBuilder = () => {
   const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#6366f1");
   const [secondaryColor, setSecondaryColor] = useState("#8b5cf6");
+  const [isFloating, setIsFloating] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
@@ -53,6 +54,7 @@ const AIAgentBuilder = () => {
         setPrimaryColor(agent.config?.primaryColor || "#6366f1");
         setSecondaryColor(agent.config?.secondaryColor || "#8b5cf6");
         setLogoUrl(agent.config?.logoUrl || "");
+        setIsFloating(!!agent.config?.isFloating);
         const at = (agent as any).access_type || 'public';
         const normalizedAt = at === 'restricted' ? 'private' : at;
         setAccessType(normalizedAt);
@@ -167,6 +169,7 @@ const AIAgentBuilder = () => {
           primaryColor,
           secondaryColor,
           logoUrl,
+          isFloating,
         },
         training_data: {},
         is_active: true,
@@ -330,6 +333,21 @@ const AIAgentBuilder = () => {
                   ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
                   : '✓ Usuários podem se cadastrar e usar o chat livremente'}
               </p>
+            </div>
+          </Card>
+          
+          <Card className="p-4 sm:p-6 border-primary/20">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base sm:text-lg font-semibold">Botão Flutuante</Label>
+                <p className="text-sm text-muted-foreground">
+                  Se ativado, o chat aparecerá como um botão flutuante no seu site ao invés de abrir em uma nova página.
+                </p>
+              </div>
+              <Switch 
+                checked={isFloating}
+                onCheckedChange={setIsFloating}
+              />
             </div>
           </Card>
 
