@@ -3,16 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3, ArrowLeft, Workflow, Brain } from "lucide-react";
+import { MessageSquare, Users, BarChart3, ArrowLeft, Workflow, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import AgentAppointmentsPanel from "./AgentAppointmentsPanel";
-import AgentOrdersPanel from "./AgentOrdersPanel";
 import AgentCustomersPanel from "./AgentCustomersPanel";
 import AgentConversationsPanel from "./AgentConversationsPanel";
-import AgentProductsPanel from "./AgentProductsPanel";
-import AgentServicesPanel from "./AgentServicesPanel";
-import AgentSchedulePanel from "./AgentSchedulePanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
 import AgentFlowsPanel from "./AgentFlowsPanel";
 import AgentAIPanel from "./AgentAIPanel";
@@ -31,73 +26,12 @@ interface MenuOption {
 
 export default function AgentManagementPanel({ agentId, agentName }: AgentManagementPanelProps) {
   const [activeTab, setActiveTab] = useState<string | null>(null);
-  const [pendingAppointments, setPendingAppointments] = useState(0);
-  const [pendingOrders, setPendingOrders] = useState(0);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    fetchNotifications();
-
-    // Subscrição em tempo real para agendamentos
-    const appointmentsSubscription = supabase
-      .channel(`agent_appointments_${agentId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'agent_appointments',
-        filter: `agent_id=eq.${agentId}`
-      }, () => {
-        fetchNotifications();
-      })
-      .subscribe();
-
-    // Subscrição em tempo real para pedidos
-    const ordersSubscription = supabase
-      .channel(`agent_orders_${agentId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'agent_orders',
-        filter: `agent_id=eq.${agentId}`
-      }, () => {
-        fetchNotifications();
-      })
-      .subscribe();
-
-    return () => {
-      appointmentsSubscription.unsubscribe();
-      ordersSubscription.unsubscribe();
-    };
-  }, [agentId]);
-
-  const fetchNotifications = async () => {
-    // Buscar agendamentos pendentes
-    const { count: appointmentsCount } = await supabase
-      .from('agent_appointments')
-      .select('*', { count: 'exact', head: true })
-      .eq('agent_id', agentId)
-      .eq('status', 'pending');
-
-    // Buscar pedidos pendentes
-    const { count: ordersCount } = await supabase
-      .from('agent_orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('agent_id', agentId)
-      .eq('status', 'pending');
-
-    setPendingAppointments(appointmentsCount || 0);
-    setPendingOrders(ordersCount || 0);
-  };
 
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
     { id: "flows", label: "Fluxos", icon: <Workflow /> },
     { id: "ai", label: "Agente IA", icon: <Brain /> },
-    { id: "services", label: "Serviços", icon: <Wrench /> },
-    { id: "products", label: "Produtos", icon: <Package /> },
-    { id: "schedule", label: "Horários", icon: <Clock /> },
-    { id: "appointments", label: "Agendamentos", icon: <Calendar />, badge: pendingAppointments },
-    { id: "orders", label: "Pedidos", icon: <ShoppingBag />, badge: pendingOrders },
     { id: "customers", label: "Clientes", icon: <Users /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 /> },
   ];
@@ -110,16 +44,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
         return <AgentFlowsPanel agentId={agentId} />;
       case "ai":
         return <AgentAIPanel agentId={agentId} />;
-      case "services":
-        return <AgentServicesPanel agentId={agentId} />;
-      case "products":
-        return <AgentProductsPanel agentId={agentId} />;
-      case "schedule":
-        return <AgentSchedulePanel agentId={agentId} />;
-      case "appointments":
-        return <AgentAppointmentsPanel agentId={agentId} />;
-      case "orders":
-        return <AgentOrdersPanel agentId={agentId} />;
       case "customers":
         return <AgentCustomersPanel agentId={agentId} />;
       case "analytics":
@@ -152,7 +76,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
         <div>
           <h2 className="text-2xl font-bold mb-2">Gestão: {agentName}</h2>
           <p className="text-muted-foreground text-sm">
-            Gerencie agendamentos, pedidos e clientes do seu agente IA
+            Gerencie conversas, fluxos e clientes do seu agente IA
           </p>
         </div>
 
@@ -206,7 +130,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
           </h2>
           {!activeTab && (
             <p className="text-muted-foreground">
-              Gerencie agendamentos, pedidos e clientes do seu agente IA
+              Gerencie conversas, fluxos e clientes do seu agente IA
             </p>
           )}
         </div>
