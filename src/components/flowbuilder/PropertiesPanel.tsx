@@ -517,7 +517,7 @@ export const PropertiesPanel = ({
           </Button>
         )}
 
-        {selectedNode.id !== 'initial-message' && (
+        {selectedNode.type !== 'trigger' && (
           <Button
             variant="destructive"
             className="w-full"
