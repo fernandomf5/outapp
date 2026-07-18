@@ -84,7 +84,9 @@ const AgentFlowBuilder = () => {
 
       if (agentData) {
         const currentConfig = agentData.config as any || {};
-        if (currentConfig.flows_enabled === false) {
+        
+        // Sempre garantir que flows_enabled seja true se estamos salvando um fluxo ativo
+        if (isActive) {
           await supabase
             .from("ai_agents")
             .update({
@@ -92,6 +94,7 @@ const AgentFlowBuilder = () => {
             })
             .eq("id", agentId);
         }
+
       }
 
       if (flowId) {
