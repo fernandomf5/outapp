@@ -83,7 +83,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
         <div>
           <h3 className="text-xl font-bold flex items-center gap-2">
             <Brain className="w-5 h-5 text-primary" />
-            Configuração de Inteligência (IA)
+            Configuração de Agente IA (Inteligente)
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
             Treine seu agente com informações específicas para que ele responda como um especialista.
