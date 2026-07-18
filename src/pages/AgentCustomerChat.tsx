@@ -452,7 +452,7 @@ export default function AgentCustomerChat() {
           const isInitialTrigger = newMessage.metadata?.trigger === 'initial';
           const key = `${newMessage.role}:${newMessage.content}`;
           
-          if (!isInitialTrigger && sentMessagesRef.current.has(key)) {
+          if (newMessage.role === 'customer' && sentMessagesRef.current.has(key)) {
             // Prevent duplicate of optimistic message
             sentMessagesRef.current.delete(key);
             return;
