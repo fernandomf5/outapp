@@ -384,6 +384,31 @@ serve(async (req) => {
               );
             }
           }
+        } else {
+          // Se houver fluxo ativo mas a mensagem não bateu com gatilho nem botão,
+          // enviar o gatilho inicial novamente se configurado para isso
+          console.log('No trigger or button match found for flow. Sending initial trigger.');
+          const initialTrigger = triggerNodes.find((n: any) => 
+            n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
+          );
+          
+          if (initialTrigger) {
+            const flowResponse = initialTrigger.data.label || 'Como posso ajudar?';
+            const buttons = initialTrigger.data.buttons || [];
+            
+            await supabase.from('agent_messages').insert({
+              conversation_id: conversationId,
+              role: 'agent',
+              content: flowResponse,
+              sender_name: agent.name,
+              metadata: { buttons, trigger: 'retry' }
+            });
+
+            return new Response(
+              JSON.stringify({ response: flowResponse, buttons }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
         }
       }
     }
