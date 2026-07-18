@@ -393,19 +393,35 @@ serve(async (req) => {
           );
           
           if (initialTrigger) {
-            const flowResponse = initialTrigger.data.label || 'Como posso ajudar?';
-            const buttons = initialTrigger.data.buttons || [];
+            // Se for gatilho de botões, usar o label dele, senão buscar o primeiro nó após o gatilho
+            let flowResponse = initialTrigger.data.label || 'Escolha uma opção:';
+            let buttons = initialTrigger.data.buttons || [];
+            
+            // Se o gatilho não tiver botões, tenta pegar do próximo nó
+            if (buttons.length === 0) {
+              const firstEdge = edges.find((e: any) => e.source === initialTrigger.id);
+              if (firstEdge) {
+                const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
+                if (nextNode) {
+                  flowResponse = nextNode.data.label || flowResponse;
+                  buttons = nextNode.data.buttons || [];
+                }
+              }
+            }
+
+            // Adiciona um prefixo para orientar o usuário caso ele tenha digitado algo fora do fluxo
+            const responseWithPrefix = `Não entendi. Por favor, escolha uma opção:\n\n${flowResponse}`;
             
             await supabase.from('agent_messages').insert({
               conversation_id: conversationId,
               role: 'agent',
-              content: flowResponse,
+              content: responseWithPrefix,
               sender_name: agent.name,
               metadata: { buttons, trigger: 'retry' }
             });
 
             return new Response(
-              JSON.stringify({ response: flowResponse, buttons }),
+              JSON.stringify({ response: responseWithPrefix, buttons }),
               { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
