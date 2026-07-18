@@ -317,7 +317,11 @@ export default function AgentCustomerChat() {
 
       setAgentInfo(data.agent);
       setConversationId(data.conversationId);
-      setMessages(data.messages || []);
+      // Only update messages if we actually got messages back
+      // This prevents overwriting the optimistic state if messages arrive via realtime
+      if (data.messages && data.messages.length > 0) {
+        setMessages(data.messages);
+      }
       
       // Set attendant status from agent data
       if (data.agent?.attendant_status) {
