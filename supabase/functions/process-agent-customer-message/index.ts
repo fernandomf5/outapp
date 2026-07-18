@@ -264,39 +264,69 @@ serve(async (req) => {
       if (activeFlows && activeFlows.length > 0) {
         console.log('Found active flows:', activeFlows.length);
         
-        const isFirstMessage = (prevMessages || []).length === 0;
         const normalizedMsg = (message || "").toLowerCase().trim();
-
-        // Tentar encontrar o gatilho correto
         const mainFlow = activeFlows[0];
         const flowConfig = mainFlow.config as any || {};
         const nodes = flowConfig.nodes || [];
         const edges = flowConfig.edges || [];
+
+        // Tentar encontrar se já estamos no meio de um fluxo (baseado na última mensagem do agente que tinha botões)
+        const lastAgentMessage = [...(prevMessages || [])].reverse().find(m => m.role === 'agent');
         
-        // Encontrar todos os nós de gatilho
+        if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
+          console.log('Last agent message had buttons, checking for match...');
+          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => 
+            (typeof btn === 'string' ? btn : btn.text).toLowerCase().trim() === normalizedMsg
+          );
+
+          if (clickedButton) {
+            console.log('Button match found:', clickedButton);
+            const sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content);
+            if (sourceNode) {
+              const buttonText = typeof clickedButton === 'string' ? clickedButton : clickedButton.text;
+              const edge = edges.find((e: any) => e.source === sourceNode.id && e.sourceHandle === buttonText);
+              const nextEdge = edge || edges.find((e: any) => e.source === sourceNode.id);
+              
+              if (nextEdge) {
+                const nextNode = nodes.find((n: any) => n.id === nextEdge.target);
+                if (nextNode && nextNode.data?.label) {
+                   const flowResponse = nextNode.data.label;
+                   await supabase.from('agent_messages').insert({
+                     conversation_id: conversationId,
+                     role: 'agent',
+                     content: flowResponse,
+                     sender_name: agent.name,
+                     metadata: { buttons: nextNode.data.buttons || [] }
+                   });
+
+                   return new Response(
+                     JSON.stringify({ response: flowResponse }),
+                     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                   );
+                }
+              }
+            }
+          }
+        }
+
+        const isFirstMessage = (prevMessages || []).filter(m => m.role === 'customer').length === 0;
         const triggerNodes = nodes.filter((n: any) => n.type === 'trigger');
-        
         let targetTriggerNode = null;
 
-        // 1. Procurar gatilho de palavra-chave correspondente
+        // 1. Palavra-chave sempre tem prioridade
         targetTriggerNode = triggerNodes.find((n: any) => 
           n.data?.triggerType === 'keyword' && 
           n.data?.keyword && 
           normalizedMsg.includes(n.data.keyword.toLowerCase().trim())
         );
 
-        // 2. Se for a primeira mensagem e não houve palavra-chave, procurar gatilho "any" ou "buttons"
-        if (!targetTriggerNode && isFirstMessage) {
-          targetTriggerNode = triggerNodes.find((n: any) => 
-            n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
-          );
-        }
-
-        // 3. Se o usuário enviou uma saudação genérica, procurar gatilho "any"
+        // 2. Se for a primeira mensagem ou saudação genérica, procurar gatilhos globais
         if (!targetTriggerNode) {
-          const isGreeting = normalizedMsg === 'oi' || normalizedMsg === 'olá' || normalizedMsg === 'bom dia' || normalizedMsg === 'boa tarde' || normalizedMsg === 'boa noite';
-          if (isGreeting) {
-            targetTriggerNode = triggerNodes.find((n: any) => n.data?.triggerType === 'any');
+          const isGreeting = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!'].includes(normalizedMsg);
+          if (isFirstMessage || isGreeting) {
+            targetTriggerNode = triggerNodes.find((n: any) => 
+              n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
+            );
           }
         }
 
@@ -386,19 +416,17 @@ serve(async (req) => {
     const personalityDesc = buildPersonalityDescription(personality);
 
     const systemPrompt = `Você é ${agent.name}. ${agent.description || ''}
-
 ${nicheContext}
 ${knowledge ? `CONTEXTO:\n${knowledge}\n` : ''}
-
 REGRAS (siga rigorosamente):
-- Responda como se fosse uma pessoa real (ChatGPT-style), de forma natural e organizada
-- Se o cliente disse "oi" ou saudações, responda de forma curta e amigável
+- Responda como se fosse uma pessoa real, de forma natural e organizada.
+- Se o cliente disse "oi" ou saudações, responda de forma curta e amigável.
 - Se não souber algo, responda: "Ainda não tenho essa informação específica, mas posso te passar para um atendente humano. Deseja? 😊"
 - Se o cliente pedir para falar com um humano, diga: "Claro! Vou te encaminhar para um especialista agora mesmo. Só um momento. ⏳"
-- Emojis: use moderadamente (máximo 1-2 por mensagem)
-- Seja conciso e direto, mas educado
-- NÃO invente informações que não estão na base de conhecimento ou contexto
-- NÃO use bullet points excessivos`;
+- Emojis: use moderadamente (máximo 1-2 por mensagem).
+- Seja conciso e direto, mas educado.
+- NÃO invente informações que não estão na base de conhecimento ou contexto.
+- NÃO use bullet points excessivos.`;
 
     console.log('Calling AI with system prompt length:', systemPrompt.length);
 
