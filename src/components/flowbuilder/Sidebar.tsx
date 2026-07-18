@@ -80,6 +80,27 @@ export const Sidebar = ({ onAddNode }: SidebarProps) => {
       description: 'Atendente humano',
       color: 'pink-500',
     },
+    {
+      type: 'condition',
+      icon: GitBranch,
+      title: 'Condição (IF)',
+      description: 'Lógica se/então',
+      color: 'emerald-500',
+    },
+    {
+      type: 'question',
+      icon: HelpCircle,
+      title: 'Pergunta',
+      description: 'Capturar resposta',
+      color: 'yellow-500',
+    },
+    {
+      type: 'action',
+      icon: Zap,
+      title: 'Ação',
+      description: 'Executar tarefa',
+      color: 'orange-500',
+    },
   ];
 
   return (

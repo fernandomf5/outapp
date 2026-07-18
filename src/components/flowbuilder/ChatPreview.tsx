@@ -89,11 +89,11 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
   };
 
   const processNode = (node: Node) => {
-    if (node.type === 'message' || node.type === 'question' || node.type === 'quickReply' || node.type === 'button' || node.type === 'text') {
+    if (['message', 'question', 'quickReply', 'button', 'text', 'condition', 'action'].includes(node.type || '')) {
       const newMessage: Message = {
-        id: node.id,
+        id: node.id + Date.now(),
         role: 'bot',
-        content: replaceVars(node.data.label || node.data.message || node.data.text || ''),
+        content: replaceVars(node.data.label || node.data.message || node.data.text || (node.type === 'condition' ? 'Verificando condição...' : node.type === 'action' ? 'Executando ação...' : '')),
         timestamp: new Date(),
         imageUrl: node.data.imageUrl,
         buttons: node.data.buttons?.map((b: any) => (typeof b === 'string' ? b : b?.text)).filter(Boolean),
@@ -114,13 +114,23 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
       return null;
     };
 
-    // Quick Reply, Botões e Perguntas com handles por botão
-    if ((currentNode?.type === 'quickReply' || currentNode?.type === 'button' || currentNode?.type === 'question') && userResponse) {
-      const btns: string[] = currentNode.data?.buttons || [];
-      const idx = btns.findIndex(b => b?.trim().toLowerCase() === userResponse.trim().toLowerCase());
+    // Quick Reply, Botões, Perguntas e outros com handles por botão ou index
+    if (['quickReply', 'button', 'question', 'message', 'action'].includes(currentNode?.type || '') && userResponse) {
+      const btns: any[] = currentNode?.data?.buttons || [];
+      const idx = btns.findIndex(b => {
+        const btnText = (typeof b === 'string' ? b : b?.text || '').toLowerCase().trim();
+        return btnText === userResponse.trim().toLowerCase();
+      });
 
       if (idx >= 0) {
-        const edgeByHandle = edges.find(e => e.source === currentNodeId && e.sourceHandle === `btn-${idx}`);
+        const buttonId = btns[idx]?.id;
+        const edgeByHandle = edges.find(e => 
+          e.source === currentNodeId && 
+          (e.sourceHandle === `btn-${idx}` || 
+           e.sourceHandle === `${idx}` || 
+           (buttonId && (e.sourceHandle === buttonId || e.sourceHandle === `btn-${buttonId}`)))
+        );
+        
         if (edgeByHandle) {
           return nodes.find(n => n.id === edgeByHandle.target) || null;
         }
@@ -128,6 +138,15 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
         const byIndex = checkByIndex(idx);
         if (byIndex) return byIndex;
       }
+    }
+
+    // Condição (Sim/Não)
+    if (currentNode?.type === 'condition') {
+      // Simular um match simples na prévia para fins de demonstração
+      const isPositive = userResponse?.toLowerCase().match(/sim|ok|quero|vou|tenho|aceito|concordo/);
+      const handleId = isPositive ? 'true' : 'false';
+      const edge = edges.find(e => e.source === currentNodeId && e.sourceHandle === handleId);
+      if (edge) return nodes.find(n => n.id === edge.target) || null;
     }
 
     // Fallback: primeira aresta de saída

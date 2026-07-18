@@ -281,15 +281,18 @@ serve(async (req) => {
         
         if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
           console.log('Last agent message had buttons, checking for match...');
-          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => {
+          let clickedButtonIndex = -1;
+          const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any, idx: number) => {
             const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
             const btnId = typeof btn === 'object' ? btn.id : null;
             
-            // Match exact, subset, or keyword mapping
-            return btnText === normalizedMsg || 
+            const isMatch = btnText === normalizedMsg || 
                    normalizedMsg === btnText || 
                    normalizedMsg.includes(btnText) ||
                    (btnId && (normalizedMsg.includes(btnId) || normalizedMsg.includes(`btn-${btnId}`)));
+            
+            if (isMatch) clickedButtonIndex = idx;
+            return isMatch;
           });
 
           if (clickedButton) {
@@ -312,10 +315,10 @@ serve(async (req) => {
               // 1. Try to find an edge that matches the specific button handle (ID or label)
               let edge = edges.find((e: any) => 
                 (e.source === sourceNode.id) && 
-                (e.sourceHandle === buttonText || 
+                ((e.sourceHandle === buttonText) || 
                  (buttonId && (e.sourceHandle === buttonId || e.sourceHandle === `btn-${buttonId}`)) ||
                  (buttonText && e.sourceHandle === `btn-${buttonText}`) ||
-                 (buttonId && e.sourceHandle === `btn-${buttonText}`)) // Extra fallback for ID mismatch
+                 (clickedButtonIndex !== -1 && (e.sourceHandle === `btn-${clickedButtonIndex}` || e.sourceHandle === `${clickedButtonIndex}`)))
               );
               
               // 2. Fallback: If no specific edge for the button, look for ANY outgoing edge (linear flow)
