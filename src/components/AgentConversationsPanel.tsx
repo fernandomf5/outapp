@@ -584,7 +584,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
-  const handleRestartConversation = async () => {
+  const handleRestartConversation = async (conversationId?: string) => {
     if (!selectedConversation) return;
 
     try {
