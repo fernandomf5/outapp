@@ -335,6 +335,21 @@ const AIAgentBuilder = () => {
               </p>
             </div>
           </Card>
+          
+          <Card className="p-4 sm:p-6 border-primary/20">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base sm:text-lg font-semibold">Botão Flutuante</Label>
+                <p className="text-sm text-muted-foreground">
+                  Se ativado, o chat aparecerá como um botão flutuante no seu site ao invés de abrir em uma nova página.
+                </p>
+              </div>
+              <Switch 
+                checked={isFloating}
+                onCheckedChange={setIsFloating}
+              />
+            </div>
+          </Card>
 
           {/* Logomarca */}
           <Card className="p-4 sm:p-6 border-primary/20">
