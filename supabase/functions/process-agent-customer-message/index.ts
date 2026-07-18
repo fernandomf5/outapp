@@ -304,7 +304,7 @@ serve(async (req) => {
                      role: 'agent',
                      content: flowResponse,
                      sender_name: agent.name,
-                     metadata: { buttons: nextNode.data.buttons || [] }
+                     metadata: { buttons: nextNode.data.buttons || [], nodeId: nextNode.id }
                    });
 
                    return new Response(
