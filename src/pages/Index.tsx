@@ -22,6 +22,7 @@ import { VideoCover } from "@/components/VideoCover";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIcon from "@/assets/hero-icon.png";
 import logoLion from "@/assets/logo-lion.png";
+import { AIAgentFloatingChat } from "@/components/AIAgentFloatingChat";
 
 interface Plan {
   id: string;
