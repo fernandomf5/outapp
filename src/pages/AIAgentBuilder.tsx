@@ -54,6 +54,7 @@ const AIAgentBuilder = () => {
         setPrimaryColor(agent.config?.primaryColor || "#6366f1");
         setSecondaryColor(agent.config?.secondaryColor || "#8b5cf6");
         setLogoUrl(agent.config?.logoUrl || "");
+        setIsFloating(!!agent.config?.isFloating);
         const at = (agent as any).access_type || 'public';
         const normalizedAt = at === 'restricted' ? 'private' : at;
         setAccessType(normalizedAt);
