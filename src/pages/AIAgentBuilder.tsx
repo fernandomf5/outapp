@@ -169,6 +169,7 @@ const AIAgentBuilder = () => {
           primaryColor,
           secondaryColor,
           logoUrl,
+          isFloating,
         },
         training_data: {},
         is_active: true,
