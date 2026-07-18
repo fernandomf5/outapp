@@ -231,16 +231,20 @@ serve(async (req) => {
     console.log('Agent found:', agent.name, 'Niche:', agent.niche);
     const agentConfig = agent.config || {};
     const flowsEnabled = agentConfig.flows_enabled !== false;
+    const attendantStatus = agent.attendant_status || 'offline';
 
-    // Se fluxos estão habilitados, não retornar imediatamente para permitir processamento manual se necessário
-    // Mas por enquanto, o comportamento atual é apenas chat online manual.
-    // Vamos adicionar um log para depuração.
+    // Se atendente estiver online, o fluxo não responde automaticamente (atendimento humano prioritário)
+    // A menos que o usuário queira que o fluxo responda sempre. 
+    // Mas por padrão, se estiver online, o atendente assume.
+    if (attendantStatus === 'online') {
+      console.log('Attendant is online, skipping auto-response');
+      return new Response(
+        JSON.stringify({ response: '', skipped: 'attendant_online' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Flows enabled:', flowsEnabled);
-
-    return new Response(
-      JSON.stringify({ response: '' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
 
     // Get customer info
     const { data: customerRecord } = await supabase
