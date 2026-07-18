@@ -419,7 +419,7 @@ serve(async (req) => {
               role: 'agent',
               content: responseWithPrefix,
               sender_name: agent.name,
-              metadata: { buttons, trigger: 'retry' }
+              metadata: { buttons, trigger: 'retry', nodeId: initialTrigger.id }
             });
 
             return new Response(
