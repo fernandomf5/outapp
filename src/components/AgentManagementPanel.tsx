@@ -26,63 +26,9 @@ interface MenuOption {
 
 export default function AgentManagementPanel({ agentId, agentName }: AgentManagementPanelProps) {
   const [activeTab, setActiveTab] = useState<string | null>(null);
-  const [pendingAppointments, setPendingAppointments] = useState(0);
-  const [pendingOrders, setPendingOrders] = useState(0);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    fetchNotifications();
-
-    // Subscrição em tempo real para agendamentos
-    const appointmentsSubscription = supabase
-      .channel(`agent_appointments_${agentId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'agent_appointments',
-        filter: `agent_id=eq.${agentId}`
-      }, () => {
-        fetchNotifications();
-      })
-      .subscribe();
-
-    // Subscrição em tempo real para pedidos
-    const ordersSubscription = supabase
-      .channel(`agent_orders_${agentId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'agent_orders',
-        filter: `agent_id=eq.${agentId}`
-      }, () => {
-        fetchNotifications();
-      })
-      .subscribe();
-
-    return () => {
-      appointmentsSubscription.unsubscribe();
-      ordersSubscription.unsubscribe();
-    };
-  }, [agentId]);
-
-  const fetchNotifications = async () => {
-    // Buscar agendamentos pendentes
-    const { count: appointmentsCount } = await supabase
-      .from('agent_appointments')
-      .select('*', { count: 'exact', head: true })
-      .eq('agent_id', agentId)
-      .eq('status', 'pending');
-
-    // Buscar pedidos pendentes
-    const { count: ordersCount } = await supabase
-      .from('agent_orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('agent_id', agentId)
-      .eq('status', 'pending');
-
-    setPendingAppointments(appointmentsCount || 0);
-    setPendingOrders(ordersCount || 0);
-  };
+  const menuOptions: MenuOption[] = [
 
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
