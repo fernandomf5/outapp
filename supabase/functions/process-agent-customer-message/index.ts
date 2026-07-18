@@ -461,10 +461,10 @@ serve(async (req) => {
         }
       }
     }
-
   }
 
     // Get customer info
+
     const { data: customerRecord } = await supabase
       .from('agent_customers')
       .select('*')
