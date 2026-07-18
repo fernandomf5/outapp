@@ -132,7 +132,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
         <div>
           <h2 className="text-2xl font-bold mb-2">Gestão: {agentName}</h2>
           <p className="text-muted-foreground text-sm">
-            Gerencie agendamentos, pedidos e clientes do seu agente IA
+            Gerencie conversas, fluxos e clientes do seu agente IA
           </p>
         </div>
 
