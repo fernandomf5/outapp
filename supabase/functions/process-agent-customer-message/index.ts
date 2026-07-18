@@ -284,34 +284,55 @@ serve(async (req) => {
           const clickedButton = lastAgentMessage.metadata.buttons.find((btn: any) => {
             const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
             // Match exact or check if message is a subset of button text (common for mobile keyboards)
-            return btnText === normalizedMsg || normalizedMsg === btnText;
+            // Or if message contains the button text
+            return btnText === normalizedMsg || normalizedMsg === btnText || normalizedMsg.includes(btnText);
           });
 
           if (clickedButton) {
             console.log('Button match found:', clickedButton);
-            const sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content || n.id === lastAgentMessage.metadata?.nodeId);
+            
+            // Try to find the source node. Check:
+            // 1. By nodeId stored in metadata (most reliable)
+            // 2. By content match (fallback)
+            let sourceNode = nodes.find((n: any) => n.id === lastAgentMessage.metadata?.nodeId);
+            
+            if (!sourceNode) {
+              sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content);
+            }
+
             if (sourceNode) {
               const buttonText = typeof clickedButton === 'string' ? clickedButton : clickedButton.text;
               const buttonId = typeof clickedButton === 'object' ? clickedButton.id : null;
               
-              // Busca edge que corresponda ao texto OU ao ID do botão (sourceHandle)
-              const edge = edges.find((e: any) => 
+              console.log('Finding edge from node:', sourceNode.id, 'with button:', buttonText, 'or ID:', buttonId);
+
+              // 1. First try to find an edge that matches the specific button handle (ID or label)
+              let edge = edges.find((e: any) => 
                 (e.source === sourceNode.id) && 
                 (e.sourceHandle === buttonText || (buttonId && e.sourceHandle === buttonId) || (buttonId && e.sourceHandle === `btn-${buttonId}`))
               );
               
-              const nextEdge = edge || edges.find((e: any) => e.source === sourceNode.id);
+              // 2. Fallback: If no specific edge for the button, look for ANY outgoing edge (linear flow)
+              if (!edge) {
+                edge = edges.find((e: any) => e.source === sourceNode.id);
+              }
               
-              if (nextEdge) {
-                const nextNode = nodes.find((n: any) => n.id === nextEdge.target);
+              if (edge) {
+                const nextNode = nodes.find((n: any) => n.id === edge.target);
                 if (nextNode && nextNode.data?.label) {
                    const flowResponse = nextNode.data.label;
+                   console.log('Next node found:', nextNode.id, 'Response:', flowResponse);
+
                    await supabase.from('agent_messages').insert({
                      conversation_id: conversationId,
                      role: 'agent',
                      content: flowResponse,
                      sender_name: agent.name,
-                     metadata: { buttons: nextNode.data.buttons || [], nodeId: nextNode.id }
+                     metadata: { 
+                       buttons: nextNode.data.buttons || [], 
+                       nodeId: nextNode.id,
+                       source_btn: buttonText
+                     }
                    });
 
                    return new Response(
@@ -319,9 +340,16 @@ serve(async (req) => {
                      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
                    );
                 }
+              } else {
+                console.log('No edge found from source node:', sourceNode.id);
               }
+            } else {
+              console.log('Source node not found for last message');
             }
+          } else {
+            console.log('No button text match found for:', normalizedMsg);
           }
+
         }
 
         const isFirstMessage = (prevMessages || []).filter(m => m.role === 'customer').length === 0;
