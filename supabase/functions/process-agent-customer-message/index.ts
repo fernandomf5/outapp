@@ -229,10 +229,13 @@ serve(async (req) => {
     }
 
     console.log('Agent found:', agent.name, 'Niche:', agent.niche);
+    const agentConfig = agent.config || {};
+    const flowsEnabled = agentConfig.flows_enabled !== false;
 
-    // Chat Online apenas - sem processamento de IA
-    // Mensagens são gerenciadas manualmente pelo atendente humano
-    console.log('Chat Online mode - AI processing disabled');
+    // Se fluxos estão habilitados, não retornar imediatamente para permitir processamento manual se necessário
+    // Mas por enquanto, o comportamento atual é apenas chat online manual.
+    // Vamos adicionar um log para depuração.
+    console.log('Flows enabled:', flowsEnabled);
 
     return new Response(
       JSON.stringify({ response: '' }),
