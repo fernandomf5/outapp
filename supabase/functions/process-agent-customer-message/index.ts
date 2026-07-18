@@ -458,11 +458,9 @@ serve(async (req) => {
             }
           }
         }
-        }
       }
     }
-      }
-    }
+  }
 
     // Get customer info
     const { data: customerRecord } = await supabase
