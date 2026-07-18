@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3, ArrowLeft, Workflow } from "lucide-react";
+import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3, ArrowLeft, Workflow, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import AgentAppointmentsPanel from "./AgentAppointmentsPanel";
@@ -15,6 +15,7 @@ import AgentServicesPanel from "./AgentServicesPanel";
 import AgentSchedulePanel from "./AgentSchedulePanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
 import AgentFlowsPanel from "./AgentFlowsPanel";
+import AgentAIPanel from "./AgentAIPanel";
 
 interface AgentManagementPanelProps {
   agentId: string;
@@ -91,6 +92,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
     { id: "flows", label: "Fluxos", icon: <Workflow /> },
+    { id: "ai", label: "Inteligência IA", icon: <Brain /> },
     { id: "services", label: "Serviços", icon: <Wrench /> },
     { id: "products", label: "Produtos", icon: <Package /> },
     { id: "schedule", label: "Horários", icon: <Clock /> },
@@ -106,6 +108,8 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
         return <AgentConversationsPanel agentId={agentId} />;
       case "flows":
         return <AgentFlowsPanel agentId={agentId} />;
+      case "ai":
+        return <AgentAIPanel agentId={agentId} />;
       case "services":
         return <AgentServicesPanel agentId={agentId} />;
       case "products":
@@ -219,6 +223,10 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
         <TabsContent value="flows">
           <AgentFlowsPanel agentId={agentId} />
+        </TabsContent>
+
+        <TabsContent value="ai">
+          <AgentAIPanel agentId={agentId} />
         </TabsContent>
 
         <TabsContent value="services">
