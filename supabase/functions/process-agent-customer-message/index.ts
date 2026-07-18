@@ -265,8 +265,7 @@ serve(async (req) => {
         console.log('Found active flows:', activeFlows.length);
         
         const isFirstMessage = (prevMessages || []).length === 0;
-        const normalizedMsg = message.toLowerCase().trim();
-        const isFirstMessage = (prevMessages || []).length === 0;
+        const normalizedMsg = (message || "").toLowerCase().trim();
 
         // Tentar encontrar o gatilho correto
         const mainFlow = activeFlows[0];
