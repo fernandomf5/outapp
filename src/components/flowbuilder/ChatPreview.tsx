@@ -89,11 +89,11 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
   };
 
   const processNode = (node: Node) => {
-    if (node.type === 'message' || node.type === 'question' || node.type === 'quickReply' || node.type === 'button' || node.type === 'text') {
+    if (['message', 'question', 'quickReply', 'button', 'text', 'condition', 'action'].includes(node.type || '')) {
       const newMessage: Message = {
-        id: node.id,
+        id: node.id + Date.now(),
         role: 'bot',
-        content: replaceVars(node.data.label || node.data.message || node.data.text || ''),
+        content: replaceVars(node.data.label || node.data.message || node.data.text || (node.type === 'condition' ? 'Verificando condição...' : node.type === 'action' ? 'Executando ação...' : '')),
         timestamp: new Date(),
         imageUrl: node.data.imageUrl,
         buttons: node.data.buttons?.map((b: any) => (typeof b === 'string' ? b : b?.text)).filter(Boolean),
