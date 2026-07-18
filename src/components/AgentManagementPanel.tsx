@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3, ArrowLeft, Workflow, Brain } from "lucide-react";
+import { MessageSquare, Users, BarChart3, ArrowLeft, Workflow, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import AgentCustomersPanel from "./AgentCustomersPanel";
