@@ -46,6 +46,26 @@ export default function AgentFlowsPanel({ agentId }: AgentFlowsPanelProps) {
   };
 
   const handleToggle = async (flowId: string, isActive: boolean) => {
+    // Se estiver ativando um fluxo, desativar a IA do agente
+    if (isActive) {
+      const { data: currentAgent } = await supabase
+        .from("ai_agents")
+        .select("config")
+        .eq("id", agentId)
+        .single();
+      
+      const config = { ...(currentAgent?.config as any || {}), ai_enabled: false };
+      
+      const { error: agentError } = await supabase
+        .from("ai_agents")
+        .update({ config })
+        .eq("id", agentId);
+        
+      if (agentError) {
+        console.error("Erro ao desativar IA:", agentError);
+      }
+    }
+
     const { error } = await supabase
       .from("agent_chat_flows")
       .update({ is_active: isActive })
@@ -55,7 +75,10 @@ export default function AgentFlowsPanel({ agentId }: AgentFlowsPanelProps) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
       setFlows((prev) => prev.map((f) => (f.id === flowId ? { ...f, is_active: isActive } : f)));
-      toast({ title: isActive ? "Fluxo ativado ✅" : "Fluxo desativado" });
+      toast({ 
+        title: isActive ? "Fluxo ativado ✅" : "Fluxo desativado",
+        description: isActive ? "A Inteligência Artificial foi desativada para este agente." : undefined
+      });
     }
   };
 

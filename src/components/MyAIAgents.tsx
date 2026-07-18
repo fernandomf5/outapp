@@ -307,6 +307,23 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                   {t('copy_link')}
                 </Button>
                 <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    const link = `${window.location.origin}/agent-auth/${agent.id}`;
+                    const embedCode = `<script src="${window.location.origin}/floating-chat.js" data-agent-id="${agent.id}"></script>`;
+                    navigator.clipboard.writeText(embedCode);
+                    toast({
+                      title: "Código de incorporação copiado!",
+                      description: "Cole o script no final do <body> do seu site.",
+                    });
+                  }}
+                >
+                  <Link2 className="w-3 h-3 mr-2" />
+                  Incorporar
+                </Button>
+                <Button
                   variant="default"
                   size="sm"
                   className="flex-1"
