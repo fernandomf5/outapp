@@ -30,6 +30,9 @@ interface Message {
   sender_name?: string;
   media_url?: string | null;
   media_type?: string | null;
+  metadata?: {
+    buttons?: string[];
+  };
 }
 
 export default function AgentCustomerChat() {
@@ -434,6 +437,7 @@ export default function AgentCustomerChat() {
         (payload) => {
           console.log('Nova mensagem recebida via realtime:', payload);
           const newMessage = payload.new as Message;
+          console.log('Dados da nova mensagem:', newMessage);
           const key = `${newMessage.role}:${newMessage.content}`;
           if (sentMessagesRef.current.has(key)) {
             // Prevent duplicate of optimistic message
@@ -907,6 +911,28 @@ export default function AgentCustomerChat() {
                       </a>
                     )}
                     <p className="whitespace-pre-wrap">{linkifyText(message.content)}</p>
+                    {message.metadata?.buttons && message.metadata.buttons.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {message.metadata.buttons.map((btn: any, idx: number) => (
+                          <Button
+                            key={idx}
+                            variant="outline"
+                            size="sm"
+                            className="bg-white hover:bg-white/90 text-primary border-white"
+                            onClick={() => {
+                              setInput(typeof btn === 'string' ? btn : btn.text);
+                              // Trigger send in next tick
+                              setTimeout(() => {
+                                const submitBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+                                submitBtn?.click();
+                              }, 100);
+                            }}
+                          >
+                            {typeof btn === 'string' ? btn : btn.text}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                     <span className="text-xs opacity-70 mt-1 block">
                       {new Date(message.created_at).toLocaleTimeString()}
                     </span>

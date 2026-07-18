@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText, Check, Copy } from 'lucide-react';
+import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText, Check, Copy, MessageCircle, Key, ListFilter } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ImageUpload } from './ImageUpload';
 import { MediaUpload } from './MediaUpload';
 import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
@@ -36,6 +37,7 @@ export const PropertiesPanel = ({
   const [documentName, setDocumentName] = useState('');
   const [delaySeconds, setDelaySeconds] = useState<number>(0);
   const [keyword, setKeyword] = useState('');
+  const [triggerType, setTriggerType] = useState<'any' | 'keyword' | 'buttons'>('any');
 
   useEffect(() => {
     if (selectedNode) {
@@ -55,6 +57,7 @@ export const PropertiesPanel = ({
       setDocumentName(selectedNode.data.documentName || '');
       setDelaySeconds(selectedNode.data.delaySeconds || 0);
       setKeyword(selectedNode.data.keyword || '');
+      setTriggerType(selectedNode.data.triggerType || 'any');
     }
   }, [selectedNode]);
 
@@ -81,6 +84,7 @@ export const PropertiesPanel = ({
       documentName,
       delaySeconds,
       keyword: keyword.trim(),
+      triggerType,
     });
   };
 
@@ -143,6 +147,7 @@ export const PropertiesPanel = ({
       case 'video': return 'Vídeo';
       case 'document': return 'Documento';
       case 'humanAgent': return 'Atendente Humano';
+      case 'trigger': return 'Gatilho';
       default: return 'Bloco';
     }
   };
@@ -155,6 +160,91 @@ export const PropertiesPanel = ({
       </div>
 
       <div className="space-y-4">
+        {/* Configurações de Gatilho */}
+        {selectedNode.type === 'trigger' && (
+          <div className="space-y-6">
+            <div>
+              <Label className="text-base font-bold flex items-center gap-2 mb-4">
+                <ListFilter className="w-5 h-5 text-primary" />
+                Como o fluxo deve iniciar?
+              </Label>
+              <RadioGroup 
+                value={triggerType} 
+                onValueChange={(val: any) => {
+                  setTriggerType(val);
+                  let newLabel = "Iniciar com qualquer conversa";
+                  if (val === 'keyword') newLabel = "Iniciar por palavra-chave";
+                  if (val === 'buttons') newLabel = "Iniciar com menu de opções";
+                  setLabel(newLabel);
+                  onUpdateNode(selectedNode.id, { triggerType: val, label: newLabel });
+                }}
+                className="grid gap-4"
+              >
+                <div className="flex items-center space-x-3 space-y-0 rounded-lg border p-4 cursor-pointer hover:bg-accent/50 transition-colors">
+                  <RadioGroupItem value="any" id="trigger-any" />
+                  <Label htmlFor="trigger-any" className="flex-1 cursor-pointer">
+                    <div className="font-bold flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4" />
+                      Qualquer conversa
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">O fluxo inicia assim que o cliente enviar qualquer mensagem.</p>
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-3 space-y-0 rounded-lg border p-4 cursor-pointer hover:bg-accent/50 transition-colors">
+                  <RadioGroupItem value="keyword" id="trigger-keyword" />
+                  <Label htmlFor="trigger-keyword" className="flex-1 cursor-pointer">
+                    <div className="font-bold flex items-center gap-2">
+                      <Key className="w-4 h-4" />
+                      Palavra-chave
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">O fluxo inicia apenas se o cliente digitar uma palavra específica (ex: "oi").</p>
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-3 space-y-0 rounded-lg border p-4 cursor-pointer hover:bg-accent/50 transition-colors">
+                  <RadioGroupItem value="buttons" id="trigger-buttons" />
+                  <Label htmlFor="trigger-buttons" className="flex-1 cursor-pointer">
+                    <div className="font-bold flex items-center gap-2">
+                      <ListFilter className="w-4 h-4" />
+                      Menu de Botões
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">O chat já abre com botões para o cliente escolher como deseja iniciar.</p>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {triggerType === 'keyword' && (
+              <div className="animate-in slide-in-from-top-2 duration-300">
+                <Label htmlFor="trigger-keyword-input">Defina a Palavra-chave</Label>
+                <Input
+                  id="trigger-keyword-input"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onBlur={handleUpdate}
+                  placeholder="Ex: oi, suporte, ola"
+                  className="mt-2"
+                />
+              </div>
+            )}
+
+            {triggerType === 'buttons' && (
+              <div className="animate-in slide-in-from-top-2 duration-300">
+                <Label htmlFor="trigger-msg-input">Mensagem de Boas-vindas</Label>
+                <Textarea
+                  id="trigger-msg-input"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                  onBlur={handleUpdate}
+                  placeholder="Olá! Como podemos ajudar hoje?"
+                  className="mt-2"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Palavra-chave - para todos os tipos exceto trigger */}
         {selectedNode.type !== 'trigger' && (
           <div>
@@ -427,7 +517,7 @@ export const PropertiesPanel = ({
           </Button>
         )}
 
-        {selectedNode.id !== 'initial-message' && (
+        {selectedNode.type !== 'trigger' && (
           <Button
             variant="destructive"
             className="w-full"

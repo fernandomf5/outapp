@@ -25,6 +25,13 @@ interface SidebarProps {
 export const Sidebar = ({ onAddNode }: SidebarProps) => {
   const basicBlocks = [
     {
+      type: 'trigger',
+      icon: Play,
+      title: 'Gatilho de Início',
+      description: 'Como o fluxo inicia',
+      color: 'green-500',
+    },
+    {
       type: 'text',
       icon: Type,
       title: 'Adicionar Texto',
@@ -58,6 +65,20 @@ export const Sidebar = ({ onAddNode }: SidebarProps) => {
       title: 'Adicionar Documento',
       description: 'Enviar arquivo',
       color: 'amber-500',
+    },
+    {
+      type: 'button',
+      icon: MousePointerClick,
+      title: 'Botões Interativos',
+      description: 'Escolha de opções',
+      color: 'orange-500',
+    },
+    {
+      type: 'humanAgent',
+      icon: Headset,
+      title: 'Transferência',
+      description: 'Atendente humano',
+      color: 'pink-500',
     },
   ];
 
