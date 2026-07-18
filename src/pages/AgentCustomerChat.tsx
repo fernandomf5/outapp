@@ -592,7 +592,15 @@ export default function AgentCustomerChat() {
         media_type: mediaType,
       });
 
-      // Mensagem enviada com sucesso (sem processamento de IA)
+      // Processar mensagem com IA/Fluxo
+      await supabase.functions.invoke('process-agent-customer-message', {
+        body: {
+          agentId,
+          customerId: customer.id,
+          conversationId,
+          message: messageContent
+        }
+      });
     } catch (error: any) {
       toast({
         title: "Erro",

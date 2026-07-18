@@ -191,8 +191,8 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
       </div>
 
       <Tabs value={activeTab || "conversations"} onValueChange={setActiveTab} className="w-full">
-        <div className="bg-card border rounded-xl p-1.5 mb-6">
-          <TabsList className="flex flex-wrap gap-1 h-auto bg-transparent p-0">
+        <div className="bg-card border rounded-xl p-1.5 mb-6 overflow-x-auto scrollbar-none">
+          <TabsList className="flex flex-nowrap md:flex-wrap gap-1 h-auto bg-transparent p-0 min-w-max md:min-w-0">
             {menuOptions.map((option) => (
               <TabsTrigger 
                 key={option.id} 
