@@ -225,7 +225,7 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
 
       let query = supabase
         .from('briefings' as any)
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 

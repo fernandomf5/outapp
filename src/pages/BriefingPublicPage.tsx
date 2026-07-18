@@ -32,15 +32,28 @@ export default function BriefingPublicPage() {
 
   const loadBriefing = async () => {
     try {
+      console.log('Fetching briefing with ID:', briefingId);
+      
       const { data, error } = await supabase
         .from('briefings')
         .select('*')
         .eq('id', briefingId)
-        .eq('is_active', true)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching briefing:', error);
+        throw error;
+      }
       
+      if (!data) {
+        console.warn('No briefing found for ID:', briefingId);
+        toast.error("Briefing não encontrado");
+        setLoading(false);
+        return;
+      }
+
+      console.log('Briefing data found:', data);
+
       // Check if briefing is blocked
       if (data?.is_blocked) {
         setBriefing({ ...data, isBlocked: true });
@@ -48,6 +61,7 @@ export default function BriefingPublicPage() {
         setBriefing(data);
       }
     } catch (error) {
+      console.error('Catch block error loading briefing:', error);
       toast.error("Briefing não encontrado");
     } finally {
       setLoading(false);
