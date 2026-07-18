@@ -191,23 +191,27 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
       </div>
 
       <Tabs value={activeTab || "conversations"} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-          {menuOptions.map((option) => (
-            <TabsTrigger 
-              key={option.id} 
-              value={option.id}
-              className="flex items-center gap-2 px-3 py-2"
-            >
-              {option.icon}
-              <span className="hidden lg:inline">{option.label}</span>
-              {option.badge && option.badge > 0 && (
-                <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
-                  {option.badge}
-                </Badge>
-              )}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="bg-card border rounded-xl p-1.5 mb-6">
+          <TabsList className="flex flex-wrap gap-1 h-auto bg-transparent p-0">
+            {menuOptions.map((option) => (
+              <TabsTrigger 
+                key={option.id} 
+                value={option.id}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+              >
+                <div className="shrink-0">
+                  {option.icon && React.cloneElement(option.icon as React.ReactElement, { className: "w-4 h-4" })}
+                </div>
+                <span className="text-sm font-medium whitespace-nowrap">{option.label}</span>
+                {option.badge && option.badge > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] px-1 ml-0.5">
+                    {option.badge}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         <TabsContent value="conversations">
           <AgentConversationsPanel agentId={agentId} />
