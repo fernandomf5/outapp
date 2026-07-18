@@ -400,7 +400,7 @@ serve(async (req) => {
         }
 
         const customerMessages = (prevMessages || []).filter(m => m.role === 'customer');
-        const isFirstMessage = customerMessages.length <= 1; // Including the current one if it was already inserted
+        const isFirstMessage = customerMessages.length <= 1;
         
         const triggerNodes = nodes.filter((n: any) => n.type === 'trigger');
         let targetTriggerNode = null;
@@ -418,7 +418,7 @@ serve(async (req) => {
           const isGreeting = PortugueseGreetings.includes(normalizedMsg) || 
                             PortugueseGreetings.some(g => normalizedMsg.startsWith(g + ' '));
           
-          if (isFirstMessage || isGreeting || normalizedMsg === '' || normalizedMsg === 'reiniciar') {
+          if (isFirstMessage || isGreeting || normalizedMsg === '' || normalizedMsg === 'reiniciar' || normalizedMsg === 'voltar') {
             targetTriggerNode = triggerNodes.find((n: any) => 
               n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
             );
@@ -428,12 +428,10 @@ serve(async (req) => {
         if (targetTriggerNode) {
           console.log('Trigger found:', targetTriggerNode.data?.triggerType);
           
-          // Se o gatilho for do tipo 'buttons', ele já contém a mensagem e os botões
           if (targetTriggerNode.data?.triggerType === 'buttons') {
             return await handleNodeProcessing(targetTriggerNode, nodes, edges, conversationId, agent, supabase);
           }
 
-          // Para outros gatilhos (any, keyword), buscar o primeiro nó conectado
           const firstEdge = edges.find((e: any) => e.source === targetTriggerNode.id);
           if (firstEdge) {
             const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
@@ -442,19 +440,18 @@ serve(async (req) => {
             }
           }
         } else {
-          // Fallback: se não houver match, tentar o gatilho inicial "Any" ou "Buttons"
-          console.log('No trigger or button match found for flow. Sending initial trigger.');
+          // Fallback: se houver fluxos mas nenhum gatilho casou, 
+          // SEMPRE enviar o gatilho inicial ("Any" ou "Buttons") em vez de cair na IA
+          console.log('No trigger or button match found. Forcing initial trigger.');
           const initialTrigger = triggerNodes.find((n: any) => 
             n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
           );
           
           if (initialTrigger) {
-            // Se for botões, processa o gatilho direto
             if (initialTrigger.data?.triggerType === 'buttons') {
                return await handleNodeProcessing(initialTrigger, nodes, edges, conversationId, agent, supabase);
             }
             
-            // Senão busca o primeiro conectado
             const firstEdge = edges.find((e: any) => e.source === initialTrigger.id);
             if (firstEdge) {
               const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
@@ -466,7 +463,10 @@ serve(async (req) => {
     }
   }
 
+
     // Get customer info
+
+
     const { data: customerRecord } = await supabase
       .from('agent_customers')
       .select('*')

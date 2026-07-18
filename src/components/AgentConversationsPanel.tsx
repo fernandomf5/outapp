@@ -584,7 +584,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
-  const handleRestartConversation = async () => {
+  const handleRestartConversation = async (conversationId?: string) => {
     if (!selectedConversation) return;
 
     try {
@@ -810,15 +810,16 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
+                    <Button 
+                      variant="outline" 
                       size="sm"
-                      onClick={handleRestartConversation}
-                      className="gap-2 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700 font-semibold"
+                      onClick={() => handleRestartConversation(selectedConversation.id)}
+                      className="gap-2 border-primary text-primary hover:bg-primary hover:text-white transition-all shadow-sm font-bold"
                     >
                       <RefreshCw className="w-4 h-4" />
                       Reiniciar Fluxo
                     </Button>
+
                     <Select value={selectedConversation.status} onValueChange={updateStatus}>
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Status" />
