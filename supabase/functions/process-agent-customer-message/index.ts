@@ -377,7 +377,8 @@ serve(async (req) => {
                 e.sourceHandle === `btn-${clickedButtonIndex}` || 
                 e.sourceHandle === `${clickedButtonIndex}` ||
                 (buttonText && e.sourceHandle === `btn-${buttonText}`) ||
-                (buttonText && e.sourceHandle === buttonText)
+                (buttonText && e.sourceHandle === buttonText) ||
+                (e.sourceHandle && e.sourceHandle.includes(buttonId))
               )
             );
 
