@@ -13,7 +13,7 @@ import { AddressField } from "@/components/AddressField";
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Upload, X, Star, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Upload, X, Star, MessageCircle, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 
 export default function BriefingPublicPage() {
   const { briefingId } = useParams();
@@ -54,12 +54,7 @@ export default function BriefingPublicPage() {
 
       console.log('Briefing data found:', data);
 
-      // Check if briefing is blocked
-      if (data?.is_blocked) {
-        setBriefing({ ...data, isBlocked: true });
-      } else {
-        setBriefing(data);
-      }
+      setBriefing(data);
     } catch (error) {
       console.error('Catch block error loading briefing:', error);
       toast.error("Briefing não encontrado");
@@ -504,10 +499,21 @@ export default function BriefingPublicPage() {
     );
   }
 
-  if (briefing.is_blocked) {
+  if (briefing.is_blocked && !submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4 flex items-center justify-center">
-        <Card className="max-w-md mx-auto glass text-center">
+      <div 
+        className="min-h-screen py-12 px-4 flex items-center justify-center"
+        style={{
+          backgroundColor: briefing.background_color || '#1a1a2e',
+        }}
+      >
+        <Card 
+          className="max-w-md mx-auto text-center"
+          style={{
+            backgroundColor: briefing.section_background_color || '#ffffff',
+            color: briefing.text_color || '#1a1a2e',
+          }}
+        >
           <CardHeader>
             {briefing?.logo_url && (
               <div className="flex justify-center mb-4">
@@ -522,24 +528,12 @@ export default function BriefingPublicPage() {
           <CardContent className="space-y-6 py-8">
             <div className="flex justify-center">
               <div className="rounded-full bg-destructive/10 p-4">
-                <svg
-                  className="h-16 w-16 text-destructive"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
+                <Lock className="h-16 w-16 text-destructive" />
               </div>
             </div>
             <div className="space-y-2">
               <h3 className="text-2xl font-bold">Briefing Bloqueado</h3>
-              <p className="text-muted-foreground">
+              <p className="opacity-80">
                 Este briefing não está aceitando novas respostas no momento.
               </p>
             </div>
@@ -734,7 +728,7 @@ export default function BriefingPublicPage() {
               )}
 
               <div className="space-y-4">
-                {(useSteps ? getFieldsForStep(currentStep) : briefing.fields).map((field: any) => (
+                {(useSteps ? getFieldsForStep(currentStep) : (briefing.fields || [])).map((field: any) => (
                   <div key={field.id} className="grid gap-2">
                     <Label style={{ color: textColor }}>
                       {field.label}
