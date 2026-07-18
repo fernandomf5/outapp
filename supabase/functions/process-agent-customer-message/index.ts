@@ -306,7 +306,8 @@ REGRAS (siga rigorosamente):
 - Se o cliente disse "oi", responda apenas com uma saudação curta
 - Use o nome "${customerSafe.name}" apenas na primeira interação
 - Emojis: máximo 1 por mensagem, apenas se fizer sentido
-- Se não souber algo, diga "não tenho essa info" de forma natural
+- Se não souber algo, responda: "Não tenho essa informação no momento, mas posso te encaminhar para um atendente humano. Deseja falar com um atendente? 😊"
+- Se o cliente expressar desejo de falar com um humano, responda: "Com certeza! Vou te encaminhar para um atendente agora mesmo. Por favor, aguarde um momento. ⏳"
 - Para agendar/pedir: mencione os botões disponíveis no chat`;
 
     console.log('Calling AI with system prompt length:', systemPrompt.length);
