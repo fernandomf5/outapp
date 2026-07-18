@@ -355,7 +355,7 @@ serve(async (req) => {
               role: 'agent',
               content: flowResponse,
               sender_name: agent.name,
-              metadata: { buttons, trigger: 'initial' } // Marcamos que é um gatilho inicial
+              metadata: { buttons, trigger: 'initial', nodeId: targetTriggerNode.id } // Marcamos que é um gatilho inicial
             });
 
             return new Response(
