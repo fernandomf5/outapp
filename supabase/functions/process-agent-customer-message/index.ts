@@ -315,10 +315,10 @@ serve(async (req) => {
               // 1. Try to find an edge that matches the specific button handle (ID or label)
               let edge = edges.find((e: any) => 
                 (e.source === sourceNode.id) && 
-                (e.sourceHandle === buttonText || 
+                ((e.sourceHandle === buttonText) || 
                  (buttonId && (e.sourceHandle === buttonId || e.sourceHandle === `btn-${buttonId}`)) ||
                  (buttonText && e.sourceHandle === `btn-${buttonText}`) ||
-                 (buttonId && e.sourceHandle === `btn-${buttonText}`)) // Extra fallback for ID mismatch
+                 (clickedButtonIndex !== -1 && (e.sourceHandle === `btn-${clickedButtonIndex}` || e.sourceHandle === `${clickedButtonIndex}`)))
               );
               
               // 2. Fallback: If no specific edge for the button, look for ANY outgoing edge (linear flow)
