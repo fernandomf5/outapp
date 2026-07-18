@@ -147,6 +147,7 @@ export const PropertiesPanel = ({
       case 'video': return 'Vídeo';
       case 'document': return 'Documento';
       case 'humanAgent': return 'Atendente Humano';
+      case 'trigger': return 'Gatilho';
       default: return 'Bloco';
     }
   };
