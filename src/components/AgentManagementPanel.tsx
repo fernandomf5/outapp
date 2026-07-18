@@ -9,7 +9,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import AgentCustomersPanel from "./AgentCustomersPanel";
 import AgentConversationsPanel from "./AgentConversationsPanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
-import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
 import AgentFlowsPanel from "./AgentFlowsPanel";
 import AgentAIPanel from "./AgentAIPanel";
 
