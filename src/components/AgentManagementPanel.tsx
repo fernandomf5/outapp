@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -89,15 +89,15 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
   };
 
   const menuOptions: MenuOption[] = [
-    { id: "conversations", label: "Conversas", icon: <MessageSquare className="w-6 h-6" /> },
-    { id: "flows", label: "Fluxos", icon: <Workflow className="w-6 h-6" /> },
-    { id: "services", label: "Serviços", icon: <Wrench className="w-6 h-6" /> },
-    { id: "products", label: "Produtos", icon: <Package className="w-6 h-6" /> },
-    { id: "schedule", label: "Horários", icon: <Clock className="w-6 h-6" /> },
-    { id: "appointments", label: "Agendamentos", icon: <Calendar className="w-6 h-6" />, badge: pendingAppointments },
-    { id: "orders", label: "Pedidos", icon: <ShoppingBag className="w-6 h-6" />, badge: pendingOrders },
-    { id: "customers", label: "Clientes", icon: <Users className="w-6 h-6" /> },
-    { id: "analytics", label: "Analytics", icon: <BarChart3 className="w-6 h-6" /> },
+    { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
+    { id: "flows", label: "Fluxos", icon: <Workflow /> },
+    { id: "services", label: "Serviços", icon: <Wrench /> },
+    { id: "products", label: "Produtos", icon: <Package /> },
+    { id: "schedule", label: "Horários", icon: <Clock /> },
+    { id: "appointments", label: "Agendamentos", icon: <Calendar />, badge: pendingAppointments },
+    { id: "orders", label: "Pedidos", icon: <ShoppingBag />, badge: pendingOrders },
+    { id: "customers", label: "Clientes", icon: <Users /> },
+    { id: "analytics", label: "Analytics", icon: <BarChart3 /> },
   ];
 
   const renderContent = () => {
@@ -191,23 +191,27 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
       </div>
 
       <Tabs value={activeTab || "conversations"} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-          {menuOptions.map((option) => (
-            <TabsTrigger 
-              key={option.id} 
-              value={option.id}
-              className="flex items-center gap-2 px-3 py-2"
-            >
-              {option.icon}
-              <span className="hidden lg:inline">{option.label}</span>
-              {option.badge && option.badge > 0 && (
-                <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
-                  {option.badge}
-                </Badge>
-              )}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="bg-card border rounded-xl p-1.5 mb-6">
+          <TabsList className="flex flex-wrap gap-1 h-auto bg-transparent p-0">
+            {menuOptions.map((option) => (
+              <TabsTrigger 
+                key={option.id} 
+                value={option.id}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+              >
+                <div className="shrink-0">
+                  {option.icon && React.cloneElement(option.icon as React.ReactElement, { className: "w-4 h-4" })}
+                </div>
+                <span className="text-sm font-medium whitespace-nowrap">{option.label}</span>
+                {option.badge && option.badge > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] px-1 ml-0.5">
+                    {option.badge}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         <TabsContent value="conversations">
           <AgentConversationsPanel agentId={agentId} />

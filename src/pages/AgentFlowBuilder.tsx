@@ -74,6 +74,26 @@ const AgentFlowBuilder = () => {
         is_active: isActive,
       };
 
+      // Se este for o primeiro fluxo ou o usuário estiver salvando como ativo,
+      // garantir que o agente tenha fluxos habilitados na config
+      const { data: agentData } = await supabase
+        .from("ai_agents")
+        .select("config")
+        .eq("id", agentId)
+        .single();
+
+      if (agentData) {
+        const currentConfig = agentData.config as any || {};
+        if (currentConfig.flows_enabled === false) {
+          await supabase
+            .from("ai_agents")
+            .update({
+              config: { ...currentConfig, flows_enabled: true }
+            })
+            .eq("id", agentId);
+        }
+      }
+
       if (flowId) {
         const { error } = await supabase
           .from("agent_chat_flows")
