@@ -938,6 +938,7 @@ const Index = () => {
         </DialogContent>
       </Dialog>
       <CookieNotice />
+      <AIAgentFloatingChat />
     </div>
   );
 };
