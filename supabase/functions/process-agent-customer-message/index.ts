@@ -292,7 +292,14 @@ serve(async (req) => {
             const sourceNode = nodes.find((n: any) => n.data?.label === lastAgentMessage.content || n.id === lastAgentMessage.metadata?.nodeId);
             if (sourceNode) {
               const buttonText = typeof clickedButton === 'string' ? clickedButton : clickedButton.text;
-              const edge = edges.find((e: any) => e.source === sourceNode.id && e.sourceHandle === buttonText);
+              const buttonId = typeof clickedButton === 'object' ? clickedButton.id : null;
+              
+              // Busca edge que corresponda ao texto OU ao ID do botão (sourceHandle)
+              const edge = edges.find((e: any) => 
+                (e.source === sourceNode.id) && 
+                (e.sourceHandle === buttonText || (buttonId && e.sourceHandle === buttonId) || (buttonId && e.sourceHandle === `btn-${buttonId}`))
+              );
+              
               const nextEdge = edge || edges.find((e: any) => e.source === sourceNode.id);
               
               if (nextEdge) {
