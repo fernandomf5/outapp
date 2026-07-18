@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText, Check, Copy } from 'lucide-react';
+import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText, Check, Copy, MessageCircle, Key, ListFilter } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ImageUpload } from './ImageUpload';
 import { MediaUpload } from './MediaUpload';
 import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
