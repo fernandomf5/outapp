@@ -130,31 +130,28 @@ serve(async (req) => {
 
     if (msgError) throw msgError;
 
-    // Se for uma conversa nova (sem mensagens), disparar o gatilho inicial
-    if ((messages || []).length === 0) {
-      console.log('Nova conversa detectada, disparando gatilho inicial...');
+    // Disparar gatilho inicial se for uma conversa nova ou se não houver mensagens
+    const messageCount = (messages || []).length;
+    console.log(`Conversa carregada com ${messageCount} mensagens.`);
+    
+    if (messageCount === 0) {
+      console.log('Disparando gatilho inicial para nova conversa...');
       
-      // Chamamos a função process-agent-customer-message com uma mensagem vazia ou especial
-      // para que ela verifique os gatilhos "any" ou "buttons" que devem iniciar o fluxo
-      // Usamos um delay curto ou fire-and-forget para não travar o init
-      try {
-        const processUrl = `${supabaseUrl}/functions/v1/process-agent-customer-message`;
-        fetch(processUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            agentId,
-            customerId,
-            conversationId,
-            message: '' // Mensagem vazia sinaliza tentativa de gatilho inicial
-          })
-        }).catch(err => console.error('Erro ao disparar gatilho inicial:', err));
-      } catch (e) {
-        console.error('Erro ao chamar process-agent-customer-message:', e);
-      }
+      // Chamada fire-and-forget para processar o gatilho inicial
+      const processUrl = `${supabaseUrl}/functions/v1/process-agent-customer-message`;
+      fetch(processUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agentId,
+          customerId,
+          conversationId,
+          message: '' // Mensagem vazia sinaliza gatilho inicial
+        })
+      }).catch(err => console.error('Erro ao disparar gatilho inicial:', err));
     }
 
     return new Response(

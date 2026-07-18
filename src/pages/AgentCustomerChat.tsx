@@ -323,8 +323,9 @@ export default function AgentCustomerChat() {
       if (data.messages && data.messages.length > 0) {
         setMessages(data.messages);
       } else {
-        // Se for conversa nova, limpamos mensagens para garantir que o realtime do gatilho inicial funcione
+        // Limpamos mensagens e resetamos o Set de mensagens enviadas para garantir que o realtime funcione
         setMessages([]);
+        sentMessagesRef.current = new Set();
       }
       
       // Set attendant status from agent data
