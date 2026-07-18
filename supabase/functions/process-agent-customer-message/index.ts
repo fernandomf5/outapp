@@ -458,24 +458,9 @@ serve(async (req) => {
             }
           }
         }
-
-            // Adiciona um prefixo para orientar o usuário caso ele tenha digitado algo fora do fluxo
-            const responseWithPrefix = `Não entendi. Por favor, escolha uma opção:\n\n${flowResponse}`;
-            
-            await supabase.from('agent_messages').insert({
-              conversation_id: conversationId,
-              role: 'agent',
-              content: responseWithPrefix,
-              sender_name: agent.name,
-              metadata: { buttons, trigger: 'retry', nodeId: initialTrigger.id }
-            });
-
-            return new Response(
-              JSON.stringify({ response: responseWithPrefix, buttons }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
         }
+      }
+    }
       }
     }
 
