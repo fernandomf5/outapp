@@ -46,8 +46,8 @@ export const PropertiesPanel = ({
       // Converter botões antigos (strings) para novo formato (objetos)
       const buttonData = selectedNode.data.buttons || [];
       const normalizedButtons = buttonData.map((btn: any) => {
-        if (typeof btn === 'string') return { text: btn, url: '', id: Math.random().toString(36).substr(2, 9) };
-        return { ...btn, id: btn.id || Math.random().toString(36).substr(2, 9) };
+        if (typeof btn === 'string') return { text: btn, url: '', id: Math.random().toString(36).substring(2, 9) };
+        return { ...btn, id: btn.id || Math.random().toString(36).substring(2, 9) };
       });
       setButtons(normalizedButtons);
       setActionType(selectedNode.data.actionType || '');
@@ -102,7 +102,7 @@ export const PropertiesPanel = ({
       const updatedButtons = [...buttons, { 
         text: newButton.trim(), 
         url: newButtonUrl.trim(), 
-        id: Math.random().toString(36).substr(2, 9) 
+        id: Math.random().toString(36).substring(2, 9) 
       }];
       setButtons(updatedButtons);
       setNewButton('');
