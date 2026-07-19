@@ -674,19 +674,19 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   <SelectItem value="online">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-green-500" />
-                      Online
+                      Atendimento Humano
                     </div>
                   </SelectItem>
                   <SelectItem value="busy">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                      Em Atendimento
+                      Ocupado (Humano)
                     </div>
                   </SelectItem>
                   <SelectItem value="offline">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-gray-400" />
-                      Offline
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      Agente IA Ativo
                     </div>
                   </SelectItem>
                 </SelectContent>
