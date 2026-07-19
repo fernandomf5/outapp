@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle, Headset } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -79,6 +79,7 @@ export default function AgentCustomerChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [visibleMessagesCount, setVisibleMessagesCount] = useState(20);
+  const [requestingHuman, setRequestingHuman] = useState(false);
   const MAX_VISIBLE_MESSAGES = 20;
 
   useEffect(() => {
