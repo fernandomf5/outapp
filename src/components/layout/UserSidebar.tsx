@@ -473,9 +473,9 @@ export function UserSidebar() {
                     className="w-full"
                   >
                     <CollapsibleTrigger asChild>
-                      <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group mb-1">
+                      <SidebarGroupLabel className="text-green-600 dark:text-green-400 font-bold bg-green-500/10 dark:bg-green-500/20 rounded-xl px-3 py-2 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group mb-2 hover:bg-green-500/20 transition-all border border-green-500/20">
                         <span>{group.label}</span>
-                        <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isCadastroOpen ? "" : "-rotate-90")} />
+                        <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isCadastroOpen ? "" : "-rotate-90")} />
                       </SidebarGroupLabel>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
