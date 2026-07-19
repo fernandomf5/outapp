@@ -241,9 +241,23 @@ serve(async (req) => {
       .order('created_at', { ascending: true })
       .limit(30);
 
-    // Se atendente estiver online OU o cliente solicitou atendimento humano
-    if ((attendantStatus === 'online' || forceHuman) && !isInitialTrigger) {
-      console.log('Attendant is online or forceHuman, skipping auto-response');
+    // Extraímos se a IA está habilitada
+    const aiEnabled = agentConfig.ai_enabled === true;
+
+    // Se o cliente solicitou atendimento humano (forceHuman), pausamos a IA
+    // Se o atendente estiver online, mas a IA estiver ativada, a IA responde 
+    // a menos que seja uma mensagem inicial (saudação inicial sempre processamos)
+    if (forceHuman && !isInitialTrigger) {
+      console.log('forceHuman active, skipping auto-response');
+      return new Response(
+        JSON.stringify({ response: '', skipped: 'force_human' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Se atendente estiver online e a IA NÃO estiver explicitamente habilitada
+    if (attendantStatus === 'online' && !aiEnabled && !isInitialTrigger) {
+      console.log('Attendant is online and AI not enabled, skipping auto-response');
       return new Response(
         JSON.stringify({ response: '', skipped: 'attendant_online' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

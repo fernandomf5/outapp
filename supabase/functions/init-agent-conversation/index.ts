@@ -102,8 +102,8 @@ serve(async (req) => {
     } else {
       // Check if AI or flows are enabled in agent config
       const agentConfig = agent.config || {};
+      const aiEnabled = agentConfig.ai_enabled === true;
       const flowsEnabled = agentConfig.flows_enabled !== false;
-      const aiEnabled = flowsEnabled; // Ativa IA/Fluxo se estiver habilitado na config do agente
       
       const { data: newConv, error: newConvError } = await supabase
         .from('agent_conversations')
