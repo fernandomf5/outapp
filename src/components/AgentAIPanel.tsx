@@ -197,15 +197,10 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
                     </div>
                   </div>
                   <Textarea 
-                    value={getQuestionValue(q.id)}
-                    onChange={(e) => updateKnowledgeFromQuestions(q.id, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.stopPropagation();
-                      }
-                    }}
+                    value={answers[q.id] || ""}
+                    onChange={(e) => updateAnswer(q.id, e.target.value)}
                     placeholder={q.placeholder}
-                    className="min-h-[100px] bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary rounded-xl text-sm resize-none"
+                    className="min-h-[100px] bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary rounded-xl text-sm"
                   />
                 </div>
               </Card>
