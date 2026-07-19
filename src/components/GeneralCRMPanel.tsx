@@ -857,19 +857,19 @@ export function GeneralCRMPanel() {
   return (
 
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Controle de Leads</CardTitle>
-              <CardDescription>
-                Todos os leads e clientes: gestão de clientes, chatbots, chat online e páginas clonadas
+      <Card className="border-none sm:border shadow-none sm:shadow-sm">
+        <CardHeader className="px-4 sm:px-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <CardTitle className="text-xl sm:text-2xl truncate">Controle de Leads</CardTitle>
+              <CardDescription className="text-xs sm:text-sm line-clamp-2">
+                Gestão unificada de leads e clientes de todas as suas fontes.
               </CardDescription>
             </div>
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => setCategoriesDialogOpen(true)} aria-label="Gerenciar Categorias">
+                  <Button variant="outline" size="icon" onClick={() => setCategoriesDialogOpen(true)} className="shrink-0 h-9 w-9">
                     <Settings2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -878,51 +878,50 @@ export function GeneralCRMPanel() {
             </TooltipProvider>
           </div>
         </CardHeader>
-        <CardContent>
-          {/* Categorias como Cards Clicáveis (Pastas) */}
+        <CardContent className="px-4 sm:px-6">
+          {/* Categorias como Pastas - Scroll horizontal no mobile */}
           {categories.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">Categorias de Leads:</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Categorias:</h3>
+              <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
                 {categories.map((category) => {
                   const categoryLeadCount = leads.filter(l => l.categoryId === category.id).length;
                   return (
                     <div
                       key={category.id}
                       onClick={() => setCategoryFilter(categoryFilter === category.id ? 'all' : category.id)}
-                      className={`relative group rounded-lg border p-4 hover:shadow-md transition-all cursor-pointer ${
+                      className={`relative group rounded-xl border p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer min-w-[140px] sm:min-w-0 ${
                         categoryFilter === category.id ? 'ring-2 ring-offset-2' : ''
                       }`}
                       style={{ 
-                        borderColor: category.color, 
+                        borderColor: `${category.color}40`, 
                         backgroundColor: `${category.color}10`,
                         ...(categoryFilter === category.id ? { ringColor: category.color } : {})
                       }}
                     >
                       <div className="flex flex-col items-center text-center">
-                        <Folder className="h-8 w-8 mb-2" style={{ color: category.color }} />
-                        <span className="font-medium text-sm truncate w-full" style={{ color: category.color }}>
+                        <Folder className="h-7 w-7 sm:h-8 sm:w-8 mb-2" style={{ color: category.color }} />
+                        <span className="font-bold text-xs sm:text-sm truncate w-full" style={{ color: category.color }}>
                           {category.name}
                         </span>
-                        <span className="text-xs text-muted-foreground">{categoryLeadCount} leads</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">{categoryLeadCount} leads</span>
                       </div>
                     </div>
                   );
                 })}
                 
-                {/* Card para Sem Categoria */}
                 <div
                   onClick={() => setCategoryFilter(categoryFilter === 'none' ? 'all' : 'none')}
-                  className={`relative group rounded-lg border border-dashed p-4 hover:shadow-md transition-all cursor-pointer border-muted-foreground/30 ${
+                  className={`relative group rounded-xl border border-dashed p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer border-muted-foreground/30 min-w-[140px] sm:min-w-0 ${
                     categoryFilter === 'none' ? 'ring-2 ring-offset-2 ring-muted-foreground' : ''
                   }`}
                 >
                   <div className="flex flex-col items-center text-center">
-                    <Folder className="h-8 w-8 mb-2 text-muted-foreground" />
-                    <span className="font-medium text-sm truncate w-full text-muted-foreground">
+                    <Folder className="h-7 w-7 sm:h-8 sm:w-8 mb-2 text-muted-foreground" />
+                    <span className="font-bold text-xs sm:text-sm truncate w-full text-muted-foreground">
                       Sem Categoria
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">
                       {leads.filter(l => !l.categoryId).length} leads
                     </span>
                   </div>
