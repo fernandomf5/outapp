@@ -122,48 +122,54 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
   // Desktop layout: cards quadradas quando nenhuma aba está selecionada, conteúdo quando está
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex items-center gap-6 px-1">
         {activeTab && (
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="icon" 
             onClick={() => setActiveTab(null)}
-            className="shrink-0"
+            className="shrink-0 h-12 w-12 rounded-2xl border-2 hover:bg-muted transition-all active:scale-95"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </Button>
         )}
         <div>
-          <h2 className="text-3xl font-bold mb-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">Painel de Gestão</Badge>
+            {activeTab && <span className="text-muted-foreground">/</span>}
+            {activeTab && <span className="text-muted-foreground font-medium text-sm">{agentName}</span>}
+          </div>
+          <h2 className="text-4xl font-black tracking-tight">
             {activeTab 
               ? menuOptions.find(opt => opt.id === activeTab)?.label 
               : `Gestão: ${agentName}`}
           </h2>
           {!activeTab && (
-            <p className="text-muted-foreground">
-              Gerencie conversas, fluxos e clientes do seu agente IA
+            <p className="text-muted-foreground mt-2 text-lg">
+              Gerencie conversas, fluxos e clientes com ferramentas de alta performance.
             </p>
           )}
         </div>
       </div>
 
       {!activeTab ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {menuOptions.map((option) => (
             <Card 
               key={option.id}
-              className="aspect-square flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-accent/50 hover:border-primary/50 transition-all hover:scale-[1.02] active:scale-95 group relative border-2"
+              className="aspect-square flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-card hover:border-primary/50 transition-all hover:scale-[1.03] active:scale-95 group relative border-2 rounded-3xl shadow-none hover:shadow-2xl bg-card/40 backdrop-blur-sm"
               onClick={() => setActiveTab(option.id)}
             >
-              <div className="p-4 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300 shadow-sm">
-                {React.cloneElement(option.icon as React.ReactElement, { className: "w-8 h-8" })}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+              <div className="p-5 rounded-[2rem] bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm relative z-10">
+                {React.cloneElement(option.icon as React.ReactElement, { className: "w-10 h-10" })}
               </div>
-              <span className="text-sm font-semibold tracking-tight">{option.label}</span>
+              <span className="text-lg font-bold tracking-tight relative z-10">{option.label}</span>
               {option.badge && option.badge > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute top-3 right-3 h-6 min-w-6 flex items-center justify-center rounded-full text-xs font-bold border-2 border-background"
+                  className="absolute top-4 right-4 h-6 min-w-6 flex items-center justify-center rounded-full text-xs font-bold ring-4 ring-background shadow-lg"
                 >
                   {option.badge}
                 </Badge>
@@ -172,7 +178,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
           ))}
         </div>
       ) : (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pt-2 pb-12">
           {renderContent()}
         </div>
       )}
