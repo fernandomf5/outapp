@@ -540,56 +540,53 @@ export default function AgentCustomerChat() {
   };
 
   const uploadFile = async (file: File, type: 'image' | 'document'): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `${type}s/${fileName}`;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${type}s/${fileName}`;
 
-    console.log(`Uploading ${type}: ${filePath}`);
-    
-    // Try chatbot-media first
-    const { error: uploadError } = await supabase.storage
-      .from('chatbot-media')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (uploadError) {
-      console.error('Upload error in chatbot-media:', uploadError);
-      // Try fallback to agent-media
-      const { error: fallbackError } = await supabase.storage
-        .from('agent-media')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      console.log(`Uploading ${type}: ${filePath}`);
       
-      if (fallbackError) {
-        console.error('Upload error in agent-media:', fallbackError);
-        // Try third fallback to messages-media (some projects use this)
-        const { error: thirdFallbackError } = await supabase.storage
-          .from('messages-media')
-          .upload(filePath, file);
-          
-        if (thirdFallbackError) throw uploadError;
+      const buckets = ['chatbot-media', 'agent-media', 'messages-media', 'customer-media'];
+      let lastError = null;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('messages-media')
-          .getPublicUrl(filePath);
-        return publicUrl;
+      for (const bucket of buckets) {
+        try {
+          console.log(`Tentando upload no bucket: ${bucket}`);
+          const { error: uploadError } = await supabase.storage
+            .from(bucket)
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from(bucket)
+              .getPublicUrl(filePath);
+            
+            console.log(`Upload bem sucedido no bucket: ${bucket}`);
+            return publicUrl;
+          } else {
+            console.warn(`Erro no bucket ${bucket}:`, uploadError.message);
+            lastError = uploadError;
+          }
+        } catch (err) {
+          console.error(`Erro inesperado no bucket ${bucket}:`, err);
+          lastError = err;
+        }
       }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('agent-media')
-        .getPublicUrl(filePath);
-      return publicUrl;
+
+      throw lastError || new Error("Falha no upload");
+    } catch (error: any) {
+      console.error('Final upload error:', error);
+      toast({
+        title: "Erro no envio",
+        description: error.message || "Não foi possível enviar o arquivo.",
+        variant: "destructive",
+      });
+      throw error;
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('chatbot-media')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
   };
 
   const handleSendMessage = async () => {
