@@ -87,6 +87,64 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
     setSaving(false);
   };
 
+  const trainingQuestions = [
+    {
+      id: "business_name",
+      question: "Qual o nome da sua empresa ou negócio?",
+      placeholder: "Ex: Out App Marketing",
+      help: "Isso ajuda o agente a se identificar corretamente."
+    },
+    {
+      id: "business_goal",
+      question: "Qual o principal objetivo do atendimento?",
+      placeholder: "Ex: Captar leads, vender mentorias, tirar dúvidas sobre o sistema...",
+      help: "O agente focará as respostas para atingir esse objetivo."
+    },
+    {
+      id: "products_services",
+      question: "Quais produtos ou serviços você oferece e seus preços?",
+      placeholder: "Ex: Plano Básico R$99, Plano Pro R$499. Oferecemos gestão de tráfego e criação de sites.",
+      help: "Essencial para que o agente possa informar e vender para o cliente."
+    },
+    {
+      id: "faq",
+      question: "Quais são as dúvidas mais comuns dos seus clientes e as respostas?",
+      placeholder: "Ex: Aceitam PIX? Sim. Tem garantia? Sim, 7 dias.",
+      help: "Dê exemplos de perguntas e respostas reais para o agente aprender."
+    },
+    {
+      id: "personality",
+      question: "Como o agente deve se comportar? (Tom de voz)",
+      placeholder: "Ex: Amigável, profissional, direto, usa emojis...",
+      help: "Define a 'personalidade' do seu atendimento IA."
+    }
+  ];
+
+  const updateKnowledgeFromQuestions = (id: string, value: string) => {
+    // Tenta extrair as respostas atuais do conhecimento ou inicia um novo formato
+    const lines = knowledge.split("\n");
+    let found = false;
+    const newLines = lines.map(line => {
+      const questionData = trainingQuestions.find(q => line.startsWith(`[${q.id}]:`));
+      if (questionData && questionData.id === id) {
+        found = true;
+        return `[${id}]: ${value}`;
+      }
+      return line;
+    });
+
+    if (!found) {
+      newLines.push(`[${id}]: ${value}`);
+    }
+
+    setKnowledge(newLines.join("\n"));
+  };
+
+  const getQuestionValue = (id: string) => {
+    const line = knowledge.split("\n").find(l => l.startsWith(`[${id}]:`));
+    return line ? line.replace(`[${id}]: `, "") : "";
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -97,90 +155,124 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-card p-6 rounded-2xl border shadow-sm">
         <div>
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <Brain className="w-5 h-5 text-primary" />
-            Agente IA (Inteligente)
+          <h3 className="text-2xl font-black flex items-center gap-2 tracking-tight">
+            <Brain className="w-6 h-6 text-primary" />
+            Treinamento do Agente IA
           </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Treine seu agente com informações específicas para que ele responda como um especialista.
+          <p className="text-sm text-muted-foreground mt-1 font-medium">
+            Responda as perguntas abaixo para treinar sua inteligência artificial.
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-card border p-2 rounded-lg">
-          <Label htmlFor="ai-toggle" className="text-sm font-medium cursor-pointer">
-            Ativar Inteligência
+        <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-primary/10">
+          <Label htmlFor="ai-toggle" className="text-sm font-bold cursor-pointer uppercase tracking-wider">
+            Status da IA
           </Label>
           <Switch 
             id="ai-toggle"
             checked={aiEnabled}
             onCheckedChange={setAiEnabled}
+            className="data-[state=checked]:bg-primary"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-6">
-          <Card className="p-6">
+          <div className="space-y-6">
+            {trainingQuestions.map((q) => (
+              <Card key={q.id} className="p-6 border-2 hover:border-primary/20 transition-all shadow-none rounded-2xl">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <Label className="text-base font-bold leading-tight">
+                      {q.question}
+                    </Label>
+                    <div className="group relative">
+                      <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                      <div className="absolute right-0 bottom-full mb-2 w-48 p-2 bg-popover text-popover-foreground text-xs rounded-lg border shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                        {q.help}
+                      </div>
+                    </div>
+                  </div>
+                  <Textarea 
+                    value={getQuestionValue(q.id)}
+                    onChange={(e) => updateKnowledgeFromQuestions(q.id, e.target.value)}
+                    placeholder={q.placeholder}
+                    className="min-h-[100px] bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary rounded-xl text-sm"
+                  />
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="p-6 border-dashed border-2 bg-muted/10 rounded-2xl">
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-primary font-semibold">
+              <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-xs">
                 <Sparkles className="w-4 h-4" />
-                <span>Base de Conhecimento e Prompt do Agente</span>
+                <span>Resumo do Conhecimento (IA)</span>
               </div>
-              <Label className="block text-sm text-muted-foreground">
-                Forneça todos os dados da sua empresa, produtos, serviços, preços e o objetivo do atendimento. O Agente usará isso para responder de forma humanizada, como um GPT.
-              </Label>
               <Textarea 
                 value={knowledge}
                 onChange={(e) => setKnowledge(e.target.value)}
-                placeholder="Ex: Somos a Out App. Vendemos soluções de marketing digital. Nosso objetivo é captar leads e tirar dúvidas sobre nossos planos (R$99-R$499). Responda sempre de forma gentil e profissional..."
-                className="min-h-[400px] text-sm leading-relaxed"
+                placeholder="O conhecimento do seu agente aparecerá aqui conforme você responde as perguntas..."
+                className="min-h-[150px] text-xs font-mono bg-background/50 leading-relaxed border-none focus-visible:ring-0"
               />
-              <p className="text-xs text-muted-foreground italic">
-                Dica: Quanto mais detalhado for o prompt sobre seu negócio, mais inteligente e humanizado o agente será nas respostas.
+              <p className="text-[10px] text-muted-foreground italic">
+                Nota: O Agente usará todos os dados acima para responder seus clientes de forma inteligente.
               </p>
             </div>
           </Card>
         </div>
 
         <div className="space-y-6">
-          <Card className="p-6 bg-primary/5 border-primary/20">
-            <h4 className="font-semibold flex items-center gap-2 mb-4">
-              <Info className="w-4 h-4 text-primary" />
-              Treinamento Real e Humanizado
+          <Card className="p-6 bg-primary/5 border-primary/20 rounded-2xl sticky top-6">
+            <h4 className="font-bold flex items-center gap-2 mb-6 text-lg tracking-tight">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Como funciona?
             </h4>
-            <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
-              <p>
-                1. <strong>Identidade:</strong> Defina quem é seu agente e como ele deve se comportar (ex: "Você é um consultor de vendas experiente").
-              </p>
-              <p>
-                2. <strong>Dados da Empresa:</strong> Liste seus produtos, serviços, valores e diferenciais. Ele saberá tudo sobre seu negócio.
-              </p>
-              <p>
-                3. <strong>Inteligência:</strong> Ele utiliza tecnologia de ponta (similar ao ChatGPT/Gemini) para entender o contexto e responder naturalmente.
-              </p>
-              <p>
-                4. <strong>Atendimento Híbrido:</strong> Escolha entre deixar o Agente IA cuidando de tudo ou assumir o controle manualmente para falar direto com o cliente.
-              </p>
-              <div className="pt-2">
-                <Alert className="bg-background border-primary/20">
-                  <MessageSquare className="w-4 h-4" />
-                  <AlertDescription className="text-xs">
-                    Com a IA ativa, seu atendimento funciona 24/7 de forma inteligente.
+            <div className="space-y-6 text-sm">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0 border border-primary/20">1</div>
+                <div>
+                  <p className="font-bold text-foreground">Responda as perguntas</p>
+                  <p className="text-muted-foreground text-xs mt-1">Dê o máximo de detalhes sobre seu negócio para o agente aprender.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0 border border-primary/20">2</div>
+                <div>
+                  <p className="font-bold text-foreground">Salve os dados</p>
+                  <p className="text-muted-foreground text-xs mt-1">Clique no botão abaixo para processar o treinamento.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0 border border-primary/20">3</div>
+                <div>
+                  <p className="font-bold text-foreground">IA em Ação</p>
+                  <p className="text-muted-foreground text-xs mt-1">Ative o "Status da IA" para que o agente comece a responder 24/7.</p>
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                <Alert className="bg-background/80 border-primary/20 rounded-xl">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  <AlertDescription className="text-xs font-medium">
+                    O Agente responderá de forma humanizada, similar ao ChatGPT, baseado nas suas respostas.
                   </AlertDescription>
                 </Alert>
               </div>
+
+              <Button 
+                className="w-full h-14 gap-3 text-base font-bold shadow-xl shadow-primary/20 rounded-xl transition-all hover:scale-[1.02] active:scale-95 mt-4" 
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
+                FINALIZAR TREINAMENTO
+              </Button>
             </div>
           </Card>
-
-          <Button 
-            className="w-full h-12 gap-2 text-base shadow-lg shadow-primary/20" 
-            onClick={handleSave}
-            disabled={saving}
-          >
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-            Salvar Treinamento
-          </Button>
         </div>
       </div>
     </div>
