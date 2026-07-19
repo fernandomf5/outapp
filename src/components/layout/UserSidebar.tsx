@@ -400,14 +400,14 @@ export function UserSidebar() {
                       <SidebarMenuButton
                         onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
                         className={cn(
-                          "text-sm py-2 transition-all duration-200",
-                          isActive("/dashboard", "cadastro-settings") ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-accent/50",
-                          collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                          "text-sm py-2.5 sm:py-2 transition-all duration-200 rounded-xl sm:rounded-lg",
+                          isActive("/dashboard", "cadastro-settings") ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "hover:bg-accent/70",
+                          collapsed && "justify-center !p-0 w-11 h-11 sm:w-10 sm:h-10"
                         )}
                         tooltip={collapsed ? "Gerenciar" : undefined}
                       >
                         <Settings className="h-5 w-5 shrink-0" />
-                        {!collapsed && <span className="truncate">Gerenciar</span>}
+                        {!collapsed && <span className="truncate font-medium">Gerenciar</span>}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
