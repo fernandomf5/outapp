@@ -358,7 +358,7 @@ serve(async (req) => {
       if (activeFlows && activeFlows.length > 0) {
         console.log('Found active flows:', activeFlows.length);
         
-        const normalizedMsg = (message || "").toString().toLowerCase().trim();
+        const normalizedMsg = (message || "").toString().trim().toLowerCase();
         const mainFlow = activeFlows[0];
         const flowConfig = mainFlow.config as any || {};
         const nodes = (flowConfig.nodes || []).map((n: any) => ({
