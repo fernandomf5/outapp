@@ -171,11 +171,9 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
             Treinamento do Agente IA
           </h3>
           <p className="text-sm text-muted-foreground mt-1 font-medium whitespace-pre-wrap">
-            Criei o Agente de IA, adicionei todas as informações da empresa e realizei o treinamento com sucesso.
+            ele ta respondendo, porem, não de forma inteligente, preciso de algo mais inteligente, tipo de uma ia que por mais que ela não saiba a resposta, ele consiga levar a conversa numa boa, ou pedir pra esperar um humano responder. 
 
-Agora, deixei o Agente de IA ativo no painel, porém ele não está respondendo aos clientes no chat online.
-
-O que ainda preciso configurar ou fazer para que o agente comece a responder automaticamente às mensagens dos clientes no chat?
+quero poder tambem treinar mais ela, tipo, falar de todos os recursos da out app, como usar e tudo mais.
           </p>
         </div>
         <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-primary/10">
