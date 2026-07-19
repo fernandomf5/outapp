@@ -260,11 +260,11 @@ serve(async (req) => {
     }
 
     // A IA deve responder se:
-    // 1. Estiver habilitada no config (aiEnabled)
-    // 2. OU se o treinamento da IA estiver explicitamente ativado
-    // 3. OU se for o gatilho inicial (para dar as boas-vindas automáticas)
-    // 4. OU se o atendente estiver offline (fallback padrão)
-    const shouldAIRespond = aiEnabled || isInitialTrigger || attendantStatus === 'offline';
+    // 1. Estiver habilitada explicitamente (aiEnabled)
+    // 2. OU se for o gatilho inicial (para dar as boas-vindas automáticas)
+    // 3. OU se o atendente estiver offline
+    // 4. OU se o attendant_status for nulo ou qualquer valor que não seja 'online'
+    const shouldAIRespond = aiEnabled || isInitialTrigger || attendantStatus !== 'online';
 
     if (!shouldAIRespond) {
       console.log('AI should not respond (Attendant online and AI disabled)');
