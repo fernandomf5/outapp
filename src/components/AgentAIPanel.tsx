@@ -112,6 +112,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
       .eq("id", agentId)
       .single();
 
+    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge };
     const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
     
     // Se o Agente IA for ativado, garantimos que o status de atendimento 
@@ -129,8 +130,6 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
         .update({ is_active: false })
         .eq("agent_id", agentId);
     }
-
-    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge };
 
     const { error } = await supabase
       .from("ai_agents")
