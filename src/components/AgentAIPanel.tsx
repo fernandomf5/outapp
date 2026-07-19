@@ -113,7 +113,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
       .single();
 
     const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge, ai_enabled: aiEnabled };
-    const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
+    const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled, flows_enabled: !aiEnabled };
     
     // Se o Agente IA for ativado, garantimos que o status de atendimento 
     // mude para 'offline' (que no sistema representa modo Agente IA)
@@ -171,7 +171,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
             Treinamento do Agente IA
           </h3>
           <p className="text-sm text-muted-foreground mt-1 font-medium">
-            o agente IA não esta respondendo o chat online
+            o Agente responderá de forma humanizada no chat online assim que o treinamento for finalizado e a IA for ativada.
           </p>
         </div>
         <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-primary/10">

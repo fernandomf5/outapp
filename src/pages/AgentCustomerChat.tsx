@@ -351,7 +351,7 @@ export default function AgentCustomerChat() {
     try {
       // Chamar edge function para inicializar conversa (bypass RLS)
       const { data, error } = await supabase.functions.invoke('init-agent-conversation', {
-        body: { agentId, customerId, customerName }
+        body: { agentId, customerId, customerName, timestamp: Date.now() }
       });
 
       if (error) {
@@ -400,7 +400,8 @@ export default function AgentCustomerChat() {
               agentId, 
               customerId, 
               conversationId: data.conversationId, 
-              message: '' 
+              message: '',
+              timestamp: Date.now()
             }
           });
         }
