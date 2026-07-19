@@ -173,6 +173,56 @@ export default function AgentCustomerChat() {
     };
   }, [agentId]);
 
+  // Subscribe to conversation changes (e.g., attendant restarts the flow)
+  useEffect(() => {
+    if (!agentId || !customer?.id) return;
+
+    console.log('📡 Monitorando mudanças na conversa para o cliente:', customer.id);
+    
+    const channel = supabase
+      .channel(`conversation-monitor-${customer.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agent_conversations',
+          filter: `customer_id=eq.${customer.id}`,
+        },
+        async (payload) => {
+          console.log('🔄 Mudança detectada na tabela de conversas:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            const newConv = payload.new as any;
+            if (newConv.agent_id === agentId && newConv.status === 'active') {
+              console.log('🆕 Nova conversa ativa detectada, atualizando ID:', newConv.id);
+              setConversationId(newConv.id);
+              // Limpar mensagens locais para o novo fluxo
+              setMessages([]);
+              sentMessagesRef.current = new Set();
+              
+              toast({
+                title: "Fluxo Reiniciado",
+                description: "O atendente reiniciou o fluxo de atendimento.",
+              });
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedConv = payload.new as any;
+            // Se a conversa atual foi arquivada e não temos uma nova ainda
+            if (updatedConv.id === conversationId && updatedConv.status === 'archived') {
+              console.log('⚠️ Conversa atual arquivada. Aguardando nova conversa...');
+              // Podemos limpar ou apenas esperar o INSERT da nova
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [agentId, customer?.id, conversationId]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
