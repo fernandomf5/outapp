@@ -113,7 +113,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     } else {
       toast({
         title: "Status atualizado",
-        description: `Você está ${status === 'online' ? 'Online' : status === 'busy' ? 'Em Atendimento' : 'Offline'}. Fluxos automáticos: ${flowsEnabled ? 'Ativados' : 'Pausados'}.`,
+        description: `Modo de atendimento alterado para: ${status === 'online' ? 'Atendimento Humano' : status === 'busy' ? 'Ocupado' : 'Agente IA'}. Fluxos automáticos: ${flowsEnabled ? 'Ativados' : 'Pausados'}.`,
       });
     }
   };
@@ -665,7 +665,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
           <div className="flex items-center gap-3 flex-wrap">
             {/* Status do Atendente */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Seu status:</span>
+              <span className="text-sm text-muted-foreground">Tipo de Atendimento:</span>
               <Select value={attendantStatus} onValueChange={(v) => updateAttendantStatus(v as 'online' | 'offline' | 'busy')}>
                 <SelectTrigger className="w-[160px]">
                   <SelectValue />
@@ -674,19 +674,19 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   <SelectItem value="online">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-green-500" />
-                      Online
+                      Atendimento Humano
                     </div>
                   </SelectItem>
                   <SelectItem value="busy">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                      Em Atendimento
+                      Ocupado (Humano)
                     </div>
                   </SelectItem>
                   <SelectItem value="offline">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-gray-400" />
-                      Offline
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      Agente IA Ativo
                     </div>
                   </SelectItem>
                 </SelectContent>

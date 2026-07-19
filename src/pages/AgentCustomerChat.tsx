@@ -966,20 +966,20 @@ export default function AgentCustomerChat() {
                         ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
                         : attendantStatus === 'busy'
                           ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
-                          : 'bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400'
+                          : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
                     }`}
                   >
                     <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-1 ${
                       attendantStatus === 'online' ? 'bg-green-500' :
-                      attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                      attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-blue-500'
                     }`} />
                     <span className="hidden sm:inline">
                       {attendantStatus === 'online' ? 'Atendente Online' : 
-                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
+                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Agente IA Ativo'}
                     </span>
                     <span className="sm:hidden">
                       {attendantStatus === 'online' ? 'Online' : 
-                       attendantStatus === 'busy' ? 'Ocupado' : 'Offline'}
+                       attendantStatus === 'busy' ? 'Ocupado' : 'Agente IA'}
                     </span>
                   </Badge>
                 </div>

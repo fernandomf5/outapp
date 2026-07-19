@@ -160,7 +160,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
                 3. <strong>Inteligência:</strong> Ele utiliza tecnologia de ponta (similar ao ChatGPT/Gemini) para entender o contexto e responder naturalmente.
               </p>
               <p>
-                4. <strong>Falar com Humano:</strong> O cliente sempre pode solicitar falar com um atendente real se preferir.
+                4. <strong>Atendimento Híbrido:</strong> Escolha entre deixar o Agente IA cuidando de tudo ou assumir o controle manualmente para falar direto com o cliente.
               </p>
               <div className="pt-2">
                 <Alert className="bg-background border-primary/20">
