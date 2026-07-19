@@ -17,7 +17,41 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
   const [saving, setSaving] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
   const [knowledge, setKnowledge] = useState("");
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const { toast } = useToast();
+
+  const trainingQuestions = [
+    {
+      id: "business_name",
+      question: "Qual o nome da sua empresa ou negócio?",
+      placeholder: "Ex: Out App Marketing",
+      help: "Isso ajuda o agente a se identificar corretamente."
+    },
+    {
+      id: "business_goal",
+      question: "Qual o principal objetivo do atendimento?",
+      placeholder: "Ex: Captar leads, vender mentorias, tirar dúvidas sobre o sistema...",
+      help: "O agente focará as respostas para atingir esse objetivo."
+    },
+    {
+      id: "products_services",
+      question: "Quais produtos ou serviços você oferece e seus preços?",
+      placeholder: "Ex: Plano Básico R$99, Plano Pro R$499. Oferecemos gestão de tráfego e criação de sites.",
+      help: "Essencial para que o agente possa informar e vender para o cliente."
+    },
+    {
+      id: "faq",
+      question: "Quais são as dúvidas mais comuns dos seus clientes e as respostas?",
+      placeholder: "Ex: Aceitam PIX? Sim. Tem garantia? Sim, 7 dias.",
+      help: "Dê exemplos de perguntas e respostas reais para o agente aprender."
+    },
+    {
+      id: "personality",
+      question: "Como o agente deve se comportar? (Tom de voz)",
+      placeholder: "Ex: Amigável, profissional, direto, usa emojis...",
+      help: "Define a 'personalidade' do seu atendimento IA."
+    }
+  ];
 
   useEffect(() => {
     loadAgentData();
@@ -36,9 +70,30 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
     } else {
       const config = (data.config as any) || {};
       const trainingData = (data.training_data as any) || {};
+      const initialKnowledge = trainingData.knowledge || "";
       
       setAiEnabled(config.ai_enabled !== false);
-      setKnowledge(trainingData.knowledge || "");
+      setKnowledge(initialKnowledge);
+
+      // Extrair respostas existentes do conhecimento formatado
+      const extractedAnswers: Record<string, string> = {};
+      trainingQuestions.forEach(q => {
+        const marker = `[${q.id}]: `;
+        if (initialKnowledge.includes(marker)) {
+          const startIndex = initialKnowledge.indexOf(marker) + marker.length;
+          // Procurar o início do próximo marcador ou o fim da string
+          let nextMarkerIndex = initialKnowledge.length;
+          trainingQuestions.forEach(otherQ => {
+            const otherMarker = `[${otherQ.id}]: `;
+            const otherIndex = initialKnowledge.indexOf(otherMarker, startIndex);
+            if (otherIndex !== -1 && otherIndex < nextMarkerIndex) {
+              nextMarkerIndex = otherIndex;
+            }
+          });
+          extractedAnswers[q.id] = initialKnowledge.substring(startIndex, nextMarkerIndex).trim();
+        }
+      });
+      setAnswers(extractedAnswers);
     }
     setLoading(false);
   };
@@ -46,7 +101,11 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
   const handleSave = async () => {
     setSaving(true);
     
-    // Buscar config atual para não sobrescrever outros campos
+    // Construir o conhecimento final a partir das respostas atuais
+    const finalKnowledge = trainingQuestions
+      .map(q => `[${q.id}]: ${answers[q.id] || ""}`)
+      .join("\n\n");
+
     const { data: currentAgent } = await supabase
       .from("ai_agents")
       .select("config, training_data")
@@ -55,19 +114,14 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
 
     const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
     
-    // Se ativar IA, desativar fluxos do agente
     if (aiEnabled) {
-      const { error: flowError } = await supabase
+      await supabase
         .from("agent_chat_flows")
         .update({ is_active: false })
         .eq("agent_id", agentId);
-        
-      if (flowError) {
-        console.error("Erro ao desativar fluxos:", flowError);
-      }
     }
 
-    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge };
+    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge };
 
     const { error } = await supabase
       .from("ai_agents")
@@ -77,6 +131,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
     if (error) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } else {
+      setKnowledge(finalKnowledge);
       toast({ 
         title: "Configurações salvas", 
         description: aiEnabled 
