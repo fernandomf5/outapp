@@ -229,7 +229,7 @@ async function handleNodeProcessing(node: any, nodes: any[], edges: any[], conve
     }
 
     // Salvar mensagem no banco
-    await supabase.from('agent_messages').insert({
+    const { data: insertedMsg, error: insertError } = await supabase.from('agent_messages').insert({
       conversation_id: conversationId,
       role: 'agent',
       content: content,
@@ -240,7 +240,27 @@ async function handleNodeProcessing(node: any, nodes: any[], edges: any[], conve
         buttons, 
         nodeId: node.id 
       }
-    });
+    }).select().single();
+
+    if (insertError) {
+      console.error('Error inserting message:', insertError);
+    }
+
+    // Se houver botões e for um nó de mídia, o fluxo para aqui esperando a resposta do cliente.
+    // Se NÃO houver botões, verificamos se há um próximo nó conectado via porta padrão (Bottom)
+    if (buttons.length === 0) {
+      const edge = edges.find((e: any) => e.source === node.id && !e.sourceHandle);
+      if (edge) {
+        const nextNode = nodes.find((n: any) => n.id === edge.target);
+        if (nextNode) {
+          // Pequeno delay opcional para simular fluxo natural
+          const delay = node.data?.delaySeconds ? node.data.delaySeconds * 1000 : 500;
+          if (delay > 0) await new Promise(resolve => setTimeout(resolve, delay));
+          
+          return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
+        }
+      }
+    }
 
     return new Response(
       JSON.stringify({ response: content, buttons, media_url: mediaUrl, media_type: mediaType }),
