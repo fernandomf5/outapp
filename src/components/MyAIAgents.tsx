@@ -244,28 +244,33 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {agents.map((agent) => {
           const totalNotifications = (notifications[agent.id]?.appointments || 0) + (notifications[agent.id]?.orders || 0) + (notifications[agent.id]?.messages || 0);
           
           return (
-          <Card key={agent.id} className="p-6 hover:shadow-lg transition-all">
-            <div className="flex items-start justify-between mb-4">
-              <div className="bg-success/10 p-3 rounded-xl">
-                <MessageSquare className="w-6 h-6 text-success" />
+          <Card key={agent.id} className="flex flex-col p-4 sm:p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-primary/20 group relative overflow-hidden bg-card/50 backdrop-blur-sm">
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+
+            <div className="flex items-start justify-between mb-4 relative z-10">
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
                   onClick={() => handleEdit(agent.id)}
-                  title="Editar"
+                  title="Configurações"
                 >
-                  <Pencil className="w-4 h-4" />
+                  <Settings className="w-4 h-4" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
                   onClick={() => setDeletingId(agent.id)}
                   title="Excluir"
                 >
@@ -274,13 +279,13 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative"
+                  className="h-8 w-8 rounded-full relative hover:bg-primary/10 hover:text-primary transition-colors"
                   onClick={() => setSelectedAgentForNotifications(agent.id)}
                   title="Notificações"
                 >
                   <Bell className="w-4 h-4" />
                   {totalNotifications > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full flex items-center justify-center text-[10px] text-white">
+                    <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-destructive rounded-full flex items-center justify-center text-[10px] text-white font-bold ring-2 ring-background">
                       {totalNotifications}
                     </span>
                   )}
@@ -288,44 +293,45 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold mb-2">{agent.name}</h3>
-            {agent.description && (
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                {agent.description}
-              </p>
-            )}
-
-            <div className="flex items-center justify-end text-sm mb-4">
-              <span className="text-muted-foreground">
-                {new Date(agent.created_at).toLocaleDateString('pt-BR')}
-              </span>
+            <div className="mb-4 relative z-10">
+              <h3 className="text-lg font-bold mb-1.5 truncate group-hover:text-primary transition-colors">{agent.name}</h3>
+              {agent.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2rem] leading-relaxed">
+                  {agent.description}
+                </p>
+              )}
             </div>
 
-            <div className="space-y-3">
+            <div className="mt-auto space-y-3 relative z-10">
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground/60 font-medium">
+                <span className="bg-muted px-2 py-0.5 rounded-full uppercase tracking-wider">Criado em</span>
+                <span>{new Date(agent.created_at).toLocaleDateString('pt-BR')}</span>
+              </div>
+
               <div className="flex gap-2">
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1 shadow-sm hover:shadow-md transition-all active:scale-95"
+                  className="flex-1 shadow-sm hover:shadow-lg transition-all active:scale-95 rounded-xl font-bold text-xs h-9"
                   onClick={() => handleOpenChat(agent.id, agent.name)}
                 >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  {t('open_chat')}
+                  <ExternalLink className="w-3.5 h-3.5 mr-2" />
+                  Abrir Chat
                 </Button>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="px-2 shadow-sm">
+                    <Button variant="outline" size="sm" className="px-2 shadow-sm rounded-xl h-9 hover:bg-muted">
                       <Share2 className="w-4 h-4 mr-1" />
                       <ChevronDown className="w-3 h-3 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl border-2">
                     <DropdownMenuItem 
                       onClick={() => handleCopyLink(agent.id, agent.name)}
-                      className="cursor-pointer"
+                      className="cursor-pointer rounded-lg mb-1 py-2"
                     >
-                      <Copy className="w-4 h-4 mr-2" />
+                      <Copy className="w-4 h-4 mr-2 text-muted-foreground" />
                       {t('copy_link')}
                     </DropdownMenuItem>
                     <DropdownMenuItem 
@@ -337,9 +343,9 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                           description: "Cole o script no final do <body> do seu site.",
                         });
                       }}
-                      className="cursor-pointer"
+                      className="cursor-pointer rounded-lg py-2"
                     >
-                      <Code className="w-4 h-4 mr-2" />
+                      <Code className="w-4 h-4 mr-2 text-muted-foreground" />
                       Incorporar Chat
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -350,11 +356,11 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full bg-accent/5 hover:bg-accent/10 border-accent/20 hover:border-accent/40 transition-all"
+                  className="w-full bg-primary/5 hover:bg-primary/10 border-primary/20 hover:border-primary/40 transition-all rounded-xl h-9 font-bold text-xs"
                   onClick={() => onManage({ id: agent.id, name: agent.name, niche: agent.niche })}
                 >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Gerenciar
+                  <Settings className="w-3.5 h-3.5 mr-2" />
+                  Gerenciar Fluxos & Clientes
                 </Button>
               )}
             </div>

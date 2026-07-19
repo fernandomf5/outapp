@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Phone, Mail, Edit, Trash2, Filter, FolderPlus, Settings2, Folder, Tag, Copy, CheckSquare } from "lucide-react";
+import { Download, Phone, Mail, Edit, Trash2, Filter, FolderPlus, Settings2, Folder, Tag, Copy, CheckSquare, RefreshCw, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -857,19 +857,19 @@ export function GeneralCRMPanel() {
   return (
 
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Controle de Leads</CardTitle>
-              <CardDescription>
-                Todos os leads e clientes: gestão de clientes, chatbots, chat online e páginas clonadas
+      <Card className="border-none sm:border shadow-none sm:shadow-sm">
+        <CardHeader className="px-4 sm:px-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <CardTitle className="text-xl sm:text-2xl truncate">Controle de Leads</CardTitle>
+              <CardDescription className="text-xs sm:text-sm line-clamp-2">
+                Gestão unificada de leads e clientes de todas as suas fontes.
               </CardDescription>
             </div>
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => setCategoriesDialogOpen(true)} aria-label="Gerenciar Categorias">
+                  <Button variant="outline" size="icon" onClick={() => setCategoriesDialogOpen(true)} className="shrink-0 h-9 w-9">
                     <Settings2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -878,51 +878,50 @@ export function GeneralCRMPanel() {
             </TooltipProvider>
           </div>
         </CardHeader>
-        <CardContent>
-          {/* Categorias como Cards Clicáveis (Pastas) */}
+        <CardContent className="px-4 sm:px-6">
+          {/* Categorias como Pastas - Scroll horizontal no mobile */}
           {categories.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">Categorias de Leads:</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Categorias:</h3>
+              <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
                 {categories.map((category) => {
                   const categoryLeadCount = leads.filter(l => l.categoryId === category.id).length;
                   return (
                     <div
                       key={category.id}
                       onClick={() => setCategoryFilter(categoryFilter === category.id ? 'all' : category.id)}
-                      className={`relative group rounded-lg border p-4 hover:shadow-md transition-all cursor-pointer ${
+                      className={`relative group rounded-xl border p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer min-w-[140px] sm:min-w-0 ${
                         categoryFilter === category.id ? 'ring-2 ring-offset-2' : ''
                       }`}
                       style={{ 
-                        borderColor: category.color, 
+                        borderColor: `${category.color}40`, 
                         backgroundColor: `${category.color}10`,
                         ...(categoryFilter === category.id ? { ringColor: category.color } : {})
                       }}
                     >
                       <div className="flex flex-col items-center text-center">
-                        <Folder className="h-8 w-8 mb-2" style={{ color: category.color }} />
-                        <span className="font-medium text-sm truncate w-full" style={{ color: category.color }}>
+                        <Folder className="h-7 w-7 sm:h-8 sm:w-8 mb-2" style={{ color: category.color }} />
+                        <span className="font-bold text-xs sm:text-sm truncate w-full" style={{ color: category.color }}>
                           {category.name}
                         </span>
-                        <span className="text-xs text-muted-foreground">{categoryLeadCount} leads</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">{categoryLeadCount} leads</span>
                       </div>
                     </div>
                   );
                 })}
                 
-                {/* Card para Sem Categoria */}
                 <div
                   onClick={() => setCategoryFilter(categoryFilter === 'none' ? 'all' : 'none')}
-                  className={`relative group rounded-lg border border-dashed p-4 hover:shadow-md transition-all cursor-pointer border-muted-foreground/30 ${
+                  className={`relative group rounded-xl border border-dashed p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer border-muted-foreground/30 min-w-[140px] sm:min-w-0 ${
                     categoryFilter === 'none' ? 'ring-2 ring-offset-2 ring-muted-foreground' : ''
                   }`}
                 >
                   <div className="flex flex-col items-center text-center">
-                    <Folder className="h-8 w-8 mb-2 text-muted-foreground" />
-                    <span className="font-medium text-sm truncate w-full text-muted-foreground">
+                    <Folder className="h-7 w-7 sm:h-8 sm:w-8 mb-2 text-muted-foreground" />
+                    <span className="font-bold text-xs sm:text-sm truncate w-full text-muted-foreground">
                       Sem Categoria
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">
                       {leads.filter(l => !l.categoryId).length} leads
                     </span>
                   </div>
@@ -931,174 +930,159 @@ export function GeneralCRMPanel() {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar por origem" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as origens</SelectItem>
-                  {uniqueSources.map(source => (
-                    <SelectItem key={source} value={source}>{source}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Folder className="h-4 w-4 text-muted-foreground ml-2" />
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar por categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
-                  <SelectItem value="none">Sem categoria</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category.id} value={category.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <TooltipProvider delayDuration={150}>
-              <div className="flex items-center gap-1 rounded-md border bg-card p-1 sm:ml-auto">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={downloadPhones} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar Telefones">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Baixar Telefones</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={downloadEmails} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar E-mails">
-                      <Mail className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Baixar E-mails</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={downloadAllLeads} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar CSV filtrados">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Baixar CSV (filtrados)</TooltipContent>
-                </Tooltip>
-                <Separator orientation="vertical" className="mx-1 h-6" />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => { setCopyMode('category'); setCopyDialogOpen(true); }}
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      aria-label="Copiar categoria para categoria"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Copiar categoria → categoria</TooltipContent>
-                </Tooltip>
+          <div className="flex flex-col gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-2 flex-1">
+                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px] h-9">
+                    <SelectValue placeholder="Origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as origens</SelectItem>
+                    {uniqueSources.map(source => (
+                      <SelectItem key={source} value={source}>{source}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </TooltipProvider>
-          </div>
+              
+              <div className="flex items-center gap-2 flex-1">
+                <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px] h-9">
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    <SelectItem value="none">Sem categoria</SelectItem>
+                    {categories.map(category => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Bulk actions bar (visible when items selected) */}
-          {selectedIds.size > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-2 p-3 rounded-md border bg-muted/40">
-              <CheckSquare className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">{selectedIds.size} selecionados</span>
               <TooltipProvider delayDuration={150}>
-                <div className="ml-auto flex items-center gap-1 rounded-md border bg-card p-1">
+                <div className="flex items-center justify-between sm:justify-start gap-1 p-1 rounded-lg border bg-muted/30 sm:ml-auto">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={downloadSelectedCSV} aria-label="Baixar selecionados">
+                      <Button onClick={downloadPhones} variant="ghost" size="icon" className="h-8 w-8 hover:bg-background" aria-label="Baixar Telefones">
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Telefones</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={downloadEmails} variant="ghost" size="icon" className="h-8 w-8 hover:bg-background" aria-label="Baixar E-mails">
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>E-mails</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={downloadAllLeads} variant="ghost" size="icon" className="h-8 w-8 hover:bg-background" aria-label="Baixar CSV">
                         <Download className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Baixar selecionados</TooltipContent>
+                    <TooltipContent>Baixar CSV</TooltipContent>
                   </Tooltip>
-                  <Popover>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <PopoverTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Atribuir categoria">
-                            <Tag className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent>Atribuir categoria</TooltipContent>
-                    </Tooltip>
-                    <PopoverContent className="w-56 p-2" align="end">
-                      <div className="space-y-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start"
-                          onClick={() => bulkAssignCategory(null)}>
-                          <span className="text-muted-foreground">Remover categoria</span>
-                        </Button>
-                        {categories.map(cat => (
-                          <Button key={cat.id} variant="ghost" size="sm" className="w-full justify-start"
-                            onClick={() => bulkAssignCategory(cat.id)}>
-                            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
-                            {cat.name}
-                          </Button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button size="icon" variant="ghost" className="h-8 w-8"
-                        onClick={() => { setCopyMode('selected'); setCopyDialogOpen(true); }}
-                        aria-label="Copiar para categoria">
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Copiar para categoria</TooltipContent>
-                  </Tooltip>
-                  <Separator orientation="vertical" className="mx-1 h-6" />
+                  <Separator orientation="vertical" className="mx-1 h-5" />
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        size="icon"
+                        onClick={() => { setCopyMode('category'); setCopyDialogOpen(true); }}
                         variant="ghost"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => { setBulkDeleteConfirmText(''); setBulkDeleteOpen(true); }}
-                        aria-label="Excluir selecionados"
+                        size="icon"
+                        className="h-8 w-8 hover:bg-background"
+                        aria-label="Mover entre categorias"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Copy className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Excluir selecionados</TooltipContent>
+                    <TooltipContent>Mover Categorias</TooltipContent>
                   </Tooltip>
-                  <Separator orientation="vertical" className="mx-1 h-6" />
-                  <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedIds(new Set())}>
-                    Limpar
-                  </Button>
                 </div>
               </TooltipProvider>
             </div>
+          </div>
+
+          {/* Bulk actions bar - Stick to top on scroll for mobile */}
+          {selectedIds.size > 0 && (
+            <div className="sticky top-0 z-20 mb-4 flex items-center gap-3 p-3 rounded-xl border bg-primary/5 border-primary/20 backdrop-blur-sm shadow-sm animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="h-4 w-4 text-primary" />
+                <span className="text-sm font-bold text-primary">{selectedIds.size} <span className="hidden xs:inline">selecionados</span></span>
+              </div>
+              <div className="ml-auto flex items-center gap-1">
+                <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={downloadSelectedCSV}>
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
+                      <Tag className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="end">
+                    <div className="space-y-1">
+                      <Button variant="ghost" size="sm" className="w-full justify-start"
+                        onClick={() => bulkAssignCategory(null)}>
+                        <span className="text-muted-foreground">Remover categoria</span>
+                      </Button>
+                      {categories.map(cat => (
+                        <Button key={cat.id} variant="ghost" size="sm" className="w-full justify-start"
+                          onClick={() => bulkAssignCategory(cat.id)}>
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
+                          {cat.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"
+                  onClick={() => { setCopyMode('selected'); setCopyDialogOpen(true); }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Separator orientation="vertical" className="mx-1 h-5" />
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="h-8 w-8 rounded-full shadow-sm"
+                  onClick={() => { setBulkDeleteConfirmText(''); setBulkDeleteOpen(true); }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 ml-2 text-xs" onClick={() => setSelectedIds(new Set())}>
+                  Limpar
+                </Button>
+              </div>
+            </div>
           )}
 
-
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Carregando leads...
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-pulse">
+              <RefreshCw className="h-8 w-8 mb-4 animate-spin" />
+              <p>Sincronizando seus leads...</p>
             </div>
           ) : filteredLeads.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {sourceFilter !== "all" || categoryFilter !== "all" 
-                ? "Nenhum lead encontrado com os filtros selecionados" 
-                : "Nenhum lead capturado ainda"}
+            <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl border-muted/30">
+              <Users className="h-12 w-12 mb-4 text-muted/30" />
+              <p className="text-muted-foreground font-medium">
+                {sourceFilter !== "all" || categoryFilter !== "all" 
+                  ? "Nenhum lead encontrado com estes filtros." 
+                  : "Sua lista de leads está vazia."}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-md border">
@@ -1125,39 +1109,46 @@ export function GeneralCRMPanel() {
                   {filteredLeads.map((lead) => {
                     const category = getCategoryById(lead.categoryId);
                     return (
-                      <TableRow key={lead.id}>
+                      <TableRow key={lead.id} className="group hover:bg-muted/30 transition-colors">
                         <TableCell>
                           <Checkbox
                             checked={selectedIds.has(lead.id)}
                             onCheckedChange={() => toggleSelect(lead.id)}
                             aria-label="Selecionar"
+                            className="translate-y-[2px]"
                           />
                         </TableCell>
                         <TableCell className="font-medium">
-                          {lead.name}
-                          <div className="text-xs text-muted-foreground font-normal">{lead.sourceName}</div>
+                          <div className="flex flex-col">
+                            <span className="text-sm sm:text-base">{lead.name}</span>
+                            <span className="text-[10px] sm:text-xs text-muted-foreground font-normal">{lead.sourceName}</span>
+                          </div>
                         </TableCell>
-                        <TableCell>{lead.email}</TableCell>
-                        <TableCell>{lead.phone}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{lead.source}</Badge>
+                        <TableCell className="hidden md:table-cell text-sm">{lead.email}</TableCell>
+                        <TableCell className="text-sm">
+                          <a href={`tel:${lead.phone}`} className="hover:text-primary transition-colors">
+                            {lead.phone}
+                          </a>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <Badge variant="secondary" className="font-normal bg-muted/50">{lead.source}</Badge>
                         </TableCell>
                         <TableCell>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 px-2">
+                              <Button variant="ghost" size="sm" className="h-8 px-2 hover:bg-muted rounded-full">
                                 {category ? (
                                   <div className="flex items-center gap-2">
                                     <div 
-                                      className="w-3 h-3 rounded-full" 
+                                      className="w-2.5 h-2.5 rounded-full shadow-sm" 
                                       style={{ backgroundColor: category.color }}
                                     />
-                                    <span className="text-sm">{category.name}</span>
+                                    <span className="text-xs font-medium">{category.name}</span>
                                   </div>
                                 ) : (
                                   <div className="flex items-center gap-1 text-muted-foreground">
                                     <Tag className="h-3 w-3" />
-                                    <span className="text-xs">Adicionar</span>
+                                    <span className="text-[10px] uppercase font-bold tracking-wider">Add</span>
                                   </div>
                                 )}
                               </Button>
@@ -1167,7 +1158,7 @@ export function GeneralCRMPanel() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="w-full justify-start"
+                                  className="w-full justify-start text-xs"
                                   onClick={() => assignCategoryToLead(lead, null)}
                                 >
                                   <span className="text-muted-foreground">Sem categoria</span>
@@ -1177,11 +1168,11 @@ export function GeneralCRMPanel() {
                                     key={cat.id}
                                     variant="ghost"
                                     size="sm"
-                                    className="w-full justify-start"
+                                    className="w-full justify-start text-xs"
                                     onClick={() => assignCategoryToLead(lead, cat.id)}
                                   >
                                     <div 
-                                      className="w-3 h-3 rounded-full mr-2" 
+                                      className="w-2.5 h-2.5 rounded-full mr-2" 
                                       style={{ backgroundColor: cat.color }}
                                     />
                                     {cat.name}
@@ -1191,24 +1182,26 @@ export function GeneralCRMPanel() {
                             </PopoverContent>
                           </Popover>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
                           {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
+                              className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => openEditDialog(lead)}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
+                              className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => deleteLead(lead)}
                             >
-                              <Trash2 className="w-4 h-4 text-destructive" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>

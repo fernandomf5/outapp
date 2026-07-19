@@ -323,22 +323,22 @@ export function UserSidebar() {
         </Link>
       </div>
       
-      {/* Search input */}
+      {/* Search input - Hidden on mobile if collapsed or just generally more compact */}
       {!collapsed && (
-        <div className="px-2 py-2 border-b border-border relative shrink-0">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="px-3 py-3 border-b border-border/50 relative shrink-0">
+          <div className="relative group">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
               type="text"
-              placeholder="Buscar recurso..."
+              placeholder="Buscar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-8 h-8 text-sm bg-muted/50"
+              className="pl-9 pr-8 h-9 text-sm bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-xl"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -347,31 +347,35 @@ export function UserSidebar() {
           
           {/* Search results dropdown */}
           {searchQuery && searchResults.length > 0 && (
-            <div className="absolute left-2 right-2 top-full mt-1 bg-popover border border-border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
-              {searchResults.map((item) => (
-                <button
-                  key={`${item.path}-${item.tab}`}
-                  onClick={() => handleSearchSelect(item)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors text-left"
-                >
-                  <item.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{item.title}</span>
-                </button>
-              ))}
+            <div className="absolute left-3 right-3 top-full mt-1 bg-popover border border-border rounded-xl shadow-2xl z-50 max-h-[60vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-1">
+                {searchResults.map((item) => (
+                  <button
+                    key={`${item.path}-${item.tab}`}
+                    onClick={() => handleSearchSelect(item)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent rounded-lg transition-colors text-left"
+                  >
+                    <div className="p-1.5 rounded-md bg-primary/10 text-primary">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                    </div>
+                    <span className="truncate font-medium">{item.title}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           
           {/* No results message */}
           {searchQuery && searchResults.length === 0 && (
-            <div className="absolute left-2 right-2 top-full mt-1 bg-popover border border-border rounded-md shadow-lg z-50 p-3">
-              <p className="text-sm text-muted-foreground text-center">Nenhum resultado encontrado</p>
+            <div className="absolute left-3 right-3 top-full mt-1 bg-popover border border-border rounded-xl shadow-2xl z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
+              <p className="text-sm text-muted-foreground text-center">Nenhum recurso encontrado</p>
             </div>
           )}
         </div>
       )}
       
       <ScrollArea className="flex-1 min-h-0 overflow-x-hidden h-full">
-        <SidebarContent className={cn("p-2", collapsed && "items-center px-0")}>
+        <SidebarContent className={cn("p-2 pb-24", collapsed && "items-center px-0")}>
           {/* Group Rendering Helper */}
           {Object.entries({
             main: { label: t('main'), items: mainItems, show: !isTeamMember },
@@ -396,14 +400,14 @@ export function UserSidebar() {
                       <SidebarMenuButton
                         onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
                         className={cn(
-                          "text-sm py-2 transition-all duration-200",
-                          isActive("/dashboard", "cadastro-settings") ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-accent/50",
-                          collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                          "text-sm py-2.5 sm:py-2 transition-all duration-200 rounded-xl sm:rounded-lg",
+                          isActive("/dashboard", "cadastro-settings") ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "hover:bg-accent/70",
+                          collapsed && "justify-center !p-0 w-11 h-11 sm:w-10 sm:h-10"
                         )}
                         tooltip={collapsed ? "Gerenciar" : undefined}
                       >
                         <Settings className="h-5 w-5 shrink-0" />
-                        {!collapsed && <span className="truncate">Gerenciar</span>}
+                        {!collapsed && <span className="truncate font-medium">Gerenciar</span>}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
@@ -441,9 +445,9 @@ export function UserSidebar() {
                             else handleNavigation(path, tab, catId);
                           }}
                           className={cn(
-                            "text-sm py-2 transition-all duration-200",
-                            active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-accent/50",
-                            collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                            "text-sm py-2.5 sm:py-2 transition-all duration-200 rounded-xl sm:rounded-lg",
+                            active ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "hover:bg-accent/70",
+                            collapsed && "justify-center !p-0 w-11 h-11 sm:w-10 sm:h-10"
                           )}
                           tooltip={collapsed ? title : undefined}
                         >
@@ -451,7 +455,7 @@ export function UserSidebar() {
                             className: "h-5 w-5 shrink-0", 
                             style: isCat && !active ? { color } : undefined 
                           })}
-                          {!collapsed && <span className="truncate">{title}</span>}
+                          {!collapsed && <span className="truncate font-medium">{title}</span>}
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
@@ -469,9 +473,9 @@ export function UserSidebar() {
                     className="w-full"
                   >
                     <CollapsibleTrigger asChild>
-                      <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group mb-1">
+                      <SidebarGroupLabel className="text-green-600 dark:text-green-400 font-bold bg-green-500/10 dark:bg-green-500/20 rounded-xl px-3 py-2 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group mb-2 hover:bg-green-500/20 transition-all border border-green-500/20">
                         <span>{group.label}</span>
-                        <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isCadastroOpen ? "" : "-rotate-90")} />
+                        <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isCadastroOpen ? "" : "-rotate-90")} />
                       </SidebarGroupLabel>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -487,7 +491,7 @@ export function UserSidebar() {
             return (
               <SidebarGroup key={key} className={cn(collapsed && "px-0")}>
                 {!collapsed && (
-                  <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm mb-1">
+                  <SidebarGroupLabel className="text-green-600 dark:text-green-400 font-bold bg-green-500/10 dark:bg-green-500/20 rounded-xl px-3 py-2 text-xs sm:text-sm mb-2 border border-green-500/20">
                     {group.label}
                   </SidebarGroupLabel>
                 )}
