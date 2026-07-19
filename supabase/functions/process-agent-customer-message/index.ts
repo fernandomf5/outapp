@@ -416,11 +416,11 @@ serve(async (req) => {
 
         // 2. Greeting or first message check
         if (!targetTriggerNode) {
-          const PortugueseGreetings = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!'];
+          const PortugueseGreetings = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!', 'start', 'iniciar'];
           const isGreeting = PortugueseGreetings.includes(normalizedMsg) || 
                             PortugueseGreetings.some(g => normalizedMsg.startsWith(g + ' '));
           
-          if (isFirstMessage || isGreeting || normalizedMsg === '' || normalizedMsg === 'reiniciar' || normalizedMsg === 'voltar') {
+          if (isFirstMessage || isGreeting || isInitialTrigger || normalizedMsg === 'reiniciar' || normalizedMsg === 'voltar') {
             targetTriggerNode = triggerNodes.find((n: any) => 
               n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
             );
