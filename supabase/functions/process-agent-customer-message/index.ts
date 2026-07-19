@@ -201,6 +201,10 @@ function buildPersonalityDescription(personality: any): string {
   return `Sua personalidade é ${tone}, ${formalityDesc}. Você é ${proactivityDesc} e ${empathyDesc}.`;
 }
 
+function isEnabled(value: unknown): boolean {
+  return value === true || value === 'true' || value === 1 || value === '1';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -209,7 +213,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { agentId, customerId, conversationId, message, forceHuman } = await req.json();
@@ -242,7 +246,7 @@ serve(async (req) => {
       .limit(30);
 
     // Extraímos se a IA está habilitada diretamente do objeto training_data ou config
-    const aiEnabled = agentConfig.ai_enabled === true || agent.training_data?.ai_enabled === true;
+    const aiEnabled = isEnabled(agentConfig.ai_enabled) || isEnabled(agent.training_data?.ai_enabled);
 
     console.log('AI Status:', { aiEnabled, attendantStatus, isInitialTrigger, forceHuman });
 
@@ -260,7 +264,7 @@ serve(async (req) => {
     // 2. OU se o treinamento da IA estiver explicitamente ativado
     // 3. OU se for o gatilho inicial (para dar as boas-vindas automáticas)
     // 4. OU se o atendente estiver offline (fallback padrão)
-    const shouldAIRespond = aiEnabled || agentConfig.ai_enabled === true || isInitialTrigger || attendantStatus === 'offline';
+    const shouldAIRespond = aiEnabled || isInitialTrigger || attendantStatus === 'offline';
 
     if (!shouldAIRespond) {
       console.log('AI should not respond (Attendant online and AI disabled)');
@@ -313,44 +317,65 @@ REGRAS DE OURO:
 6. Use emojis de forma moderada para parecer mais humano.
 7. O objetivo final é ajudar o cliente, tirar dúvidas e converter em vendas ou agendamentos.`;
 
-    console.log('Calling AI Gateway for humanized response');
-
-    // Call Lovable AI Gateway
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.0-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...conversationHistory,
-          { role: 'user', content: message || "Olá" }
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      throw new Error('Falha na comunicação com a IA');
+    if (!lovableApiKey) {
+      console.error('LOVABLE_API_KEY is missing');
+      throw new Error('IA não configurada no projeto');
     }
 
-    const aiData = await aiResponse.json();
-    const responseText = aiData.choices?.[0]?.message?.content || 'Desculpe, tive um problema técnico. Pode repetir?';
+    console.log('Calling AI Gateway for humanized response');
+
+    let responseText = '';
+    const models = ['google/gemini-2.5-flash', 'google/gemini-2.0-flash'];
+
+    for (const model of models) {
+      try {
+        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...conversationHistory,
+              { role: 'user', content: message || "Olá" }
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+          }),
+        });
+
+        const responseBody = await aiResponse.text();
+
+        if (!aiResponse.ok) {
+          console.error('AI Gateway error', { model, status: aiResponse.status, body: responseBody });
+          continue;
+        }
+
+        const aiData = JSON.parse(responseBody);
+        responseText = aiData.choices?.[0]?.message?.content?.trim() || '';
+        if (responseText) break;
+      } catch (aiError) {
+        console.error('AI Gateway request failed', { model, error: aiError instanceof Error ? aiError.message : String(aiError) });
+      }
+    }
+
+    if (!responseText) {
+      responseText = 'Olá! Estou aqui para ajudar. Pode me contar melhor o que você precisa?';
+    }
 
     // Save AI response
     await supabase.from('agent_messages').insert({
       conversation_id: conversationId,
       role: 'agent',
-      content: responseText.trim(),
+      content: responseText,
       sender_name: agent.name
     });
 
     return new Response(
-      JSON.stringify({ response: responseText.trim() }),
+      JSON.stringify({ response: responseText }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

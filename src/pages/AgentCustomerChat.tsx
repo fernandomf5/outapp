@@ -395,7 +395,7 @@ export default function AgentCustomerChat() {
         // mas o fluxo deva iniciar (isso garante o disparo do gatilho inicial)
         if (data.conversationId) {
           console.log('Nenhuma mensagem inicial retornada, solicitando processamento...');
-          await supabase.functions.invoke('process-agent-customer-message', {
+          const { error: processError } = await supabase.functions.invoke('process-agent-customer-message', {
             body: { 
               agentId, 
               customerId, 
@@ -404,6 +404,18 @@ export default function AgentCustomerChat() {
               timestamp: Date.now()
             }
           });
+
+          if (processError) throw processError;
+
+          const { data: refreshedMessages } = await supabase
+            .from('agent_messages')
+            .select('*')
+            .eq('conversation_id', data.conversationId)
+            .order('created_at', { ascending: true });
+
+          if (refreshedMessages) {
+            setMessages(refreshedMessages as unknown as Message[]);
+          }
         }
       }
       
@@ -772,14 +784,29 @@ export default function AgentCustomerChat() {
       });
 
       // Processar mensagem com IA/Fluxo
-      await supabase.functions.invoke('process-agent-customer-message', {
+      const { data: processData, error: processError } = await supabase.functions.invoke('process-agent-customer-message', {
         body: {
           agentId,
           customerId: customer.id,
           conversationId,
-          message: messageContent
+          message: messageContent,
+          timestamp: Date.now()
         }
       });
+
+      if (processError) throw processError;
+
+      if (processData?.response) {
+        const { data: refreshedMessages } = await supabase
+          .from('agent_messages')
+          .select('*')
+          .eq('conversation_id', conversationId)
+          .order('created_at', { ascending: true });
+
+        if (refreshedMessages) {
+          setMessages(refreshedMessages as unknown as Message[]);
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Erro",
