@@ -971,7 +971,7 @@ export default function AgentCustomerChat() {
                   >
                     <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-1 ${
                       attendantStatus === 'online' ? 'bg-green-500' :
-                      attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                      attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-blue-500'
                     }`} />
                     <span className="hidden sm:inline">
                       {attendantStatus === 'online' ? 'Atendente Online' : 
