@@ -975,7 +975,7 @@ export default function AgentCustomerChat() {
                     }`} />
                     <span className="hidden sm:inline">
                       {attendantStatus === 'online' ? 'Atendente Online' : 
-                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
+                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Agente IA Ativo'}
                     </span>
                     <span className="sm:hidden">
                       {attendantStatus === 'online' ? 'Online' : 
