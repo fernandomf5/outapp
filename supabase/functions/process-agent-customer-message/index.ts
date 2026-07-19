@@ -291,32 +291,33 @@ serve(async (req) => {
     const attendantStatus = agent.attendant_status || 'offline';
     const isInitialTrigger = message === '' || message === null || message === undefined;
 
-    // Se atendente estiver online, o fluxo não responde automaticamente (atendimento humano prioritário)
-    // Exceto se for o gatilho inicial (boas vindas), para garantir que o cliente receba uma resposta
-    if (attendantStatus === 'online' && !isInitialTrigger) {
-      console.log('Attendant is online, skipping auto-response for customer message');
-      
-      // Mesmo se o atendente estiver online, se a conversa for NOVA (0 mensagens do atendente),
-      // permitimos o disparo inicial do fluxo para não deixar o cliente no vácuo
-      const hasAgentReplied = (prevMessages || []).some(m => m.role === 'agent');
-      if (hasAgentReplied) {
-        return new Response(
-          JSON.stringify({ response: '', skipped: 'attendant_online' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      console.log('New conversation and attendant online, allowing initial flow trigger');
-    }
-
-    console.log('Flows enabled:', flowsEnabled);
-
-    // Get conversation history
+    // Get conversation history - Moved up to use for attendant check
     const { data: prevMessages } = await supabase
       .from('agent_messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true })
       .limit(20);
+
+    // Se atendente estiver online, o fluxo não responde automaticamente (atendimento humano prioritário)
+    // Exceto se for o gatilho inicial (boas vindas), para garantir que o cliente receba uma resposta
+    if (attendantStatus === 'online' && !isInitialTrigger) {
+      console.log('Attendant is online, checking if agent has already replied');
+      
+      // Mesmo se o atendente estiver online, se a conversa for NOVA (0 mensagens do atendente),
+      // permitimos o disparo inicial do fluxo para não deixar o cliente no vácuo
+      const hasAgentReplied = (prevMessages || []).some(m => m.role === 'agent');
+      if (hasAgentReplied) {
+        console.log('Agent has already replied, skipping auto-response');
+        return new Response(
+          JSON.stringify({ response: '', skipped: 'attendant_online' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      console.log('New conversation (no agent replies yet) and attendant online, allowing initial flow trigger');
+    }
+
+    console.log('Flows enabled:', flowsEnabled);
 
     // Se houver fluxos ativos, processar o fluxo primeiro
     if (flowsEnabled) {
