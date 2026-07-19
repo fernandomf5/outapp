@@ -3,13 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Users, BarChart3, ArrowLeft, Workflow, Brain } from "lucide-react";
+import { MessageSquare, Users, BarChart3, ArrowLeft, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import AgentCustomersPanel from "./AgentCustomersPanel";
 import AgentConversationsPanel from "./AgentConversationsPanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
-import AgentFlowsPanel from "./AgentFlowsPanel";
+
 import AgentAIPanel from "./AgentAIPanel";
 
 interface AgentManagementPanelProps {
@@ -39,8 +39,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
     switch (activeTab) {
       case "conversations":
         return <AgentConversationsPanel agentId={agentId} />;
-      case "flows":
-        return <AgentFlowsPanel agentId={agentId} />;
       case "ai":
         return <AgentAIPanel agentId={agentId} />;
       case "customers":
