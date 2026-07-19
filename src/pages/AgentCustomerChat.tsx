@@ -948,16 +948,19 @@ export default function AgentCustomerChat() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRequestHuman}
                 disabled={requestingHuman || attendantStatus === 'online'}
-                className="hidden sm:flex items-center gap-2 h-8 text-xs border-white/20 text-white hover:bg-white/10"
+                className="flex items-center gap-2 h-8 text-xs border-white/20 text-white hover:bg-white/10 px-2 sm:px-3"
               >
-                <Headset className="h-4 w-4" />
-                {attendantStatus === 'online' ? 'Em Atendimento' : 'Falar com Humano'}
+                <Headset className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">
+                  {attendantStatus === 'online' ? 'Em Atendimento' : 'Falar com Humano'}
+                </span>
+                <span className="xs:hidden">Humano</span>
               </Button>
               
               {window.self === window.top && (
@@ -1106,17 +1109,18 @@ export default function AgentCustomerChat() {
           )}
 
           <div className="p-3 sm:p-4 border-t space-y-2">
-            <div className="flex justify-center">
+            <div className="flex justify-center sm:hidden">
               {agentInfo?.config?.ai_enabled !== false && (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={handleHumanAttendant}
+                  onClick={handleRequestHuman}
+                  disabled={requestingHuman || attendantStatus === 'online'}
                   className="gap-2 text-xs font-medium hover:bg-primary/5 border border-dashed border-primary/20 w-full mb-2"
-                  style={{ color: primaryColor }}
+                  style={{ color: primaryColor, borderColor: `${primaryColor}40` }}
                 >
-                  <UserCircle className="w-4 h-4" />
-                  Falar com Humano
+                  <Headset className="w-4 h-4" />
+                  {attendantStatus === 'online' ? 'Já em atendimento humano' : 'Falar com Atendente Humano'}
                 </Button>
               )}
             </div>
