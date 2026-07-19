@@ -122,7 +122,7 @@ serve(async (req) => {
     }
 
     // Load messages for this conversation
-    const { data: messages, error: msgError } = await supabase
+    let { data: messages, error: msgError } = await supabase
       .from('agent_messages')
       .select('*')
       .eq('conversation_id', conversationId)
@@ -137,21 +137,36 @@ serve(async (req) => {
     if (messageCount === 0) {
       console.log('Disparando gatilho inicial para nova conversa...');
       
-      // Chamada fire-and-forget para processar o gatilho inicial
+      // Chamada await para processar o gatilho inicial e retornar a primeira mensagem
       const processUrl = `${supabaseUrl}/functions/v1/process-agent-customer-message`;
-      fetch(processUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          agentId,
-          customerId,
-          conversationId,
-          message: '' // Mensagem vazia sinaliza gatilho inicial
-        })
-      }).catch(err => console.error('Erro ao disparar gatilho inicial:', err));
+      try {
+        await fetch(processUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            agentId,
+            customerId,
+            conversationId,
+            message: '' // Mensagem vazia sinaliza gatilho inicial
+          })
+        });
+
+        // Recarregar mensagens após o processamento
+        const { data: refreshedMessages } = await supabase
+          .from('agent_messages')
+          .select('*')
+          .eq('conversation_id', conversationId)
+          .order('created_at', { ascending: true });
+        
+        if (refreshedMessages) {
+          messages = refreshedMessages;
+        }
+      } catch (err) {
+        console.error('Erro ao disparar gatilho inicial:', err);
+      }
     }
 
     return new Response(
