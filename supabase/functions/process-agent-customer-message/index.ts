@@ -311,7 +311,7 @@ serve(async (req) => {
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { agentId, customerId, conversationId, message } = await req.json();
+    const { agentId, customerId, conversationId, message, forceHuman } = await req.json();
 
     console.log('Processing message for agent:', agentId);
 
@@ -341,9 +341,8 @@ serve(async (req) => {
       .order('created_at', { ascending: true })
       .limit(20);
 
-    // Se atendente estiver online, o fluxo não responde automaticamente (atendimento humano prioritário)
-    // Exceto se for o gatilho inicial (boas vindas), para garantir que o cliente receba uma resposta
-    if (attendantStatus === 'online' && !isInitialTrigger) {
+    // Se atendente estiver online OU o cliente solicitou explicitamente atendimento humano, o fluxo não responde automaticamente
+    if ((attendantStatus === 'online' || forceHuman) && !isInitialTrigger) {
       console.log('Attendant is online, checking if agent has already replied');
       
       // Se a mensagem contiver botões (de uma resposta anterior do bot), permitimos que o bot continue
@@ -362,6 +361,16 @@ serve(async (req) => {
         }
       }
       console.log('Allowing flow trigger (either button reply or new conversation) even if online');
+    }
+
+    if (forceHuman) {
+      console.log('Force human requested, skipping auto-response');
+      // Apenas retornamos uma resposta vazia para que o bot não responda.
+      // A mensagem do cliente já foi salva via RPC ou inserção direta no front-end.
+      return new Response(
+        JSON.stringify({ response: '', skipped: 'force_human' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log('Flows enabled:', flowsEnabled);

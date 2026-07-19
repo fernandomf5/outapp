@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle, Headset } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -79,6 +79,7 @@ export default function AgentCustomerChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [visibleMessagesCount, setVisibleMessagesCount] = useState(20);
+  const [requestingHuman, setRequestingHuman] = useState(false);
   const MAX_VISIBLE_MESSAGES = 20;
 
   useEffect(() => {
@@ -589,6 +590,55 @@ export default function AgentCustomerChat() {
     }
   };
 
+  const handleRequestHuman = async () => {
+    if (!conversationId || requestingHuman || !customer) return;
+    
+    setRequestingHuman(true);
+    try {
+      // 1. Enviar mensagem do cliente
+      const content = "Preciso falar com um atendente humano.";
+      
+      // Adicionar mensagem do cliente otimisticamente na UI
+      const optimisticMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'customer',
+        content: content,
+        created_at: new Date().toISOString(),
+        sender_name: customer.name,
+      };
+      setMessages(prev => [...prev, optimisticMessage]);
+      chatSounds.playSendSound();
+
+      // 2. Chamar a Edge Function com flag para forçar atendimento humano
+      const { error } = await supabase.functions.invoke('process-agent-customer-message', {
+        body: { 
+          agentId, 
+          customerId: customer.id, 
+          conversationId, 
+          message: content,
+          forceHuman: true 
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Solicitação enviada",
+        description: "Um atendente humano foi notificado para assumir o chat.",
+      });
+
+    } catch (error) {
+      console.error('Error requesting human:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível solicitar atendimento humano.",
+        variant: "destructive",
+      });
+    } finally {
+      setRequestingHuman(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if ((!input.trim() && !selectedImage && !selectedDocument) || !conversationId || !customer) return;
 
@@ -898,11 +948,24 @@ export default function AgentCustomerChat() {
               </div>
             </div>
             
-            {window.self === window.top && (
-              <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRequestHuman}
+                disabled={requestingHuman || attendantStatus === 'online'}
+                className="hidden sm:flex items-center gap-2 h-8 text-xs border-white/20 text-white hover:bg-white/10"
+              >
+                <Headset className="h-4 w-4" />
+                {attendantStatus === 'online' ? 'Em Atendimento' : 'Falar com Humano'}
               </Button>
-            )}
+              
+              {window.self === window.top && (
+                <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 sm:h-10 sm:w-10">
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              )}
+            </div>
           </div>
 
           <div 
