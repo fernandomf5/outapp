@@ -930,174 +930,159 @@ export function GeneralCRMPanel() {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar por origem" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as origens</SelectItem>
-                  {uniqueSources.map(source => (
-                    <SelectItem key={source} value={source}>{source}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Folder className="h-4 w-4 text-muted-foreground ml-2" />
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar por categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
-                  <SelectItem value="none">Sem categoria</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category.id} value={category.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <TooltipProvider delayDuration={150}>
-              <div className="flex items-center gap-1 rounded-md border bg-card p-1 sm:ml-auto">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={downloadPhones} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar Telefones">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Baixar Telefones</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={downloadEmails} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar E-mails">
-                      <Mail className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Baixar E-mails</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={downloadAllLeads} variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar CSV filtrados">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Baixar CSV (filtrados)</TooltipContent>
-                </Tooltip>
-                <Separator orientation="vertical" className="mx-1 h-6" />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => { setCopyMode('category'); setCopyDialogOpen(true); }}
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      aria-label="Copiar categoria para categoria"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Copiar categoria → categoria</TooltipContent>
-                </Tooltip>
+          <div className="flex flex-col gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-2 flex-1">
+                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px] h-9">
+                    <SelectValue placeholder="Origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as origens</SelectItem>
+                    {uniqueSources.map(source => (
+                      <SelectItem key={source} value={source}>{source}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </TooltipProvider>
-          </div>
+              
+              <div className="flex items-center gap-2 flex-1">
+                <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px] h-9">
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    <SelectItem value="none">Sem categoria</SelectItem>
+                    {categories.map(category => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Bulk actions bar (visible when items selected) */}
-          {selectedIds.size > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-2 p-3 rounded-md border bg-muted/40">
-              <CheckSquare className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">{selectedIds.size} selecionados</span>
               <TooltipProvider delayDuration={150}>
-                <div className="ml-auto flex items-center gap-1 rounded-md border bg-card p-1">
+                <div className="flex items-center justify-between sm:justify-start gap-1 p-1 rounded-lg border bg-muted/30 sm:ml-auto">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={downloadSelectedCSV} aria-label="Baixar selecionados">
+                      <Button onClick={downloadPhones} variant="ghost" size="icon" className="h-8 w-8 hover:bg-background" aria-label="Baixar Telefones">
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Telefones</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={downloadEmails} variant="ghost" size="icon" className="h-8 w-8 hover:bg-background" aria-label="Baixar E-mails">
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>E-mails</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={downloadAllLeads} variant="ghost" size="icon" className="h-8 w-8 hover:bg-background" aria-label="Baixar CSV">
                         <Download className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Baixar selecionados</TooltipContent>
+                    <TooltipContent>Baixar CSV</TooltipContent>
                   </Tooltip>
-                  <Popover>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <PopoverTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Atribuir categoria">
-                            <Tag className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent>Atribuir categoria</TooltipContent>
-                    </Tooltip>
-                    <PopoverContent className="w-56 p-2" align="end">
-                      <div className="space-y-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start"
-                          onClick={() => bulkAssignCategory(null)}>
-                          <span className="text-muted-foreground">Remover categoria</span>
-                        </Button>
-                        {categories.map(cat => (
-                          <Button key={cat.id} variant="ghost" size="sm" className="w-full justify-start"
-                            onClick={() => bulkAssignCategory(cat.id)}>
-                            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
-                            {cat.name}
-                          </Button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button size="icon" variant="ghost" className="h-8 w-8"
-                        onClick={() => { setCopyMode('selected'); setCopyDialogOpen(true); }}
-                        aria-label="Copiar para categoria">
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Copiar para categoria</TooltipContent>
-                  </Tooltip>
-                  <Separator orientation="vertical" className="mx-1 h-6" />
+                  <Separator orientation="vertical" className="mx-1 h-5" />
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        size="icon"
+                        onClick={() => { setCopyMode('category'); setCopyDialogOpen(true); }}
                         variant="ghost"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => { setBulkDeleteConfirmText(''); setBulkDeleteOpen(true); }}
-                        aria-label="Excluir selecionados"
+                        size="icon"
+                        className="h-8 w-8 hover:bg-background"
+                        aria-label="Mover entre categorias"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Copy className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Excluir selecionados</TooltipContent>
+                    <TooltipContent>Mover Categorias</TooltipContent>
                   </Tooltip>
-                  <Separator orientation="vertical" className="mx-1 h-6" />
-                  <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedIds(new Set())}>
-                    Limpar
-                  </Button>
                 </div>
               </TooltipProvider>
             </div>
+          </div>
+
+          {/* Bulk actions bar - Stick to top on scroll for mobile */}
+          {selectedIds.size > 0 && (
+            <div className="sticky top-0 z-20 mb-4 flex items-center gap-3 p-3 rounded-xl border bg-primary/5 border-primary/20 backdrop-blur-sm shadow-sm animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="h-4 w-4 text-primary" />
+                <span className="text-sm font-bold text-primary">{selectedIds.size} <span className="hidden xs:inline">selecionados</span></span>
+              </div>
+              <div className="ml-auto flex items-center gap-1">
+                <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={downloadSelectedCSV}>
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full">
+                      <Tag className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="end">
+                    <div className="space-y-1">
+                      <Button variant="ghost" size="sm" className="w-full justify-start"
+                        onClick={() => bulkAssignCategory(null)}>
+                        <span className="text-muted-foreground">Remover categoria</span>
+                      </Button>
+                      {categories.map(cat => (
+                        <Button key={cat.id} variant="ghost" size="sm" className="w-full justify-start"
+                          onClick={() => bulkAssignCategory(cat.id)}>
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
+                          {cat.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"
+                  onClick={() => { setCopyMode('selected'); setCopyDialogOpen(true); }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Separator orientation="vertical" className="mx-1 h-5" />
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="h-8 w-8 rounded-full shadow-sm"
+                  onClick={() => { setBulkDeleteConfirmText(''); setBulkDeleteOpen(true); }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 ml-2 text-xs" onClick={() => setSelectedIds(new Set())}>
+                  Limpar
+                </Button>
+              </div>
+            </div>
           )}
 
-
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Carregando leads...
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-pulse">
+              <RefreshCw className="h-8 w-8 mb-4 animate-spin" />
+              <p>Sincronizando seus leads...</p>
             </div>
           ) : filteredLeads.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {sourceFilter !== "all" || categoryFilter !== "all" 
-                ? "Nenhum lead encontrado com os filtros selecionados" 
-                : "Nenhum lead capturado ainda"}
+            <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl border-muted/30">
+              <Users className="h-12 w-12 mb-4 text-muted/30" />
+              <p className="text-muted-foreground font-medium">
+                {sourceFilter !== "all" || categoryFilter !== "all" 
+                  ? "Nenhum lead encontrado com estes filtros." 
+                  : "Sua lista de leads está vazia."}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-md border">
