@@ -133,7 +133,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
 
     const { error } = await supabase
       .from("ai_agents")
-      .update({ config, training_data: trainingData })
+      .update(updates)
       .eq("id", agentId);
 
     if (error) {
