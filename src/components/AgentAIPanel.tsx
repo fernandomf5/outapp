@@ -114,7 +114,16 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
 
     const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
     
+    // Se o Agente IA for ativado, garantimos que o status de atendimento 
+    // mude para 'offline' (que no sistema representa modo Agente IA)
+    // e desativamos fluxos manuais antigos
+    const updates: any = { 
+      config, 
+      training_data: trainingData 
+    };
+
     if (aiEnabled) {
+      updates.attendant_status = 'offline';
       await supabase
         .from("agent_chat_flows")
         .update({ is_active: false })
