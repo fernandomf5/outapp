@@ -53,49 +53,61 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
     }
   };
 
-  // Mobile layout: grid de ícones ou conteúdo
+  // Mobile/Tablet layout: grid de ícones ou conteúdo
   if (isMobile) {
     if (activeTab) {
       return (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setActiveTab(null)}>
+        <div className="space-y-4 pb-20">
+          <div className="flex items-center gap-3 px-1">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => setActiveTab(null)}
+              className="rounded-xl h-10 w-10 border-2"
+            >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h2 className="text-xl font-bold">
-              {menuOptions.find(opt => opt.id === activeTab)?.label}
-            </h2>
+            <div>
+              <h2 className="text-xl font-bold leading-none">
+                {menuOptions.find(opt => opt.id === activeTab)?.label}
+              </h2>
+              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{agentName}</span>
+            </div>
           </div>
-          {renderContent()}
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {renderContent()}
+          </div>
         </div>
       );
     }
 
     return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold mb-2">Gestão: {agentName}</h2>
-          <p className="text-muted-foreground text-sm">
-            Gerencie conversas, fluxos e clientes do seu agente IA
+      <div className="space-y-8 py-2">
+        <div className="px-1">
+          <Badge className="mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">Painel do Agente</Badge>
+          <h2 className="text-3xl font-black mb-2 tracking-tight">{agentName}</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Central de comando para suas automações e atendimentos.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {menuOptions.map((option) => (
             <Card 
               key={option.id}
-              className="p-4 cursor-pointer hover:bg-accent/50 transition-colors active:scale-95"
+              className="p-5 cursor-pointer hover:bg-accent/50 transition-all active:scale-95 border-2 hover:border-primary/30 group relative overflow-hidden bg-card/50 backdrop-blur-sm shadow-none hover:shadow-lg rounded-2xl"
               onClick={() => setActiveTab(option.id)}
             >
-              <div className="flex flex-col items-center gap-2 text-center relative">
-                <div className="p-3 rounded-full bg-primary/10 text-primary">
-                  {option.icon}
+              <div className="absolute -right-4 -top-4 w-16 h-16 bg-primary/5 rounded-full group-hover:bg-primary/10 transition-colors" />
+              <div className="flex flex-col items-center gap-3 text-center relative z-10">
+                <div className="p-3.5 rounded-2xl bg-primary/10 text-primary group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  {React.cloneElement(option.icon as React.ReactElement, { className: "w-6 h-6" })}
                 </div>
-                <span className="text-sm font-medium">{option.label}</span>
+                <span className="text-sm font-bold tracking-tight">{option.label}</span>
                 {option.badge && option.badge > 0 && (
                   <Badge 
                     variant="destructive" 
-                    className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center rounded-full text-xs"
+                    className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] font-bold ring-2 ring-background"
                   >
                     {option.badge}
                   </Badge>
