@@ -1109,39 +1109,46 @@ export function GeneralCRMPanel() {
                   {filteredLeads.map((lead) => {
                     const category = getCategoryById(lead.categoryId);
                     return (
-                      <TableRow key={lead.id}>
+                      <TableRow key={lead.id} className="group hover:bg-muted/30 transition-colors">
                         <TableCell>
                           <Checkbox
                             checked={selectedIds.has(lead.id)}
                             onCheckedChange={() => toggleSelect(lead.id)}
                             aria-label="Selecionar"
+                            className="translate-y-[2px]"
                           />
                         </TableCell>
                         <TableCell className="font-medium">
-                          {lead.name}
-                          <div className="text-xs text-muted-foreground font-normal">{lead.sourceName}</div>
+                          <div className="flex flex-col">
+                            <span className="text-sm sm:text-base">{lead.name}</span>
+                            <span className="text-[10px] sm:text-xs text-muted-foreground font-normal">{lead.sourceName}</span>
+                          </div>
                         </TableCell>
-                        <TableCell>{lead.email}</TableCell>
-                        <TableCell>{lead.phone}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{lead.source}</Badge>
+                        <TableCell className="hidden md:table-cell text-sm">{lead.email}</TableCell>
+                        <TableCell className="text-sm">
+                          <a href={`tel:${lead.phone}`} className="hover:text-primary transition-colors">
+                            {lead.phone}
+                          </a>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <Badge variant="secondary" className="font-normal bg-muted/50">{lead.source}</Badge>
                         </TableCell>
                         <TableCell>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 px-2">
+                              <Button variant="ghost" size="sm" className="h-8 px-2 hover:bg-muted rounded-full">
                                 {category ? (
                                   <div className="flex items-center gap-2">
                                     <div 
-                                      className="w-3 h-3 rounded-full" 
+                                      className="w-2.5 h-2.5 rounded-full shadow-sm" 
                                       style={{ backgroundColor: category.color }}
                                     />
-                                    <span className="text-sm">{category.name}</span>
+                                    <span className="text-xs font-medium">{category.name}</span>
                                   </div>
                                 ) : (
                                   <div className="flex items-center gap-1 text-muted-foreground">
                                     <Tag className="h-3 w-3" />
-                                    <span className="text-xs">Adicionar</span>
+                                    <span className="text-[10px] uppercase font-bold tracking-wider">Add</span>
                                   </div>
                                 )}
                               </Button>
@@ -1151,7 +1158,7 @@ export function GeneralCRMPanel() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="w-full justify-start"
+                                  className="w-full justify-start text-xs"
                                   onClick={() => assignCategoryToLead(lead, null)}
                                 >
                                   <span className="text-muted-foreground">Sem categoria</span>
@@ -1161,11 +1168,11 @@ export function GeneralCRMPanel() {
                                     key={cat.id}
                                     variant="ghost"
                                     size="sm"
-                                    className="w-full justify-start"
+                                    className="w-full justify-start text-xs"
                                     onClick={() => assignCategoryToLead(lead, cat.id)}
                                   >
                                     <div 
-                                      className="w-3 h-3 rounded-full mr-2" 
+                                      className="w-2.5 h-2.5 rounded-full mr-2" 
                                       style={{ backgroundColor: cat.color }}
                                     />
                                     {cat.name}
@@ -1175,24 +1182,26 @@ export function GeneralCRMPanel() {
                             </PopoverContent>
                           </Popover>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
                           {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
+                              className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => openEditDialog(lead)}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
+                              className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => deleteLead(lead)}
                             >
-                              <Trash2 className="w-4 h-4 text-destructive" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>
