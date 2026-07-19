@@ -201,105 +201,6 @@ function buildPersonalityDescription(personality: any): string {
   return `Sua personalidade é ${tone}, ${formalityDesc}. Você é ${proactivityDesc} e ${empathyDesc}.`;
 }
 
-async function handleNodeProcessing(node: any, nodes: any[], edges: any[], conversationId: string, agent: any, supabase: any): Promise<Response> {
-  console.log('Processing node type:', node.type, 'ID:', node.id);
-  
-  const supportedMediaNodes = ['image', 'audio', 'video', 'document'];
-  const isMediaNode = supportedMediaNodes.includes(node.type);
-  
-  if (node.type === 'message' || node.type === 'text' || node.type === 'button' || node.type === 'quickReply' || node.type === 'trigger' || isMediaNode) {
-    const content = node.data?.label || node.data?.content || '';
-    const buttons = node.data?.buttons || [];
-    
-    let mediaUrl = null;
-    let mediaType = null;
-    
-    if (node.type === 'image') {
-      mediaUrl = node.data?.imageUrl;
-      mediaType = 'image';
-    } else if (node.type === 'audio') {
-      mediaUrl = node.data?.audioUrl;
-      mediaType = 'audio';
-    } else if (node.type === 'video') {
-      mediaUrl = node.data?.videoUrl;
-      mediaType = 'video';
-    } else if (node.type === 'document') {
-      mediaUrl = node.data?.documentUrl;
-      mediaType = 'document';
-    }
-
-    // Salvar mensagem no banco
-    const { data: insertedMsg, error: insertError } = await supabase.from('agent_messages').insert({
-      conversation_id: conversationId,
-      role: 'agent',
-      content: content,
-      sender_name: agent.name,
-      media_url: mediaUrl,
-      media_type: mediaType,
-      metadata: { 
-        buttons, 
-        nodeId: node.id 
-      }
-    }).select().single();
-
-    if (insertError) {
-      console.error('Error inserting message:', insertError);
-    }
-
-    // Se houver botões e for um nó de mídia, o fluxo para aqui esperando a resposta do cliente.
-    // Se NÃO houver botões, verificamos se há um próximo nó conectado via porta padrão (Bottom)
-    if (buttons.length === 0) {
-      const edge = edges.find((e: any) => e.source === node.id && !e.sourceHandle);
-      if (edge) {
-        const nextNode = nodes.find((n: any) => n.id === edge.target);
-        if (nextNode) {
-          // Pequeno delay opcional para simular fluxo natural
-          const delay = node.data?.delaySeconds ? node.data.delaySeconds * 1000 : 500;
-          if (delay > 0) await new Promise(resolve => setTimeout(resolve, delay));
-          
-          return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
-        }
-      }
-    }
-
-    return new Response(
-      JSON.stringify({ response: content, buttons, media_url: mediaUrl, media_type: mediaType }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } else if (node.type === 'question') {
-    const content = node.data?.label || 'Qual sua resposta?';
-    
-    await supabase.from('agent_messages').insert({
-      conversation_id: conversationId,
-      role: 'agent',
-      content: content,
-      sender_name: agent.name,
-      metadata: { 
-        nodeId: node.id,
-        is_question: true,
-        variable: node.data?.variable
-      }
-    });
-
-    return new Response(
-      JSON.stringify({ response: content }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } else if (node.type === 'condition' || node.type === 'action') {
-    // Para condição e ação na prévia/runtime simplificado, apenas seguimos para o próximo nó
-    const edge = edges.find((e: any) => e.source === node.id);
-    if (edge) {
-      const nextNode = nodes.find((n: any) => n.id === edge.target);
-      if (nextNode) return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
-    }
-  }
-
-  return new Response(
-    JSON.stringify({ error: 'Fim do fluxo ou tipo de nó não suportado' }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -327,226 +228,34 @@ serve(async (req) => {
       throw new Error('Agente não encontrado');
     }
 
-    console.log('Agent found:', agent.name, 'Niche:', agent.niche);
+    console.log('Agent found:', agent.name);
     const agentConfig = agent.config || {};
-    const flowsEnabled = agentConfig.flows_enabled !== false;
     const attendantStatus = agent.attendant_status || 'offline';
     const isInitialTrigger = message === '' || message === null || message === undefined || (typeof message === 'string' && message.trim() === '');
 
-    // Get conversation history - Moved up to use for attendant check
+    // Get conversation history
     const { data: prevMessages } = await supabase
       .from('agent_messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true })
-      .limit(20);
+      .limit(30);
 
-    // Se atendente estiver online OU o cliente solicitou explicitamente atendimento humano, o fluxo não responde automaticamente
+    // Se atendente estiver online OU o cliente solicitou atendimento humano
     if ((attendantStatus === 'online' || forceHuman) && !isInitialTrigger) {
-      console.log('Attendant is online, checking if agent has already replied');
-      
-      // Se a mensagem contiver botões (de uma resposta anterior do bot), permitimos que o bot continue
-      // mesmo se o atendente estiver online, para não quebrar a interatividade iniciada pelo bot.
-      const lastAgentMsg = [...(prevMessages || [])].reverse().find(m => m.role === 'agent');
-      const isReplyingToButtons = lastAgentMsg && lastAgentMsg.metadata?.buttons;
-
-      if (!isReplyingToButtons) {
-        const hasAgentReplied = (prevMessages || []).some(m => m.role === 'agent');
-        if (hasAgentReplied) {
-          console.log('Agent has already replied and not a button interaction, skipping auto-response');
-          return new Response(
-            JSON.stringify({ response: '', skipped: 'attendant_online' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-      }
-      console.log('Allowing flow trigger (either button reply or new conversation) even if online');
-    }
-
-    if (forceHuman) {
-      console.log('Force human requested, skipping auto-response');
-      // Apenas retornamos uma resposta vazia para que o bot não responda.
-      // A mensagem do cliente já foi salva via RPC ou inserção direta no front-end.
+      console.log('Attendant is online or forceHuman, skipping auto-response');
       return new Response(
-        JSON.stringify({ response: '', skipped: 'force_human' }),
+        JSON.stringify({ response: '', skipped: 'attendant_online' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Flows enabled:', flowsEnabled);
-
-    // Se houver fluxos ativos, processar o fluxo primeiro
-    if (flowsEnabled) {
-      console.log('Searching for active flows for agent:', agentId);
-      const { data: activeFlows } = await supabase
-        .from('agent_chat_flows')
-        .select('*')
-        .eq('agent_id', agentId)
-        .eq('is_active', true);
-
-      if (activeFlows && activeFlows.length > 0) {
-        console.log('Found active flows:', activeFlows.length);
-        
-        const normalizedMsg = (message || "").toString().trim().toLowerCase();
-        const mainFlow = activeFlows[0];
-        const flowConfig = mainFlow.config as any || {};
-        const nodes = (flowConfig.nodes || []).map((n: any) => ({
-          ...n,
-          data: {
-            ...n.data,
-            label: n.data?.label || n.data?.content || '' // Handle both label and content
-          }
-        }));
-        const edges = flowConfig.edges || [];
-
-        // Identificar se a mensagem atual é uma resposta a botões de uma mensagem anterior
-        const lastAgentMessage = [...(prevMessages || [])].reverse().find(m => m.role === 'agent');
-        
-        console.log('Checking message for flows. Normalized message:', normalizedMsg);
-        
-        if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
-          console.log('Last agent message had buttons, checking for match:', normalizedMsg);
-          const buttons = lastAgentMessage.metadata.buttons;
-          
-          let clickedButton = null;
-          let clickedButtonIndex = -1;
-
-          // 1. Tentar match exato ou parcial no texto
-          for (let i = 0; i < buttons.length; i++) {
-            const btn = buttons[i];
-            const btnText = (typeof btn === 'string' ? btn : btn.text || '').toLowerCase().trim();
-            const btnId = typeof btn === 'object' ? btn.id : null;
-            
-            // Log for debugging button matching
-            console.log(`Checking button ${i}: "${btnText}" (ID: ${btnId}) against message: "${normalizedMsg}"`);
-
-            if (btnText === normalizedMsg || 
-                normalizedMsg === btnText || 
-                (btnText.length > 2 && normalizedMsg.includes(btnText)) ||
-                (normalizedMsg.length > 2 && btnText.includes(normalizedMsg)) ||
-                (btnId && (normalizedMsg === btnId || normalizedMsg === `btn-${btnId}`))) {
-              clickedButton = btn;
-              clickedButtonIndex = i;
-              break;
-            }
-          }
-
-          if (clickedButton) {
-            console.log('Button match found at index:', clickedButtonIndex);
-            const sourceNodeId = lastAgentMessage.metadata?.nodeId;
-            const buttonId = typeof clickedButton === 'object' ? clickedButton.id : null;
-            const buttonText = typeof clickedButton === 'object' ? clickedButton.text : clickedButton;
-
-            // Encontrar edge que sai do nó anterior pelo handle do botão
-            const edge = edges.find((e: any) => 
-              e.source === sourceNodeId && (
-                e.sourceHandle === buttonId || 
-                e.sourceHandle === `btn-${buttonId}` || 
-                e.sourceHandle === `btn-${clickedButtonIndex}` || 
-                e.sourceHandle === `${clickedButtonIndex}` ||
-                (buttonText && (e.sourceHandle === `btn-${buttonText}` || e.sourceHandle === buttonText)) ||
-                (e.sourceHandle && buttonId && e.sourceHandle.includes(buttonId))
-              )
-            );
-
-            if (edge) {
-              const nextNode = nodes.find((n: any) => n.id === edge.target);
-              if (nextNode) {
-                console.log('Transitioning to next node:', nextNode.id);
-                // Recursivamente processar o nó (isso pode ser uma mensagem, ação, condição, etc.)
-                return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
-              }
-            } else {
-              console.log('No specific edge found for button, looking for default outgoing edge from:', sourceNodeId);
-              const defaultEdge = edges.find((e: any) => e.source === sourceNodeId && !e.sourceHandle);
-              if (defaultEdge) {
-                const nextNode = nodes.find((n: any) => n.id === defaultEdge.target);
-                if (nextNode) return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
-              }
-            }
-          }
-        }
-
-        const customerMessages = (prevMessages || []).filter(m => m.role === 'customer');
-        const isFirstMessage = customerMessages.length <= 1;
-        
-        const triggerNodes = nodes.filter((n: any) => n.type === 'trigger');
-        let targetTriggerNode = null;
-
-        // 1. Keyword check (priority)
-        targetTriggerNode = triggerNodes.find((n: any) => 
-          n.data?.triggerType === 'keyword' && 
-          n.data?.keyword && 
-          normalizedMsg.includes(n.data.keyword.toLowerCase().trim())
-        );
-
-        // 2. Greeting or first message check
-        if (!targetTriggerNode) {
-          const PortugueseGreetings = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'ei', 'opa', 'olá!', 'oi!', 'start', 'iniciar'];
-          const isGreeting = PortugueseGreetings.includes(normalizedMsg) || 
-                            PortugueseGreetings.some(g => normalizedMsg.startsWith(g + ' '));
-          
-          if (isFirstMessage || isGreeting || isInitialTrigger || normalizedMsg === 'reiniciar' || normalizedMsg === 'voltar' || normalizedMsg === '' || normalizedMsg === 'oi' || normalizedMsg === 'olá') {
-            targetTriggerNode = triggerNodes.find((n: any) => 
-              n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
-            );
-          }
-        }
-
-        if (targetTriggerNode) {
-          console.log('Trigger found:', targetTriggerNode.data?.triggerType);
-          
-          if (targetTriggerNode.data?.triggerType === 'buttons') {
-            return await handleNodeProcessing(targetTriggerNode, nodes, edges, conversationId, agent, supabase);
-          }
-
-          const firstEdge = edges.find((e: any) => e.source === targetTriggerNode.id);
-          if (firstEdge) {
-            const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
-            if (nextNode) {
-              return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
-            }
-          }
-        } else {
-          // Fallback: se houver fluxos mas nenhum gatilho casou, 
-          // SEMPRE enviar o gatilho inicial ("Any" ou "Buttons") em vez de cair na IA
-          console.log('No trigger or button match found. Forcing initial trigger.');
-          const initialTrigger = triggerNodes.find((n: any) => 
-            n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
-          );
-          
-          if (initialTrigger) {
-            if (initialTrigger.data?.triggerType === 'buttons') {
-               return await handleNodeProcessing(initialTrigger, nodes, edges, conversationId, agent, supabase);
-            }
-            
-            const firstEdge = edges.find((e: any) => e.source === initialTrigger.id);
-            if (firstEdge) {
-              const nextNode = nodes.find((n: any) => n.id === firstEdge.target);
-              if (nextNode) return await handleNodeProcessing(nextNode, nodes, edges, conversationId, agent, supabase);
-            }
-          }
-        }
-      }
-    }
-
     // Get customer info
-
-
     const { data: customerRecord } = await supabase
       .from('agent_customers')
       .select('*')
       .eq('id', customerId)
       .maybeSingle();
-
-    const customerSafe = customerRecord || {
-      id: customerId,
-      name: 'Visitante',
-      email: null,
-      phone: null
-    };
-
-    console.log('Customer:', customerSafe.name);
 
     await supabase
       .from('agent_conversations')
@@ -569,20 +278,22 @@ serve(async (req) => {
     const nicheContext = buildNicheContext(agent.niche, nicheData);
     const personalityDesc = buildPersonalityDescription(personality);
 
-    const systemPrompt = `Você é ${agent.name}. ${agent.description || ''}
-${nicheContext}
-${knowledge ? `CONTEXTO:\n${knowledge}\n` : ''}
-REGRAS (siga rigorosamente):
-- Responda como se fosse uma pessoa real, de forma natural e organizada.
-- Se o cliente disse "oi" ou saudações, responda de forma curta e amigável.
-- Se não souber algo, responda: "Ainda não tenho essa informação específica, mas posso te passar para um atendente humano. Deseja? 😊"
-- Se o cliente pedir para falar com um humano, diga: "Claro! Vou te encaminhar para um especialista agora mesmo. Só um momento. ⏳"
-- Emojis: use moderadamente (máximo 1-2 por mensagem).
-- Seja conciso e direto, mas educado.
-- NÃO invente informações que não estão na base de conhecimento ou contexto.
-- NÃO use bullet points excessivos.`;
+    const systemPrompt = `Você é ${agent.name}, um Agente de Inteligência Artificial altamente treinado e humanizado. Seu objetivo é atender clientes de forma natural, como se estivessem conversando com um GPT ou Gemini.
 
-    console.log('Calling AI with system prompt length:', systemPrompt.length);
+${knowledge ? `DADOS DA EMPRESA E CONHECIMENTO:\n${knowledge}\n` : ''}
+${nicheContext}
+${personalityDesc}
+
+REGRAS DE OURO:
+1. Responda como uma pessoa real. Use um tom caloroso e prestativo.
+2. Seja um especialista no negócio descrito acima. Se perguntarem algo sobre a empresa, produtos ou serviços, use o conhecimento fornecido.
+3. Se não souber a resposta (não estiver no conhecimento), diga educadamente: "No momento não tenho essa informação exata, mas vou verificar para você. Deseja falar com um atendente humano? 😊"
+4. Se o cliente pedir para falar com um humano, diga: "Entendido! Estou chamando um atendente agora mesmo. Só um instante."
+5. Mantenha as respostas concisas e fáceis de ler.
+6. Use emojis de forma moderada para parecer mais humano.
+7. O objetivo final é ajudar o cliente, tirar dúvidas e converter em vendas ou agendamentos.`;
+
+    console.log('Calling AI Gateway for humanized response');
 
     // Call Lovable AI Gateway
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -596,44 +307,36 @@ REGRAS (siga rigorosamente):
         messages: [
           { role: 'system', content: systemPrompt },
           ...conversationHistory,
-          { role: 'user', content: message }
+          { role: 'user', content: message || "Olá" }
         ],
-        temperature: 0.8,
-        max_tokens: 350,
+        temperature: 0.7,
+        max_tokens: 500,
       }),
     });
 
     if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI API error:', aiResponse.status, errorText);
-      throw new Error('Erro ao processar mensagem com IA');
+      throw new Error('Falha na comunicação com a IA');
     }
 
     const aiData = await aiResponse.json();
-    const responseText = aiData.choices?.[0]?.message?.content || '';
+    const responseText = aiData.choices?.[0]?.message?.content || 'Desculpe, tive um problema técnico. Pode repetir?';
 
-    console.log('AI response received, length:', responseText.length);
-
-    // Save AI response to database
-    if (responseText.trim()) {
-      await supabase.from('agent_messages').insert({
-        conversation_id: conversationId,
-        role: 'agent',
-        content: responseText.trim(),
-        sender_name: agent.name
-      });
-    }
+    // Save AI response
+    await supabase.from('agent_messages').insert({
+      conversation_id: conversationId,
+      role: 'agent',
+      content: responseText.trim(),
+      sender_name: agent.name
+    });
 
     return new Response(
-      JSON.stringify({
-        response: responseText.trim()
-      }),
+      JSON.stringify({ response: responseText.trim() }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error processing message:', error);
+    console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

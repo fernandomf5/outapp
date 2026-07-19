@@ -5,15 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, Eye, EyeOff, Link2, Copy, Power } from "lucide-react";
+import { ArrowLeft, Save, Eye, EyeOff, Link2, Copy, Power, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { FlowCanvas } from "@/components/flowbuilder/FlowCanvas";
-import { Sidebar } from "@/components/flowbuilder/Sidebar";
-import { ChatPreview } from "@/components/flowbuilder/ChatPreview";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ReactFlowProvider } from 'reactflow';
 
 
 interface FunnelData {
@@ -212,40 +208,15 @@ const FunnelBuilder = () => {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar onAddNode={(type) => {
-          const newNode = {
-            id: `${Date.now()}`,
-            type,
-            position: { x: Math.random() * 400, y: Math.random() * 400 },
-            data: { label: `Novo ${type}` },
-          };
-          setNodes([...nodes, newNode]);
-        }} />
-
-        <div className={`flex-1 ${showPreview ? 'flex' : ''}`}>
-          <ReactFlowProvider>
-            <div className={showPreview ? 'flex-1' : 'w-full h-full'}>
-              <FlowCanvas
-                initialNodes={nodes}
-                initialEdges={edges}
-                onNodesChange={setNodes}
-                onEdgesChange={setEdges}
-                onNodeClick={() => {}}
-              />
-            </div>
-
-            {showPreview && (
-              <div className="w-96 border-l border-border bg-card">
-                <ChatPreview
-                  nodes={nodes}
-                  edges={edges}
-                  botName={funnelName}
-                />
-              </div>
-            )}
-          </ReactFlowProvider>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+        <Sparkles className="w-16 h-16 text-primary mb-6 animate-pulse" />
+        <h2 className="text-3xl font-bold mb-4">O Funil de Vendas está sendo integrado à Inteligência Artificial</h2>
+        <p className="text-muted-foreground max-w-md">
+          Estamos removendo o sistema de fluxos manuais para dar lugar a um sistema de funil completamente humanizado e gerido por Agentes IA. Em breve você poderá criar estratégias de vendas automáticas usando apenas prompts.
+        </p>
+        <Button onClick={() => navigate("/dashboard")} className="mt-8">
+          Voltar para o Dashboard
+        </Button>
       </div>
     </div>
   );
