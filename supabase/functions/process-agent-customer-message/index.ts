@@ -463,8 +463,6 @@ serve(async (req) => {
         }
       }
     }
-  }
-
 
     // Get customer info
 
