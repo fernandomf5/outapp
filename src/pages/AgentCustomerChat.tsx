@@ -997,7 +997,7 @@ export default function AgentCustomerChat() {
                             key={idx}
                             variant="outline"
                             size="sm"
-                            className="bg-white hover:bg-white/90 text-primary border-white"
+                            className="bg-white hover:bg-white/90 text-primary border-white shrink-0 max-w-full"
                             onClick={() => {
                               setInput(typeof btn === 'string' ? btn : btn.text);
                               // Trigger send in next tick
