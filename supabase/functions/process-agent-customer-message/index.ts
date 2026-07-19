@@ -204,16 +204,38 @@ function buildPersonalityDescription(personality: any): string {
 async function handleNodeProcessing(node: any, nodes: any[], edges: any[], conversationId: string, agent: any, supabase: any): Promise<Response> {
   console.log('Processing node type:', node.type, 'ID:', node.id);
   
-  if (node.type === 'message' || node.type === 'text' || node.type === 'button' || node.type === 'quickReply' || node.type === 'trigger') {
+  const supportedMediaNodes = ['image', 'audio', 'video', 'document'];
+  const isMediaNode = supportedMediaNodes.includes(node.type);
+  
+  if (node.type === 'message' || node.type === 'text' || node.type === 'button' || node.type === 'quickReply' || node.type === 'trigger' || isMediaNode) {
     const content = node.data?.label || node.data?.content || '';
     const buttons = node.data?.buttons || [];
     
+    let mediaUrl = null;
+    let mediaType = null;
+    
+    if (node.type === 'image') {
+      mediaUrl = node.data?.imageUrl;
+      mediaType = 'image';
+    } else if (node.type === 'audio') {
+      mediaUrl = node.data?.audioUrl;
+      mediaType = 'audio';
+    } else if (node.type === 'video') {
+      mediaUrl = node.data?.videoUrl;
+      mediaType = 'video';
+    } else if (node.type === 'document') {
+      mediaUrl = node.data?.documentUrl;
+      mediaType = 'document';
+    }
+
     // Salvar mensagem no banco
     await supabase.from('agent_messages').insert({
       conversation_id: conversationId,
       role: 'agent',
       content: content,
       sender_name: agent.name,
+      media_url: mediaUrl,
+      media_type: mediaType,
       metadata: { 
         buttons, 
         nodeId: node.id 
@@ -221,7 +243,7 @@ async function handleNodeProcessing(node: any, nodes: any[], edges: any[], conve
     });
 
     return new Response(
-      JSON.stringify({ response: content, buttons }),
+      JSON.stringify({ response: content, buttons, media_url: mediaUrl, media_type: mediaType }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } else if (node.type === 'question') {
