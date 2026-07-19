@@ -142,62 +142,8 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
     setSaving(false);
   };
 
-  const trainingQuestions = [
-    {
-      id: "business_name",
-      question: "Qual o nome da sua empresa ou negócio?",
-      placeholder: "Ex: Out App Marketing",
-      help: "Isso ajuda o agente a se identificar corretamente."
-    },
-    {
-      id: "business_goal",
-      question: "Qual o principal objetivo do atendimento?",
-      placeholder: "Ex: Captar leads, vender mentorias, tirar dúvidas sobre o sistema...",
-      help: "O agente focará as respostas para atingir esse objetivo."
-    },
-    {
-      id: "products_services",
-      question: "Quais produtos ou serviços você oferece e seus preços?",
-      placeholder: "Ex: Plano Básico R$99, Plano Pro R$499. Oferecemos gestão de tráfego e criação de sites.",
-      help: "Essencial para que o agente possa informar e vender para o cliente."
-    },
-    {
-      id: "faq",
-      question: "Quais são as dúvidas mais comuns dos seus clientes e as respostas?",
-      placeholder: "Ex: Aceitam PIX? Sim. Tem garantia? Sim, 7 dias.",
-      help: "Dê exemplos de perguntas e respostas reais para o agente aprender."
-    },
-    {
-      id: "personality",
-      question: "Como o agente deve se comportar? (Tom de voz)",
-      placeholder: "Ex: Amigável, profissional, direto, usa emojis...",
-      help: "Define a 'personalidade' do seu atendimento IA."
-    }
-  ];
-
-  const updateKnowledgeFromQuestions = (id: string, value: string) => {
-    // Tenta extrair as respostas atuais do conhecimento ou inicia um novo formato
-    const lines = knowledge.split("\n");
-    let found = false;
-    const newLines = lines.map(line => {
-      const questionData = trainingQuestions.find(q => line.startsWith(`[${q.id}]:`));
-      if (questionData && questionData.id === id) {
-        found = true;
-        return `[${id}]: ${value}`;
-      }
-      return line;
-    });
-
-    if (!found) {
-      newLines.push(`[${id}]: ${value}`);
-    }
-
-    setKnowledge(newLines.join("\n"));
-  };
-
-  const getQuestionValue = (id: string) => {
-    const line = knowledge.split("\n").find(l => l.startsWith(`[${id}]:`));
-    return line ? line.replace(`[${id}]: `, "") : "";
+  const updateAnswer = (id: string, value: string) => {
+    setAnswers(prev => ({ ...prev, [id]: value }));
   };
 
   if (loading) {
