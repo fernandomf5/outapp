@@ -171,7 +171,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
             Treinamento do Agente IA
           </h3>
           <p className="text-sm text-muted-foreground mt-1 font-medium">
-            preciso que o agente ia comece a falar no chat online quando ele for ativado
+            O Agente IA ta criado, e ativo, por que não esta respondendo no chat online?
           </p>
         </div>
         <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-primary/10">
