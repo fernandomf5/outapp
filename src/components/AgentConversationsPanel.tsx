@@ -665,7 +665,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
           <div className="flex items-center gap-3 flex-wrap">
             {/* Status do Atendente */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Seu status:</span>
+              <span className="text-sm text-muted-foreground">Tipo de Atendimento:</span>
               <Select value={attendantStatus} onValueChange={(v) => updateAttendantStatus(v as 'online' | 'offline' | 'busy')}>
                 <SelectTrigger className="w-[160px]">
                   <SelectValue />
