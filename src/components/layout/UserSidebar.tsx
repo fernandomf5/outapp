@@ -323,22 +323,22 @@ export function UserSidebar() {
         </Link>
       </div>
       
-      {/* Search input */}
+      {/* Search input - Hidden on mobile if collapsed or just generally more compact */}
       {!collapsed && (
-        <div className="px-2 py-2 border-b border-border relative shrink-0">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="px-3 py-3 border-b border-border/50 relative shrink-0">
+          <div className="relative group">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
               type="text"
-              placeholder="Buscar recurso..."
+              placeholder="Buscar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-8 h-8 text-sm bg-muted/50"
+              className="pl-9 pr-8 h-9 text-sm bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-xl"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -347,24 +347,28 @@ export function UserSidebar() {
           
           {/* Search results dropdown */}
           {searchQuery && searchResults.length > 0 && (
-            <div className="absolute left-2 right-2 top-full mt-1 bg-popover border border-border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
-              {searchResults.map((item) => (
-                <button
-                  key={`${item.path}-${item.tab}`}
-                  onClick={() => handleSearchSelect(item)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors text-left"
-                >
-                  <item.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{item.title}</span>
-                </button>
-              ))}
+            <div className="absolute left-3 right-3 top-full mt-1 bg-popover border border-border rounded-xl shadow-2xl z-50 max-h-[60vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-1">
+                {searchResults.map((item) => (
+                  <button
+                    key={`${item.path}-${item.tab}`}
+                    onClick={() => handleSearchSelect(item)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent rounded-lg transition-colors text-left"
+                  >
+                    <div className="p-1.5 rounded-md bg-primary/10 text-primary">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                    </div>
+                    <span className="truncate font-medium">{item.title}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           
           {/* No results message */}
           {searchQuery && searchResults.length === 0 && (
-            <div className="absolute left-2 right-2 top-full mt-1 bg-popover border border-border rounded-md shadow-lg z-50 p-3">
-              <p className="text-sm text-muted-foreground text-center">Nenhum resultado encontrado</p>
+            <div className="absolute left-3 right-3 top-full mt-1 bg-popover border border-border rounded-xl shadow-2xl z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
+              <p className="text-sm text-muted-foreground text-center">Nenhum recurso encontrado</p>
             </div>
           )}
         </div>
