@@ -210,7 +210,7 @@ export default function AgentCustomerChat() {
                   .order('created_at', { ascending: true });
                 
                 if (newMessages && newMessages.length > 0) {
-                  setMessages(newMessages);
+                  setMessages(newMessages as unknown as Message[]);
                 }
               }, 1000); // Pequeno delay para garantir que a edge function inseriu as mensagens
 
