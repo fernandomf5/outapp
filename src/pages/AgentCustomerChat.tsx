@@ -954,40 +954,48 @@ export default function AgentCustomerChat() {
                     }
                   >
                     {message.media_url && message.media_type === 'image' && (
-                      <div className="mb-2 rounded overflow-hidden">
+                      <div className="mb-2 rounded-lg overflow-hidden border border-black/5 dark:border-white/5">
                         <img 
                           src={message.media_url} 
                           alt="Imagem enviada" 
-                          className="max-w-full h-auto max-h-64 object-contain"
+                          className="max-w-full h-auto max-h-[400px] object-contain mx-auto"
+                          loading="lazy"
                         />
                       </div>
                     )}
                     {message.media_url && message.media_type === 'video' && (
-                      <div className="mb-2 rounded overflow-hidden">
-                        <video controls className="max-w-full h-auto max-h-64 rounded">
-                          <source src={message.media_url} type="video/mp4" />
+                      <div className="mb-2 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/5 dark:bg-black/20">
+                        <video controls className="w-full max-h-[400px] rounded-md">
+                          <source src={message.media_url} />
                           Seu navegador não suporta vídeos.
                         </video>
                       </div>
                     )}
                     {message.media_url && message.media_type === 'audio' && (
-                      <div className="mb-2">
-                        <audio controls className="max-w-full h-10 rounded">
-                          <source src={message.media_url} type="audio/mpeg" />
+                      <div className="mb-2 p-2 rounded-lg bg-black/5 dark:bg-black/20">
+                        <audio controls className="w-full h-10">
+                          <source src={message.media_url} />
                           Seu navegador não suporta áudio.
                         </audio>
                       </div>
                     )}
                     {message.media_url && message.media_type === 'document' && (
-                      <a 
-                        href={message.media_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm underline mb-2 bg-black/5 p-2 rounded hover:bg-black/10 transition-colors"
-                      >
-                        <FileText className="w-4 h-4" />
-                        Ver documento
-                      </a>
+                      <div className="mb-2">
+                        <a 
+                          href={message.media_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 text-sm font-medium p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all group"
+                        >
+                          <div className="p-2 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform">
+                            <FileText className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="block truncate">Ver documento</span>
+                            <span className="text-[10px] opacity-60 uppercase">Clique para abrir</span>
+                          </div>
+                        </a>
+                      </div>
                     )}
                     <p className="whitespace-pre-wrap">{linkifyText(message.content)}</p>
                     {message.metadata?.buttons && message.metadata.buttons.length > 0 && (
