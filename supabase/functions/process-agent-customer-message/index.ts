@@ -363,6 +363,16 @@ serve(async (req) => {
       console.log('Allowing flow trigger (either button reply or new conversation) even if online');
     }
 
+    if (forceHuman) {
+      console.log('Force human requested, skipping auto-response');
+      // Apenas retornamos uma resposta vazia para que o bot não responda.
+      // A mensagem do cliente já foi salva via RPC ou inserção direta no front-end.
+      return new Response(
+        JSON.stringify({ response: '', skipped: 'force_human' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Flows enabled:', flowsEnabled);
 
     // Se houver fluxos ativos, processar o fluxo primeiro
