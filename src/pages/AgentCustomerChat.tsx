@@ -954,18 +954,36 @@ export default function AgentCustomerChat() {
                     }
                   >
                     {message.media_url && message.media_type === 'image' && (
-                      <img 
-                        src={message.media_url} 
-                        alt="Imagem enviada" 
-                        className="max-w-full rounded mb-2 max-h-64 object-contain"
-                      />
+                      <div className="mb-2 rounded overflow-hidden">
+                        <img 
+                          src={message.media_url} 
+                          alt="Imagem enviada" 
+                          className="max-w-full h-auto max-h-64 object-contain"
+                        />
+                      </div>
+                    )}
+                    {message.media_url && message.media_type === 'video' && (
+                      <div className="mb-2 rounded overflow-hidden">
+                        <video controls className="max-w-full h-auto max-h-64 rounded">
+                          <source src={message.media_url} type="video/mp4" />
+                          Seu navegador não suporta vídeos.
+                        </video>
+                      </div>
+                    )}
+                    {message.media_url && message.media_type === 'audio' && (
+                      <div className="mb-2">
+                        <audio controls className="max-w-full h-10 rounded">
+                          <source src={message.media_url} type="audio/mpeg" />
+                          Seu navegador não suporta áudio.
+                        </audio>
+                      </div>
                     )}
                     {message.media_url && message.media_type === 'document' && (
                       <a 
                         href={message.media_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm underline mb-2"
+                        className="flex items-center gap-2 text-sm underline mb-2 bg-black/5 p-2 rounded hover:bg-black/10 transition-colors"
                       >
                         <FileText className="w-4 h-4" />
                         Ver documento
