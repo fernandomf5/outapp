@@ -113,7 +113,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     } else {
       toast({
         title: "Status atualizado",
-        description: `Você está ${status === 'online' ? 'Online' : status === 'busy' ? 'Em Atendimento' : 'Offline'}. Fluxos automáticos: ${flowsEnabled ? 'Ativados' : 'Pausados'}.`,
+        description: `Modo de atendimento alterado para: ${status === 'online' ? 'Atendimento Humano' : status === 'busy' ? 'Ocupado' : 'Agente IA'}. Fluxos automáticos: ${flowsEnabled ? 'Ativados' : 'Pausados'}.`,
       });
     }
   };
