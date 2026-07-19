@@ -171,9 +171,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
             Treinamento do Agente IA
           </h3>
           <p className="text-sm text-muted-foreground mt-1 font-medium whitespace-pre-wrap">
-            ele ta respondendo, porem, não de forma inteligente, preciso de algo mais inteligente, tipo de uma ia que por mais que ela não saiba a resposta, ele consiga levar a conversa numa boa, ou pedir pra esperar um humano responder. 
-
-quero poder tambem treinar mais ela, tipo, falar de todos os recursos da out app, como usar e tudo mais.
+            eu consigo fazer com que meu agente de ia seja um chat gpt desse?
           </p>
         </div>
         <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-primary/10">
