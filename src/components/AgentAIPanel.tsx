@@ -171,9 +171,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
             Treinamento do Agente IA
           </h3>
           <p className="text-sm text-muted-foreground mt-1 font-medium">
-            o que eu preciso fazer para o agente IA funcionar? 
-            
-            o que e preciso fazer para ele responder as mensagens dos clientes no chat online?
+            O Agente responderá de forma humanizada no chat online assim que o treinamento for finalizado e a IA for ativada.
           </p>
         </div>
         <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-primary/10">
