@@ -171,17 +171,9 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
             Treinamento do Agente IA
           </h3>
           <p className="text-sm text-muted-foreground mt-1 font-medium whitespace-pre-wrap">
-            qualquer coisa que eu peça pra vocÊ você ta me dando essa resposta: 
+            quero usar o chat gpt no agente ia, como faço? 
 
-O texto do painel de treinamento do Agente IA foi atualizado conforme solicitado.
-
-eu preciso que você resolva isso aqui: 
-
-Criei o Agente de IA, adicionei todas as informações da empresa e realizei o treinamento com sucesso.
-
-Agora, deixei o Agente de IA ativo no painel, porém ele não está respondendo aos clientes no chat online.
-
-O que ainda preciso configurar ou fazer para que o agente comece a responder automaticamente às mensagens dos clientes no chat?
+explique o passo a passo
           </p>
         </div>
         <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-primary/10">
