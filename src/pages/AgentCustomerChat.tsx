@@ -544,14 +544,33 @@ export default function AgentCustomerChat() {
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `${type}s/${fileName}`;
 
+    console.log(`Uploading ${type}: ${filePath}`);
+    
+    // Check if bucket exists/accessible or handle error
     const { error: uploadError } = await supabase.storage
-      .from('chat-media')
-      .upload(filePath, file);
+      .from('chatbot-media') // Updated from 'chat-media' to 'chatbot-media' which is common in project
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      // Try fallback bucket if first fails
+      const { error: fallbackError } = await supabase.storage
+        .from('agent-media')
+        .upload(filePath, file);
+      
+      if (fallbackError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('agent-media')
+        .getPublicUrl(filePath);
+      return publicUrl;
+    }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('chat-media')
+      .from('chatbot-media')
       .getPublicUrl(filePath);
 
     return publicUrl;

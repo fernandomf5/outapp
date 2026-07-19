@@ -295,10 +295,17 @@ serve(async (req) => {
     // Exceto se for o gatilho inicial (boas vindas), para garantir que o cliente receba uma resposta
     if (attendantStatus === 'online' && !isInitialTrigger) {
       console.log('Attendant is online, skipping auto-response for customer message');
-      return new Response(
-        JSON.stringify({ response: '', skipped: 'attendant_online' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      
+      // Mesmo se o atendente estiver online, se a conversa for NOVA (0 mensagens do atendente),
+      // permitimos o disparo inicial do fluxo para não deixar o cliente no vácuo
+      const hasAgentReplied = (prevMessages || []).some(m => m.role === 'agent');
+      if (hasAgentReplied) {
+        return new Response(
+          JSON.stringify({ response: '', skipped: 'attendant_online' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      console.log('New conversation and attendant online, allowing initial flow trigger');
     }
 
     console.log('Flows enabled:', flowsEnabled);
