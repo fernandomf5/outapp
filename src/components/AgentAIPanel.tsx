@@ -112,7 +112,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
       .eq("id", agentId)
       .single();
 
-    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge };
+    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge, ai_enabled: aiEnabled };
     const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
     
     // Se o Agente IA for ativado, garantimos que o status de atendimento 
