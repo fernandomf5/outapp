@@ -600,6 +600,8 @@ export default function AgentCustomerChat() {
     const originalInput = input;
     const imageFile = selectedImage;
     const docFile = selectedDocument;
+    
+    // Clear inputs immediately
     setInput("");
     setSelectedImage(null);
     setSelectedDocument(null);

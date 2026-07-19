@@ -289,7 +289,7 @@ serve(async (req) => {
     const agentConfig = agent.config || {};
     const flowsEnabled = agentConfig.flows_enabled !== false;
     const attendantStatus = agent.attendant_status || 'offline';
-    const isInitialTrigger = message === '' || message === null || message === undefined;
+    const isInitialTrigger = message === '' || message === null || message === undefined || (typeof message === 'string' && message.trim() === '');
 
     // Get conversation history - Moved up to use for attendant check
     const { data: prevMessages } = await supabase
@@ -304,17 +304,22 @@ serve(async (req) => {
     if (attendantStatus === 'online' && !isInitialTrigger) {
       console.log('Attendant is online, checking if agent has already replied');
       
-      // Mesmo se o atendente estiver online, se a conversa for NOVA (0 mensagens do atendente),
-      // permitimos o disparo inicial do fluxo para não deixar o cliente no vácuo
-      const hasAgentReplied = (prevMessages || []).some(m => m.role === 'agent');
-      if (hasAgentReplied) {
-        console.log('Agent has already replied, skipping auto-response');
-        return new Response(
-          JSON.stringify({ response: '', skipped: 'attendant_online' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      // Se a mensagem contiver botões (de uma resposta anterior do bot), permitimos que o bot continue
+      // mesmo se o atendente estiver online, para não quebrar a interatividade iniciada pelo bot.
+      const lastAgentMsg = [...(prevMessages || [])].reverse().find(m => m.role === 'agent');
+      const isReplyingToButtons = lastAgentMsg && lastAgentMsg.metadata?.buttons;
+
+      if (!isReplyingToButtons) {
+        const hasAgentReplied = (prevMessages || []).some(m => m.role === 'agent');
+        if (hasAgentReplied) {
+          console.log('Agent has already replied and not a button interaction, skipping auto-response');
+          return new Response(
+            JSON.stringify({ response: '', skipped: 'attendant_online' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
-      console.log('New conversation (no agent replies yet) and attendant online, allowing initial flow trigger');
+      console.log('Allowing flow trigger (either button reply or new conversation) even if online');
     }
 
     console.log('Flows enabled:', flowsEnabled);
@@ -331,7 +336,7 @@ serve(async (req) => {
       if (activeFlows && activeFlows.length > 0) {
         console.log('Found active flows:', activeFlows.length);
         
-        const normalizedMsg = (message || "").toLowerCase().trim();
+        const normalizedMsg = (message || "").toString().toLowerCase().trim();
         const mainFlow = activeFlows[0];
         const flowConfig = mainFlow.config as any || {};
         const nodes = (flowConfig.nodes || []).map((n: any) => ({
@@ -345,6 +350,8 @@ serve(async (req) => {
 
         // Identificar se a mensagem atual é uma resposta a botões de uma mensagem anterior
         const lastAgentMessage = [...(prevMessages || [])].reverse().find(m => m.role === 'agent');
+        
+        console.log('Checking message for flows. Normalized message:', normalizedMsg);
         
         if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
           console.log('Last agent message had buttons, checking for match:', normalizedMsg);
@@ -428,7 +435,7 @@ serve(async (req) => {
           const isGreeting = PortugueseGreetings.includes(normalizedMsg) || 
                             PortugueseGreetings.some(g => normalizedMsg.startsWith(g + ' '));
           
-          if (isFirstMessage || isGreeting || isInitialTrigger || normalizedMsg === 'reiniciar' || normalizedMsg === 'voltar') {
+          if (isFirstMessage || isGreeting || isInitialTrigger || normalizedMsg === 'reiniciar' || normalizedMsg === 'voltar' || normalizedMsg === '') {
             targetTriggerNode = triggerNodes.find((n: any) => 
               n.data?.triggerType === 'any' || n.data?.triggerType === 'buttons' || !n.data?.triggerType
             );
