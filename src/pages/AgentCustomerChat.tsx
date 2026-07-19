@@ -197,13 +197,26 @@ export default function AgentCustomerChat() {
             if (newConv.agent_id === agentId && newConv.status === 'active') {
               console.log('🆕 Nova conversa ativa detectada, atualizando ID:', newConv.id);
               setConversationId(newConv.id);
-              // Limpar mensagens locais para o novo fluxo
+              // Limpar mensagens locais para o novo fluxo e resetar controle de envio
               setMessages([]);
               sentMessagesRef.current = new Set();
               
+              // Buscar mensagens iniciais da nova conversa (evitar race condition com welcome message)
+              setTimeout(async () => {
+                const { data: newMessages } = await supabase
+                  .from('agent_messages')
+                  .select('*')
+                  .eq('conversation_id', newConv.id)
+                  .order('created_at', { ascending: true });
+                
+                if (newMessages && newMessages.length > 0) {
+                  setMessages(newMessages);
+                }
+              }, 1000); // Pequeno delay para garantir que a edge function inseriu as mensagens
+
               toast({
-                title: "Fluxo Reiniciado",
-                description: "O atendente reiniciou o fluxo de atendimento.",
+                title: "Atendimento Reiniciado",
+                description: "O atendente reiniciou o fluxo de conversa.",
               });
             }
           } else if (payload.eventType === 'UPDATE') {
