@@ -125,19 +125,19 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-primary font-semibold">
                 <Sparkles className="w-4 h-4" />
-                <span>Base de Conhecimento</span>
+                <span>Base de Conhecimento e Prompt do Agente</span>
               </div>
               <Label className="block text-sm text-muted-foreground">
-                Insira aqui tudo o que o agente deve saber sobre seu negócio, produtos, serviços, preços, formas de pagamento, etc.
+                Forneça todos os dados da sua empresa, produtos, serviços, preços e o objetivo do atendimento. O Agente usará isso para responder de forma humanizada, como um GPT.
               </Label>
               <Textarea 
                 value={knowledge}
                 onChange={(e) => setKnowledge(e.target.value)}
-                placeholder="Ex: Nossa empresa Out App foca em soluções de marketing digital... Os preços começam em R$99... Aceitamos PIX e Cartão..."
-                className="min-h-[300px] text-sm leading-relaxed"
+                placeholder="Ex: Somos a Out App. Vendemos soluções de marketing digital. Nosso objetivo é captar leads e tirar dúvidas sobre nossos planos (R$99-R$499). Responda sempre de forma gentil e profissional..."
+                className="min-h-[400px] text-sm leading-relaxed"
               />
               <p className="text-xs text-muted-foreground italic">
-                Dica: Quanto mais detalhes você fornecer, mais inteligente e preciso o agente será nas respostas.
+                Dica: Quanto mais detalhado for o prompt sobre seu negócio, mais inteligente e humanizado o agente será nas respostas.
               </p>
             </div>
           </Card>
@@ -147,23 +147,26 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
           <Card className="p-6 bg-primary/5 border-primary/20">
             <h4 className="font-semibold flex items-center gap-2 mb-4">
               <Info className="w-4 h-4 text-primary" />
-              Como funciona?
+              Treinamento Real e Humanizado
             </h4>
             <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
               <p>
-                1. <strong>Treinamento:</strong> O texto que você colocar na base de conhecimento serve como o "cérebro" do seu agente.
+                1. <strong>Identidade:</strong> Defina quem é seu agente e como ele deve se comportar (ex: "Você é um consultor de vendas experiente").
               </p>
               <p>
-                2. <strong>Interação:</strong> Quando um cliente enviar uma mensagem e nenhum fluxo de gatilho for ativado, a IA lerá sua base de conhecimento para responder.
+                2. <strong>Dados da Empresa:</strong> Liste seus produtos, serviços, valores e diferenciais. Ele saberá tudo sobre seu negócio.
               </p>
               <p>
-                3. <strong>Transbordo:</strong> O cliente sempre terá a opção de solicitar falar com um atendente humano se a IA não resolver a dúvida.
+                3. <strong>Inteligência:</strong> Ele utiliza tecnologia de ponta (similar ao ChatGPT/Gemini) para entender o contexto e responder naturalmente.
+              </p>
+              <p>
+                4. <strong>Falar com Humano:</strong> O cliente sempre pode solicitar falar com um atendente real se preferir.
               </p>
               <div className="pt-2">
                 <Alert className="bg-background border-primary/20">
                   <MessageSquare className="w-4 h-4" />
                   <AlertDescription className="text-xs">
-                    Ao ativar a IA, ela assume as conversas quando você estiver Offline ou Ocupado.
+                    Com a IA ativa, seu atendimento funciona 24/7 de forma inteligente.
                   </AlertDescription>
                 </Alert>
               </div>

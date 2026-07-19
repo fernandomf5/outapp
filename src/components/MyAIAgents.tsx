@@ -360,7 +360,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                   onClick={() => onManage({ id: agent.id, name: agent.name, niche: agent.niche })}
                 >
                   <Settings className="w-3.5 h-3.5 mr-2" />
-                  Gerenciar Fluxos & Clientes
+                  Gerenciar Agente & Clientes
                 </Button>
               )}
             </div>

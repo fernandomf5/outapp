@@ -30,7 +30,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
-    { id: "flows", label: "Fluxos", icon: <Workflow /> },
     { id: "ai", label: "Agente IA", icon: <Brain /> },
     { id: "customers", label: "Clientes", icon: <Users /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 /> },
@@ -147,7 +146,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
           </h2>
           {!activeTab && (
             <p className="text-muted-foreground mt-2 text-lg">
-              Gerencie conversas, fluxos e clientes com ferramentas de alta performance.
+              Gerencie conversas, treinamentos e clientes com ferramentas de inteligência artificial de alta performance.
             </p>
           )}
         </div>
