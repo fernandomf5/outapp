@@ -325,7 +325,7 @@ REGRAS DE OURO:
     console.log('Calling AI Gateway for humanized response');
 
     let responseText = '';
-    const models = ['google/gemini-2.5-flash', 'google/gemini-2.0-flash'];
+    const models = ['google/gemini-2.0-flash', 'openai/gpt-4o-mini', 'google/gemini-pro'];
 
     for (const model of models) {
       try {
