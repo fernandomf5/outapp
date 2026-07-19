@@ -323,9 +323,23 @@ export default function AgentCustomerChat() {
       if (data.messages && data.messages.length > 0) {
         setMessages(data.messages);
       } else {
-        // Limpamos mensagens e resetamos o Set de mensagens enviadas para garantir que o realtime funcione
+        // Limpamos mensagens e resetamos o Set de mensagens enviadas
         setMessages([]);
         sentMessagesRef.current = new Set();
+        
+        // Forçar um primeiro processamento caso a Edge Function não tenha retornado mensagens
+        // mas o fluxo deva iniciar (isso garante o disparo do gatilho inicial)
+        if (data.conversationId) {
+          console.log('Nenhuma mensagem inicial retornada, solicitando processamento...');
+          await supabase.functions.invoke('process-agent-customer-message', {
+            body: { 
+              agentId, 
+              customerId, 
+              conversationId: data.conversationId, 
+              message: '' 
+            }
+          });
+        }
       }
       
       // Set attendant status from agent data
