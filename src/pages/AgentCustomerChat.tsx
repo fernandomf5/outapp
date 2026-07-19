@@ -546,22 +546,38 @@ export default function AgentCustomerChat() {
 
     console.log(`Uploading ${type}: ${filePath}`);
     
-    // Check if bucket exists/accessible or handle error
+    // Try chatbot-media first
     const { error: uploadError } = await supabase.storage
-      .from('chatbot-media') // Updated from 'chat-media' to 'chatbot-media' which is common in project
+      .from('chatbot-media')
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
-      // Try fallback bucket if first fails
+      console.error('Upload error in chatbot-media:', uploadError);
+      // Try fallback to agent-media
       const { error: fallbackError } = await supabase.storage
         .from('agent-media')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
-      if (fallbackError) throw uploadError;
+      if (fallbackError) {
+        console.error('Upload error in agent-media:', fallbackError);
+        // Try third fallback to messages-media (some projects use this)
+        const { error: thirdFallbackError } = await supabase.storage
+          .from('messages-media')
+          .upload(filePath, file);
+          
+        if (thirdFallbackError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('messages-media')
+          .getPublicUrl(filePath);
+        return publicUrl;
+      }
       
       const { data: { publicUrl } } = supabase.storage
         .from('agent-media')
