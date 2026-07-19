@@ -289,7 +289,7 @@ serve(async (req) => {
     const agentConfig = agent.config || {};
     const flowsEnabled = agentConfig.flows_enabled !== false;
     const attendantStatus = agent.attendant_status || 'offline';
-    const isInitialTrigger = message === '' || message === null || message === undefined;
+    const isInitialTrigger = message === '' || message === null || message === undefined || (typeof message === 'string' && message.trim() === '');
 
     // Get conversation history - Moved up to use for attendant check
     const { data: prevMessages } = await supabase
@@ -345,6 +345,8 @@ serve(async (req) => {
 
         // Identificar se a mensagem atual é uma resposta a botões de uma mensagem anterior
         const lastAgentMessage = [...(prevMessages || [])].reverse().find(m => m.role === 'agent');
+        
+        console.log('Checking message for flows. Normalized message:', normalizedMsg);
         
         if (lastAgentMessage && lastAgentMessage.metadata?.buttons) {
           console.log('Last agent message had buttons, checking for match:', normalizedMsg);
