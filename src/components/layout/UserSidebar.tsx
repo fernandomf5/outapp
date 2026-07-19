@@ -491,7 +491,7 @@ export function UserSidebar() {
             return (
               <SidebarGroup key={key} className={cn(collapsed && "px-0")}>
                 {!collapsed && (
-                  <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm mb-1">
+                  <SidebarGroupLabel className="text-green-600 dark:text-green-400 font-bold bg-green-500/10 dark:bg-green-500/20 rounded-xl px-3 py-2 text-xs sm:text-sm mb-2 border border-green-500/20">
                     {group.label}
                   </SidebarGroupLabel>
                 )}
