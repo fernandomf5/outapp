@@ -979,7 +979,7 @@ export default function AgentCustomerChat() {
                     </span>
                     <span className="sm:hidden">
                       {attendantStatus === 'online' ? 'Online' : 
-                       attendantStatus === 'busy' ? 'Ocupado' : 'Offline'}
+                       attendantStatus === 'busy' ? 'Ocupado' : 'Agente IA'}
                     </span>
                   </Badge>
                 </div>
