@@ -82,25 +82,16 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const updateAttendantStatus = async (status: 'online' | 'offline' | 'busy') => {
     setAttendantStatus(status);
     
-    // Buscar config atual do agente
-    const { data: agentData } = await supabase
-      .from('ai_agents')
-      .select('config')
-      .eq('id', agentId)
-      .single();
+    // Ao atualizar status, não alteramos a configuração da IA.
+    // A IA funcionará se estiver ativada nas configurações, mesmo com atendente online
+    // (a menos que o atendente responda manualmente ou force human mode).
     
-    const currentConfig = agentData?.config as any || {};
-    
-    // Se o atendente entrar online, desabilitamos fluxos para assumir manual
-    // Se entrar offline, reabilitamos fluxos
-    const flowsEnabled = status === 'offline';
-
     const { error } = await supabase
       .from('ai_agents')
       .update({ 
         attendant_status: status,
         attendant_name: senderName || null,
-        config: { ...currentConfig, flows_enabled: flowsEnabled }
+        updated_at: new Date().toISOString()
       })
       .eq('id', agentId);
     
@@ -113,7 +104,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     } else {
       toast({
         title: "Status atualizado",
-        description: `Modo de atendimento alterado para: ${status === 'online' ? 'Atendimento Humano' : status === 'busy' ? 'Ocupado' : 'Agente IA'}. Fluxos automáticos: ${flowsEnabled ? 'Ativados' : 'Pausados'}.`,
+        description: `Seu status agora é ${status === 'online' ? 'Online' : status === 'busy' ? 'Ocupado' : 'Offline'}.`,
       });
     }
   };

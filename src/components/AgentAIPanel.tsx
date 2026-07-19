@@ -112,7 +112,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
       .eq("id", agentId)
       .single();
 
-    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge };
+    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge, ai_enabled: aiEnabled };
     const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
     
     // Se o Agente IA for ativado, garantimos que o status de atendimento 
@@ -171,7 +171,7 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
             Treinamento do Agente IA
           </h3>
           <p className="text-sm text-muted-foreground mt-1 font-medium">
-            O Agente IA ta criado, e ativo, por que não esta respondendo no chat online?
+            Gerencie o treinamento e comportamento do seu Agente de IA para atendimento automático.
           </p>
         </div>
         <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-primary/10">

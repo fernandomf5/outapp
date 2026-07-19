@@ -241,12 +241,12 @@ serve(async (req) => {
       .order('created_at', { ascending: true })
       .limit(30);
 
-    // Extraímos se a IA está habilitada
-    const aiEnabled = agentConfig.ai_enabled === true;
+    // Extraímos se a IA está habilitada diretamente do objeto training_data ou config
+    const aiEnabled = agentConfig.ai_enabled === true || agent.training_data?.ai_enabled === true;
+
+    console.log('AI Status:', { aiEnabled, attendantStatus, isInitialTrigger, forceHuman });
 
     // Se o cliente solicitou atendimento humano (forceHuman), pausamos a IA
-    // Se o atendente estiver online, mas a IA estiver ativada, a IA responde 
-    // a menos que seja uma mensagem inicial (saudação inicial sempre processamos)
     if (forceHuman && !isInitialTrigger) {
       console.log('forceHuman active, skipping auto-response');
       return new Response(
@@ -255,9 +255,14 @@ serve(async (req) => {
       );
     }
 
-    // Se atendente estiver online e a IA NÃO estiver explicitamente habilitada
-    if (attendantStatus === 'online' && !aiEnabled && !isInitialTrigger) {
-      console.log('Attendant is online and AI not enabled, skipping auto-response');
+    // A IA deve responder se:
+    // 1. Estiver explicitamente habilitada (aiEnabled)
+    // 2. OU se for o gatilho inicial (para dar as boas-vindas)
+    // 3. OU se o atendente estiver offline
+    const shouldAIRespond = aiEnabled || isInitialTrigger || attendantStatus === 'offline';
+
+    if (!shouldAIRespond) {
+      console.log('AI should not respond (Attendant online and AI disabled)');
       return new Response(
         JSON.stringify({ response: '', skipped: 'attendant_online' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
