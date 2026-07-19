@@ -289,10 +289,12 @@ serve(async (req) => {
     const agentConfig = agent.config || {};
     const flowsEnabled = agentConfig.flows_enabled !== false;
     const attendantStatus = agent.attendant_status || 'offline';
+    const isInitialTrigger = message === '' || message === null || message === undefined;
 
     // Se atendente estiver online, o fluxo não responde automaticamente (atendimento humano prioritário)
-    if (attendantStatus === 'online') {
-      console.log('Attendant is online, skipping auto-response');
+    // Exceto se for o gatilho inicial (boas vindas), para garantir que o cliente receba uma resposta
+    if (attendantStatus === 'online' && !isInitialTrigger) {
+      console.log('Attendant is online, skipping auto-response for customer message');
       return new Response(
         JSON.stringify({ response: '', skipped: 'attendant_online' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
