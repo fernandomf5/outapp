@@ -17,75 +17,8 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
   const [saving, setSaving] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
   const [knowledge, setKnowledge] = useState("");
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const { toast } = useToast();
-
-  useEffect(() => {
-    loadAgentData();
-  }, [agentId]);
-
-  const loadAgentData = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("ai_agents")
-      .select("*")
-      .eq("id", agentId)
-      .single();
-
-    if (error) {
-      toast({ title: "Erro", description: "Não foi possível carregar os dados do agente.", variant: "destructive" });
-    } else {
-      const config = (data.config as any) || {};
-      const trainingData = (data.training_data as any) || {};
-      
-      setAiEnabled(config.ai_enabled !== false);
-      setKnowledge(trainingData.knowledge || "");
-    }
-    setLoading(false);
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    
-    // Buscar config atual para não sobrescrever outros campos
-    const { data: currentAgent } = await supabase
-      .from("ai_agents")
-      .select("config, training_data")
-      .eq("id", agentId)
-      .single();
-
-    const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
-    
-    // Se ativar IA, desativar fluxos do agente
-    if (aiEnabled) {
-      const { error: flowError } = await supabase
-        .from("agent_chat_flows")
-        .update({ is_active: false })
-        .eq("agent_id", agentId);
-        
-      if (flowError) {
-        console.error("Erro ao desativar fluxos:", flowError);
-      }
-    }
-
-    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge };
-
-    const { error } = await supabase
-      .from("ai_agents")
-      .update({ config, training_data: trainingData })
-      .eq("id", agentId);
-
-    if (error) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-    } else {
-      toast({ 
-        title: "Configurações salvas", 
-        description: aiEnabled 
-          ? "O agente IA foi ativado e os fluxos automáticos foram desativados." 
-          : "Configurações atualizadas com sucesso." 
-      });
-    }
-    setSaving(false);
-  };
 
   const trainingQuestions = [
     {
@@ -120,29 +53,97 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
     }
   ];
 
-  const updateKnowledgeFromQuestions = (id: string, value: string) => {
-    // Tenta extrair as respostas atuais do conhecimento ou inicia um novo formato
-    const lines = knowledge.split("\n");
-    let found = false;
-    const newLines = lines.map(line => {
-      const questionData = trainingQuestions.find(q => line.startsWith(`[${q.id}]:`));
-      if (questionData && questionData.id === id) {
-        found = true;
-        return `[${id}]: ${value}`;
-      }
-      return line;
-    });
+  useEffect(() => {
+    loadAgentData();
+  }, [agentId]);
 
-    if (!found) {
-      newLines.push(`[${id}]: ${value}`);
+  const loadAgentData = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("ai_agents")
+      .select("*")
+      .eq("id", agentId)
+      .single();
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível carregar os dados do agente.", variant: "destructive" });
+    } else {
+      const config = (data.config as any) || {};
+      const trainingData = (data.training_data as any) || {};
+      const initialKnowledge = trainingData.knowledge || "";
+      
+      setAiEnabled(config.ai_enabled !== false);
+      setKnowledge(initialKnowledge);
+
+      // Extrair respostas existentes do conhecimento formatado
+      const extractedAnswers: Record<string, string> = {};
+      trainingQuestions.forEach(q => {
+        const marker = `[${q.id}]: `;
+        if (initialKnowledge.includes(marker)) {
+          const startIndex = initialKnowledge.indexOf(marker) + marker.length;
+          // Procurar o início do próximo marcador ou o fim da string
+          let nextMarkerIndex = initialKnowledge.length;
+          trainingQuestions.forEach(otherQ => {
+            const otherMarker = `[${otherQ.id}]: `;
+            const otherIndex = initialKnowledge.indexOf(otherMarker, startIndex);
+            if (otherIndex !== -1 && otherIndex < nextMarkerIndex) {
+              nextMarkerIndex = otherIndex;
+            }
+          });
+          extractedAnswers[q.id] = initialKnowledge.substring(startIndex, nextMarkerIndex).trim();
+        }
+      });
+      setAnswers(extractedAnswers);
     }
-
-    setKnowledge(newLines.join("\n"));
+    setLoading(false);
   };
 
-  const getQuestionValue = (id: string) => {
-    const line = knowledge.split("\n").find(l => l.startsWith(`[${id}]:`));
-    return line ? line.replace(`[${id}]: `, "") : "";
+  const handleSave = async () => {
+    setSaving(true);
+    
+    // Construir o conhecimento final a partir das respostas atuais
+    const finalKnowledge = trainingQuestions
+      .map(q => `[${q.id}]: ${answers[q.id] || ""}`)
+      .join("\n\n");
+
+    const { data: currentAgent } = await supabase
+      .from("ai_agents")
+      .select("config, training_data")
+      .eq("id", agentId)
+      .single();
+
+    const config = { ...(currentAgent?.config as any || {}), ai_enabled: aiEnabled };
+    
+    if (aiEnabled) {
+      await supabase
+        .from("agent_chat_flows")
+        .update({ is_active: false })
+        .eq("agent_id", agentId);
+    }
+
+    const trainingData = { ...(currentAgent?.training_data as any || {}), knowledge: finalKnowledge };
+
+    const { error } = await supabase
+      .from("ai_agents")
+      .update({ config, training_data: trainingData })
+      .eq("id", agentId);
+
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } else {
+      setKnowledge(finalKnowledge);
+      toast({ 
+        title: "Configurações salvas", 
+        description: aiEnabled 
+          ? "O agente IA foi ativado e os fluxos automáticos foram desativados." 
+          : "Configurações atualizadas com sucesso." 
+      });
+    }
+    setSaving(false);
+  };
+
+  const updateAnswer = (id: string, value: string) => {
+    setAnswers(prev => ({ ...prev, [id]: value }));
   };
 
   if (loading) {
@@ -196,15 +197,10 @@ export default function AgentAIPanel({ agentId }: AgentAIPanelProps) {
                     </div>
                   </div>
                   <Textarea 
-                    value={getQuestionValue(q.id)}
-                    onChange={(e) => updateKnowledgeFromQuestions(q.id, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.stopPropagation();
-                      }
-                    }}
+                    value={answers[q.id] || ""}
+                    onChange={(e) => updateAnswer(q.id, e.target.value)}
                     placeholder={q.placeholder}
-                    className="min-h-[100px] bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary rounded-xl text-sm resize-none"
+                    className="min-h-[100px] bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary rounded-xl text-sm"
                   />
                 </div>
               </Card>
