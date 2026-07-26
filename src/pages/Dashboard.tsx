@@ -1369,12 +1369,20 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
+          <TabsContent value="pagina-captura">
+            <ErrorBoundary>
+              <FeatureTutorialVideo featureKey="pagina-captura" />
+              <CapturePageCreatorPanel />
+            </ErrorBoundary>
+          </TabsContent>
+
           <TabsContent value="popups">
             <FeatureGate featureKey="popup_creator">
               <FeatureTutorialVideo featureKey="popups" />
               <PopupCreatorPanel />
             </FeatureGate>
           </TabsContent>
+
 
           <TabsContent value="questionario-marketing">
             <FeatureGate featureKey="quiz_creator">
