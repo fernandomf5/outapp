@@ -191,9 +191,8 @@ export function UserSidebar() {
     { title: "Gerador de Recibos", icon: FileCheck, path: "/dashboard", tab: "recibos", hideForTeamMember: true },
   ];
 
-  const crmItems: MenuItem[] = [
-    { title: t('lead_control'), icon: Database, path: "/dashboard", tab: "crm-geral", moduleKey: "crm" },
-  ];
+
+
 
 
   const basicResourcesItems: MenuItem[] = [
