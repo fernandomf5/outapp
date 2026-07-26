@@ -743,71 +743,97 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.length === 0 ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Nenhuma transação encontrada.
-                    </TableCell>
+                    <TableHead className="w-[40px]"></TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ) : (
-                  filteredTransactions.map(t => (
-                    <TableRow key={t.id} className={t.status === 'paid' ? 'bg-muted/30' : ''}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{t.description}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {PAYMENT_METHODS[t.payment_method] || t.payment_method}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{t.category}</Badge>
-                      </TableCell>
-                      <TableCell>{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                      <TableCell className={t.type === 'income' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                        {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className={t.status === 'paid' ? 'text-green-600' : 'text-orange-600'}
-                          onClick={() => handleToggleStatus(t)}
-                        >
-                          {t.status === 'paid' ? <CheckCircle className="h-4 w-4 mr-1" /> : <Clock className="h-4 w-4 mr-1" />}
-                          {t.status === 'paid' ? 'Pago' : 'Pendente'}
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => confirmDelete(t)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        Nenhuma transação encontrada.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    <SortableContext items={filteredTransactions.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                      {filteredTransactions.map(t => (
+                        <SortableTransactionRow key={t.id} id={t.id} className={t.status === 'paid' ? 'bg-muted/30' : ''}>
+                          {(handle) => (
+                            <>
+                              <TableCell className="w-[40px]">{handle}</TableCell>
+                              <TableCell>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{t.description}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {PAYMENT_METHODS[t.payment_method] || t.payment_method}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="secondary"
+                                  style={(() => {
+                                    const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
+                                    return cat?.color ? { backgroundColor: `${cat.color}22`, color: cat.color } : undefined;
+                                  })()}
+                                >
+                                  {t.category}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+                              <TableCell className={t.type === 'income' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                                {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className={t.status === 'paid' ? 'text-green-600' : 'text-orange-600'}
+                                  onClick={() => handleToggleStatus(t)}
+                                >
+                                  {t.status === 'paid' ? <CheckCircle className="h-4 w-4 mr-1" /> : <Clock className="h-4 w-4 mr-1" />}
+                                  {t.status === 'paid' ? 'Pago' : 'Pendente'}
+                                </Button>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => confirmDelete(t)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </>
+                          )}
+                        </SortableTransactionRow>
+                      ))}
+                    </SortableContext>
+                  )}
+                </TableBody>
+              </Table>
+            </DndContext>
           </div>
         </CardContent>
       </Card>
+
+      <CategoryManager
+        open={isCategoryManagerOpen}
+        onOpenChange={setIsCategoryManagerOpen}
+        businessId={businessId}
+        transactions={transactions}
+        onSelectCategory={(name) => setCategoryFilter(name)}
+      />
 
       <SecureDeleteDialog
         open={deleteDialogOpen}
@@ -817,6 +843,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         description="Esta ação excluirá permanentemente os dados desta transação e reverterá qualquer impacto no saldo da conta vinculada (se paga). Para confirmar, digite 'excluir' abaixo."
         itemName={transactionToDelete?.description}
       />
+
     </div>
   );
 };
