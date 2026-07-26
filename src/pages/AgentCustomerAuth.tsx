@@ -92,7 +92,7 @@ export default function AgentCustomerAuth() {
             </div>
           )}
           <CardTitle>{agentName || 'Chat Online'}</CardTitle>
-          <CardDescription>Informe seu nome e e-mail para iniciar o atendimento</CardDescription>
+          <CardDescription>Informe seu nome para iniciar o atendimento</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
