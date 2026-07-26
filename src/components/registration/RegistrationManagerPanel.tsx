@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search, Upload, Camera, Settings2 } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil, ArrowUp, ArrowDown, MoreHorizontal, History, MessageCircle, Search, Upload, Camera, Settings2, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { BulkRegistrationDialog } from "./BulkRegistrationDialog";
 import { PhotoRegistrationDialog } from "./PhotoRegistrationDialog";
 import { ContactHistoryPanel } from "./ContactHistoryPanel";
+import { ContactResourcesTab } from "./ContactResourcesTab";
 import { toast } from "sonner";
 import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -360,7 +361,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               setActiveTab(val);
             }
           }} className="w-full md:w-auto">
-            <TabsList className={`grid w-full ${selectedItem ? "grid-cols-3" : "grid-cols-2"}`}>
+            <TabsList className={`grid w-full ${selectedItem ? "grid-cols-4" : "grid-cols-2"}`}>
               <TabsTrigger value="form" className="gap-2">
                 <PlusCircle className="h-4 w-4" />
                 Cadastrar
@@ -375,10 +376,17 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                   Histórico
                 </TabsTrigger>
               )}
+              {selectedItem && (
+                <TabsTrigger value="resources" className="gap-2">
+                  <Link2 className="h-4 w-4" />
+                  Atribuições
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
         </div>
       </div>
+
 
       <div className="mt-6">
         {activeTab === "form" ? (
