@@ -228,7 +228,6 @@ export default function AgentCustomerAuth() {
                   Tempo estimado de atendimento: <span className="font-semibold text-foreground">~{queueEta} min</span>
                 </div>
               )}
-              )}
             </div>
           )}
 
