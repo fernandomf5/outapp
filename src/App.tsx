@@ -61,6 +61,7 @@ import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
 import InvoicePublicPage from "./pages/InvoicePublicPage";
+import CapturePagePublic from "./pages/CapturePagePublic";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { RoutePersistence } from "@/components/RoutePersistence";
 
@@ -135,6 +136,7 @@ const AppContent = () => {
               <Route path="/checkout/:checkoutId/:slug/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
               <Route path="/fatura/:token" element={<InvoicePublicPage />} />
+              <Route path="/captura/:slug" element={<CapturePagePublic />} />
               <Route path="/checkout-editor/:id" element={
                 <ProtectedRoute>
                   <CheckoutEditorPage />

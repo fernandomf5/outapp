@@ -50,6 +50,7 @@ import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
 import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
+import { CapturePageCreatorPanel } from "@/components/CapturePageCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
 import { MarketingQuestionnairePanel } from "@/components/MarketingQuestionnairePanel";
@@ -1368,12 +1369,20 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
+          <TabsContent value="pagina-captura">
+            <ErrorBoundary>
+              <FeatureTutorialVideo featureKey="pagina-captura" />
+              <CapturePageCreatorPanel />
+            </ErrorBoundary>
+          </TabsContent>
+
           <TabsContent value="popups">
             <FeatureGate featureKey="popup_creator">
               <FeatureTutorialVideo featureKey="popups" />
               <PopupCreatorPanel />
             </FeatureGate>
           </TabsContent>
+
 
           <TabsContent value="questionario-marketing">
             <FeatureGate featureKey="quiz_creator">
