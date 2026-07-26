@@ -702,60 +702,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
-  const handleRestartConversation = async (conversationId?: string) => {
-    if (!selectedConversation) return;
-
-    try {
-      setLoading(true);
-      // Arquivar conversa atual
-      const { error: archiveError } = await supabase
-        .from('agent_conversations')
-        .update({ status: 'archived' })
-        .eq('id', selectedConversation.id);
-
-      if (archiveError) throw archiveError;
-
-      // Criar nova conversa
-      const { data: newConv, error: createError } = await supabase
-        .from('agent_conversations')
-        .insert({
-          agent_id: agentId,
-          customer_id: selectedConversation.agent_customers.id,
-          status: 'active',
-          ai_enabled: false,
-          last_message_at: new Date().toISOString(),
-        })
-        .select(`
-          *,
-          agent_customers (
-            id,
-            name,
-            email
-          )
-        `)
-        .single();
-
-      if (createError) throw createError;
-
-      setSelectedConversation(newConv as Conversation);
-      loadConversations();
-      
-      toast({
-        title: "Chat reiniciado",
-        description: "A conversa anterior foi arquivada e um novo atendimento foi iniciado.",
-      });
-    } catch (error: any) {
-      console.error('Error restarting conversation:', error);
-      toast({
-        title: "Erro ao reiniciar chat",
-        description: error.message || "Não foi possível reiniciar a conversa.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
     return <div>Carregando conversas...</div>;
   }
