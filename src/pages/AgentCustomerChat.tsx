@@ -660,54 +660,6 @@ export default function AgentCustomerChat() {
     }
   };
 
-  const handleRequestHuman = async () => {
-    if (!conversationId || requestingHuman || !customer) return;
-    
-    setRequestingHuman(true);
-    try {
-      // 1. Enviar mensagem do cliente
-      const content = "Preciso falar com um atendente humano.";
-      
-      // Adicionar mensagem do cliente otimisticamente na UI
-      const optimisticMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'customer',
-        content: content,
-        created_at: new Date().toISOString(),
-        sender_name: customer.name,
-      };
-      setMessages(prev => [...prev, optimisticMessage]);
-      chatSounds.playSendSound();
-
-      // 2. Chamar a Edge Function com flag para forçar atendimento humano
-      const { error } = await supabase.functions.invoke('process-agent-customer-message', {
-        body: { 
-          agentId, 
-          customerId: customer.id, 
-          conversationId, 
-          message: content,
-          forceHuman: true 
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Solicitação enviada",
-        description: "Um atendente humano foi notificado para assumir o chat.",
-      });
-
-    } catch (error) {
-      console.error('Error requesting human:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível solicitar atendimento humano.",
-        variant: "destructive",
-      });
-    } finally {
-      setRequestingHuman(false);
-    }
-  };
 
   const openContactForm = () => {
     setContactForm(prev => ({ ...prev, name: prev.name || customer?.name || '' }));
