@@ -904,6 +904,76 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         itemName={transactionToDelete?.description}
       />
 
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Status da transação</DialogTitle>
+          </DialogHeader>
+
+          {statusTarget && (
+            <div className="space-y-4">
+              <div className="rounded-lg border p-3 space-y-1">
+                <p className="font-medium text-sm">{statusTarget.description}</p>
+                <p className={statusTarget.type === 'income' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                  {statusTarget.type === 'income' ? '+' : '-'} R$ {statusTarget.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Status atual:</span>
+                  <Badge variant="secondary" className={statusTarget.status === 'paid' ? 'text-green-600' : 'text-orange-600'}>
+                    {statusTarget.status === 'paid' ? 'Pago' : 'Pendente'}
+                  </Badge>
+                  <span className="inline-flex items-center gap-1">
+                    <Landmark className="h-3 w-3" />
+                    {statusTarget.bank_account_id ? (bankNameById.get(statusTarget.bank_account_id) || '—') : 'Sem conta'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Novo status</Label>
+                <Select value={statusDraft.status} onValueChange={(v) => setStatusDraft({ ...statusDraft, status: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="paid">Pago</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  {statusTarget.type === 'income' ? 'Conta que recebeu o valor' : 'Conta de onde saiu o pagamento'}
+                </Label>
+                <Select
+                  value={statusDraft.bank_account_id || "none"}
+                  onValueChange={(v) => setStatusDraft({ ...statusDraft, bank_account_id: v === "none" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione a conta" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem conta</SelectItem>
+                    {bankAccounts.map((acc: any) => (
+                      <SelectItem key={acc.id} value={acc.id}>
+                        {acc.bank_name} ({acc.account_type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {statusDraft.status === 'paid' && (
+                  <p className="text-xs text-muted-foreground">O saldo desta conta será atualizado automaticamente.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveStatus} disabled={savingStatus}>
+              {savingStatus ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
