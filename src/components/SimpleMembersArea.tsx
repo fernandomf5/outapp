@@ -22,6 +22,7 @@ import { AccessCodesDialog } from "@/components/members-area/AccessCodesDialog";
 import { PendingOrdersDialog } from "@/components/members-area/PendingOrdersDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 interface ContentBlock {
   id: string;
   type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
@@ -1692,7 +1693,10 @@ export function SimpleMembersArea() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Áreas de Membros</h2>
+        <div>
+            <h2 className="text-2xl font-bold">Áreas de Membros</h2>
+            <div className="mt-3"><ResourceAssignmentsButton resourceType="members_area" /></div>
+          </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Nova Área

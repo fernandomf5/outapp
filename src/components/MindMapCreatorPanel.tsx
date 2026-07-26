@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
 interface MindMapNode {
@@ -950,6 +951,7 @@ export const MindMapCreatorPanel = () => {
             <div>
               <CardTitle className="text-xl">Criador de Mapa Mental</CardTitle>
               <p className="text-sm text-muted-foreground">Organize suas ideias visualmente</p>
+              <div className="mt-2"><ResourceAssignmentsButton resourceType="mind_map" /></div>
             </div>
           </div>
           

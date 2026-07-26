@@ -63,6 +63,8 @@ export const RESOURCE_TYPES: ResourceTypeDef[] = [
   { key: "floating_button", label: "Botão Flutuante", table: "floating_buttons", titleColumns: ["name"], tab: "floating-button", icon: Layers },
   { key: "business", label: "Negócio", table: "businesses", titleColumns: ["name"], tab: "negocios", icon: Building2 },
   { key: "ad_campaign", label: "Campanha de Anúncio", table: "ad_campaigns", titleColumns: ["name"], tab: "anuncios", icon: Megaphone },
+  { key: "chat_online", label: "Chat Online", table: "ai_agents", titleColumns: ["name"], tab: "chat-online", icon: MessageSquareQuote },
+  { key: "aprova_job", label: "Aprova Job", table: "aprova_job_jobs", titleColumns: ["title"], tab: "aprova-job", icon: ClipboardList },
 ];
 
 export const getResourceType = (key: string): ResourceTypeDef | undefined =>

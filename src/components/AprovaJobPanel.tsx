@@ -17,6 +17,7 @@ import { VideoThumbnail } from "@/components/VideoThumbnail";
 import { isVideoUrl } from "@/lib/media";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 interface Client {
   id: string;
@@ -498,6 +499,7 @@ export const AprovaJobPanel = () => {
         <div>
           <h2 className="text-2xl font-bold">Aprova Job</h2>
           <p className="text-muted-foreground">Sistema de aprovação de criativos</p>
+            <div className="mt-3"><ResourceAssignmentsButton resourceType="aprova_job" /></div>
         </div>
       </div>
 

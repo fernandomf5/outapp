@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Save, Plus, ExternalLink, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 export const CheckoutCreatorPanel = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export const CheckoutCreatorPanel = () => {
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Meus Checkouts</h1>
           <p className="text-slate-500">Crie e gerencie seus fluxos de pagamento</p>
+          <div className="mt-3"><ResourceAssignmentsButton resourceType="checkout" /></div>
         </div>
         <Button onClick={() => navigate('/checkout-editor/new')} className="bg-[#10b981] hover:bg-[#059669] h-12 px-6 rounded-xl shadow-lg shadow-green-100 gap-2">
           <Plus className="w-5 h-5"/> Novo Checkout

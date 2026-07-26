@@ -21,6 +21,7 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { CSS } from '@dnd-kit/utilities';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 interface CustomerCategory {
   id: string;
@@ -1350,6 +1351,7 @@ export default function SalesFunnelPanel() {
         <div>
           <h2 className="text-2xl font-bold">Funil de Vendas</h2>
           <p className="text-muted-foreground text-sm">Gerencie seus leads e acompanhe a jornada de vendas</p>
+            <div className="mt-3"><ResourceAssignmentsButton resourceType="sales_funnel" /></div>
         </div>
         <div className="flex items-center gap-2">
           <Select 

@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText, Code, Pencil, ShoppingCart, Clock, Mail, FileCode } from "lucide-react";
 import { AnalyticsPanel } from "./cloner/AnalyticsPanel";
 import { LeadsManager } from "./cloner/LeadsManager";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
 interface ClonedPage {
@@ -435,6 +436,7 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
           <p className="text-sm text-muted-foreground mt-1">
             Clone landing pages e personalize links, pixels e códigos
           </p>
+          <div className="mt-3"><ResourceAssignmentsButton resourceType="cloned_page" /></div>
         </div>
         <div className="flex gap-2">
           <Dialog open={isCloneDialogOpen} onOpenChange={setIsCloneDialogOpen}>

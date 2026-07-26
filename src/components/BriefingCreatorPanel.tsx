@@ -60,6 +60,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 interface BriefingField {
   id: string;
@@ -588,6 +589,7 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Criador de Briefing</h2>
           <p className="text-muted-foreground">Crie formulários personalizados para capturar informações</p>
+            <div className="mt-3"><ResourceAssignmentsButton resourceType="briefing" /></div>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>

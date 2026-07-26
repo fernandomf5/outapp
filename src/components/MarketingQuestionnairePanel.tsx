@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Plus, Trash2, Copy, ExternalLink, Pencil, GripVertical, Eye, ClipboardCheck, BarChart3, Mail, Phone, User, Calendar, MessageSquare, CheckCircle2 } from "lucide-react";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 type OptionItem = { id: string; text: string; offer_ids: string[] };
 type Question = {
@@ -218,7 +219,7 @@ export function MarketingQuestionnairePanel() {
             <CardTitle className="flex items-center gap-2"><ClipboardCheck className="w-5 h-5" />Questionário Marketing</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Crie questionários simples e direcione ofertas com base nas respostas.</p>
           </div>
-          <Button onClick={createNew}><Plus className="w-4 h-4 mr-1" />Novo Questionário</Button>
+          <div className="flex items-center gap-2 flex-wrap"><ResourceAssignmentsButton resourceType="questionnaire" /><Button onClick={createNew}><Plus className="w-4 h-4 mr-1" />Novo Questionário</Button></div>
         </CardHeader>
       </Card>
 

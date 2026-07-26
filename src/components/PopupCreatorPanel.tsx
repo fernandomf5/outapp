@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
 interface Popup {
@@ -974,6 +975,7 @@ export const PopupCreatorPanel = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Criador de Pop-ups</h2>
           <p className="text-muted-foreground">Crie pop-ups inteligentes para aumentar conversões</p>
+            <div className="mt-3"><ResourceAssignmentsButton resourceType="popup" /></div>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
