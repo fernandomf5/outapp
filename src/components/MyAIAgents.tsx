@@ -141,6 +141,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
       .from('ai_agents')
       .select('*')
       .eq('user_id', effectiveUserId)
+      .order('order_index', { ascending: true })
       .order('created_at', { ascending: false });
 
     if (isTeamMember && Array.isArray(allowedIds) && allowedIds.length > 0) {
