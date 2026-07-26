@@ -317,7 +317,8 @@ export function RegistrationCategoriesSettings() {
           <Button
             onClick={() => {
               setEditingId(null);
-              setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client", logo_url: "" });
+              setFormData({ ...emptyForm });
+              setPickingKind(true);
               setIsDialogOpen(true);
             }}
             className="gradient-primary"
@@ -326,6 +327,7 @@ export function RegistrationCategoriesSettings() {
             <Plus className="h-4 w-4 mr-2" />
             Nova Categoria
           </Button>
+
         </div>
       </div>
 
