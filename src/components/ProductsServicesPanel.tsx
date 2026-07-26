@@ -57,6 +57,7 @@ import ProductsAnalyticsPanel from "@/components/products/ProductsAnalyticsPanel
 import StockManagementPanel from "@/components/products/StockManagementPanel";
 import GalleryImageUpload from "@/components/products/GalleryImageUpload";
 import RichDescriptionEditor from "@/components/products/RichDescriptionEditor";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 interface Business {
   id: string;
