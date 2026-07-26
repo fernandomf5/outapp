@@ -22,6 +22,7 @@ export default function AgentCustomerAuth() {
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queueNext, setQueueNext] = useState(1);
+  const [queueEta, setQueueEta] = useState(0);
 
   const [statusColors, setStatusColors] = useState({
     online: '#22c55e',
