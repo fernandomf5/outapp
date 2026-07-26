@@ -174,20 +174,33 @@ export function RegistrationCategoriesSettings() {
     }
   };
 
+  const emptyForm = {
+    name: "",
+    icon: "Database",
+    color: "#3b82f6",
+    system_type: "client",
+    logo_url: "",
+    entity_kind: "people",
+    custom_schema: [] as KindField[],
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     try {
+      const payload = {
+        name: formData.name,
+        icon: formData.icon,
+        color: formData.color,
+        system_type: formData.system_type,
+        logo_url: formData.logo_url,
+        entity_kind: formData.entity_kind,
+        custom_schema: formData.custom_schema as any,
+      };
       if (editingId) {
         const { error } = await supabase
           .from('registration_categories')
-          .update({
-            name: formData.name,
-            icon: formData.icon,
-            color: formData.color,
-            system_type: formData.system_type,
-            logo_url: formData.logo_url,
-          })
+          .update(payload as any)
           .eq('id', editingId);
         if (error) throw error;
         toast.success('Categoria atualizada com sucesso!');
@@ -197,11 +210,7 @@ export function RegistrationCategoriesSettings() {
           .from('registration_categories')
           .insert({
             user_id: user.id,
-            name: formData.name,
-            icon: formData.icon,
-            color: formData.color,
-            system_type: formData.system_type,
-            logo_url: formData.logo_url,
+            ...payload,
             sort_order: nextOrder,
           } as any);
         if (error) throw error;
@@ -209,7 +218,7 @@ export function RegistrationCategoriesSettings() {
       }
       setIsDialogOpen(false);
       setEditingId(null);
-      setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client", logo_url: "" });
+      setFormData({ ...emptyForm });
       fetchCategories();
       window.dispatchEvent(new CustomEvent('registration-categories-updated'));
     } catch (error) {
@@ -220,15 +229,19 @@ export function RegistrationCategoriesSettings() {
 
   const handleEdit = (category: Category) => {
     setEditingId(category.id);
+    setPickingKind(false);
     setFormData({
       name: category.name,
       icon: category.icon || "Database",
       color: category.color,
       system_type: category.system_type || "client",
       logo_url: (category as any).logo_url || "",
+      entity_kind: (category as any).entity_kind || "people",
+      custom_schema: Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : [],
     });
     setIsDialogOpen(true);
   };
+
 
   const confirmDelete = (category: Category) => {
     setCategoryToDelete(category);
