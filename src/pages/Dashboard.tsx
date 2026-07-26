@@ -39,7 +39,7 @@ import { LinkShortener } from "@/components/LinkShortener";
 import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
-import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
+
 import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGenerator";
@@ -809,23 +809,6 @@ const Dashboard = () => {
             </Button>
           </Card>
 
-          {/* CRM Geral */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('crm-geral')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">CRM</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Gerencie seus leads e contatos
-                </p>
-              </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Acessar CRM
-            </Button>
-          </Card>
 
           {/* Gerenciamento Financeiro */}
           <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('financeiro')}>
@@ -1118,12 +1101,6 @@ const Dashboard = () => {
             </ErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="crm-geral">
-            <FeatureGate featureKey="crm_contacts">
-              <FeatureTutorialVideo featureKey="crm-geral" />
-              <GeneralCRMPanel />
-            </FeatureGate>
-          </TabsContent>
 
           <TabsContent value="clientes">
             <FeatureGate featureKey="clients_management">

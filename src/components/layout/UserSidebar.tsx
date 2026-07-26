@@ -191,9 +191,8 @@ export function UserSidebar() {
     { title: "Gerador de Recibos", icon: FileCheck, path: "/dashboard", tab: "recibos", hideForTeamMember: true },
   ];
 
-  const crmItems: MenuItem[] = [
-    { title: t('lead_control'), icon: Database, path: "/dashboard", tab: "crm-geral", moduleKey: "crm" },
-  ];
+
+
 
 
   const basicResourcesItems: MenuItem[] = [
@@ -265,13 +264,13 @@ export function UserSidebar() {
       ...mainItems,
       ...organizerItems,
       ...financialItems,
-      ...crmItems,
+      
       ...basicResourcesItems,
       ...advancedResourcesItems,
       ...supportItems,
     ];
     return items.filter(item => canShowItem(item));
-  }, [mainItems, organizerItems, financialItems, crmItems, basicResourcesItems, advancedResourcesItems, supportItems, canShowItem]);
+  }, [mainItems, organizerItems, financialItems, basicResourcesItems, advancedResourcesItems, supportItems, canShowItem]);
 
   
   // Filter items based on search query
@@ -382,7 +381,6 @@ export function UserSidebar() {
             cadastro: { label: "Gestão Livre", items: registrationCategories, show: !isTeamMember, isCollapsible: true },
             organizer: { label: "Organizador", items: organizerItems, show: hasVisibleItems(organizerItems) },
             financial: { label: t('financial'), items: financialItems, show: hasVisibleItems(financialItems) },
-            crm: { label: t('captured_leads'), items: crmItems, show: hasVisibleItems(crmItems) },
             basic: { label: t('basic_resources'), items: basicResourcesItems, show: !isTeamMember && hasVisibleItems(basicResourcesItems) },
             advanced: { label: t('advanced_resources'), items: advancedResourcesItems, show: hasVisibleItems(advancedResourcesItems) },
             support: { label: "Suporte e Essenciais", items: supportItems, show: !isTeamMember }

@@ -1103,7 +1103,6 @@ const AdminDashboard = () => {
                   <option value="equipe">Gestão de Equipe</option>
                   <option value="financeiro">Gestão Financeira</option>
                   <option value="recibos">Gerador de Recibos</option>
-                  <option value="crm-geral">CRM Geral / Leads</option>
                   <option value="anuncios">Gestão de Anúncios</option>
                   <option value="funil-vendas">Funil de Vendas</option>
                   <option value="extrator-criativos">Extrator de Criativos</option>
