@@ -171,6 +171,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     message: string,
     ahead: number = queueAhead,
     silent = false,
+    etaMinutes: number = queueEtaMinutes,
   ) => {
     const { data: agent } = await supabase
       .from('ai_agents')
@@ -183,6 +184,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       queueEnabled: enabled,
       queueMessage: message,
       queueAhead: Math.max(0, Math.round(ahead || 0)),
+      queueEtaMinutes: Math.max(0, Math.round(etaMinutes || 0)),
     };
 
     const { error } = await supabase
