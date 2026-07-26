@@ -169,10 +169,16 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
               : `Gestão: ${agentName}`}
           </h2>
           {!activeTab && (
-            <p className="text-muted-foreground mt-2 text-lg">
-              Gerencie conversas, treinamentos e clientes com ferramentas de inteligência artificial de alta performance.
-            </p>
+            <>
+              <p className="text-muted-foreground mt-2 text-lg">
+                Gerencie conversas, treinamentos e clientes com ferramentas de inteligência artificial de alta performance.
+              </p>
+              <div className="mt-3">
+                <ResourceAssignmentsButton resourceType="chat_online" resourceId={agentId} />
+              </div>
+            </>
           )}
+
         </div>
       </div>
 
