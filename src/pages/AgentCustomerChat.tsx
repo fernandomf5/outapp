@@ -99,13 +99,14 @@ export default function AgentCustomerChat() {
           try {
             const parsedCustomer = JSON.parse(customerData);
             setCustomer(parsedCustomer);
-            loadAgentAndConversation(parsedCustomer.id, parsedCustomer.name);
+            loadAgentAndConversation(parsedCustomer.id, parsedCustomer.name, parsedCustomer.email);
             return;
           } catch (error) {
             console.error('Error parsing customer data:', error);
             localStorage.removeItem(`agent_customer_${agentId}`);
           }
         }
+
 
         // Se não tem dados no localStorage
         if (agent?.access_type === 'anonymous') {
