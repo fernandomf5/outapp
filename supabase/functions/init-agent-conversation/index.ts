@@ -49,17 +49,12 @@ serve(async (req) => {
     }
 
     if (!existingCustomer) {
-      const access = (agent.access_type || '').toString().toLowerCase();
-      const isRestricted = access === 'restricted' || access === 'private' || access === 'privado' || access === 'acesso_privado';
-      if (isRestricted) {
-        return new Response(JSON.stringify({ error: 'Agente requer autenticação' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      // Create anonymous/customer placeholder so FK is satisfied
+      // Create lightweight customer (name + email only, no registration required)
       const anonName = customerName || 'Visitante';
-      const anonEmail = `anon_${Date.now()}@temp.com`;
+      const anonEmail = (customerEmail && String(customerEmail).trim())
+        ? String(customerEmail).trim().toLowerCase()
+        : `anon_${Date.now()}@temp.com`;
+
 
       // Generate a password hash placeholder for anonymous customers
       const encoder = new TextEncoder();
