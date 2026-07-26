@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { agentId, customerId, customerName } = await req.json();
+    const { agentId, customerId, customerName, customerEmail } = await req.json();
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
