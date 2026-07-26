@@ -355,7 +355,7 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
       </Card>
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <AlertDialogContent>
+        <AlertDialogContent className="z-[300]">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir notificações?</AlertDialogTitle>
             <AlertDialogDescription>
