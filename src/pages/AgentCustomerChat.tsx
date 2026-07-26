@@ -1675,6 +1675,73 @@ export default function AgentCustomerChat() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Formulário de contato (sem atendente disponível) */}
+        <Dialog open={showContactForm} onOpenChange={setShowContactForm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Falar com o suporte por e-mail</DialogTitle>
+              <DialogDescription>
+                Nenhum atendente disponível agora. Envie sua mensagem que o suporte entrará em contato por e-mail em até 24 horas.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="contactName">Nome</Label>
+                <Input
+                  id="contactName"
+                  value={contactForm.name}
+                  onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                  maxLength={100}
+                  placeholder="Seu nome"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contactEmail">E-mail</Label>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  value={contactForm.email}
+                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                  maxLength={255}
+                  placeholder="seu@email.com"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contactPhone">Telefone (opcional)</Label>
+                <Input
+                  id="contactPhone"
+                  value={contactForm.phone}
+                  onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                  maxLength={30}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contactMessage">Mensagem</Label>
+                <Textarea
+                  id="contactMessage"
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                  rows={4}
+                  maxLength={2000}
+                  placeholder="Descreva sua dúvida ou solicitação..."
+                />
+                <p className="text-xs text-muted-foreground">{contactForm.message.length}/2000</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowContactForm(false)} disabled={sendingContact}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSendContactForm} disabled={sendingContact} className="gap-2">
+                <Mail className="w-4 h-4" />
+                {sendingContact ? 'Enviando...' : 'Enviar mensagem'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );
