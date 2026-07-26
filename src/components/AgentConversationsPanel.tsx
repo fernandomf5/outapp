@@ -707,6 +707,65 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
           </div>
         </div>
 
+        {/* Painel do atendente */}
+        <Card>
+          <CardContent className="p-4 grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label className="text-xs">Nome do atendente</Label>
+              <Input
+                value={senderName}
+                onChange={(e) => handleSenderNameChange(e.target.value)}
+                placeholder="Ex: Ana - Suporte"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs">Status do atendente</Label>
+              <Select value={attendantStatus} onValueChange={(v) => updateAttendantStatus(v as any)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="online">🟢 Online</SelectItem>
+                  <SelectItem value="busy">🟡 Ocupado</SelectItem>
+                  <SelectItem value="offline">⚪ Offline</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Fila de espera</Label>
+                <Switch
+                  checked={queueEnabled}
+                  onCheckedChange={(checked) => {
+                    setQueueEnabled(checked);
+                    saveQueueSettings(checked, queueMessage);
+                  }}
+                />
+              </div>
+              <Textarea
+                value={queueMessage}
+                onChange={(e) => setQueueMessage(e.target.value)}
+                onBlur={() => saveQueueSettings(queueEnabled, queueMessage)}
+                rows={2}
+                placeholder="Mensagem exibida ao cliente na fila"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                disabled={!selectedConversation}
+                onClick={sendQueueNotice}
+              >
+                Enviar aviso de fila no chat
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+
+
       <div className="grid gap-4 md:grid-cols-3">
         {/* Lista de conversas */}
         <div className="md:col-span-1 space-y-4">
