@@ -74,6 +74,8 @@ export default function AgentCustomerChat() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
   const [attendantName, setAttendantName] = useState<string | null>(null);
+  const [queueEnabled, setQueueEnabled] = useState(false);
+  const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
