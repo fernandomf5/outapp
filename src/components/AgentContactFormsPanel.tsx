@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Phone, Trash2, CheckCheck, Search, Inbox, Send, Copy, CalendarDays, Clock } from "lucide-react";
+import { Mail, Phone, Trash2, CheckCheck, Search, Inbox, Copy, CalendarDays, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 
