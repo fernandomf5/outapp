@@ -244,6 +244,37 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
     window.open(`/chat-online/${agentId}`, '_blank');
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = agents.findIndex((a) => a.id === active.id);
+    const newIndex = agents.findIndex((a) => a.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(agents, oldIndex, newIndex);
+    setAgents(reordered);
+
+    const updates = reordered.map((agent, index) =>
+      supabase.from('ai_agents').update({ order_index: index } as any).eq('id', agent.id)
+    );
+    const results = await Promise.all(updates);
+    const failed = results.find((r: any) => r.error);
+    if (failed) {
+      toast({
+        title: t('error'),
+        description: "Não foi possível salvar a nova ordem.",
+        variant: "destructive",
+      });
+      fetchAgents();
+    }
+  };
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
