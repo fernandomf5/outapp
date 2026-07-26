@@ -1143,14 +1143,30 @@ export default function AgentCustomerChat() {
                       {queuePosition === 0 ? (
                         <span className="font-semibold">É a sua vez! O atendente já está com você.</span>
                       ) : queuePosition !== null ? (
-                        <>
-                          <span className="font-semibold">Você é o nº {queuePosition} da fila.</span>{' '}
-                          {queueMessage}
-                        </>
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <Badge variant="secondary" className="text-[11px]">
+                            Fila • nº {queuePosition}
+                          </Badge>
+                          <span className="font-semibold">Você está na fila de espera.</span>
+                          {queuePosition > 1 && (
+                            <span className="text-muted-foreground">
+                              Há {queuePosition - 1} pessoa(s) na sua frente.
+                            </span>
+                          )}
+                          <span className="text-muted-foreground">{queueMessage}</span>
+                        </span>
                       ) : (
-                        queueMessage
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          {queueWaiting > 0 && (
+                            <Badge variant="secondary" className="text-[11px]">
+                              {queueWaiting} na fila
+                            </Badge>
+                          )}
+                          <span>{queueMessage}</span>
+                        </span>
                       )}
                     </AlertDescription>
+
                   </Alert>
                 )}
 
