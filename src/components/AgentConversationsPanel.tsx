@@ -900,8 +900,21 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     </Button>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Aguardando agora: {queueAhead + conversations.filter((c) => (c.queue_position ?? 0) > 0).length} pessoa(s)
+                    Aguardando agora: {Math.max(queueAhead, ...conversations.map((c) => c.queue_position ?? 0), 0)} na maior posição •{' '}
+                    {conversations.filter((c) => (c.queue_position ?? 0) > 0).length} chat(s) em espera. Quem entrar agora será o nº{' '}
+                    {Math.max(queueAhead, ...conversations.map((c) => c.queue_position ?? 0), 0) + 1}.
                   </p>
+                  <Label className="text-xs">Tempo estimado de atendimento (minutos)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={queueEtaMinutes}
+                    onChange={(e) => setQueueEtaMinutes(Math.max(0, Number(e.target.value) || 0))}
+                    onBlur={() => saveQueueSettings(queueEnabled, queueMessage, queueAhead, true, queueEtaMinutes)}
+                    className="h-8"
+                    placeholder="0 = não exibir"
+                  />
+
                   <div className="grid grid-cols-2 gap-2">
                     <Button type="button" size="sm" onClick={callNextInQueue}>
                       Chamar próximo
