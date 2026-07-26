@@ -292,8 +292,9 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                           openConversation(item);
                         }}
                       >
-                        <Send className="w-3.5 h-3.5 mr-1" /> Responder por e-mail
+                        <Inbox className="w-3.5 h-3.5 mr-1" /> Ver mensagem
                       </Button>
+
                       <Button
                         size="sm"
                         variant="outline"
