@@ -228,7 +228,10 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                         </span>
                       )}
                     </div>
-                    <p className="mt-2 text-sm line-clamp-2 whitespace-pre-wrap">
+                    {item.subject && (
+                      <p className="mt-2 text-sm font-medium truncate">{item.subject}</p>
+                    )}
+                    <p className="mt-1 text-sm line-clamp-2 whitespace-pre-wrap">
                       {item.message}
                     </p>
                     <div className="mt-3 flex gap-2">
