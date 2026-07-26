@@ -146,7 +146,7 @@ const AppContent = () => {
                 </ProtectedRoute>
               } />
                
-              <Route path="/ai-agent" element={
+              <Route path="/chat-online" element={
                 <ProtectedRoute>
                   <AIAgentBuilder />
                 </ProtectedRoute>

@@ -265,7 +265,7 @@ const WhatsAppConnect = () => {
                   <Bot className="w-4 h-4 mr-2" />
                   Bot Builder
                 </Button>
-                <Button variant="outline" onClick={() => navigate("/ai-agent")}>
+                <Button variant="outline" onClick={() => navigate("/chat-online")}>
                   <Bot className="w-4 h-4 mr-2" />
                   AI Agent
                 </Button>

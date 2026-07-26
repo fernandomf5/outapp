@@ -428,7 +428,7 @@ const Dashboard = () => {
 
   const handleEditAgent = (agentId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/ai-agent?id=${agentId}`);
+    navigate(`/chat-online?id=${agentId}`);
   };
 
   const handleCopyLink = (botId: string, e: React.MouseEvent) => {
@@ -611,7 +611,7 @@ const Dashboard = () => {
         <div ref={resourcesGridRef} className="resource-grid-3d grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 pb-6">
           {/* Chat Online */}
           {hasFeature('ai_agent') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
+            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/chat-online")}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chat Online</h3>
@@ -1019,7 +1019,7 @@ const Dashboard = () => {
         <Card className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold">Meus Chats</h2>
-            <Button onClick={() => navigate("/ai-agent")} size="sm" className="w-full sm:w-auto">
+            <Button onClick={() => navigate("/chat-online")} size="sm" className="w-full sm:w-auto">
               <MessageSquare className="w-4 h-4 mr-2" />
               Criar Chat
             </Button>
@@ -1034,7 +1034,7 @@ const Dashboard = () => {
               <p className="text-muted-foreground mb-6">
                 Crie seu primeiro chat para automatizar atendimentos
               </p>
-              <Button onClick={() => navigate("/ai-agent")} className="gradient-primary">
+              <Button onClick={() => navigate("/chat-online")} className="gradient-primary">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Criar Meu Primeiro Chat
               </Button>
@@ -1045,7 +1045,7 @@ const Dashboard = () => {
                 <div
                   key={agent.id}
                   className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth gap-3 sm:gap-4"
-                  onClick={() => navigate("/ai-agent")}
+                  onClick={() => navigate("/chat-online")}
                 >
                   <div className="flex items-center gap-3 sm:gap-4 flex-1">
                     <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
