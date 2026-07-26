@@ -405,15 +405,18 @@ export default function CatalogCreatorPanel() {
             Crie catálogos públicos dos seus produtos e serviços para compartilhar
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingCatalog(null);
-            setDialogOpen(true);
-          }}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Catálogo
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ResourceAssignmentsButton resourceType="catalog" />
+          <Button
+            onClick={() => {
+              setEditingCatalog(null);
+              setDialogOpen(true);
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Catálogo
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
