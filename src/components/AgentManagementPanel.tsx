@@ -38,8 +38,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
     switch (activeTab) {
       case "conversations":
         return <AgentConversationsPanel agentId={agentId} />;
-      case "ai":
-        return <AgentAIPanel agentId={agentId} />;
       case "customers":
         return <AgentCustomersPanel agentId={agentId} />;
       case "analytics":
