@@ -80,6 +80,7 @@ serve(async (req) => {
       contactEmailMessage: cfg.contactEmailMessage ?? null,
       contactEmailButtonText: cfg.contactEmailButtonText ?? null,
       contactEmailSuccessMessage: cfg.contactEmailSuccessMessage ?? null,
+      queueEtaMinutes: Number(cfg.queueEtaMinutes ?? 0) || 0,
       isFloating: cfg.isFloating === true,
     };
 
