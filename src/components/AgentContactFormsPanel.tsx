@@ -349,6 +349,48 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                 )}
                 {selected.message}
               </div>
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground items-center">
+                <span>
+                  Recebida em{" "}
+                  {selected.created_at
+                    ? new Date(selected.created_at).toLocaleString("pt-BR")
+                    : "—"}
+                </span>
+                {selected.phone && <span>• {selected.phone}</span>}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(selected.message, "Mensagem")}
+                >
+                  <Copy className="w-3.5 h-3.5 mr-1" /> Copiar mensagem
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(selected.email, "E-mail")}
+                >
+                  <Mail className="w-3.5 h-3.5 mr-1" /> Copiar e-mail
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    copyToClipboard(
+                      `Nome: ${selected.name}\nE-mail: ${selected.email}${
+                        selected.phone ? `\nTelefone: ${selected.phone}` : ""
+                      }${selected.subject ? `\nAssunto: ${selected.subject}` : ""}\n\n${
+                        selected.message
+                      }`,
+                      "Contato completo"
+                    )
+                  }
+                >
+                  <Copy className="w-3.5 h-3.5 mr-1" /> Copiar tudo
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 <Input
                   value={replySubject}
