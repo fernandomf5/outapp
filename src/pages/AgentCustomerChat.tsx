@@ -1020,23 +1020,26 @@ export default function AgentCustomerChat() {
                   </Alert>
                 )}
 
-                {/* Sem atendente disponível: formulário de contato */}
-                {attendantStatus !== 'online' && (
-                  <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">
-                    <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <AlertDescription className="ml-2 text-xs sm:text-sm flex flex-wrap items-center gap-2">
-                      <span>Nenhum atendente disponível agora? Envie sua mensagem e responderemos por e-mail em até 24h.</span>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={openContactForm}
-                        className="h-7 text-xs"
-                      >
-                        Enviar mensagem
-                      </Button>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                {/* Opção de contato por e-mail (sempre disponível) */}
+                <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">
+                  <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <AlertDescription className="ml-2 text-xs sm:text-sm flex flex-wrap items-center gap-2">
+                    <span>
+                      {attendantStatus === 'online'
+                        ? 'Sem resposta do atendente? Envie sua mensagem por e-mail e responderemos em até 24h.'
+                        : 'Nenhum atendente disponível agora? Envie sua mensagem e responderemos por e-mail em até 24h.'}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={openContactForm}
+                      className="h-7 text-xs"
+                    >
+                      Enviar por e-mail
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+
 
               </div>
 
@@ -1472,6 +1475,17 @@ export default function AgentCustomerChat() {
                   className="flex-1 resize-none rounded-md border border-input bg-background text-foreground px-4 py-3 md:py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-40"
                 />
 
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={openContactForm}
+                  title="Enviar mensagem por e-mail"
+                  aria-label="Enviar mensagem por e-mail"
+                  className="h-11 w-11 md:h-10 md:w-10"
+                >
+                  <Mail className="w-5 h-5" />
+                </Button>
+
                 <Button 
                   type="submit"
                   disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
@@ -1480,6 +1494,7 @@ export default function AgentCustomerChat() {
                 >
                   <Send className="w-5 h-5" />
                 </Button>
+
               </div>
             </form>
           </div>
