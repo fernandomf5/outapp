@@ -3,14 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Users, BarChart3, ArrowLeft, Brain } from "lucide-react";
+import { MessageSquare, Users, BarChart3, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import AgentCustomersPanel from "./AgentCustomersPanel";
 import AgentConversationsPanel from "./AgentConversationsPanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
 
-import AgentAIPanel from "./AgentAIPanel";
 
 interface AgentManagementPanelProps {
   agentId: string;

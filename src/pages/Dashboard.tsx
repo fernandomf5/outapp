@@ -1209,11 +1209,11 @@ const Dashboard = () => {
                       <div className="text-center py-12">
                         <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                         <p className="text-muted-foreground mb-4">
-                          Você ainda não tem agentes IA criados
+                          Você ainda não tem chats online criados
                         </p>
                         <Button onClick={() => handleTabChange('ai-agents')}>
                           <Sparkles className="mr-2 h-4 w-4" />
-                          Criar Agente IA
+                          Criar Chat Online
                         </Button>
                       </div>
                     ) : (
