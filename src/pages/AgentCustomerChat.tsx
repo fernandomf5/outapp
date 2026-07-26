@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle, Headset } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle, Headset, Mail } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -76,6 +76,9 @@ export default function AgentCustomerChat() {
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [sendingContact, setSendingContact] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -732,6 +735,51 @@ export default function AgentCustomerChat() {
     }
   };
 
+  const openContactForm = () => {
+    setContactForm(prev => ({ ...prev, name: prev.name || customer?.name || '' }));
+    setShowContactForm(true);
+  };
+
+  const handleSendContactForm = async () => {
+    const name = contactForm.name.trim();
+    const email = contactForm.email.trim().toLowerCase();
+    const message = contactForm.message.trim();
+
+    if (!name || !email || !message) {
+      toast({ title: "Preencha os campos", description: "Nome, e-mail e mensagem são obrigatórios.", variant: "destructive" });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast({ title: "E-mail inválido", description: "Informe um e-mail válido.", variant: "destructive" });
+      return;
+    }
+
+    setSendingContact(true);
+    try {
+      const { error } = await supabase.from('contact_form_submissions').insert({
+        name: name.slice(0, 100),
+        email: email.slice(0, 255),
+        phone: contactForm.phone.trim().slice(0, 30) || null,
+        message: message.slice(0, 2000),
+      });
+      if (error) throw error;
+
+      setShowContactForm(false);
+      setContactForm({ name: '', email: '', phone: '', message: '' });
+      toast({
+        title: "Mensagem enviada",
+        description: "Nosso suporte entrará em contato por e-mail em até 24h.",
+      });
+    } catch (error) {
+      console.error('Error sending contact form:', error);
+      toast({ title: "Erro", description: "Não foi possível enviar sua mensagem.", variant: "destructive" });
+    } finally {
+      setSendingContact(false);
+    }
+  };
+
+
+
   const handleSendMessage = async () => {
     if ((!input.trim() && !selectedImage && !selectedDocument) || !conversationId || !customer) return;
 
@@ -1063,6 +1111,25 @@ export default function AgentCustomerChat() {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                {/* Sem atendente disponível: formulário de contato */}
+                {attendantStatus !== 'online' && (
+                  <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">
+                    <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <AlertDescription className="ml-2 text-xs sm:text-sm flex flex-wrap items-center gap-2">
+                      <span>Nenhum atendente disponível agora? Envie sua mensagem e responderemos por e-mail em até 24h.</span>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={openContactForm}
+                        className="h-7 text-xs"
+                      >
+                        Enviar mensagem
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
               </div>
 
             </div>
@@ -1608,6 +1675,73 @@ export default function AgentCustomerChat() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Formulário de contato (sem atendente disponível) */}
+        <Dialog open={showContactForm} onOpenChange={setShowContactForm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Falar com o suporte por e-mail</DialogTitle>
+              <DialogDescription>
+                Nenhum atendente disponível agora. Envie sua mensagem que o suporte entrará em contato por e-mail em até 24 horas.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="contactName">Nome</Label>
+                <Input
+                  id="contactName"
+                  value={contactForm.name}
+                  onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                  maxLength={100}
+                  placeholder="Seu nome"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contactEmail">E-mail</Label>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  value={contactForm.email}
+                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                  maxLength={255}
+                  placeholder="seu@email.com"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contactPhone">Telefone (opcional)</Label>
+                <Input
+                  id="contactPhone"
+                  value={contactForm.phone}
+                  onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                  maxLength={30}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contactMessage">Mensagem</Label>
+                <Textarea
+                  id="contactMessage"
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                  rows={4}
+                  maxLength={2000}
+                  placeholder="Descreva sua dúvida ou solicitação..."
+                />
+                <p className="text-xs text-muted-foreground">{contactForm.message.length}/2000</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowContactForm(false)} disabled={sendingContact}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSendContactForm} disabled={sendingContact} className="gap-2">
+                <Mail className="w-4 h-4" />
+                {sendingContact ? 'Enviando...' : 'Enviar mensagem'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );

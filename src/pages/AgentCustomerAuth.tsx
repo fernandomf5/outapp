@@ -18,7 +18,7 @@ export default function AgentCustomerAuth() {
   const [attendantStatus, setAttendantStatus] = useState<string>('offline');
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [formData, setFormData] = useState({ name: "" });
 
   useEffect(() => {
     const loadAgent = async () => {
@@ -55,7 +55,6 @@ export default function AgentCustomerAuth() {
     const customer = {
       id: crypto.randomUUID(),
       name: formData.name.trim(),
-      email: formData.email.trim().toLowerCase(),
       agent_id: agentId,
     };
 
@@ -93,7 +92,7 @@ export default function AgentCustomerAuth() {
             </div>
           )}
           <CardTitle>{agentName || 'Chat Online'}</CardTitle>
-          <CardDescription>Informe seu nome e e-mail para iniciar o atendimento</CardDescription>
+          <CardDescription>Informe seu nome para iniciar o atendimento</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -128,18 +127,8 @@ export default function AgentCustomerAuth() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                maxLength={255}
-                placeholder="seu@email.com"
-              />
-            </div>
+
+
 
             <Button type="submit" className="w-full text-white gap-2" style={buttonStyle} disabled={loading}>
               <MessageSquare className="w-4 h-4" />
