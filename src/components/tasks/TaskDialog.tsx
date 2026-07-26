@@ -302,6 +302,17 @@ export const TaskDialog = ({
             </div>
           </div>
 
+          <div className="rounded-md border p-3">
+            <ContactPicker
+              value={contactId}
+              onChange={setContactId}
+              label="Cadastro vinculado (opcional)"
+              placeholder="Avulso (sem cadastro)"
+            />
+          </div>
+
+
+
           <div className="space-y-2 rounded-md border p-3">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-semibold">Checklist</Label>
