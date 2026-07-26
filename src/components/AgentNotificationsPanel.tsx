@@ -277,8 +277,6 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
             )}
           </div>
         </CardHeader>
-
-        </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {filteredNotifications.length === 0 ? (
