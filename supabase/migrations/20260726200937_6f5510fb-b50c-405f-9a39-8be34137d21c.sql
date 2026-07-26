@@ -1,0 +1,2 @@
+ALTER TABLE public.registration_categories ADD COLUMN IF NOT EXISTS entity_kind text NOT NULL DEFAULT 'people';
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS custom_fields jsonb NOT NULL DEFAULT '{}'::jsonb;
