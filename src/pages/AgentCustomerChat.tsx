@@ -499,6 +499,10 @@ export default function AgentCustomerChat() {
 
       setAgentInfo(data.agent);
       setConversationId(data.conversationId);
+      if (data.queuePosition !== undefined) {
+        setQueuePosition(data.queuePosition === null ? null : Number(data.queuePosition));
+      }
+
       
       // Se recebemos mensagens (histórico), carregamos elas
       if (data.messages && data.messages.length > 0) {
