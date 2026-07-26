@@ -103,6 +103,36 @@ export const GlobalChatNotification = () => {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'agent_conversations'
+        },
+        async (payload) => {
+          const conv = payload.new as any;
+          if (!agentIds.includes(conv.agent_id)) return;
+
+          console.log('🔔 Nova conversa iniciada:', conv.id);
+
+          let customerName = 'Cliente';
+          if (conv.customer_id) {
+            const { data: customer } = await supabase
+              .from('agent_customers')
+              .select('name')
+              .eq('id', conv.customer_id)
+              .maybeSingle();
+            if (customer?.name) customerName = customer.name;
+          }
+
+          chatSounds.playNotificationSound();
+          toast.info("Nova conversa no chat online!", {
+            description: `${customerName} iniciou um atendimento.`,
+            duration: 6000,
+          });
+        }
+      )
       .subscribe((status) => {
         console.log('🔔 Status da subscription global:', status);
       });
