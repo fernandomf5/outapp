@@ -66,6 +66,8 @@ export const RESOURCE_TYPES: ResourceTypeDef[] = [
   { key: "chat_online", label: "Chat Online", table: "ai_agents", titleColumns: ["name"], tab: "chat-online", icon: MessageSquareQuote },
   { key: "aprova_job", label: "Aprova Job", table: "aprova_job_jobs", titleColumns: ["title"], tab: "aprova-job", icon: ClipboardList },
   { key: "capture_page", label: "Página de Captura", table: "capture_pages", titleColumns: ["title", "slug"], tab: "pagina-captura", icon: Globe },
+  { key: "portfolio", label: "Portfólio", table: "portfolios", titleColumns: ["name", "slug"], tab: "portfolio", icon: Layers },
+
 ];
 
 export const getResourceType = (key: string): ResourceTypeDef | undefined =>
