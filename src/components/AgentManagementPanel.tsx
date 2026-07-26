@@ -58,7 +58,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
     { id: "forms", label: "Formulários", icon: <Inbox />, badge: unreadForms },
-    { id: "customers", label: "Clientes", icon: <Users /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 /> },
   ];
 
@@ -68,8 +67,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
         return <AgentConversationsPanel agentId={agentId} />;
       case "forms":
         return <AgentContactFormsPanel agentId={agentId} />;
-      case "customers":
-        return <AgentCustomersPanel agentId={agentId} />;
       case "analytics":
         return <AgentAnalyticsPanel agentId={agentId} />;
       default:
