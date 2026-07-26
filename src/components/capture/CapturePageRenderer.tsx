@@ -19,11 +19,11 @@ interface Props {
 const animClass = (anim: CaptureTheme["animation"]) => {
   switch (anim) {
     case "fade":
-      return "animate-fade-in";
+      return "cp-anim-fade";
     case "slide-up":
-      return "animate-slide-up";
+      return "cp-anim-slide-up";
     case "zoom":
-      return "animate-zoom-in";
+      return "cp-anim-zoom";
     default:
       return "";
   }
