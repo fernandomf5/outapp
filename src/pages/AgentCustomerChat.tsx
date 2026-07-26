@@ -761,6 +761,7 @@ export default function AgentCustomerChat() {
         email: email.slice(0, 255),
         phone: contactForm.phone.trim().slice(0, 30) || null,
         message: message.slice(0, 2000),
+        agent_id: agentId,
       });
       if (error) throw error;
 
