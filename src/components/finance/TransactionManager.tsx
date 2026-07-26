@@ -438,7 +438,21 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               ))}
             </SelectContent>
           </Select>
+          <Select value={bankFilter} onValueChange={setBankFilter}>
+            <SelectTrigger className="w-[170px]">
+              <Landmark className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Conta" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as contas</SelectItem>
+              <SelectItem value="none">Sem conta</SelectItem>
+              {bankAccounts.map(acc => (
+                <SelectItem key={acc.id} value={acc.id}>{acc.bank_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+
 
         <div className="flex gap-2 w-full md:w-auto">
           <Button variant="outline" className="flex-1 md:flex-none" onClick={() => setIsCategoryManagerOpen(true)}>
