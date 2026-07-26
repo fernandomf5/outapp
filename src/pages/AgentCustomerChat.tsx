@@ -667,13 +667,23 @@ export default function AgentCustomerChat() {
       console.log('💓 Heartbeat enviado:', trackResult);
     }, 30000); // A cada 30 segundos
 
+    // Ao fechar a aba/navegador, sai da presença para liberar a fila
+    const handleUnload = () => {
+      try { channel.untrack(); } catch { /* ignore */ }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('pagehide', handleUnload);
+
     return () => {
       console.log('🔌 Desconectando cliente:', customer.id);
       clearInterval(heartbeat);
+      window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('pagehide', handleUnload);
       channel.untrack();
       supabase.removeChannel(channel);
     };
   };
+
 
   const setupRealtimeSubscription = () => {
     console.log('Configurando realtime para conversation_id:', conversationId);
