@@ -219,12 +219,13 @@ export function ResourceAssignmentsButton({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[620px] z-[300]">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[560px] z-[300] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Atribuir {resourceLabel(resourceType)} a um cadastro</DialogTitle>
-            <DialogDescription>
-              Escolha para qual cadastro (e categoria) cada item pertence. As atribuições aparecem na
-              aba "Atribuições" do cadastro.
+            <DialogTitle className="text-base">
+              Atribuir {resourceLabel(resourceType)} a um cadastro
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Escolha a categoria e depois o cadastro de cada item.
             </DialogDescription>
           </DialogHeader>
 
@@ -232,15 +233,15 @@ export function ResourceAssignmentsButton({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar..."
+                placeholder="Buscar item..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 h-9"
               />
             </div>
           )}
 
-          <div className="max-h-[380px] overflow-y-auto space-y-2 pr-1">
+          <div className="max-h-[55vh] overflow-y-auto overflow-x-hidden space-y-2 pr-1">
             {loading ? (
               <div className="flex items-center justify-center py-10 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin mr-2" /> Carregando...
@@ -254,32 +255,26 @@ export function ResourceAssignmentsButton({
                 const current = links[row.id]?.contact_id || null;
                 const catName = categoryNameFor(current || undefined);
                 return (
-                  <div
-                    key={row.id}
-                    className="flex flex-col md:flex-row md:items-center gap-2 rounded-lg border p-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{row.title}</p>
+                  <div key={row.id} className="rounded-lg border p-3 space-y-2 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="font-medium text-sm truncate flex-1">{row.title}</p>
                       {catName && (
-                        <Badge variant="secondary" className="text-[10px] mt-1">
+                        <Badge variant="secondary" className="text-[10px] shrink-0">
                           {catName}
                         </Badge>
                       )}
-                    </div>
-                    <div className="md:w-[320px] flex items-center gap-2">
-                      <ContactCategoryPicker
-                        value={current}
-                        onChange={(contactId) => handleAssign(row, contactId)}
-                        contacts={contacts}
-                        categories={categories}
-                        disabled={savingId === row.id}
-                        className="flex-1"
-                      />
                       {savingId === row.id && (
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
                       )}
                     </div>
-
+                    <ContactCategoryPicker
+                      value={current}
+                      onChange={(contactId) => handleAssign(row, contactId)}
+                      contacts={contacts}
+                      categories={categories}
+                      disabled={savingId === row.id}
+                      className="w-full"
+                    />
                   </div>
                 );
               })
@@ -287,6 +282,7 @@ export function ResourceAssignmentsButton({
           </div>
         </DialogContent>
       </Dialog>
+
     </>
   );
 }
