@@ -80,6 +80,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [statusTarget, setStatusTarget] = useState<Transaction | null>(null);
+  const [statusDraft, setStatusDraft] = useState<{ status: string; bank_account_id: string }>({ status: "pending", bank_account_id: "" });
+  const [savingStatus, setSavingStatus] = useState(false);
 
   const { categories, createCategory } = useFinancialCategories(businessId);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
