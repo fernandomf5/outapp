@@ -331,7 +331,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
   const setupConversationsSubscription = () => {
     const channel = supabase
-      .channel('agent-conversations-panel')
+      .channel(`agent-conversations-panel-${agentId}`)
       .on(
         'postgres_changes',
         {
@@ -340,11 +340,31 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
           table: 'agent_conversations',
           filter: `agent_id=eq.${agentId}`,
         },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            chatSounds.playNotificationSound();
+            toast({
+              title: "Nova conversa",
+              description: "Um cliente iniciou um atendimento no chat online.",
+            });
+          }
+          loadConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'agent_messages',
+        },
         () => {
           loadConversations();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Conversas realtime:', status);
+      });
 
     return channel;
   };
