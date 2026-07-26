@@ -364,12 +364,20 @@ export default function AgentCustomerChat() {
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedConv = payload.new as any;
+            // Atualiza a posição na fila em tempo real
+            if (updatedConv.agent_id === agentId && (!conversationId || updatedConv.id === conversationId)) {
+              setQueuePosition(
+                updatedConv.queue_position === null || updatedConv.queue_position === undefined
+                  ? null
+                  : Number(updatedConv.queue_position),
+              );
+            }
             // Se a conversa atual foi arquivada e não temos uma nova ainda
             if (updatedConv.id === conversationId && updatedConv.status === 'archived') {
               console.log('⚠️ Conversa atual arquivada. Aguardando nova conversa...');
-              // Podemos limpar ou apenas esperar o INSERT da nova
             }
           }
+
         }
       )
       .subscribe();
