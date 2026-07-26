@@ -36,10 +36,6 @@ const AIAgentBuilder = () => {
   const [agentName, setAgentName] = useState("Novo Chat");
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
-  const [originalAccessType, setOriginalAccessType] = useState<'public' | 'anonymous'>('public');
-  const [showAccessChangeDialog, setShowAccessChangeDialog] = useState(false);
-  const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#6366f1");
   const [secondaryColor, setSecondaryColor] = useState("#8b5cf6");
   const [onlineStatusColor, setOnlineStatusColor] = useState("#22c55e");
@@ -65,60 +61,10 @@ const AIAgentBuilder = () => {
         setContactEmailButtonText(agent.config?.contactEmailButtonText || "Fale conosco por e-mail");
         setLogoUrl(agent.config?.logoUrl || "");
         setIsFloating(!!agent.config?.isFloating);
-        const at = (agent as any).access_type || 'public';
-        const normalizedAt = at === 'restricted' ? 'private' : at;
-        setAccessType(normalizedAt);
-        setOriginalAccessType(normalizedAt);
       }).catch(console.error);
     }
   }, [agentId, user]);
 
-  const handleAccessTypeChange = (value: 'public' | 'anonymous') => {
-    if (agentId && value !== originalAccessType) {
-      setPendingAccessType(value);
-      setShowAccessChangeDialog(true);
-    } else {
-      setAccessType(value);
-    }
-  };
-
-  const handleConfirmAccessTypeChange = async () => {
-    if (!pendingAccessType || !agentId) return;
-
-    try {
-      await supabase
-        .from('agent_customers')
-        .delete()
-        .eq('agent_id', agentId);
-
-      await supabase
-        .from('agent_access_requests')
-        .delete()
-        .eq('agent_id', agentId);
-
-      setAccessType(pendingAccessType);
-      setOriginalAccessType(pendingAccessType);
-      setShowAccessChangeDialog(false);
-      setPendingAccessType(null);
-
-      toast({
-        title: "Tipo de acesso alterado",
-        description: "Todos os usuários foram excluídos e podem se cadastrar novamente.",
-      });
-    } catch (error) {
-      console.error('Error changing access type:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível alterar o tipo de acesso.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCancelAccessTypeChange = () => {
-    setShowAccessChangeDialog(false);
-    setPendingAccessType(null);
-  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -190,7 +136,7 @@ const AIAgentBuilder = () => {
         },
         training_data: {},
         is_active: true,
-        access_type: accessType,
+        access_type: 'anonymous',
       };
 
       const result = await saveAgent(agentData, user.id);
@@ -322,36 +268,8 @@ const AIAgentBuilder = () => {
             </div>
           </Card>
 
-          {/* Tipo de Acesso */}
-          <Card className="p-4 sm:p-6 border-primary/20">
-            <div className="max-w-2xl">
-              <Label className="text-base sm:text-lg font-semibold mb-3 block">Tipo de Acesso</Label>
-              <Select value={accessType} onValueChange={handleAccessTypeChange}>
-                <SelectTrigger className="w-full h-10 sm:h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="anonymous">
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold text-sm">💬 Acesso Direto (Sem Cadastro)</span>
-                      <span className="text-xs text-muted-foreground">Chat instantâneo sem login</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="public">
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold text-sm">🌐 Acesso Livre (Com Cadastro)</span>
-                      <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-                {accessType === 'anonymous' 
-                  ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
-                  : '✓ Usuários podem se cadastrar e usar o chat livremente'}
-              </p>
-            </div>
-          </Card>
+
+
 
           <Card className="p-4 sm:p-6 border-primary/20">
             <div className="max-w-2xl space-y-4">
@@ -569,23 +487,6 @@ const AIAgentBuilder = () => {
         </div>
       </div>
 
-      {/* Dialog de confirmação de mudança de tipo de acesso */}
-      <AlertDialog open={showAccessChangeDialog} onOpenChange={setShowAccessChangeDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>⚠️ Alterar tipo de acesso</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ao alterar o tipo de acesso, <strong>todos os usuários cadastrados serão excluídos</strong>. Eles poderão se cadastrar novamente seguindo as novas regras de acesso.
-              <br/><br/>
-              Tem certeza que deseja continuar?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelAccessTypeChange}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmAccessTypeChange}>Confirmar</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

@@ -85,7 +85,7 @@ export default function AgentCustomerChat() {
   const [contactEmailButtonText, setContactEmailButtonText] = useState('Fale conosco por e-mail');
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
-  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -766,13 +766,14 @@ export default function AgentCustomerChat() {
         name: name.slice(0, 100),
         email: email.slice(0, 255),
         phone: contactForm.phone.trim().slice(0, 30) || null,
+        subject: contactForm.subject.trim().slice(0, 150) || null,
         message: message.slice(0, 2000),
         agent_id: agentId,
       });
       if (error) throw error;
 
       setShowContactForm(false);
-      setContactForm({ name: '', email: '', phone: '', message: '' });
+      setContactForm({ name: '', email: '', phone: '', subject: '', message: '' });
       toast({
         title: "Mensagem enviada",
         description: "Nosso suporte entrará em contato por e-mail em até 24h.",
@@ -1656,6 +1657,16 @@ export default function AgentCustomerChat() {
                   onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
                   maxLength={30}
                   placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contactSubject">Assunto</Label>
+                <Input
+                  id="contactSubject"
+                  value={contactForm.subject}
+                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                  maxLength={150}
+                  placeholder="Ex: Dúvida sobre planos"
                 />
               </div>
               <div className="space-y-1.5">

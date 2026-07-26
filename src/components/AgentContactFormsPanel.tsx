@@ -33,6 +33,7 @@ interface Submission {
   name: string;
   email: string;
   phone: string | null;
+  subject: string | null;
   message: string;
   is_read: boolean | null;
   replied_at: string | null;
@@ -56,7 +57,7 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
     setLoading(true);
     const { data, error } = await supabase
       .from("contact_form_submissions")
-      .select("id, name, email, phone, message, is_read, replied_at, created_at")
+      .select("id, name, email, phone, subject, message, is_read, replied_at, created_at")
       .eq("agent_id", agentId)
       .order("created_at", { ascending: false });
 
@@ -90,7 +91,7 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
 
   const openConversation = async (item: Submission) => {
     setSelected(item);
-    setReplySubject(`Re: sua mensagem no chat online`);
+    setReplySubject(item.subject ? `Re: ${item.subject}` : `Re: sua mensagem no chat online`);
     setReplyBody(`Olá ${item.name},\n\n`);
 
     if (!item.is_read) {
@@ -227,7 +228,10 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                         </span>
                       )}
                     </div>
-                    <p className="mt-2 text-sm line-clamp-2 whitespace-pre-wrap">
+                    {item.subject && (
+                      <p className="mt-2 text-sm font-medium truncate">{item.subject}</p>
+                    )}
+                    <p className="mt-1 text-sm line-clamp-2 whitespace-pre-wrap">
                       {item.message}
                     </p>
                     <div className="mt-3 flex gap-2">
@@ -270,6 +274,9 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
           {selected && (
             <div className="space-y-4">
               <div className="rounded-lg bg-muted p-3 text-sm whitespace-pre-wrap max-h-40 overflow-y-auto">
+                {selected.subject && (
+                  <p className="font-semibold mb-1">Assunto: {selected.subject}</p>
+                )}
                 {selected.message}
               </div>
               <div className="space-y-2">
