@@ -21,8 +21,6 @@ const EXCLUDED_PREFIXES = [
   "/bio/",
   "/l/",
   "/chat/",
-  "/agent-auth",
-  "/agent-chat",
   "/chat-online/",
   "/chatbot-auth",
   "/chatbot-chat",

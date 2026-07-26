@@ -101,8 +101,6 @@ const AppContent = () => {
               } />
               <Route path="/chat/:botId" element={<PublicChat />} />
               <Route path="/chat/:botId/:slug" element={<PublicChat />} />
-              <Route path="/agent-auth/:agentId" element={<AgentCustomerAuth />} />
-              <Route path="/agent-chat/:agentId" element={<AgentCustomerChat />} />
               <Route path="/chat-online/:agentId" element={<AgentCustomerAuth />} />
               <Route path="/chat-online/:agentId/atendimento" element={<AgentCustomerChat />} />
               <Route path="/chatbot-auth/:chatbotId" element={<ChatbotCustomerAuth />} />

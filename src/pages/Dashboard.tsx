@@ -311,7 +311,7 @@ const Dashboard = () => {
       // For team members, use admin's user ID; for regular users, use their own
       if (!effectiveUserId) return;
 
-      // Buscar agentes IA do usuário com contagem de cliques
+      // Buscar chats online do usuário com contagem de cliques
       const { data: agentsData, error: agentsError } = await supabase
         .from('ai_agents')
         .select(`
@@ -365,7 +365,7 @@ const Dashboard = () => {
 
     fetchData();
 
-    // Subscrever mudanças em tempo real para agentes IA (only for regular users)
+    // Subscrever mudanças em tempo real para chats online (only for regular users)
     if (!isTeamMember && effectiveUserId) {
       const agentsSubscription = supabase
         .channel('ai_agents_changes')
