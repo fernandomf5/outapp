@@ -223,6 +223,12 @@ export default function AgentCustomerAuth() {
               ) : (
                 'A fila está livre — ao iniciar você será o próximo a ser atendido.'
               )}
+              {queueEta > 0 && (
+                <div className="mt-1 text-xs">
+                  Tempo estimado de atendimento: <span className="font-semibold text-foreground">~{queueEta} min</span>
+                </div>
+              )}
+              )}
             </div>
           )}
 
