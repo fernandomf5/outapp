@@ -219,7 +219,24 @@ const SortableBusinessCard = ({
   );
 };
 
-export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipleBusinesses, onCreateBusiness, onUpdateBusiness, onDeleteBusiness, onReorderBusinesses }: BusinessSelectorProps) => {
+interface RegistrationContact {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  category_id?: string | null;
+}
+
+export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipleBusinesses, onCreateBusiness, onCreateBusinessesFromRegistrations, onUpdateBusiness, onDeleteBusiness, onReorderBusinesses }: BusinessSelectorProps) => {
+  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
+  const [contacts, setContacts] = useState<RegistrationContact[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [contactSearch, setContactSearch] = useState('');
+  const [selectedContactIds, setSelectedContactIds] = useState<Set<string>>(new Set());
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [creatingFromRegistrations, setCreatingFromRegistrations] = useState(false);
   const [reorderMode, setReorderMode] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
