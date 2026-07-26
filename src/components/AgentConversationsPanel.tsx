@@ -624,8 +624,10 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
               console.log('📊 Clientes online após leave:', Array.from(newSet));
               return newSet;
             });
+            void handleQueueDropout(presence.customer_id);
           }
         });
+
       })
       .subscribe((status) => {
         console.log('📡 Painel - Status da subscrição:', status);
