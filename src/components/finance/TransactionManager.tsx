@@ -390,29 +390,54 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     }
   };
 
-  const handleToggleStatus = async (t: Transaction) => {
-    const newStatus = t.status === 'paid' ? 'pending' : 'paid';
+  const openStatusDialog = (t: Transaction) => {
+    setStatusTarget(t);
+    setStatusDraft({ status: t.status || 'pending', bank_account_id: t.bank_account_id || "" });
+    setStatusDialogOpen(true);
+  };
+
+  const handleSaveStatus = async () => {
+    if (!statusTarget) return;
+    const t = statusTarget;
+    const newStatus = statusDraft.status;
+    const newBank = statusDraft.bank_account_id || null;
+
+    if (newStatus === 'paid' && !newBank) {
+      toast.error("Selecione a conta bancária do pagamento");
+      return;
+    }
+
     try {
+      setSavingStatus(true);
       const { error } = await supabase
         .from('financial_transactions')
-        .update({ status: newStatus })
+        .update({ status: newStatus, bank_account_id: newBank })
         .eq('id', t.id);
-      
+
       if (error) throw error;
 
-      // Atualizar saldo
-      if (t.bank_account_id) {
-        const amountChange = t.type === 'income' ? t.amount : -t.amount;
-        // Se mudou para pago, aplica o valor. Se mudou para pendente, reverte.
-        const direction = newStatus === 'paid' ? 1 : -1;
-        await updateAccountBalance(t.bank_account_id, amountChange * direction);
+      const signed = t.type === 'income' ? t.amount : -t.amount;
+
+      // Reverte o efeito antigo (se estava paga)
+      if (t.status === 'paid' && t.bank_account_id) {
+        await updateAccountBalance(t.bank_account_id, -signed);
+      }
+      // Aplica o novo efeito (se está paga)
+      if (newStatus === 'paid' && newBank) {
+        await updateAccountBalance(newBank, signed);
       }
 
+      toast.success("Status atualizado");
+      setStatusDialogOpen(false);
+      setStatusTarget(null);
       onRefresh();
     } catch (error) {
       toast.error("Erro ao atualizar status");
+    } finally {
+      setSavingStatus(false);
     }
   };
+
 
   return (
     <div className="space-y-4">
