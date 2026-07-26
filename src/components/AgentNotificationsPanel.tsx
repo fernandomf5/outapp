@@ -177,7 +177,38 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
     return true;
   });
 
+  const allSelected = filteredNotifications.length > 0 && filteredNotifications.every(n => selectedIds.includes(n.id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? [] : filteredNotifications.map(n => n.id));
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const deleteSelected = async () => {
+    try {
+      const { error } = await supabase
+        .from('agent_notifications')
+        .delete()
+        .in('id', selectedIds);
+
+      if (error) throw error;
+      toast.success(`${selectedIds.length} notificação(ões) excluída(s)`);
+      setSelectedIds([]);
+      setSelectionMode(false);
+      setConfirmDelete(false);
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error deleting notifications:', error);
+      toast.error('Erro ao excluir notificações');
+      setConfirmDelete(false);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
+
 
   if (loading) {
     return <div className="p-8 text-center">Carregando...</div>;
