@@ -166,6 +166,7 @@ interface Catalog {
   show_all_items: boolean;
   selected_product_ids: string[] | null;
   selected_service_ids: string[] | null;
+  linked_registration_category_ids: string[] | null;
   views_count: number;
   group_by_category: boolean;
   category_order: string[] | null;
