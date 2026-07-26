@@ -50,8 +50,6 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
   const [items, setItems] = useState<Submission[]>([]);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Submission | null>(null);
-  const [replySubject, setReplySubject] = useState("");
-  const [replyBody, setReplyBody] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
