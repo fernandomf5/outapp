@@ -1659,6 +1659,16 @@ export default function AgentCustomerChat() {
                 />
               </div>
               <div className="space-y-1.5">
+                <Label htmlFor="contactSubject">Assunto</Label>
+                <Input
+                  id="contactSubject"
+                  value={contactForm.subject}
+                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                  maxLength={150}
+                  placeholder="Ex: Dúvida sobre planos"
+                />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="contactMessage">Mensagem</Label>
                 <Textarea
                   id="contactMessage"
