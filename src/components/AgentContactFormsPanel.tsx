@@ -91,7 +91,7 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
 
   const openConversation = async (item: Submission) => {
     setSelected(item);
-    setReplySubject(`Re: sua mensagem no chat online`);
+    setReplySubject(item.subject ? `Re: ${item.subject}` : `Re: sua mensagem no chat online`);
     setReplyBody(`Olá ${item.name},\n\n`);
 
     if (!item.is_read) {
