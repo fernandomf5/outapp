@@ -429,6 +429,13 @@ export default function AgentCustomerChat() {
         }
       }
       
+      // Configurações de fila
+      if (data.agent?.config) {
+        const cfg = data.agent.config as any;
+        setQueueEnabled(cfg.queueEnabled === true);
+        if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+      }
+
       // Set attendant status from agent data
       if (data.agent?.attendant_status) {
         setAttendantStatus(data.agent.attendant_status);
