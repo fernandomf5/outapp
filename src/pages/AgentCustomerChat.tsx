@@ -76,6 +76,9 @@ export default function AgentCustomerChat() {
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [sendingContact, setSendingContact] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
