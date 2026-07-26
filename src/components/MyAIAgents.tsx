@@ -2,13 +2,29 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell, Link2, Share2, Code, ChevronDown } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell, Link2, Share2, Code, ChevronDown, GripVertical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +48,35 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+function SortableAgentCard({ id, children }: { id: string; children: (handle: React.ReactNode) => React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.8 : 1,
+  } as React.CSSProperties;
+
+  const handle = (
+    <button
+      type="button"
+      className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted cursor-grab active:cursor-grabbing touch-none"
+      title="Arraste para reordenar"
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical className="w-4 h-4" />
+    </button>
+  );
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children(handle)}
+    </div>
+  );
+}
+
 
 interface TeamContext {
   adminUserId: string;
