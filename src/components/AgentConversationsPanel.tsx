@@ -70,7 +70,13 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const docInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const conversationsRef = useRef<Conversation[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
 
   // Carregar nome e status salvos do localStorage e do banco
   useEffect(() => {
