@@ -562,6 +562,7 @@ export default function ProductsServicesPanel() {
           <h2 className="text-2xl font-bold">Produtos e Serviços</h2>
           <p className="text-muted-foreground">Gerencie seu catálogo de produtos físicos, digitais e serviços</p>
         </div>
+        <ResourceAssignmentsButton resourceType="product" />
       </div>
 
       {/* Stats Cards */}
