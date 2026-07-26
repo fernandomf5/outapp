@@ -55,7 +55,6 @@ export default function AgentCustomerAuth() {
     const customer = {
       id: crypto.randomUUID(),
       name: formData.name.trim(),
-      email: formData.email.trim().toLowerCase(),
       agent_id: agentId,
     };
 
