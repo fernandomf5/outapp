@@ -18,6 +18,7 @@ interface EntityRegistrationFormProps {
   categoryName: string;
   entityKind: string;
   customSchema?: KindField[];
+  itemGroups?: string[];
   initialData?: any;
   isViewOnly?: boolean;
   onSuccess?: () => void;
@@ -45,6 +46,7 @@ export function EntityRegistrationForm({
   categoryName,
   entityKind,
   customSchema = [],
+  itemGroups = [],
   initialData,
   isViewOnly = false,
   onSuccess,
@@ -74,6 +76,7 @@ export function EntityRegistrationForm({
     base.document = initialData?.document || "";
     base.avatar_url = initialData?.avatar_url || "";
     base.status = initialData?.status || "";
+    base.__group = initialData?.custom_fields?.__group || "";
     fields.forEach((f) => {
       if (f.native) base[f.key] = initialData?.[f.native] ?? "";
       else base[f.key] = initialData?.custom_fields?.[f.key] ?? "";
@@ -154,6 +157,7 @@ export function EntityRegistrationForm({
         else custom[f.key] = v === "" ? null : v;
       });
 
+      custom.__group = values.__group || null;
       payload.custom_fields = custom;
       payload.registration_category_id = categoryId;
 
@@ -293,6 +297,27 @@ export function EntityRegistrationForm({
                   <Input id="address" value={values.address} onChange={(e) => set("address", e.target.value)} disabled={isViewOnly} />
                 </div>
               </>
+            )}
+
+            {itemGroups.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="__group">Subcategoria</Label>
+                <Select
+                  value={values.__group || "__none__"}
+                  onValueChange={(v) => set("__group", v === "__none__" ? "" : v)}
+                  disabled={isViewOnly}
+                >
+                  <SelectTrigger id="__group">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sem subcategoria</SelectItem>
+                    {itemGroups.map((g) => (
+                      <SelectItem key={g} value={g}>{g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
 
             {fields.filter((f) => f.type !== "textarea").map(renderField)}

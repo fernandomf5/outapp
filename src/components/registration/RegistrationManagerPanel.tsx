@@ -399,6 +399,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               categoryName={category.name}
               entityKind={(category as any).entity_kind}
               customSchema={Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : []}
+              itemGroups={Array.isArray((category as any).item_groups) ? (category as any).item_groups : []}
               initialData={selectedItem}
               isViewOnly={isViewOnly}
               onSuccess={() => {
