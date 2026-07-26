@@ -43,6 +43,13 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queueMessage, setQueueMessage] = useState("Seu atendimento está na fila de espera. Em breve um atendente responderá.");
+  const [statusColors, setStatusColors] = useState({
+    online: '#22c55e',
+    busy: '#eab308',
+    offline: '#64748b',
+  });
+  const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
+  const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
@@ -80,6 +87,15 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         const cfg = (agent.config || {}) as any;
         setQueueEnabled(cfg.queueEnabled === true);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+        if (cfg.statusColors) {
+          setStatusColors({
+            online: cfg.statusColors.online || '#22c55e',
+            busy: cfg.statusColors.busy || '#eab308',
+            offline: cfg.statusColors.offline || '#64748b',
+          });
+        }
+        if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
+        if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
       }
     };
     
@@ -133,6 +149,38 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     } else {
       toast({ title: "Fila de espera atualizada", description: enabled ? "Clientes verão o aviso de fila." : "Fila de espera desativada." });
     }
+  };
+
+  const saveChatConfig = async (updates: Record<string, unknown>) => {
+    const { data: agent } = await supabase
+      .from('ai_agents')
+      .select('config')
+      .eq('id', agentId)
+      .single();
+
+    const config = { ...((agent?.config || {}) as any), ...updates };
+
+    const { error } = await supabase
+      .from('ai_agents')
+      .update({ config, updated_at: new Date().toISOString() })
+      .eq('id', agentId);
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível salvar as configurações do chat", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Configurações salvas", description: "As opções do chat foram atualizadas." });
+  };
+
+  const updateStatusColor = (status: 'online' | 'busy' | 'offline', color: string) => {
+    const nextColors = { ...statusColors, [status]: color };
+    setStatusColors(nextColors);
+    saveChatConfig({ statusColors: nextColors });
+  };
+
+  const saveContactEmailSettings = () => {
+    saveChatConfig({ contactEmailMessage, contactEmailButtonText });
   };
 
   // Enviar aviso de fila na conversa selecionada
@@ -734,9 +782,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="online">🟢 Online</SelectItem>
-                  <SelectItem value="busy">🟡 Ocupado</SelectItem>
-                  <SelectItem value="offline">⚪ Offline</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="busy">Ocupado</SelectItem>
+                  <SelectItem value="offline">Offline</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -768,6 +816,54 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
               >
                 Enviar aviso de fila no chat
               </Button>
+            </div>
+
+            <div className="space-y-2 md:col-span-3">
+              <Label className="text-xs">Cores dos status no chat</Label>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  { key: 'online' as const, label: 'Online' },
+                  { key: 'busy' as const, label: 'Ocupado' },
+                  { key: 'offline' as const, label: 'Offline' },
+                ].map((item) => (
+                  <div key={item.key} className="flex items-center gap-2 rounded-md border border-border p-2">
+                    <input
+                      type="color"
+                      value={statusColors[item.key]}
+                      onChange={(e) => updateStatusColor(item.key, e.target.value)}
+                      className="h-9 w-10 rounded border border-border cursor-pointer"
+                      aria-label={`Cor do status ${item.label}`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium">{item.label}</p>
+                      <Input
+                        value={statusColors[item.key]}
+                        onChange={(e) => updateStatusColor(item.key, e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2 md:col-span-3">
+              <Label className="text-xs">Opção de contato por e-mail no chat</Label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  value={contactEmailButtonText}
+                  onChange={(e) => setContactEmailButtonText(e.target.value)}
+                  onBlur={saveContactEmailSettings}
+                  placeholder="Texto do botão"
+                />
+                <Textarea
+                  value={contactEmailMessage}
+                  onChange={(e) => setContactEmailMessage(e.target.value)}
+                  onBlur={saveContactEmailSettings}
+                  rows={2}
+                  placeholder="Mensagem exibida no chat"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -889,7 +985,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                       className="gap-2 border-primary text-primary hover:bg-primary hover:text-white transition-all shadow-sm font-bold"
                     >
                       <RefreshCw className="w-4 h-4" />
-                      Reiniciar Fluxo
+                      Reiniciar Chat
                     </Button>
 
                     <Select value={selectedConversation.status} onValueChange={updateStatus}>

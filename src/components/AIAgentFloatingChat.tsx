@@ -68,7 +68,7 @@ export const AIAgentFloatingChat = () => {
           </div>
           
           <iframe 
-            src={`/agent-auth/${activeAgentId}`}
+            src={`/chat-online/${activeAgentId}`}
             className="flex-1 w-full border-none"
             title="Agent Chat"
           />

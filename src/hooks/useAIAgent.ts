@@ -19,22 +19,12 @@ export const useAIAgent = () => {
   const processMessage = useCallback(async (agentId: string, message: string, userId: string) => {
     setIsProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('process-ai-message', {
-        body: {
-          agentId,
-          message,
-          userId,
-        }
-      });
-
-      if (error) throw error;
-
-      return data.response;
+      return '';
     } catch (error) {
       console.error('Erro ao processar mensagem:', error);
       toast({
         title: "Erro ao processar",
-        description: "Não foi possível processar a mensagem com IA.",
+        description: "Não foi possível processar a mensagem.",
         variant: "destructive",
       });
       throw error;
@@ -49,7 +39,7 @@ export const useAIAgent = () => {
       const configToSave = agent.config ? JSON.parse(JSON.stringify(agent.config)) : {};
       
       const agentData = {
-        name: agent.name || 'Novo Agente',
+        name: agent.name || 'Novo Chat',
         niche: agent.niche || '',
         config: configToSave,
         training_data: agent.training_data || {},
@@ -87,16 +77,16 @@ export const useAIAgent = () => {
       }
 
       toast({
-        title: "Agente Salvo! 🚀",
-        description: "Seu agente IA foi salvo com sucesso.",
+        title: "Chat salvo! 🚀",
+        description: "Seu chat online foi salvo com sucesso.",
       });
 
       return result;
     } catch (error) {
-      console.error('Erro ao salvar agente:', error);
+      console.error('Erro ao salvar chat:', error);
       toast({
         title: "Erro ao salvar",
-        description: "Não foi possível salvar o agente IA.",
+        description: "Não foi possível salvar o chat online.",
         variant: "destructive",
       });
       throw error;
@@ -115,7 +105,7 @@ export const useAIAgent = () => {
 
       return data as AIAgent;
     } catch (error) {
-      console.error('Erro ao carregar agente:', error);
+      console.error('Erro ao carregar chat:', error);
       throw error;
     }
   }, []);

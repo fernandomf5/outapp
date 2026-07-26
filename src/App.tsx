@@ -103,6 +103,8 @@ const AppContent = () => {
               <Route path="/chat/:botId/:slug" element={<PublicChat />} />
               <Route path="/agent-auth/:agentId" element={<AgentCustomerAuth />} />
               <Route path="/agent-chat/:agentId" element={<AgentCustomerChat />} />
+              <Route path="/chat-online/:agentId" element={<AgentCustomerAuth />} />
+              <Route path="/chat-online/:agentId/atendimento" element={<AgentCustomerChat />} />
               <Route path="/chatbot-auth/:chatbotId" element={<ChatbotCustomerAuth />} />
               <Route path="/chatbot-chat/:chatbotId" element={<ChatbotCustomerChat />} />
               <Route path="/chatbot-reset-password/:token" element={<ChatbotResetPassword />} />
@@ -147,12 +149,6 @@ const AppContent = () => {
               } />
                
               <Route path="/chat-online" element={
-                <ProtectedRoute>
-                  <AIAgentBuilder />
-                </ProtectedRoute>
-              } />
-              {/* Slug antigo mantido por compatibilidade */}
-              <Route path="/ai-agent" element={
                 <ProtectedRoute>
                   <AIAgentBuilder />
                 </ProtectedRoute>

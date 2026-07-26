@@ -21,7 +21,7 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
 
   const generateWidgetCode = () => {
     const chatUrl = type === 'agent' 
-      ? `${window.location.origin}/agent-chat/${botId}` 
+      ? `${window.location.origin}/chat-online/${botId}` 
       : `${window.location.origin}/chatbot-chat/${botId}`;
 
     const positionStyles: Record<string, string> = {

@@ -18,6 +18,11 @@ export default function AgentCustomerAuth() {
   const [attendantStatus, setAttendantStatus] = useState<string>('offline');
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
+  const [statusColors, setStatusColors] = useState({
+    online: '#22c55e',
+    busy: '#eab308',
+    offline: '#64748b',
+  });
   const [formData, setFormData] = useState({ name: "" });
 
   useEffect(() => {
@@ -34,6 +39,13 @@ export default function AgentCustomerAuth() {
           if (config.primaryColor) setPrimaryColor(config.primaryColor);
           if (config.logoUrl) setLogoUrl(config.logoUrl);
           setQueueEnabled(config.queueEnabled === true);
+          if (config.statusColors) {
+            setStatusColors({
+              online: config.statusColors.online || '#22c55e',
+              busy: config.statusColors.busy || '#eab308',
+              offline: config.statusColors.offline || '#64748b',
+            });
+          }
         }
         if (agent?.name) setAgentName(agent.name);
         setAttendantStatus(agent?.attendant_status || 'offline');
@@ -59,10 +71,16 @@ export default function AgentCustomerAuth() {
     };
 
     localStorage.setItem(`agent_customer_${agentId}`, JSON.stringify(customer));
-    navigate(`/agent-chat/${agentId}`);
+    navigate(`/chat-online/${agentId}/atendimento`);
   };
 
   const buttonStyle = { backgroundColor: primaryColor };
+  const currentStatusColor =
+    attendantStatus === 'online'
+      ? statusColors.online
+      : attendantStatus === 'busy'
+      ? statusColors.busy
+      : statusColors.offline;
 
   if (checkingAccess) {
     return (
@@ -97,13 +115,8 @@ export default function AgentCustomerAuth() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                attendantStatus === 'online'
-                  ? 'bg-green-500'
-                  : attendantStatus === 'busy'
-                  ? 'bg-yellow-500'
-                  : 'bg-muted-foreground'
-              }`}
+              className="w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: currentStatusColor }}
             />
             {statusLabel}
           </div>

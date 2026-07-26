@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, UserCircle, Headset, Mail } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown, Mail } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -76,6 +76,13 @@ export default function AgentCustomerChat() {
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
+  const [statusColors, setStatusColors] = useState({
+    online: '#22c55e',
+    busy: '#eab308',
+    offline: '#64748b',
+  });
+  const [contactEmailMessage, setContactEmailMessage] = useState('Fale conosco por e-mail. Atendimento em até 24h.');
+  const [contactEmailButtonText, setContactEmailButtonText] = useState('Fale conosco por e-mail');
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
@@ -127,7 +134,7 @@ export default function AgentCustomerChat() {
         }
 
         // Redirecionar para autenticação
-        navigate(`/agent-auth/${agentId}`, { replace: true });
+        navigate(`/chat-online/${agentId}`, { replace: true });
       } catch (error) {
         console.error('Error checking auth:', error);
       }
@@ -173,6 +180,15 @@ export default function AgentCustomerChat() {
             const cfg = agent.config as any;
             setQueueEnabled(cfg.queueEnabled === true);
             if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+            if (cfg.statusColors) {
+              setStatusColors({
+                online: cfg.statusColors.online || '#22c55e',
+                busy: cfg.statusColors.busy || '#eab308',
+                offline: cfg.statusColors.offline || '#64748b',
+              });
+            }
+            if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
+            if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
           }
         }
       )
@@ -212,7 +228,7 @@ export default function AgentCustomerChat() {
               setMessages([]);
               sentMessagesRef.current = new Set();
               
-              // Buscar mensagens iniciais da nova conversa (evitar race condition com welcome message)
+              // Buscar mensagens iniciais da nova conversa
               setTimeout(async () => {
                 const { data: newMessages } = await supabase
                   .from('agent_messages')
@@ -223,11 +239,11 @@ export default function AgentCustomerChat() {
                 if (newMessages && newMessages.length > 0) {
                   setMessages(newMessages as unknown as Message[]);
                 }
-              }, 1000); // Pequeno delay para garantir que a edge function inseriu as mensagens
+              }, 1000);
 
               toast({
-                title: "Atendimento Reiniciado",
-                description: "O atendente reiniciou o fluxo de conversa.",
+                title: "Atendimento reiniciado",
+                description: "O atendente iniciou uma nova conversa.",
               });
             }
           } else if (payload.eventType === 'UPDATE') {
@@ -367,7 +383,7 @@ export default function AgentCustomerChat() {
 
 
       if (error) {
-        let errorMessage = "Não foi possível conectar ao agente";
+        let errorMessage = "Não foi possível conectar ao chat";
         if (error.message) {
           errorMessage = error.message.includes("non-2xx") 
             ? "Serviço temporariamente indisponível. Tente novamente em alguns instantes."
@@ -378,17 +394,17 @@ export default function AgentCustomerChat() {
           description: errorMessage,
           variant: "destructive",
         });
-        navigate(`/agent-auth/${agentId}`, { replace: true });
+        navigate(`/chat-online/${agentId}`, { replace: true });
         return;
       }
       
       if (!data || data.error) {
         toast({
-          title: "Agente indisponível",
-          description: data?.error || "Este agente não existe ou está inativo.",
+          title: "Chat indisponível",
+          description: data?.error || "Este chat não existe ou está inativo.",
           variant: "destructive",
         });
-        navigate(`/agent-auth/${agentId}`, { replace: true });
+        navigate(`/chat-online/${agentId}`, { replace: true });
         return;
       }
 
@@ -410,6 +426,15 @@ export default function AgentCustomerChat() {
         const cfg = data.agent.config as any;
         setQueueEnabled(cfg.queueEnabled === true);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+        if (cfg.statusColors) {
+          setStatusColors({
+            online: cfg.statusColors.online || '#22c55e',
+            busy: cfg.statusColors.busy || '#eab308',
+            offline: cfg.statusColors.offline || '#64748b',
+          });
+        }
+        if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
+        if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
       }
 
       // Set attendant status from agent data
@@ -447,7 +472,7 @@ export default function AgentCustomerChat() {
       console.error('Error loading agent:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar o agente",
+        description: "Não foi possível carregar o chat",
         variant: "destructive",
       });
     }
@@ -838,7 +863,7 @@ export default function AgentCustomerChat() {
 
       toast({
         title: "Agendamento cancelado",
-        description: "O agente foi notificado sobre o cancelamento",
+      description: "O atendimento foi notificado sobre o cancelamento",
       });
 
       setCancelDialog({ open: false, type: 'appointment', id: '' });
@@ -888,7 +913,7 @@ export default function AgentCustomerChat() {
 
       toast({
         title: "Pedido cancelado",
-        description: "O agente foi notificado sobre o cancelamento",
+        description: "O atendimento foi notificado sobre o cancelamento",
       });
 
       setCancelDialog({ open: false, type: 'order', id: '' });
@@ -905,6 +930,12 @@ export default function AgentCustomerChat() {
   const primaryColor = agentInfo?.config?.primaryColor || '#6366f1';
   const secondaryColor = agentInfo?.config?.secondaryColor || '#8b5cf6';
   const logoUrl = agentInfo?.config?.logoUrl || '';
+  const currentStatusColor =
+    attendantStatus === 'online'
+      ? statusColors.online
+      : attendantStatus === 'busy'
+      ? statusColors.busy
+      : statusColors.offline;
 
   // Mostrar loading enquanto carrega as informações do agente (incluindo cores)
   if (!agentInfo) {
@@ -917,31 +948,6 @@ export default function AgentCustomerChat() {
       </div>
     );
   }
-
-  const handleHumanAttendant = async () => {
-    if (!conversationId) return;
-    
-    chatSounds.playSendSound();
-    
-    // Simular envio de mensagem solicitando humano
-    const message = "Gostaria de falar com um atendente humano.";
-    const { error } = await supabase.from('agent_messages').insert({
-      conversation_id: conversationId,
-      role: 'customer',
-      content: message,
-      sender_name: customer?.name || 'Cliente'
-    });
-
-    if (error) {
-      toast({ title: "Erro", description: "Não foi possível solicitar atendimento", variant: "destructive" });
-      return;
-    }
-
-    toast({
-      title: "Solicitação enviada",
-      description: "Um atendente humano foi notificado. Por favor, aguarde.",
-    });
-  };
 
   return (
     <div className="min-h-dvh bg-transparent">
@@ -962,18 +968,10 @@ export default function AgentCustomerChat() {
                   {/* Status do Atendente */}
                   <Badge 
                     variant="outline" 
-                    className={`text-[10px] sm:text-xs shrink-0 ${
-                      attendantStatus === 'online' 
-                        ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
-                        : attendantStatus === 'busy'
-                          ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
-                          : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                    }`}
+                    className="text-[10px] sm:text-xs shrink-0 bg-background/95 border-white/40"
+                    style={{ color: currentStatusColor }}
                   >
-                    <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-1 ${
-                      attendantStatus === 'online' ? 'bg-green-500' :
-                      attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-blue-500'
-                    }`} />
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-1" style={{ backgroundColor: currentStatusColor }} />
                     <span className="hidden sm:inline">
                       {attendantStatus === 'online' ? 'Atendente Online' : 
                        attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
@@ -1024,18 +1022,14 @@ export default function AgentCustomerChat() {
                 <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">
                   <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
                   <AlertDescription className="ml-2 text-xs sm:text-sm flex flex-wrap items-center gap-2">
-                    <span>
-                      {attendantStatus === 'online'
-                        ? 'Sem resposta do atendente? Envie sua mensagem por e-mail e responderemos em até 24h.'
-                        : 'Nenhum atendente disponível agora? Envie sua mensagem e responderemos por e-mail em até 24h.'}
-                    </span>
+                    <span>{contactEmailMessage}</span>
                     <Button
                       size="sm"
                       variant="secondary"
                       onClick={openContactForm}
                       className="h-7 text-xs"
                     >
-                      Enviar por e-mail
+                      {contactEmailButtonText}
                     </Button>
                   </AlertDescription>
                 </Alert>
@@ -1075,13 +1069,10 @@ export default function AgentCustomerChat() {
                 </div>
               )}
               
-              {/* Mensagem de boas-vindas do agente (sempre visível) */}
+              {/* Aviso inicial do chat */}
               {agentInfo?.config?.welcomeMessage && (
-                <div className="flex flex-col items-start">
-                  <span className="text-xs text-muted-foreground mb-1 px-1">
-                    {agentInfo?.name || 'Atendente'}
-                  </span>
-                  <div className="max-w-[80%] rounded-lg p-3 bg-muted">
+                <div className="flex justify-center">
+                  <div className="max-w-[90%] rounded-lg border border-border bg-muted/60 p-3 text-center text-sm text-muted-foreground">
                     <p className="whitespace-pre-wrap">{agentInfo.config.welcomeMessage}</p>
                   </div>
                 </div>
@@ -1531,7 +1522,7 @@ export default function AgentCustomerChat() {
                 Cancelar {cancelDialog.type === 'appointment' ? 'Agendamento' : 'Pedido'}
               </DialogTitle>
               <DialogDescription>
-                Por favor, informe o motivo do cancelamento. O agente será notificado.
+                Por favor, informe o motivo do cancelamento. O atendimento será notificado.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
