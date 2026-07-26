@@ -73,52 +73,6 @@ const AIAgentBuilder = () => {
     }
   }, [agentId, user]);
 
-  const handleAccessTypeChange = (value: 'public' | 'anonymous') => {
-    if (agentId && value !== originalAccessType) {
-      setPendingAccessType(value);
-      setShowAccessChangeDialog(true);
-    } else {
-      setAccessType(value);
-    }
-  };
-
-  const handleConfirmAccessTypeChange = async () => {
-    if (!pendingAccessType || !agentId) return;
-
-    try {
-      await supabase
-        .from('agent_customers')
-        .delete()
-        .eq('agent_id', agentId);
-
-      await supabase
-        .from('agent_access_requests')
-        .delete()
-        .eq('agent_id', agentId);
-
-      setAccessType(pendingAccessType);
-      setOriginalAccessType(pendingAccessType);
-      setShowAccessChangeDialog(false);
-      setPendingAccessType(null);
-
-      toast({
-        title: "Tipo de acesso alterado",
-        description: "Todos os usuários foram excluídos e podem se cadastrar novamente.",
-      });
-    } catch (error) {
-      console.error('Error changing access type:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível alterar o tipo de acesso.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCancelAccessTypeChange = () => {
-    setShowAccessChangeDialog(false);
-    setPendingAccessType(null);
-  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
