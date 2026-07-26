@@ -1101,12 +1101,6 @@ const Dashboard = () => {
             </ErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="crm-geral">
-            <FeatureGate featureKey="crm_contacts">
-              <FeatureTutorialVideo featureKey="crm-geral" />
-              <GeneralCRMPanel />
-            </FeatureGate>
-          </TabsContent>
 
           <TabsContent value="clientes">
             <FeatureGate featureKey="clients_management">
