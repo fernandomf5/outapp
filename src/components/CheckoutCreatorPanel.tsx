@@ -3,13 +3,25 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Save, Plus, ExternalLink, Pencil } from "lucide-react";
+import { Save, Plus, ExternalLink, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const CheckoutCreatorPanel = () => {
   const navigate = useNavigate();
   const [checkouts, setCheckouts] = useState<any[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadCheckouts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -19,6 +31,20 @@ export const CheckoutCreatorPanel = () => {
   };
 
   useEffect(() => { loadCheckouts(); }, []);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const { error } = await supabase.from('checkouts').delete().eq('id', deleteTarget.id);
+    setDeleting(false);
+    if (error) {
+      toast.error("Erro ao excluir checkout: " + error.message);
+      return;
+    }
+    setCheckouts((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+    setDeleteTarget(null);
+    toast.success("Checkout excluído com sucesso!");
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto bg-slate-50 min-h-screen">
@@ -54,11 +80,40 @@ export const CheckoutCreatorPanel = () => {
                 <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-slate-600 flex items-center gap-1" onClick={(e) => { e.stopPropagation(); window.open(`/checkout/${c.id}`, '_blank'); }}>
                   <ExternalLink className="w-3 h-3" /> Visualizar
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-8 px-3 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-1 ml-auto"
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}
+                >
+                  <Trash2 className="w-3 h-3" /> Excluir
+                </Button>
               </div>
             </div>
           </Card>
         ))}
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent className="z-[300]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O checkout "{deleteTarget?.name}" será excluído permanentemente. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDelete(); }}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Excluindo...</> : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
