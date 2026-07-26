@@ -1111,6 +1111,25 @@ export default function AgentCustomerChat() {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                {/* Sem atendente disponível: formulário de contato */}
+                {attendantStatus !== 'online' && (
+                  <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">
+                    <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <AlertDescription className="ml-2 text-xs sm:text-sm flex flex-wrap items-center gap-2">
+                      <span>Nenhum atendente disponível agora? Envie sua mensagem e responderemos por e-mail em até 24h.</span>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={openContactForm}
+                        className="h-7 text-xs"
+                      >
+                        Enviar mensagem
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
               </div>
 
             </div>
