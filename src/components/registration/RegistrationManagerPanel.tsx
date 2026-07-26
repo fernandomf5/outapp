@@ -408,6 +408,13 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
           />
         ) : activeTab === "history" && selectedItem ? (
           <ContactHistoryPanel contactId={selectedItem.id} contactName={selectedItem.name} />
+        ) : activeTab === "resources" && selectedItem ? (
+          <ContactResourcesTab
+            contactId={selectedItem.id}
+            contactName={selectedItem.name}
+            categoryId={category.id}
+          />
+
         ) : (
           <Card>
             <CardContent className="p-0">
