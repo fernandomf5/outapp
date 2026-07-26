@@ -112,8 +112,9 @@ function SortableCategoryCard({
           </div>
           <CardTitle className="mt-4">{cat.name}</CardTitle>
           <CardDescription>
-            {cat.system_type ? `Categoria do Sistema (${cat.system_type})` : 'Categoria Personalizada'}
+            {getEntityKind(cat.entity_kind).label}
           </CardDescription>
+
         </CardHeader>
       </Card>
     </div>
