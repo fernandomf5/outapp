@@ -3,12 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Users, BarChart3, ArrowLeft } from "lucide-react";
+import { MessageSquare, Users, BarChart3, ArrowLeft, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import AgentCustomersPanel from "./AgentCustomersPanel";
 import AgentConversationsPanel from "./AgentConversationsPanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
+import AgentContactFormsPanel from "./AgentContactFormsPanel";
 
 
 interface AgentManagementPanelProps {
@@ -26,9 +27,37 @@ interface MenuOption {
 export default function AgentManagementPanel({ agentId, agentName }: AgentManagementPanelProps) {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const isMobile = useIsMobile();
+  const [unreadForms, setUnreadForms] = useState(0);
+
+  useEffect(() => {
+    if (!agentId) return;
+    const loadUnread = async () => {
+      const { count } = await supabase
+        .from("contact_form_submissions")
+        .select("id", { count: "exact", head: true })
+        .eq("agent_id", agentId)
+        .eq("is_read", false);
+      setUnreadForms(count || 0);
+    };
+    loadUnread();
+
+    const channel = supabase
+      .channel(`agent-forms-badge-${agentId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "contact_form_submissions" },
+        () => loadUnread()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [agentId]);
 
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
+    { id: "forms", label: "Formulários", icon: <Inbox />, badge: unreadForms },
     { id: "customers", label: "Clientes", icon: <Users /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 /> },
   ];
@@ -37,6 +66,8 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
     switch (activeTab) {
       case "conversations":
         return <AgentConversationsPanel agentId={agentId} />;
+      case "forms":
+        return <AgentContactFormsPanel agentId={agentId} />;
       case "customers":
         return <AgentCustomersPanel agentId={agentId} />;
       case "analytics":
@@ -45,6 +76,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
         return null;
     }
   };
+
 
   // Mobile/Tablet layout: grid de ícones ou conteúdo
   if (isMobile) {
