@@ -264,50 +264,20 @@ export function ResourceAssignmentsButton({
                         </Badge>
                       )}
                     </div>
-                    <div className="md:w-[260px] flex items-center gap-2">
-                      <Select
-                        value={current || NONE}
-                        onValueChange={(v) => handleAssign(row, v === NONE ? null : v)}
+                    <div className="md:w-[320px] flex items-center gap-2">
+                      <ContactCategoryPicker
+                        value={current}
+                        onChange={(contactId) => handleAssign(row, contactId)}
+                        contacts={contacts}
+                        categories={categories}
                         disabled={savingId === row.id}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Avulso (sem cadastro)" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px] z-[400]">
-                          <SelectItem value={NONE}>Avulso (sem cadastro)</SelectItem>
-                          {grouped.map((g) => (
-                            <SelectGroup key={g.category.id}>
-                              <SelectLabel>{g.category.name}</SelectLabel>
-                              {g.items.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  {c.name}
-                                  {c.company ? ` — ${c.company}` : ""}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          ))}
-                          {ungrouped.length > 0 && (
-                            <SelectGroup>
-                              <SelectLabel>Sem categoria</SelectLabel>
-                              {ungrouped.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  {c.name}
-                                  {c.company ? ` — ${c.company}` : ""}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          )}
-                          {contacts.length === 0 && (
-                            <div className="px-3 py-2 text-sm text-muted-foreground">
-                              Nenhum cadastro encontrado.
-                            </div>
-                          )}
-                        </SelectContent>
-                      </Select>
+                        className="flex-1"
+                      />
                       {savingId === row.id && (
                         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                       )}
                     </div>
+
                   </div>
                 );
               })
