@@ -33,6 +33,7 @@ interface Submission {
   name: string;
   email: string;
   phone: string | null;
+  subject: string | null;
   message: string;
   is_read: boolean | null;
   replied_at: string | null;
