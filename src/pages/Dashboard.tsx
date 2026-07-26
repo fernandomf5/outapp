@@ -1358,18 +1358,19 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="produtos-servicos">
-            <FeatureGate featureKey="products_services">
+            <ErrorBoundary>
               <FeatureTutorialVideo featureKey="produtos-servicos" />
               <ProductsServicesPanel />
-            </FeatureGate>
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="catalogo">
-            <FeatureGate featureKey="catalog_creator">
+            <ErrorBoundary>
               <FeatureTutorialVideo featureKey="catalogo" />
               <CatalogCreatorPanel />
-            </FeatureGate>
+            </ErrorBoundary>
           </TabsContent>
+
 
           <TabsContent value="pagina-captura">
             <ErrorBoundary>
