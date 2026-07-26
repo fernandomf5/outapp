@@ -14,13 +14,15 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     let agentId = url.searchParams.get('agentId') || '';
+    let conversationId = url.searchParams.get('conversationId') || '';
 
-    if (!agentId && (req.method === 'POST' || req.method === 'PUT')) {
+    if ((req.method === 'POST' || req.method === 'PUT')) {
       try {
         const body = await req.json();
-        agentId = String(body?.agentId ?? '');
+        if (!agentId) agentId = String(body?.agentId ?? '');
+        if (!conversationId) conversationId = String(body?.conversationId ?? '');
       } catch {
-        agentId = '';
+        /* ignore */
       }
     }
 
@@ -31,6 +33,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
