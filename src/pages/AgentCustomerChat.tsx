@@ -201,7 +201,7 @@ export default function AgentCustomerChat() {
       }
     };
     refresh();
-    const interval = setInterval(refresh, 10000);
+    const interval = setInterval(refresh, 5000);
     const onVisible = () => {
       if (document.visibilityState === 'visible') refresh();
     };
@@ -234,10 +234,10 @@ export default function AgentCustomerChat() {
 
   // Notifica o cliente quando sua posição na fila muda
   useEffect(() => {
-    if (!queueEnabled) return;
     const prev = prevQueuePositionRef.current;
     prevQueuePositionRef.current = queuePosition;
     if (prev === undefined || prev === queuePosition || queuePosition === null) return;
+
 
     if (queuePosition === 0) {
       chatSounds.playNotificationSound();
@@ -364,12 +364,20 @@ export default function AgentCustomerChat() {
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedConv = payload.new as any;
+            // Atualiza a posição na fila em tempo real
+            if (updatedConv.agent_id === agentId && (!conversationId || updatedConv.id === conversationId)) {
+              setQueuePosition(
+                updatedConv.queue_position === null || updatedConv.queue_position === undefined
+                  ? null
+                  : Number(updatedConv.queue_position),
+              );
+            }
             // Se a conversa atual foi arquivada e não temos uma nova ainda
             if (updatedConv.id === conversationId && updatedConv.status === 'archived') {
               console.log('⚠️ Conversa atual arquivada. Aguardando nova conversa...');
-              // Podemos limpar ou apenas esperar o INSERT da nova
             }
           }
+
         }
       )
       .subscribe();
@@ -1132,7 +1140,7 @@ export default function AgentCustomerChat() {
                 )}
 
                 {/* Aviso de fila de espera */}
-                {queueEnabled && (queuePosition !== null || attendantStatus !== 'online') && (
+                {(queuePosition !== null || (queueEnabled && attendantStatus !== 'online')) && (
                   <Alert
                     className={`mt-2 py-1.5 sm:py-2 ${
                       queuePosition === 0 ? 'border-green-500/60' : 'border-yellow-500/60'
