@@ -85,7 +85,7 @@ export default function AgentCustomerChat() {
   const [contactEmailButtonText, setContactEmailButtonText] = useState('Fale conosco por e-mail');
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
-  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
