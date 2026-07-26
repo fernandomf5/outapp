@@ -347,12 +347,13 @@ export default function AgentCustomerChat() {
     };
   }, [customer?.id, agentId]);
 
-  const loadAgentAndConversation = async (customerId: string, customerName?: string) => {
+  const loadAgentAndConversation = async (customerId: string, customerName?: string, customerEmail?: string) => {
     try {
       // Chamar edge function para inicializar conversa (bypass RLS)
       const { data, error } = await supabase.functions.invoke('init-agent-conversation', {
-        body: { agentId, customerId, customerName, timestamp: Date.now() }
+        body: { agentId, customerId, customerName, customerEmail, timestamp: Date.now() }
       });
+
 
       if (error) {
         let errorMessage = "Não foi possível conectar ao agente";
