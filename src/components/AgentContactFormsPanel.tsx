@@ -92,8 +92,6 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
 
   const openConversation = async (item: Submission) => {
     setSelected(item);
-    setReplySubject(item.subject ? `Re: ${item.subject}` : `Re: sua mensagem no chat online`);
-    setReplyBody(`Olá ${item.name},\n\n`);
 
     if (!item.is_read) {
       await supabase
@@ -106,27 +104,24 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
     }
   };
 
-  const sendByEmail = async () => {
+  const markAsReplied = async () => {
     if (!selected) return;
-    const url = `mailto:${encodeURIComponent(selected.email)}?subject=${encodeURIComponent(
-      replySubject
-    )}&body=${encodeURIComponent(replyBody)}`;
-    window.open(url, "_blank");
-
+    const now = new Date().toISOString();
     await supabase
       .from("contact_form_submissions")
-      .update({ replied_at: new Date().toISOString(), is_read: true })
+      .update({ replied_at: now, is_read: true })
       .eq("id", selected.id);
 
     setItems((prev) =>
       prev.map((i) =>
-        i.id === selected.id
-          ? { ...i, replied_at: new Date().toISOString(), is_read: true }
-          : i
+        i.id === selected.id ? { ...i, replied_at: now, is_read: true } : i
       )
     );
-    toast.success("Abrindo seu e-mail para responder o cliente");
+    setSelected(null);
+    toast.success("Mensagem marcada como respondida");
   };
+
+
 
   const confirmDelete = async () => {
     if (!deleteId) return;
