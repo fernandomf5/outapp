@@ -19,6 +19,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } 
 import { CSS } from "@dnd-kit/utilities";
 import { useFinancialCategories } from "@/hooks/useFinancialCategories";
 import { CategoryManager } from "./CategoryManager";
+import { CategorySelect } from "./CategorySelect";
 
 
 const PAYMENT_METHODS: Record<string, string> = {
