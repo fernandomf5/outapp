@@ -84,6 +84,42 @@ export default function AgentCustomerAuth() {
     };
   }, [agentId]);
 
+  const handleSendContactForm = async () => {
+    const name = contactForm.name.trim();
+    const email = contactForm.email.trim().toLowerCase();
+    const message = contactForm.message.trim();
+
+    if (!name || !email || !message) {
+      toast({ title: "Preencha os campos", description: "Nome, e-mail e mensagem são obrigatórios.", variant: "destructive" });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast({ title: "E-mail inválido", description: "Informe um e-mail válido.", variant: "destructive" });
+      return;
+    }
+
+    setSendingContact(true);
+    try {
+      const { error } = await supabase.from('contact_form_submissions').insert({
+        name: name.slice(0, 100),
+        email: email.slice(0, 255),
+        phone: contactForm.phone.trim().slice(0, 30) || null,
+        message: message.slice(0, 2000),
+        agent_id: agentId,
+      });
+      if (error) throw error;
+
+      setShowContactForm(false);
+      setContactForm({ name: '', email: '', phone: '', message: '' });
+      toast({ title: "Mensagem enviada", description: "Nosso suporte entrará em contato por e-mail em até 24h." });
+    } catch (err) {
+      console.error('Error sending contact form:', err);
+      toast({ title: "Erro", description: "Não foi possível enviar sua mensagem.", variant: "destructive" });
+    } finally {
+      setSendingContact(false);
+    }
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
