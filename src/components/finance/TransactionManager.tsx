@@ -19,6 +19,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } 
 import { CSS } from "@dnd-kit/utilities";
 import { useFinancialCategories } from "@/hooks/useFinancialCategories";
 import { CategoryManager } from "./CategoryManager";
+import { CategorySelect } from "./CategorySelect";
 
 
 const PAYMENT_METHODS: Record<string, string> = {
@@ -79,7 +80,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
 
-  const { categories } = useFinancialCategories(businessId);
+  const { categories, createCategory } = useFinancialCategories(businessId);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const [formData, setFormData] = useState({
@@ -506,11 +507,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                             </div>
                           </TableCell>
                           <TableCell className="px-1 py-2">
-                            <Input 
-                              value={row.category} 
-                              onChange={e => updateBulkRow(index, 'category', e.target.value)}
-                              placeholder="Categoria"
-                              className="h-10 text-sm"
+                            <CategorySelect
+                              value={row.category}
+                              onChange={(v) => updateBulkRow(index, 'category', v)}
+                              categories={categories}
+                              onCreate={createCategory}
+                              className="h-10 text-sm min-w-[150px]"
                             />
                           </TableCell>
                           <TableCell className="px-1 py-2">
@@ -648,16 +650,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Categoria</Label>
-                  <Input 
-                    required 
-                    list="financial-categories-list"
+                  <CategorySelect
                     value={formData.category}
-                    onChange={e => setFormData({...formData, category: e.target.value})}
-                    placeholder="Ex: Alimentação, Lazer"
+                    onChange={(v) => setFormData({ ...formData, category: v })}
+                    categories={categories}
+                    onCreate={createCategory}
                   />
-                  <datalist id="financial-categories-list">
-                    {categories.map(c => <option key={c.id} value={c.name} />)}
-                  </datalist>
 
                 </div>
                 <div className="space-y-2">
