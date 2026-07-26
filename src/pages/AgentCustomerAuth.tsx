@@ -30,6 +30,7 @@ export default function AgentCustomerAuth() {
   const { toast } = useToast();
   const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
   const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
+  const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState("Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.");
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
@@ -66,6 +67,7 @@ export default function AgentCustomerAuth() {
         }
         if (config.contactEmailMessage) setContactEmailMessage(config.contactEmailMessage);
         if (config.contactEmailButtonText) setContactEmailButtonText(config.contactEmailButtonText);
+        if (config.contactEmailSuccessMessage) setContactEmailSuccessMessage(config.contactEmailSuccessMessage);
         if (agent.name) setAgentName(agent.name);
         setAttendantStatus(agent.attendant_status || 'offline');
         setAttendantName(agent.attendant_name || null);
@@ -129,10 +131,11 @@ export default function AgentCustomerAuth() {
 
       setShowContactForm(false);
       setContactForm({ name: '', email: '', phone: '', subject: '', message: '' });
-      toast({ title: "Mensagem enviada", description: "Nosso suporte entrará em contato por e-mail em até 24h." });
+      toast({ title: "Mensagem enviada", description: contactEmailSuccessMessage });
     } catch (err) {
       console.error('Error sending contact form:', err);
-      toast({ title: "Erro", description: "Não foi possível enviar sua mensagem.", variant: "destructive" });
+      const msg = (err as any)?.message || 'Não foi possível enviar sua mensagem.';
+      toast({ title: "Erro", description: msg, variant: "destructive" });
     } finally {
       setSendingContact(false);
     }

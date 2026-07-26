@@ -83,6 +83,7 @@ export default function AgentCustomerChat() {
   });
   const [contactEmailMessage, setContactEmailMessage] = useState('Fale conosco por e-mail. Atendimento em até 24h.');
   const [contactEmailButtonText, setContactEmailButtonText] = useState('Fale conosco por e-mail');
+  const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState('Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.');
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -115,6 +116,7 @@ export default function AgentCustomerChat() {
           }
           if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
           if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
+          if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
         }
         if (agent?.attendant_status) setAttendantStatus(agent.attendant_status);
         if (agent?.attendant_name !== undefined) setAttendantName(agent.attendant_name);
@@ -183,6 +185,7 @@ export default function AgentCustomerChat() {
         }
         if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
         if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
+          if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
       } catch {
         /* silencioso */
       }
@@ -256,6 +259,7 @@ export default function AgentCustomerChat() {
             }
             if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
             if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
+          if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
           }
         }
       )
@@ -502,6 +506,7 @@ export default function AgentCustomerChat() {
         }
         if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
         if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
+          if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
       }
 
       // Set attendant status from agent data
@@ -787,11 +792,12 @@ export default function AgentCustomerChat() {
       setContactForm({ name: '', email: '', phone: '', subject: '', message: '' });
       toast({
         title: "Mensagem enviada",
-        description: "Nosso suporte entrará em contato por e-mail em até 24h.",
+        description: contactEmailSuccessMessage,
       });
     } catch (error) {
       console.error('Error sending contact form:', error);
-      toast({ title: "Erro", description: "Não foi possível enviar sua mensagem.", variant: "destructive" });
+      const msg = (error as any)?.message || 'Não foi possível enviar sua mensagem.';
+      toast({ title: "Erro", description: msg, variant: "destructive" });
     } finally {
       setSendingContact(false);
     }
