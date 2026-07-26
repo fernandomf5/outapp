@@ -151,6 +151,12 @@ const AppContent = () => {
                   <AIAgentBuilder />
                 </ProtectedRoute>
               } />
+              {/* Slug antigo mantido por compatibilidade */}
+              <Route path="/ai-agent" element={
+                <ProtectedRoute>
+                  <AIAgentBuilder />
+                </ProtectedRoute>
+              } />
               <Route path="/tabela-completa/:tableId" element={
                 <ProtectedRoute>
                   <FullOrganizationTable />
