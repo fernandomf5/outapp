@@ -735,6 +735,7 @@ export type Database = {
           id: string
           last_message_at: string
           last_read_by_owner_at: string | null
+          queue_position: number | null
           status: string
           updated_at: string
         }
@@ -746,6 +747,7 @@ export type Database = {
           id?: string
           last_message_at?: string
           last_read_by_owner_at?: string | null
+          queue_position?: number | null
           status?: string
           updated_at?: string
         }
@@ -757,6 +759,7 @@ export type Database = {
           id?: string
           last_message_at?: string
           last_read_by_owner_at?: string | null
+          queue_position?: number | null
           status?: string
           updated_at?: string
         }
