@@ -32,7 +32,7 @@ export default function AgentCustomerAuth() {
   const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
-  const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
 
   useEffect(() => {
     if (!agentId) return;
