@@ -9956,6 +9956,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_capture_page_view: {
+        Args: { _page_id: string }
+        Returns: undefined
+      }
       team_member_can: {
         Args: {
           p_admin_user_id: string
