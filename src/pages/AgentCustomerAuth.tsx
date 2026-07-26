@@ -77,10 +77,27 @@ export default function AgentCustomerAuth() {
     };
 
     loadAgent();
-    const interval = setInterval(loadAgent, 30000);
+    const interval = setInterval(loadAgent, 10000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') loadAgent();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    // Status do atendente em tempo real
+    const channel = supabase
+      .channel(`chat-status-${agentId}`)
+      .on('broadcast', { event: 'status' }, ({ payload }) => {
+        if (cancelled) return;
+        if (payload?.attendant_status) setAttendantStatus(payload.attendant_status);
+        setAttendantName(payload?.attendant_name || null);
+      })
+      .subscribe();
+
     return () => {
       cancelled = true;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      supabase.removeChannel(channel);
     };
   }, [agentId]);
 
