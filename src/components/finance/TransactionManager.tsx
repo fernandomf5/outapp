@@ -506,11 +506,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                             </div>
                           </TableCell>
                           <TableCell className="px-1 py-2">
-                            <Input 
-                              value={row.category} 
-                              onChange={e => updateBulkRow(index, 'category', e.target.value)}
-                              placeholder="Categoria"
-                              className="h-10 text-sm"
+                            <CategorySelect
+                              value={row.category}
+                              onChange={(v) => updateBulkRow(index, 'category', v)}
+                              categories={categories}
+                              onCreate={createCategory}
+                              className="h-10 text-sm min-w-[150px]"
                             />
                           </TableCell>
                           <TableCell className="px-1 py-2">
