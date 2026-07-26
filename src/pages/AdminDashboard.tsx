@@ -107,10 +107,19 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeSubscriptions: 0,
+    paidSubscriptions: 0,
+    trialActive: 0,
+    trialExpired: 0,
+    noPlan: 0,
+    mrr: 0,
     monthlyRevenue: 0,
+    totalRevenue: 0,
     growthRate: 0,
+    conversionRate: 0,
     newUsersThisMonth: 0,
+    newUsersLastMonth: 0,
   });
+
 
   const [plans, setPlans] = useState<Plan[]>([]);
 
@@ -147,23 +156,77 @@ const AdminDashboard = () => {
   // Fetch real data from Supabase
   useEffect(() => {
     const fetchData = async () => {
-      // Buscar total de usuários
-      const { count: usersCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-      // Calcular novos usuários no mês atual
-      const startOfMonthIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-      const { count: newUsersThisMonth } = await supabase
+      // Usuários reais (profiles)
+      const { data: profilesData } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', startOfMonthIso);
+        .select('user_id, created_at');
 
-      // Buscar assinaturas ativas
-      const { count: activeSubsCount } = await supabase
+      const profileIds = new Set((profilesData || []).map((p: any) => p.user_id));
+      const usersCount = profileIds.size;
+      const newUsersThisMonth = (profilesData || []).filter(
+        (p: any) => new Date(p.created_at) >= startOfMonth
+      ).length;
+      const newUsersLastMonth = (profilesData || []).filter(
+        (p: any) => new Date(p.created_at) >= startOfLastMonth && new Date(p.created_at) < startOfMonth
+      ).length;
+
+      // Assinaturas com dados do plano (somente de usuários existentes)
+      const { data: subsData } = await supabase
         .from('subscriptions')
-        .select('*', { count: 'exact', head: true })
+        .select('user_id, status, expires_at, plans(plan_type, price)')
         .eq('status', 'active');
+
+      const validSubs = (subsData || []).filter((s: any) => profileIds.has(s.user_id));
+
+      const isValid = (s: any) => {
+        const type = s.plans?.plan_type;
+        if (type === 'lifetime') return true;
+        return s.expires_at ? new Date(s.expires_at) > now : true;
+      };
+
+      const paidSubs = validSubs.filter(
+        (s: any) => s.plans?.plan_type && s.plans.plan_type !== 'free_trial' && isValid(s)
+      );
+      const trialActive = validSubs.filter(
+        (s: any) => s.plans?.plan_type === 'free_trial' && isValid(s)
+      );
+      const trialExpired = validSubs.filter(
+        (s: any) => s.plans?.plan_type === 'free_trial' && !isValid(s)
+      );
+
+      const usersWithSub = new Set(validSubs.filter(isValid).map((s: any) => s.user_id));
+      const noPlan = Math.max(usersCount - usersWithSub.size, 0);
+
+      // MRR estimado (receita recorrente mensal dos planos pagos ativos)
+      const mrr = paidSubs.reduce((acc: number, s: any) => {
+        const price = Number(s.plans?.price || 0);
+        if (s.plans?.plan_type === 'annual') return acc + price / 12;
+        if (s.plans?.plan_type === 'monthly') return acc + price;
+        return acc; // vitalício não gera recorrência
+      }, 0);
+
+      // Receita real (transações aprovadas)
+      const { data: txData } = await supabase
+        .from('payment_transactions')
+        .select('amount, status, created_at')
+        .in('status', ['approved', 'paid', 'completed']);
+
+      const totalRevenue = (txData || []).reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+      const monthlyRevenue = (txData || [])
+        .filter((t: any) => new Date(t.created_at) >= startOfMonth)
+        .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
+      const growthRate = newUsersLastMonth > 0
+        ? Math.round(((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100)
+        : newUsersThisMonth > 0 ? 100 : 0;
+
+      const conversionRate = usersCount > 0
+        ? Math.round((paidSubs.length / usersCount) * 100)
+        : 0;
 
       // Buscar planos
       const { data: plansData } = await supabase
@@ -181,12 +244,21 @@ const AdminDashboard = () => {
 
       // Atualizar estados
       setStats({
-        totalUsers: usersCount || 0,
-        activeSubscriptions: activeSubsCount || 0,
-        monthlyRevenue: 0, // Calcular quando houver dados de pagamento
-        growthRate: 0, // Calcular quando houver histórico
-        newUsersThisMonth: newUsersThisMonth || 0,
+        totalUsers: usersCount,
+        activeSubscriptions: paidSubs.length + trialActive.length,
+        paidSubscriptions: paidSubs.length,
+        trialActive: trialActive.length,
+        trialExpired: trialExpired.length,
+        noPlan,
+        mrr,
+        monthlyRevenue,
+        totalRevenue,
+        growthRate,
+        conversionRate,
+        newUsersThisMonth,
+        newUsersLastMonth,
       });
+
 
       if (plansData) {
         setPlans(plansData.map(p => ({
@@ -592,63 +664,79 @@ const AdminDashboard = () => {
             {currentSection === 'overview' && (
               <>
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow">
                           <Users className="w-6 h-6 text-primary" />
                         </div>
-                        <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+{stats.newUsersThisMonth} este mês</span>
+                        <span className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+{stats.newUsersThisMonth} este mês</span>
                       </div>
-                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.totalUsers}</h3>
-                      <p className="text-muted-foreground">Usuários Totais</p>
+                      <h3 className="text-3xl font-bold mb-1">{stats.totalUsers}</h3>
+                      <p className="text-muted-foreground text-sm">Usuários cadastrados</p>
                     </div>
                   </Card>
 
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-success/5 border-success/20 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <div className="bg-gradient-to-br from-success/20 to-success/10 p-3 rounded-xl shadow-glow">
                           <TrendingUp className="w-6 h-6 text-success" />
                         </div>
-                        <span className="text-sm font-semibold text-success bg-success/10 px-3 py-1 rounded-full">Ativo</span>
+                        <span className="text-xs font-semibold text-success bg-success/10 px-3 py-1 rounded-full">{stats.conversionRate}% conversão</span>
                       </div>
-                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.activeSubscriptions}</h3>
-                      <p className="text-muted-foreground">Assinaturas Ativas</p>
+                      <h3 className="text-3xl font-bold mb-1">{stats.paidSubscriptions}</h3>
+                      <p className="text-muted-foreground text-sm">Assinaturas pagas ativas</p>
                     </div>
                   </Card>
 
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-warning/5 border-warning/20 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow">
                           <DollarSign className="w-6 h-6 text-warning" />
                         </div>
-                        <span className="text-sm font-semibold text-warning bg-warning/10 px-3 py-1 rounded-full">+{stats.growthRate}%</span>
+                        <span className="text-xs font-semibold text-warning bg-warning/10 px-3 py-1 rounded-full">Pagamentos aprovados</span>
                       </div>
-                      <h3 className="text-3xl font-bold mb-1 text-success">R$ {stats.monthlyRevenue.toLocaleString()}</h3>
-                      <p className="text-muted-foreground">Receita Mensal</p>
+                      <h3 className="text-3xl font-bold mb-1">R$ {stats.monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                      <p className="text-muted-foreground text-sm">Receita do mês</p>
                     </div>
                   </Card>
 
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-info/5 border-info/20 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-info/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow">
-                          <TrendingUp className="w-6 h-6 text-info" />
+                          <BarChart3 className="w-6 h-6 text-info" />
                         </div>
-                        <span className="text-sm font-semibold text-info bg-info/10 px-3 py-1 rounded-full">Crescimento</span>
+                        <span className="text-xs font-semibold text-info bg-info/10 px-3 py-1 rounded-full">
+                          {stats.growthRate >= 0 ? '+' : ''}{stats.growthRate}% vs mês anterior
+                        </span>
                       </div>
-                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.growthRate}%</h3>
-                      <p className="text-muted-foreground">Taxa de Crescimento</p>
+                      <h3 className="text-3xl font-bold mb-1">R$ {stats.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                      <p className="text-muted-foreground text-sm">MRR estimado</p>
                     </div>
                   </Card>
                 </div>
+
+                {/* Detalhamento real da base */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                  {[
+                    { label: 'Testes ativos', value: stats.trialActive, hint: 'Trial em andamento' },
+                    { label: 'Testes expirados', value: stats.trialExpired, hint: 'Precisam converter' },
+                    { label: 'Sem plano', value: stats.noPlan, hint: 'Nenhuma assinatura válida' },
+                    { label: 'Receita total', value: `R$ ${stats.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, hint: 'Histórico aprovado' },
+                    { label: 'Novos no mês passado', value: stats.newUsersLastMonth, hint: 'Base comparativa' },
+                  ].map((item) => (
+                    <Card key={item.label} className="p-4 bg-card/60 border-border/60">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">{item.label}</p>
+                      <p className="text-2xl font-bold mt-1">{item.value}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">{item.hint}</p>
+                    </Card>
+                  ))}
+                </div>
+
 
                 {/* Quick Actions */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
