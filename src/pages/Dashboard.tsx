@@ -173,7 +173,7 @@ const Dashboard = () => {
       { moduleKey: 'financial', tab: 'financeiro' },
       { moduleKey: 'ads', tab: 'anuncios' },
       { moduleKey: 'tasks', tab: 'tarefas' },
-      { moduleKey: 'ai_agents', tab: 'ai-agents' },
+      { moduleKey: 'ai_agents', tab: 'chat-online' },
       { moduleKey: 'link_bio', tab: 'linkbio' },
       { moduleKey: 'briefings', tab: 'briefing' },
       
@@ -241,7 +241,7 @@ const Dashboard = () => {
 
   // Se tiver agentId na URL, abrir painel de gerenciamento
   useEffect(() => {
-    if (agentId && activeTab === 'ai-agents') {
+    if (agentId && activeTab === 'chat-online') {
       const agent = aiAgents.find((a) => a.id === agentId);
       if (agent) {
         setSelectedAgentForManagement(agent);
@@ -1211,7 +1211,7 @@ const Dashboard = () => {
                         <p className="text-muted-foreground mb-4">
                           Você ainda não tem chats online criados
                         </p>
-                        <Button onClick={() => handleTabChange('ai-agents')}>
+                        <Button onClick={() => handleTabChange('chat-online')}>
                           <Sparkles className="mr-2 h-4 w-4" />
                           Criar Chat Online
                         </Button>
@@ -1285,7 +1285,7 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="ai-agents">
+          <TabsContent value="chat-online">
             <FeatureGate featureKey="ai_agent">
               <FeatureTutorialVideo featureKey="ai-agents" />
               {selectedAgentForManagement ? (
