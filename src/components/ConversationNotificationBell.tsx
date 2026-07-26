@@ -297,7 +297,14 @@ export const ConversationNotificationBell = () => {
     
     // Mark conversation as read
     try {
-      if (notification.type === 'agent') {
+      if (notification.type === 'form') {
+        await supabase
+          .from('contact_form_submissions')
+          .update({ is_read: true })
+          .eq('id', notification.id);
+
+        navigate(`/dashboard?tab=chat-online&agentId=${notification.agent_id}&agentView=forms`);
+      } else if (notification.type === 'agent') {
         await supabase
           .from('agent_conversations')
           .update({ last_read_by_owner_at: new Date().toISOString() })
@@ -312,6 +319,7 @@ export const ConversationNotificationBell = () => {
         
         navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&chatbotView=conversations&conversationId=${notification.id}`);
       }
+
       
       // Update notifications immediately
       fetchNotifications();
