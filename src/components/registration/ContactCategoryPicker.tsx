@@ -114,9 +114,9 @@ export function ContactCategoryPicker({
   }, [contacts, categories, categoryId]);
 
   return (
-    <div className={cn("flex flex-col sm:flex-row gap-2", className)}>
+    <div className={cn("grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0", className)}>
       <Select value={categoryId} onValueChange={setCategoryId} disabled={disabled}>
-        <SelectTrigger className="sm:w-[45%]">
+        <SelectTrigger className="h-9 text-sm min-w-0">
           <SelectValue placeholder="Categoria" />
         </SelectTrigger>
         <SelectContent className="max-h-[300px] z-[400]">
@@ -137,7 +137,7 @@ export function ContactCategoryPicker({
             variant="outline"
             role="combobox"
             disabled={disabled}
-            className="flex-1 justify-between font-normal"
+            className="h-9 w-full min-w-0 justify-between font-normal text-sm"
           >
             <span className="truncate">
               {selected ? selected.name : placeholder}
@@ -145,7 +145,11 @@ export function ContactCategoryPicker({
             <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="p-0 w-[280px] z-[400]" align="start">
+        <PopoverContent
+          className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[220px] z-[400]"
+          align="start"
+        >
+
           <Command>
             <CommandInput placeholder="Pesquisar cadastro..." />
             <CommandList className="max-h-[260px]">
