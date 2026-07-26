@@ -1025,11 +1025,11 @@ export default function AgentCustomerChat() {
                     }`} />
                     <span className="hidden sm:inline">
                       {attendantStatus === 'online' ? 'Atendente Online' : 
-                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Agente IA Ativo'}
+                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
                     </span>
                     <span className="sm:hidden">
                       {attendantStatus === 'online' ? 'Online' : 
-                       attendantStatus === 'busy' ? 'Ocupado' : 'Agente IA'}
+                       attendantStatus === 'busy' ? 'Ocupado' : 'Offline'}
                     </span>
                   </Badge>
                 </div>
