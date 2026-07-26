@@ -21,6 +21,8 @@ export default function AgentCustomerAuth() {
   const [attendantStatus, setAttendantStatus] = useState<string>('offline');
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
+  const [queueNext, setQueueNext] = useState(1);
+
   const [statusColors, setStatusColors] = useState({
     online: '#22c55e',
     busy: '#eab308',
@@ -58,6 +60,10 @@ export default function AgentCustomerAuth() {
         if (config.primaryColor) setPrimaryColor(config.primaryColor);
         if (config.logoUrl) setLogoUrl(config.logoUrl);
         setQueueEnabled(config.queueEnabled === true);
+        if (data.queue) {
+          setQueueNext(Math.max(1, Number(data.queue.ahead || 0) + Number(data.queue.waiting || 0) + 1));
+        }
+
         if (config.statusColors) {
           setStatusColors({
             online: config.statusColors.online || '#22c55e',
@@ -203,11 +209,19 @@ export default function AgentCustomerAuth() {
             {statusLabel}
           </div>
 
-          {queueEnabled && attendantStatus !== 'online' && (
+          {queueEnabled && (
             <div className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground text-center">
-              Seu atendimento entrará na fila de espera e será respondido assim que possível.
+              {queueNext > 1 ? (
+                <>
+                  Há <span className="font-semibold text-foreground">{queueNext - 1}</span> pessoa(s) na fila. Ao iniciar,
+                  você será o <span className="font-semibold text-foreground">nº {queueNext}</span> e acompanhará sua posição em tempo real.
+                </>
+              ) : (
+                'A fila está livre — ao iniciar você será o próximo a ser atendido.'
+              )}
             </div>
           )}
+
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">

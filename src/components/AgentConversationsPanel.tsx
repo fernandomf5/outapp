@@ -25,12 +25,14 @@ interface Conversation {
   status: string;
   created_at: string;
   last_message_at: string;
+  queue_position?: number | null;
   agent_customers: {
     id: string;
     name: string;
     email: string;
   };
 }
+
 
 export default function AgentConversationsPanel({ agentId }: { agentId: string }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -42,7 +44,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [senderName, setSenderName] = useState("");
   const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
   const [queueEnabled, setQueueEnabled] = useState(false);
+  const [queueAhead, setQueueAhead] = useState(0);
   const [queueMessage, setQueueMessage] = useState("Seu atendimento está na fila de espera. Em breve um atendente responderá.");
+
   const [statusColors, setStatusColors] = useState({
     online: '#22c55e',
     busy: '#eab308',
@@ -87,7 +91,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         }
         const cfg = (agent.config || {}) as any;
         setQueueEnabled(cfg.queueEnabled === true);
+        setQueueAhead(Number(cfg.queueAhead ?? 0) || 0);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+
         if (cfg.statusColors) {
           setStatusColors({
             online: cfg.statusColors.online || '#22c55e',
@@ -145,15 +151,37 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
+  // Notifica os chats abertos que a fila mudou
+  const broadcastQueue = async () => {
+    try {
+      const channel = supabase.channel(`chat-queue-${agentId}`);
+      await channel.subscribe();
+      await channel.send({ type: 'broadcast', event: 'queue', payload: { updatedAt: Date.now() } });
+      await supabase.removeChannel(channel);
+    } catch (e) {
+      console.error('broadcast queue error', e);
+    }
+  };
+
   // Salvar configurações de fila de espera no config do agente
-  const saveQueueSettings = async (enabled: boolean, message: string) => {
+  const saveQueueSettings = async (
+    enabled: boolean,
+    message: string,
+    ahead: number = queueAhead,
+    silent = false,
+  ) => {
     const { data: agent } = await supabase
       .from('ai_agents')
       .select('config')
       .eq('id', agentId)
       .single();
 
-    const config = { ...((agent?.config || {}) as any), queueEnabled: enabled, queueMessage: message };
+    const config = {
+      ...((agent?.config || {}) as any),
+      queueEnabled: enabled,
+      queueMessage: message,
+      queueAhead: Math.max(0, Math.round(ahead || 0)),
+    };
 
     const { error } = await supabase
       .from('ai_agents')
@@ -162,10 +190,68 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
     if (error) {
       toast({ title: "Erro", description: "Não foi possível salvar a fila de espera", variant: "destructive" });
-    } else {
-      toast({ title: "Fila de espera atualizada", description: enabled ? "Clientes verão o aviso de fila." : "Fila de espera desativada." });
+      return;
+    }
+
+    await broadcastQueue();
+    if (!silent) {
+      toast({ title: "Fila de espera atualizada", description: enabled ? "Clientes verão sua posição na fila." : "Fila de espera desativada." });
     }
   };
+
+  // Define manualmente a posição de um cliente na fila
+  const setConversationQueuePosition = async (conversationId: string, position: number | null) => {
+    const value = position === null ? null : Math.max(0, Math.round(position));
+    const { error } = await supabase
+      .from('agent_conversations')
+      .update({ queue_position: value })
+      .eq('id', conversationId);
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível atualizar a posição na fila", variant: "destructive" });
+      return;
+    }
+
+    setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, queue_position: value } : c)));
+    setSelectedConversation((prev) => (prev && prev.id === conversationId ? { ...prev, queue_position: value } : prev));
+    await broadcastQueue();
+  };
+
+  // "Chamar próximo": todo mundo anda uma posição na fila
+  const callNextInQueue = async () => {
+    const nextAhead = Math.max(0, queueAhead - 1);
+    setQueueAhead(nextAhead);
+
+    const waiting = conversations.filter((c) => (c.queue_position ?? 0) > 0);
+    await Promise.all(
+      waiting.map((c) =>
+        supabase
+          .from('agent_conversations')
+          .update({ queue_position: Math.max(0, (c.queue_position ?? 0) - 1) })
+          .eq('id', c.id),
+      ),
+    );
+
+    setConversations((prev) =>
+      prev.map((c) => ((c.queue_position ?? 0) > 0 ? { ...c, queue_position: Math.max(0, (c.queue_position ?? 0) - 1) } : c)),
+    );
+
+    await saveQueueSettings(queueEnabled, queueMessage, nextAhead, true);
+    toast({ title: "Fila atualizada", description: "Todos avançaram uma posição." });
+  };
+
+  const resetQueue = async () => {
+    await Promise.all(
+      conversations
+        .filter((c) => c.queue_position !== null && c.queue_position !== undefined)
+        .map((c) => supabase.from('agent_conversations').update({ queue_position: null }).eq('id', c.id)),
+    );
+    setConversations((prev) => prev.map((c) => ({ ...c, queue_position: null })));
+    setQueueAhead(0);
+    await saveQueueSettings(queueEnabled, queueMessage, 0, true);
+    toast({ title: "Fila zerada", description: "Ninguém está mais aguardando na fila." });
+  };
+
 
   const saveChatConfig = async (updates: Record<string, unknown>) => {
     const { data: agent } = await supabase
@@ -769,6 +855,60 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                 rows={2}
                 placeholder="Mensagem exibida ao cliente na fila"
               />
+
+              {queueEnabled && (
+                <div className="space-y-2 rounded-md border border-border p-2">
+                  <Label className="text-xs">Pessoas na fila antes dos chats</Label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        const next = Math.max(0, queueAhead - 1);
+                        setQueueAhead(next);
+                        saveQueueSettings(queueEnabled, queueMessage, next, true);
+                      }}
+                    >
+                      -
+                    </Button>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={queueAhead}
+                      onChange={(e) => setQueueAhead(Math.max(0, Number(e.target.value) || 0))}
+                      onBlur={() => saveQueueSettings(queueEnabled, queueMessage, queueAhead, true)}
+                      className="h-8 text-center"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        const next = queueAhead + 1;
+                        setQueueAhead(next);
+                        saveQueueSettings(queueEnabled, queueMessage, next, true);
+                      }}
+                    >
+                      +
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Aguardando agora: {queueAhead + conversations.filter((c) => (c.queue_position ?? 0) > 0).length} pessoa(s)
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button type="button" size="sm" onClick={callNextInQueue}>
+                      Chamar próximo
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={resetQueue}>
+                      Zerar fila
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
@@ -779,6 +919,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                 Enviar aviso de fila no chat
               </Button>
             </div>
+
 
             <div className="space-y-2 md:col-span-3">
               <Label className="text-xs">Cores dos status no chat</Label>
@@ -917,6 +1058,45 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     <div className="text-xs text-muted-foreground mt-2">
                       {format(new Date(conv.last_message_at), "dd/MM HH:mm", { locale: ptBR })}
                     </div>
+
+                    {queueEnabled && (
+                      <div
+                        className="mt-2 flex items-center gap-1.5 border-t border-border pt-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="text-[11px] text-muted-foreground shrink-0">Fila nº</span>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={conv.queue_position ?? ''}
+                          placeholder="-"
+                          onChange={(e) => {
+                            const v = e.target.value === '' ? null : Math.max(0, Number(e.target.value) || 0);
+                            setConversations((prev) => prev.map((c) => (c.id === conv.id ? { ...c, queue_position: v } : c)));
+                          }}
+                          onBlur={(e) => {
+                            const v = e.target.value === '' ? null : Math.max(0, Number(e.target.value) || 0);
+                            setConversationQueuePosition(conv.id, v);
+                          }}
+                          className="h-7 w-16 text-center text-xs"
+                        />
+                        {(conv.queue_position ?? 0) > 0 ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-[11px] px-2"
+                            onClick={() => setConversationQueuePosition(conv.id, 0)}
+                          >
+                            Atender
+                          </Button>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px]">
+                            {conv.queue_position === 0 ? 'É a vez dele' : 'Sem fila'}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
                   </CardContent>
                 </Card>
               ))}

@@ -75,7 +75,9 @@ export default function AgentCustomerChat() {
   const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
+
   const [statusColors, setStatusColors] = useState({
     online: '#22c55e',
     busy: '#eab308',
@@ -167,7 +169,7 @@ export default function AgentCustomerChat() {
     const refresh = async () => {
       try {
         const { data } = await supabase.functions.invoke('get-chat-online-config', {
-          body: { agentId },
+          body: { agentId, conversationId: conversationId || undefined },
         });
         const agent = data?.agent;
         if (!agent) return;
@@ -176,6 +178,11 @@ export default function AgentCustomerChat() {
         const cfg = (agent.config || {}) as any;
         setQueueEnabled(cfg.queueEnabled === true);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+        if (data?.queue) {
+          setQueuePosition(
+            data.queue.position === null || data.queue.position === undefined ? null : Number(data.queue.position),
+          );
+        }
         if (cfg.statusColors) {
           setStatusColors({
             online: cfg.statusColors.online || '#22c55e',
@@ -190,6 +197,7 @@ export default function AgentCustomerChat() {
         /* silencioso */
       }
     };
+    refresh();
     const interval = setInterval(refresh, 10000);
     const onVisible = () => {
       if (document.visibilityState === 'visible') refresh();
@@ -205,12 +213,22 @@ export default function AgentCustomerChat() {
       })
       .subscribe();
 
+    // Fila de espera em tempo real
+    const queueChannel = supabase
+      .channel(`chat-queue-${agentId}`)
+      .on('broadcast', { event: 'queue' }, () => {
+        refresh();
+      })
+      .subscribe();
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
       supabase.removeChannel(statusChannel);
+      supabase.removeChannel(queueChannel);
     };
-  }, [agentId]);
+  }, [agentId, conversationId]);
+
 
 
   useEffect(() => {
@@ -481,6 +499,10 @@ export default function AgentCustomerChat() {
 
       setAgentInfo(data.agent);
       setConversationId(data.conversationId);
+      if (data.queuePosition !== undefined) {
+        setQueuePosition(data.queuePosition === null ? null : Number(data.queuePosition));
+      }
+
       
       // Se recebemos mensagens (histórico), carregamos elas
       if (data.messages && data.messages.length > 0) {
@@ -1083,14 +1105,28 @@ export default function AgentCustomerChat() {
                 )}
 
                 {/* Aviso de fila de espera */}
-                {queueEnabled && attendantStatus !== 'online' && (
-                  <Alert className="mt-2 py-1.5 sm:py-2 border-yellow-500/60">
+                {queueEnabled && (queuePosition !== null || attendantStatus !== 'online') && (
+                  <Alert
+                    className={`mt-2 py-1.5 sm:py-2 ${
+                      queuePosition === 0 ? 'border-green-500/60' : 'border-yellow-500/60'
+                    }`}
+                  >
                     <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                     <AlertDescription className="ml-2 text-xs sm:text-sm">
-                      {queueMessage}
+                      {queuePosition === 0 ? (
+                        <span className="font-semibold">É a sua vez! O atendente já está com você.</span>
+                      ) : queuePosition !== null ? (
+                        <>
+                          <span className="font-semibold">Você é o nº {queuePosition} da fila.</span>{' '}
+                          {queueMessage}
+                        </>
+                      ) : (
+                        queueMessage
+                      )}
                     </AlertDescription>
                   </Alert>
                 )}
+
 
                 {/* Opção de contato por e-mail (sempre disponível) */}
                 <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">

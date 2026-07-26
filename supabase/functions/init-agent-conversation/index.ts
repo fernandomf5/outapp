@@ -98,11 +98,31 @@ serve(async (req) => {
     if (convError) throw convError;
 
     let conversationId: string;
+    let queuePosition: number | null = null;
+    const agentCfg = (agent.config ?? {}) as Record<string, unknown>;
+    const queueEnabled = agentCfg.queueEnabled === true;
+    const queueAhead = Number(agentCfg.queueAhead ?? 0) || 0;
     const activeConv = conversations?.find((c: any) => c.status === 'active');
 
     if (activeConv) {
       conversationId = activeConv.id;
+      queuePosition = activeConv.queue_position ?? null;
     } else {
+      // Calcula a posição na fila: depois de quem já está esperando
+      if (queueEnabled) {
+        const { data: waiting } = await supabase
+          .from('agent_conversations')
+          .select('queue_position')
+          .eq('agent_id', agentId)
+          .eq('status', 'active')
+          .not('queue_position', 'is', null)
+          .order('queue_position', { ascending: false })
+          .limit(1);
+
+        const maxPos = Number(waiting?.[0]?.queue_position ?? 0) || 0;
+        queuePosition = Math.max(maxPos, queueAhead) + 1;
+      }
+
       // Atendimento 100% humano: nunca habilitar respostas automáticas
       const { data: newConv, error: newConvError } = await supabase
         .from('agent_conversations')
@@ -111,6 +131,7 @@ serve(async (req) => {
           customer_id: customerId,
           status: 'active',
           ai_enabled: false,
+          queue_position: queuePosition,
           last_message_at: new Date().toISOString(),
         })
         .select()
@@ -119,6 +140,7 @@ serve(async (req) => {
       if (newConvError || !newConv) throw newConvError || new Error('Falha ao criar conversa');
       conversationId = newConv.id;
     }
+
 
     // Load messages for this conversation
     const { data: messages, error: msgError } = await supabase
@@ -140,7 +162,9 @@ serve(async (req) => {
           attendant_name: agent.attendant_name
         },
         conversationId,
+        queuePosition,
         messages: messages || [],
+
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

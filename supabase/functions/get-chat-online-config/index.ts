@@ -14,13 +14,15 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     let agentId = url.searchParams.get('agentId') || '';
+    let conversationId = url.searchParams.get('conversationId') || '';
 
-    if (!agentId && (req.method === 'POST' || req.method === 'PUT')) {
+    if ((req.method === 'POST' || req.method === 'PUT')) {
       try {
         const body = await req.json();
-        agentId = String(body?.agentId ?? '');
+        if (!agentId) agentId = String(body?.agentId ?? '');
+        if (!conversationId) conversationId = String(body?.conversationId ?? '');
       } catch {
-        agentId = '';
+        /* ignore */
       }
     }
 
@@ -31,6 +33,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -59,6 +62,7 @@ serve(async (req) => {
     }
 
     const cfg = (agent.config ?? {}) as Record<string, unknown>;
+    const queueAhead = Number(cfg.queueAhead ?? 0) || 0;
 
     // Only expose the public presentation settings of the chat.
     const publicConfig = {
@@ -67,6 +71,7 @@ serve(async (req) => {
       welcomeMessage: cfg.welcomeMessage ?? null,
       queueEnabled: cfg.queueEnabled === true,
       queueMessage: cfg.queueMessage ?? null,
+      queueAhead,
       statusColors: {
         online: (cfg.statusColors as any)?.online ?? '#22c55e',
         busy: (cfg.statusColors as any)?.busy ?? '#eab308',
@@ -74,8 +79,30 @@ serve(async (req) => {
       },
       contactEmailMessage: cfg.contactEmailMessage ?? null,
       contactEmailButtonText: cfg.contactEmailButtonText ?? null,
+      contactEmailSuccessMessage: cfg.contactEmailSuccessMessage ?? null,
       isFloating: cfg.isFloating === true,
     };
+
+    // Queue info
+    let queuePosition: number | null = null;
+    if (uuidRegex.test(conversationId)) {
+      const { data: conv } = await supabase
+        .from('agent_conversations')
+        .select('id, queue_position')
+        .eq('id', conversationId)
+        .eq('agent_id', agentId)
+        .maybeSingle();
+      if (conv && conv.queue_position !== null && conv.queue_position !== undefined) {
+        queuePosition = Number(conv.queue_position);
+      }
+    }
+
+    const { count: waitingCount } = await supabase
+      .from('agent_conversations')
+      .select('id', { count: 'exact', head: true })
+      .eq('agent_id', agentId)
+      .eq('status', 'active')
+      .gt('queue_position', 0);
 
     return new Response(
       JSON.stringify({
@@ -88,9 +115,17 @@ serve(async (req) => {
           attendant_name: agent.attendant_name,
           config: publicConfig,
         },
+        queue: {
+          enabled: cfg.queueEnabled === true,
+          message: cfg.queueMessage ?? null,
+          ahead: queueAhead,
+          waiting: waitingCount ?? 0,
+          position: queuePosition,
+        },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
+
   } catch (e) {
     console.error('get-chat-online-config fatal:', e);
     return new Response(JSON.stringify({ error: 'Erro inesperado' }), {
