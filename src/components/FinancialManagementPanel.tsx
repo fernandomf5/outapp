@@ -246,6 +246,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           onSelectBusiness={handleSelectBusiness}
           onSelectMultipleBusinesses={handleSelectMultipleBusinesses}
           onCreateBusiness={handleCreateBusiness}
+          onCreateBusinessesFromRegistrations={handleCreateBusinessesFromRegistrations}
           onUpdateBusiness={handleUpdateBusiness}
           onDeleteBusiness={handleDeleteBusiness}
           onReorderBusinesses={handleReorderBusinesses}
