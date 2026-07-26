@@ -322,36 +322,8 @@ const AIAgentBuilder = () => {
             </div>
           </Card>
 
-          {/* Tipo de Acesso */}
-          <Card className="p-4 sm:p-6 border-primary/20">
-            <div className="max-w-2xl">
-              <Label className="text-base sm:text-lg font-semibold mb-3 block">Tipo de Acesso</Label>
-              <Select value={accessType} onValueChange={handleAccessTypeChange}>
-                <SelectTrigger className="w-full h-10 sm:h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="anonymous">
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold text-sm">💬 Acesso Direto (Sem Cadastro)</span>
-                      <span className="text-xs text-muted-foreground">Chat instantâneo sem login</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="public">
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold text-sm">🌐 Acesso Livre (Com Cadastro)</span>
-                      <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-                {accessType === 'anonymous' 
-                  ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
-                  : '✓ Usuários podem se cadastrar e usar o chat livremente'}
-              </p>
-            </div>
-          </Card>
+
+
 
           <Card className="p-4 sm:p-6 border-primary/20">
             <div className="max-w-2xl space-y-4">
