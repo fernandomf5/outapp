@@ -91,7 +91,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         }
         const cfg = (agent.config || {}) as any;
         setQueueEnabled(cfg.queueEnabled === true);
+        setQueueAhead(Number(cfg.queueAhead ?? 0) || 0);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+
         if (cfg.statusColors) {
           setStatusColors({
             online: cfg.statusColors.online || '#22c55e',
