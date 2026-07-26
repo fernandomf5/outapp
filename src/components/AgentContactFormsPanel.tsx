@@ -144,20 +144,68 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
     setDeleteId(null);
   };
 
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copiado!`);
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
+
   const filtered = items.filter((i) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
       i.name.toLowerCase().includes(q) ||
       i.email.toLowerCase().includes(q) ||
+      (i.subject || "").toLowerCase().includes(q) ||
       i.message.toLowerCase().includes(q)
     );
   });
 
   const unread = items.filter((i) => !i.is_read).length;
+  const replied = items.filter((i) => i.replied_at).length;
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const todayCount = items.filter(
+    (i) => i.created_at && new Date(i.created_at) >= startOfToday
+  ).length;
+  const weekCount = items.filter(
+    (i) => i.created_at && new Date(i.created_at) >= weekAgo
+  ).length;
+  const lastSubmission = items[0]?.created_at
+    ? new Date(items[0].created_at as string).toLocaleString("pt-BR")
+    : "—";
+
+  const stats = [
+    { label: "Total de envios", value: items.length, icon: Inbox },
+    { label: "Hoje", value: todayCount, icon: Clock },
+    { label: "Últimos 7 dias", value: weekCount, icon: CalendarDays },
+    { label: "Não lidas", value: unread, icon: Mail },
+    { label: "Respondidas", value: replied, icon: CheckCheck },
+  ];
 
   return (
     <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {stats.map((s) => (
+          <Card key={s.label} className="p-3">
+            <div className="flex items-center gap-2 text-muted-foreground text-xs">
+              <s.icon className="w-3.5 h-3.5" />
+              <span className="truncate">{s.label}</span>
+            </div>
+            <p className="text-2xl font-bold mt-1">{s.value}</p>
+          </Card>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Último envio: <span className="font-medium">{lastSubmission}</span>
+      </p>
+
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
