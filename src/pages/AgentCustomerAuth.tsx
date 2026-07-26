@@ -209,11 +209,19 @@ export default function AgentCustomerAuth() {
             {statusLabel}
           </div>
 
-          {queueEnabled && attendantStatus !== 'online' && (
+          {queueEnabled && (
             <div className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground text-center">
-              Seu atendimento entrará na fila de espera e será respondido assim que possível.
+              {queueNext > 1 ? (
+                <>
+                  Há <span className="font-semibold text-foreground">{queueNext - 1}</span> pessoa(s) na fila. Ao iniciar,
+                  você será o <span className="font-semibold text-foreground">nº {queueNext}</span> e acompanhará sua posição em tempo real.
+                </>
+              ) : (
+                'A fila está livre — ao iniciar você será o próximo a ser atendido.'
+              )}
             </div>
           )}
+
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
