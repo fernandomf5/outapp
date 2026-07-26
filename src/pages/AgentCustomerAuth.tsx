@@ -60,6 +60,10 @@ export default function AgentCustomerAuth() {
         if (config.primaryColor) setPrimaryColor(config.primaryColor);
         if (config.logoUrl) setLogoUrl(config.logoUrl);
         setQueueEnabled(config.queueEnabled === true);
+        if (data.queue) {
+          setQueueNext(Math.max(1, Number(data.queue.ahead || 0) + Number(data.queue.waiting || 0) + 1));
+        }
+
         if (config.statusColors) {
           setStatusColors({
             online: config.statusColors.online || '#22c55e',
