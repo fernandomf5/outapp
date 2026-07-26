@@ -76,6 +76,8 @@ export default function AgentCustomerChat() {
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
+  const [queueWaiting, setQueueWaiting] = useState(0);
+  const prevQueuePositionRef = useRef<number | null | undefined>(undefined);
   const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
 
   const [statusColors, setStatusColors] = useState({
@@ -182,6 +184,7 @@ export default function AgentCustomerChat() {
           setQueuePosition(
             data.queue.position === null || data.queue.position === undefined ? null : Number(data.queue.position),
           );
+          setQueueWaiting(Number(data.queue.waiting || 0));
         }
         if (cfg.statusColors) {
           setStatusColors({
@@ -229,6 +232,30 @@ export default function AgentCustomerChat() {
     };
   }, [agentId, conversationId]);
 
+  // Notifica o cliente quando sua posição na fila muda
+  useEffect(() => {
+    if (!queueEnabled) return;
+    const prev = prevQueuePositionRef.current;
+    prevQueuePositionRef.current = queuePosition;
+    if (prev === undefined || prev === queuePosition || queuePosition === null) return;
+
+    if (queuePosition === 0) {
+      chatSounds.playNotificationSound();
+      toast({
+        title: 'É a sua vez! 🎉',
+        description: 'O atendente está pronto para falar com você.',
+      });
+    } else {
+      chatSounds.playNotificationSound();
+      toast({
+        title: `Você é o nº ${queuePosition} da fila`,
+        description:
+          typeof prev === 'number' && prev > queuePosition
+            ? 'Sua posição avançou. Aguarde só mais um pouco.'
+            : queueMessage,
+      });
+    }
+  }, [queuePosition, queueEnabled, queueMessage, toast]);
 
 
   useEffect(() => {
@@ -1116,14 +1143,30 @@ export default function AgentCustomerChat() {
                       {queuePosition === 0 ? (
                         <span className="font-semibold">É a sua vez! O atendente já está com você.</span>
                       ) : queuePosition !== null ? (
-                        <>
-                          <span className="font-semibold">Você é o nº {queuePosition} da fila.</span>{' '}
-                          {queueMessage}
-                        </>
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <Badge variant="secondary" className="text-[11px]">
+                            Fila • nº {queuePosition}
+                          </Badge>
+                          <span className="font-semibold">Você está na fila de espera.</span>
+                          {queuePosition > 1 && (
+                            <span className="text-muted-foreground">
+                              Há {queuePosition - 1} pessoa(s) na sua frente.
+                            </span>
+                          )}
+                          <span className="text-muted-foreground">{queueMessage}</span>
+                        </span>
                       ) : (
-                        queueMessage
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          {queueWaiting > 0 && (
+                            <Badge variant="secondary" className="text-[11px]">
+                              {queueWaiting} na fila
+                            </Badge>
+                          )}
+                          <span>{queueMessage}</span>
+                        </span>
                       )}
                     </AlertDescription>
+
                   </Alert>
                 )}
 
