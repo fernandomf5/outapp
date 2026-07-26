@@ -848,7 +848,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
             </div>
 
             <div className="space-y-2 md:col-span-3">
-              <Label className="text-xs">Opção de contato por e-mail no chat</Label>
+              <Label className="text-xs">Contato por e-mail (tela inicial quando offline/ocupado e dentro do chat)</Label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Input
                   value={contactEmailButtonText}
