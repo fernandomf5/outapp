@@ -156,23 +156,77 @@ const AdminDashboard = () => {
   // Fetch real data from Supabase
   useEffect(() => {
     const fetchData = async () => {
-      // Buscar total de usuários
-      const { count: usersCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-      // Calcular novos usuários no mês atual
-      const startOfMonthIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-      const { count: newUsersThisMonth } = await supabase
+      // Usuários reais (profiles)
+      const { data: profilesData } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', startOfMonthIso);
+        .select('user_id, created_at');
 
-      // Buscar assinaturas ativas
-      const { count: activeSubsCount } = await supabase
+      const profileIds = new Set((profilesData || []).map((p: any) => p.user_id));
+      const usersCount = profileIds.size;
+      const newUsersThisMonth = (profilesData || []).filter(
+        (p: any) => new Date(p.created_at) >= startOfMonth
+      ).length;
+      const newUsersLastMonth = (profilesData || []).filter(
+        (p: any) => new Date(p.created_at) >= startOfLastMonth && new Date(p.created_at) < startOfMonth
+      ).length;
+
+      // Assinaturas com dados do plano (somente de usuários existentes)
+      const { data: subsData } = await supabase
         .from('subscriptions')
-        .select('*', { count: 'exact', head: true })
+        .select('user_id, status, expires_at, plans(plan_type, price)')
         .eq('status', 'active');
+
+      const validSubs = (subsData || []).filter((s: any) => profileIds.has(s.user_id));
+
+      const isValid = (s: any) => {
+        const type = s.plans?.plan_type;
+        if (type === 'lifetime') return true;
+        return s.expires_at ? new Date(s.expires_at) > now : true;
+      };
+
+      const paidSubs = validSubs.filter(
+        (s: any) => s.plans?.plan_type && s.plans.plan_type !== 'free_trial' && isValid(s)
+      );
+      const trialActive = validSubs.filter(
+        (s: any) => s.plans?.plan_type === 'free_trial' && isValid(s)
+      );
+      const trialExpired = validSubs.filter(
+        (s: any) => s.plans?.plan_type === 'free_trial' && !isValid(s)
+      );
+
+      const usersWithSub = new Set(validSubs.filter(isValid).map((s: any) => s.user_id));
+      const noPlan = Math.max(usersCount - usersWithSub.size, 0);
+
+      // MRR estimado (receita recorrente mensal dos planos pagos ativos)
+      const mrr = paidSubs.reduce((acc: number, s: any) => {
+        const price = Number(s.plans?.price || 0);
+        if (s.plans?.plan_type === 'annual') return acc + price / 12;
+        if (s.plans?.plan_type === 'monthly') return acc + price;
+        return acc; // vitalício não gera recorrência
+      }, 0);
+
+      // Receita real (transações aprovadas)
+      const { data: txData } = await supabase
+        .from('payment_transactions')
+        .select('amount, status, created_at')
+        .in('status', ['approved', 'paid', 'completed']);
+
+      const totalRevenue = (txData || []).reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+      const monthlyRevenue = (txData || [])
+        .filter((t: any) => new Date(t.created_at) >= startOfMonth)
+        .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
+      const growthRate = newUsersLastMonth > 0
+        ? Math.round(((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100)
+        : newUsersThisMonth > 0 ? 100 : 0;
+
+      const conversionRate = usersCount > 0
+        ? Math.round((paidSubs.length / usersCount) * 100)
+        : 0;
 
       // Buscar planos
       const { data: plansData } = await supabase
@@ -190,12 +244,21 @@ const AdminDashboard = () => {
 
       // Atualizar estados
       setStats({
-        totalUsers: usersCount || 0,
-        activeSubscriptions: activeSubsCount || 0,
-        monthlyRevenue: 0, // Calcular quando houver dados de pagamento
-        growthRate: 0, // Calcular quando houver histórico
-        newUsersThisMonth: newUsersThisMonth || 0,
+        totalUsers: usersCount,
+        activeSubscriptions: paidSubs.length + trialActive.length,
+        paidSubscriptions: paidSubs.length,
+        trialActive: trialActive.length,
+        trialExpired: trialExpired.length,
+        noPlan,
+        mrr,
+        monthlyRevenue,
+        totalRevenue,
+        growthRate,
+        conversionRate,
+        newUsersThisMonth,
+        newUsersLastMonth,
       });
+
 
       if (plansData) {
         setPlans(plansData.map(p => ({
