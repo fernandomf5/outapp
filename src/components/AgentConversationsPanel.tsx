@@ -151,15 +151,37 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
+  // Notifica os chats abertos que a fila mudou
+  const broadcastQueue = async () => {
+    try {
+      const channel = supabase.channel(`chat-queue-${agentId}`);
+      await channel.subscribe();
+      await channel.send({ type: 'broadcast', event: 'queue', payload: { updatedAt: Date.now() } });
+      await supabase.removeChannel(channel);
+    } catch (e) {
+      console.error('broadcast queue error', e);
+    }
+  };
+
   // Salvar configurações de fila de espera no config do agente
-  const saveQueueSettings = async (enabled: boolean, message: string) => {
+  const saveQueueSettings = async (
+    enabled: boolean,
+    message: string,
+    ahead: number = queueAhead,
+    silent = false,
+  ) => {
     const { data: agent } = await supabase
       .from('ai_agents')
       .select('config')
       .eq('id', agentId)
       .single();
 
-    const config = { ...((agent?.config || {}) as any), queueEnabled: enabled, queueMessage: message };
+    const config = {
+      ...((agent?.config || {}) as any),
+      queueEnabled: enabled,
+      queueMessage: message,
+      queueAhead: Math.max(0, Math.round(ahead || 0)),
+    };
 
     const { error } = await supabase
       .from('ai_agents')
@@ -168,10 +190,68 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
     if (error) {
       toast({ title: "Erro", description: "Não foi possível salvar a fila de espera", variant: "destructive" });
-    } else {
-      toast({ title: "Fila de espera atualizada", description: enabled ? "Clientes verão o aviso de fila." : "Fila de espera desativada." });
+      return;
+    }
+
+    await broadcastQueue();
+    if (!silent) {
+      toast({ title: "Fila de espera atualizada", description: enabled ? "Clientes verão sua posição na fila." : "Fila de espera desativada." });
     }
   };
+
+  // Define manualmente a posição de um cliente na fila
+  const setConversationQueuePosition = async (conversationId: string, position: number | null) => {
+    const value = position === null ? null : Math.max(0, Math.round(position));
+    const { error } = await supabase
+      .from('agent_conversations')
+      .update({ queue_position: value })
+      .eq('id', conversationId);
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível atualizar a posição na fila", variant: "destructive" });
+      return;
+    }
+
+    setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, queue_position: value } : c)));
+    setSelectedConversation((prev) => (prev && prev.id === conversationId ? { ...prev, queue_position: value } : prev));
+    await broadcastQueue();
+  };
+
+  // "Chamar próximo": todo mundo anda uma posição na fila
+  const callNextInQueue = async () => {
+    const nextAhead = Math.max(0, queueAhead - 1);
+    setQueueAhead(nextAhead);
+
+    const waiting = conversations.filter((c) => (c.queue_position ?? 0) > 0);
+    await Promise.all(
+      waiting.map((c) =>
+        supabase
+          .from('agent_conversations')
+          .update({ queue_position: Math.max(0, (c.queue_position ?? 0) - 1) })
+          .eq('id', c.id),
+      ),
+    );
+
+    setConversations((prev) =>
+      prev.map((c) => ((c.queue_position ?? 0) > 0 ? { ...c, queue_position: Math.max(0, (c.queue_position ?? 0) - 1) } : c)),
+    );
+
+    await saveQueueSettings(queueEnabled, queueMessage, nextAhead, true);
+    toast({ title: "Fila atualizada", description: "Todos avançaram uma posição." });
+  };
+
+  const resetQueue = async () => {
+    await Promise.all(
+      conversations
+        .filter((c) => c.queue_position !== null && c.queue_position !== undefined)
+        .map((c) => supabase.from('agent_conversations').update({ queue_position: null }).eq('id', c.id)),
+    );
+    setConversations((prev) => prev.map((c) => ({ ...c, queue_position: null })));
+    setQueueAhead(0);
+    await saveQueueSettings(queueEnabled, queueMessage, 0, true);
+    toast({ title: "Fila zerada", description: "Ninguém está mais aguardando na fila." });
+  };
+
 
   const saveChatConfig = async (updates: Record<string, unknown>) => {
     const { data: agent } = await supabase
