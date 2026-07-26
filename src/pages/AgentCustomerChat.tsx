@@ -169,7 +169,7 @@ export default function AgentCustomerChat() {
     const refresh = async () => {
       try {
         const { data } = await supabase.functions.invoke('get-chat-online-config', {
-          body: { agentId },
+          body: { agentId, conversationId: conversationId || undefined },
         });
         const agent = data?.agent;
         if (!agent) return;
@@ -178,6 +178,11 @@ export default function AgentCustomerChat() {
         const cfg = (agent.config || {}) as any;
         setQueueEnabled(cfg.queueEnabled === true);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+        if (data?.queue) {
+          setQueuePosition(
+            data.queue.position === null || data.queue.position === undefined ? null : Number(data.queue.position),
+          );
+        }
         if (cfg.statusColors) {
           setStatusColors({
             online: cfg.statusColors.online || '#22c55e',
@@ -192,6 +197,7 @@ export default function AgentCustomerChat() {
         /* silencioso */
       }
     };
+    refresh();
     const interval = setInterval(refresh, 10000);
     const onVisible = () => {
       if (document.visibilityState === 'visible') refresh();
@@ -207,12 +213,22 @@ export default function AgentCustomerChat() {
       })
       .subscribe();
 
+    // Fila de espera em tempo real
+    const queueChannel = supabase
+      .channel(`chat-queue-${agentId}`)
+      .on('broadcast', { event: 'queue' }, () => {
+        refresh();
+      })
+      .subscribe();
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
       supabase.removeChannel(statusChannel);
+      supabase.removeChannel(queueChannel);
     };
-  }, [agentId]);
+  }, [agentId, conversationId]);
+
 
 
   useEffect(() => {
