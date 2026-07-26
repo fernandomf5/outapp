@@ -50,6 +50,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   });
   const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
   const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
+  const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState("Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.");
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
@@ -96,6 +97,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         }
         if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
         if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
+        if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
       }
     };
     
@@ -194,7 +196,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   };
 
   const saveContactEmailSettings = () => {
-    saveChatConfig({ contactEmailMessage, contactEmailButtonText });
+    saveChatConfig({ contactEmailMessage, contactEmailButtonText, contactEmailSuccessMessage });
   };
 
   // Enviar aviso de fila na conversa selecionada
@@ -823,6 +825,16 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   rows={2}
                   placeholder="Mensagem exibida no chat"
                 />
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-xs">Mensagem de confirmação após o envio do formulário</Label>
+                  <Textarea
+                    value={contactEmailSuccessMessage}
+                    onChange={(e) => setContactEmailSuccessMessage(e.target.value)}
+                    onBlur={saveContactEmailSettings}
+                    rows={2}
+                    placeholder="Sua mensagem foi enviada! Vamos te retornar por e-mail em breve."
+                  />
+                </div>
               </div>
             </div>
           </CardContent>

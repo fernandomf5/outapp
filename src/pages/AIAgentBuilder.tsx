@@ -43,6 +43,7 @@ const AIAgentBuilder = () => {
   const [offlineStatusColor, setOfflineStatusColor] = useState("#64748b");
   const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
   const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
+  const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState("Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.");
   const [isFloating, setIsFloating] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -59,6 +60,7 @@ const AIAgentBuilder = () => {
         setOfflineStatusColor(agent.config?.statusColors?.offline || "#64748b");
         setContactEmailMessage(agent.config?.contactEmailMessage || "Fale conosco por e-mail. Atendimento em até 24h.");
         setContactEmailButtonText(agent.config?.contactEmailButtonText || "Fale conosco por e-mail");
+        setContactEmailSuccessMessage(agent.config?.contactEmailSuccessMessage || "Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.");
         setLogoUrl(agent.config?.logoUrl || "");
         setIsFloating(!!agent.config?.isFloating);
       }).catch(console.error);
@@ -131,6 +133,7 @@ const AIAgentBuilder = () => {
           },
           contactEmailMessage,
           contactEmailButtonText,
+          contactEmailSuccessMessage,
           logoUrl,
           isFloating,
         },
@@ -293,6 +296,15 @@ const AIAgentBuilder = () => {
                     onChange={(e) => setContactEmailMessage(e.target.value)}
                     rows={2}
                     placeholder="Fale conosco por e-mail. Atendimento em até 24h."
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label className="text-sm font-medium">Mensagem de confirmação após envio</Label>
+                  <Textarea
+                    value={contactEmailSuccessMessage}
+                    onChange={(e) => setContactEmailSuccessMessage(e.target.value)}
+                    rows={2}
+                    placeholder="Sua mensagem foi enviada! Vamos te retornar por e-mail em breve."
                   />
                 </div>
               </div>
