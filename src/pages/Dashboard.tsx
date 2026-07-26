@@ -311,7 +311,7 @@ const Dashboard = () => {
       // For team members, use admin's user ID; for regular users, use their own
       if (!effectiveUserId) return;
 
-      // Buscar agentes IA do usuário com contagem de cliques
+      // Buscar chats online do usuário com contagem de cliques
       const { data: agentsData, error: agentsError } = await supabase
         .from('ai_agents')
         .select(`
@@ -365,7 +365,7 @@ const Dashboard = () => {
 
     fetchData();
 
-    // Subscrever mudanças em tempo real para agentes IA (only for regular users)
+    // Subscrever mudanças em tempo real para chats online (only for regular users)
     if (!isTeamMember && effectiveUserId) {
       const agentsSubscription = supabase
         .channel('ai_agents_changes')
@@ -421,8 +421,8 @@ const Dashboard = () => {
     } else {
       setAiAgents(aiAgents.filter(agent => agent.id !== agentToDelete.id));
       toast({
-        title: "Agente IA excluído",
-        description: "O agente foi removido com sucesso.",
+        title: "Chat excluído",
+        description: "O chat online foi removido com sucesso.",
       });
     }
     setAgentToDelete(null);
@@ -445,17 +445,11 @@ const Dashboard = () => {
 
   const handleCopyAgentLink = (agentId: string, agentName: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const slug = (agentName || '')
-      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-      .toLowerCase().trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-    const link = `${window.location.origin}/chat/${agentId}/${slug || 'agent'}`;
+    const link = `${window.location.origin}/chat-online/${agentId}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado! 🔗",
-      description: "O link do agente IA foi copiado para a área de transferência.",
+      description: "O link do chat online foi copiado para a área de transferência.",
     });
   };
 
@@ -618,7 +612,7 @@ const Dashboard = () => {
                 <div className="flex-1">
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chat Online</h3>
                   <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                    Assistente inteligente com IA que aprende com seu negócio
+                    Sistema de conversa para atendimento online no site
                   </p>
                 </div>
                 <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
@@ -1539,8 +1533,8 @@ const Dashboard = () => {
         open={!!agentToDelete}
         onOpenChange={(open) => !open && setAgentToDelete(null)}
         onConfirm={handleDeleteAgent}
-        title="Excluir Agente IA"
-        description="Esta ação excluirá permanentemente este agente IA e todas as suas configurações. Para confirmar, digite 'excluir' abaixo."
+        title="Excluir Chat Online"
+        description="Esta ação excluirá permanentemente este chat online e todas as suas configurações. Para confirmar, digite 'excluir' abaixo."
         itemName={agentToDelete?.name}
       />
         </div>

@@ -178,21 +178,15 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
     } else {
       setAgents(agents.filter(agent => agent.id !== deletingId));
       toast({
-        title: t('ai_agent_deleted'),
-        description: t('ai_agent_deleted_desc'),
+        title: "Chat excluído",
+        description: "O chat online foi removido com sucesso.",
       });
     }
     setDeletingId(null);
   };
 
   const handleCopyLink = (agentId: string, agentName: string) => {
-    const slug = (agentName || '')
-      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-      .toLowerCase().trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-    const link = `${window.location.origin}/agent-auth/${agentId}`;
+    const link = `${window.location.origin}/chat-online/${agentId}`;
     navigator.clipboard.writeText(link);
       toast({
         title: "Link copiado! 🔗",
@@ -201,13 +195,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
   };
 
   const handleOpenChat = (agentId: string, agentName: string) => {
-    const slug = (agentName || '')
-      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-      .toLowerCase().trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-    window.open(`/agent-auth/${agentId}`, '_blank');
+    window.open(`/chat-online/${agentId}`, '_blank');
   };
 
   if (loading) {
@@ -372,9 +360,9 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('delete_ai_agent')}</AlertDialogTitle>
+            <AlertDialogTitle>Excluir Chat Online</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('delete_ai_agent_confirm')}
+              Tem certeza que deseja excluir este chat online? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

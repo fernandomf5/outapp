@@ -69,13 +69,13 @@ const Index = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [landingSettings, setLandingSettings] = useState({
     landing_title: "A Solução Tudo em Um<br />para Empreendedores Digitais.",
-    hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
-    hero_subtitle: "Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão, agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
+    hero_title: "Plataforma Completa de Automação<br />e Marketing Digital",
+    hero_subtitle: "CRM, chat online, sistema de afiliados, pixels de conversão, gestão de leads e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
     hero_cta_text: "Começar Teste Grátis",
     video_section_title: "Veja a Plataforma em Ação",
     video_section_subtitle: "Descubra como é fácil automatizar seu negócio com nossa plataforma completa",
     features_title: "Tudo que Você Precisa em Uma Plataforma",
-    features_subtitle: "Automação, IA, CRM, Afiliados, Analytics e muito mais para fazer seu negócio crescer",
+    features_subtitle: "Automação, CRM, Afiliados, Analytics e muito mais para fazer seu negócio crescer",
     pricing_title: "Planos para Todos os Tamanhos",
     pricing_subtitle: "Comece com 3 dias grátis e escolha o melhor plano para seu negócio crescer",
     cta_title: "Pronto para Transformar seu Negócio?",
@@ -298,8 +298,8 @@ const Index = () => {
     },
     {
       icon: "Brain",
-      title: "Agentes IA Personalizados",
-      description: "Crie agentes de IA treinados com seus dados e personalidade da sua marca",
+      title: "Chat Online para Atendimento",
+      description: "Atenda clientes no site com conversas em tempo real, status do atendente e formulário por e-mail",
     },
     {
       icon: "Users",
