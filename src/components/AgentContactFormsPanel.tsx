@@ -391,21 +391,6 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                 </Button>
               </div>
 
-              <div className="space-y-2">
-                <Input
-                  value={replySubject}
-                  onChange={(e) => setReplySubject(e.target.value)}
-                  placeholder="Assunto"
-                  maxLength={150}
-                />
-                <Textarea
-                  value={replyBody}
-                  onChange={(e) => setReplyBody(e.target.value)}
-                  rows={7}
-                  placeholder="Escreva sua resposta..."
-                  maxLength={3000}
-                />
-              </div>
             </div>
           )}
 
@@ -413,10 +398,11 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
             <Button variant="outline" onClick={() => setSelected(null)}>
               Fechar
             </Button>
-            <Button onClick={sendByEmail} disabled={!replyBody.trim()}>
-              <Mail className="w-4 h-4 mr-2" /> Enviar por e-mail
+            <Button onClick={markAsReplied} disabled={!selected}>
+              <CheckCheck className="w-4 h-4 mr-2" /> Marcar como respondida
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
 
