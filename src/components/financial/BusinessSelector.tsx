@@ -225,7 +225,7 @@ interface RegistrationContact {
   email?: string | null;
   phone?: string | null;
   company?: string | null;
-  category_id?: string | null;
+  registration_category_id?: string | null;
 }
 
 export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipleBusinesses, onCreateBusiness, onCreateBusinessesFromRegistrations, onUpdateBusiness, onDeleteBusiness, onReorderBusinesses }: BusinessSelectorProps) => {
@@ -328,7 +328,7 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
       const [{ data: contactsData, error: contactsError }, { data: categoriesData }] = await Promise.all([
         supabase
           .from('contacts')
-          .select('id, name, email, phone, company, category_id')
+          .select('id, name, email, phone, company, registration_category_id')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false }),
         supabase
@@ -360,7 +360,7 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
   const existingNames = new Set(businesses.map(b => b.name.trim().toLowerCase()));
 
   const filteredContacts = contacts.filter((c) => {
-    const matchesCategory = categoryFilter === 'all' || c.category_id === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || c.registration_category_id === categoryFilter;
     const term = contactSearch.trim().toLowerCase();
     const matchesSearch =
       !term ||
