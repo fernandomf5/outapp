@@ -7244,6 +7244,7 @@ export type Database = {
           primary_color: string | null
           secondary_color: string | null
           sections: Json
+          settings: Json
           slug: string | null
           template: string
           theme: Json
@@ -7289,6 +7290,7 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           sections?: Json
+          settings?: Json
           slug?: string | null
           template?: string
           theme?: Json
@@ -7334,6 +7336,7 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           sections?: Json
+          settings?: Json
           slug?: string | null
           template?: string
           theme?: Json
