@@ -202,6 +202,7 @@ export function UserSidebar() {
     { title: t('qr_code_generator'), icon: QrCode, path: "/dashboard", tab: "qrcode", hideForTeamMember: true },
     
     { title: "Scripts de Atendimento", icon: MessageSquare, path: "/dashboard", tab: "scripts", hideForTeamMember: true },
+    { title: "Produtos e Serviços", icon: ShoppingBag, path: "/dashboard", tab: "produtos-servicos", hideForTeamMember: true },
   ];
 
   const advancedResourcesItems: MenuItem[] = [
@@ -212,6 +213,7 @@ export function UserSidebar() {
     { title: "Chat Online", icon: MessageSquare, path: "/dashboard", tab: "chat-online", moduleKey: "ai_agents" },
     { title: "Página de Captura", icon: Target, path: "/dashboard", tab: "pagina-captura", hideForTeamMember: true },
     { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio", hideForTeamMember: true },
+    { title: "Criador de Catálogo", icon: ShoppingBag, path: "/dashboard", tab: "catalogo", hideForTeamMember: true },
 
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: t('link_in_bio'), icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },

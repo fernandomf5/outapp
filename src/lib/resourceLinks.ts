@@ -67,6 +67,8 @@ export const RESOURCE_TYPES: ResourceTypeDef[] = [
   { key: "aprova_job", label: "Aprova Job", table: "aprova_job_jobs", titleColumns: ["title"], tab: "aprova-job", icon: ClipboardList },
   { key: "capture_page", label: "Página de Captura", table: "capture_pages", titleColumns: ["title", "slug"], tab: "pagina-captura", icon: Globe },
   { key: "portfolio", label: "Portfólio", table: "portfolios", titleColumns: ["name", "slug"], tab: "portfolio", icon: Layers },
+  { key: "catalog", label: "Catálogo", table: "catalogs", titleColumns: ["name", "slug"], tab: "catalogo", icon: ShoppingCart },
+  { key: "product", label: "Produto/Serviço", table: "products", titleColumns: ["name"], tab: "produtos-servicos", icon: ShoppingCart },
 
 ];
 
