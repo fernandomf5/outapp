@@ -319,6 +319,97 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
     setDeletingBusiness(null);
   };
 
+  const loadRegistrations = async () => {
+    try {
+      setLoadingContacts(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [{ data: contactsData, error: contactsError }, { data: categoriesData }] = await Promise.all([
+        supabase
+          .from('contacts')
+          .select('id, name, email, phone, company, category_id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('registration_categories')
+          .select('id, name')
+          .eq('user_id', user.id)
+          .order('name'),
+      ]);
+
+      if (contactsError) throw contactsError;
+      setContacts((contactsData || []) as RegistrationContact[]);
+      setCategories((categoriesData || []) as { id: string; name: string }[]);
+    } catch (error: any) {
+      toast.error('Erro ao carregar cadastros');
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isRegistrationDialogOpen) {
+      setSelectedContactIds(new Set());
+      setContactSearch('');
+      setCategoryFilter('all');
+      loadRegistrations();
+    }
+  }, [isRegistrationDialogOpen]);
+
+  const existingNames = new Set(businesses.map(b => b.name.trim().toLowerCase()));
+
+  const filteredContacts = contacts.filter((c) => {
+    const matchesCategory = categoryFilter === 'all' || c.category_id === categoryFilter;
+    const term = contactSearch.trim().toLowerCase();
+    const matchesSearch =
+      !term ||
+      c.name?.toLowerCase().includes(term) ||
+      (c.email || '').toLowerCase().includes(term) ||
+      (c.phone || '').toLowerCase().includes(term) ||
+      (c.company || '').toLowerCase().includes(term);
+    return matchesCategory && matchesSearch;
+  });
+
+  const toggleContact = (id: string) => {
+    setSelectedContactIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllFilteredContacts = () => {
+    const allSelected = filteredContacts.length > 0 && filteredContacts.every(c => selectedContactIds.has(c.id));
+    setSelectedContactIds(allSelected ? new Set() : new Set(filteredContacts.map(c => c.id)));
+  };
+
+  const handleCreateFromRegistrations = async () => {
+    const selected = contacts.filter(c => selectedContactIds.has(c.id));
+    if (selected.length === 0) return;
+
+    const payload = selected.map((c) => ({
+      name: c.company?.trim() ? `${c.name} (${c.company})` : c.name,
+      business_type: (c.company?.trim() ? 'company' : 'personal') as 'personal' | 'company',
+      description: [c.phone, c.email].filter(Boolean).join(' • ') || 'Gestão criada a partir do Cadastro',
+    }));
+
+    try {
+      setCreatingFromRegistrations(true);
+      if (onCreateBusinessesFromRegistrations) {
+        await onCreateBusinessesFromRegistrations(payload);
+      } else {
+        payload.forEach((item) => onCreateBusiness(item));
+      }
+      setIsRegistrationDialogOpen(false);
+    } finally {
+      setCreatingFromRegistrations(false);
+    }
+  };
+
+
+
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center py-8">
       <div className="text-center mb-8">
