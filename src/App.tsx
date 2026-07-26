@@ -139,6 +139,8 @@ const AppContent = () => {
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
               <Route path="/fatura/:token" element={<InvoicePublicPage />} />
               <Route path="/captura/:slug" element={<CapturePagePublic />} />
+              <Route path="/portfolio/:slug" element={<PortfolioPublic />} />
+
               <Route path="/checkout-editor/:id" element={
                 <ProtectedRoute>
                   <CheckoutEditorPage />
