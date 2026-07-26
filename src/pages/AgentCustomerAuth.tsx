@@ -270,7 +270,6 @@ export default function AgentCustomerAuth() {
               />
             </div>
             <div className="space-y-1.5">
-            <div className="space-y-1.5">
               <Label htmlFor="contact-subject">Assunto</Label>
               <Input
                 id="contact-subject"
