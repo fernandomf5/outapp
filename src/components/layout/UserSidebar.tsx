@@ -379,7 +379,7 @@ export function UserSidebar() {
           {/* Group Rendering Helper */}
           {Object.entries({
             main: { label: t('main'), items: mainItems, show: !isTeamMember },
-            cadastro: { label: "Cadastro", items: registrationCategories, show: !isTeamMember, isCollapsible: true },
+            cadastro: { label: "Gestão Livre", items: registrationCategories, show: !isTeamMember, isCollapsible: true },
             organizer: { label: "Organizador", items: organizerItems, show: hasVisibleItems(organizerItems) },
             financial: { label: t('financial'), items: financialItems, show: hasVisibleItems(financialItems) },
             crm: { label: t('captured_leads'), items: crmItems, show: hasVisibleItems(crmItems) },
