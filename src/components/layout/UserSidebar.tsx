@@ -264,7 +264,7 @@ export function UserSidebar() {
       ...mainItems,
       ...organizerItems,
       ...financialItems,
-      ...crmItems,
+      
       ...basicResourcesItems,
       ...advancedResourcesItems,
       ...supportItems,
