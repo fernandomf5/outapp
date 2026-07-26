@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags } from "lucide-react";
+import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags, Landmark } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +71,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [bankFilter, setBankFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
@@ -118,9 +119,16 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       const matchesStatus = statusFilter === "all" || t.status === statusFilter;
       const matchesCategory = categoryFilter === "all" ||
         (t.category || "").trim().toLowerCase() === categoryFilter.trim().toLowerCase();
-      return matchesSearch && matchesType && matchesStatus && matchesCategory;
+      const matchesBank = bankFilter === "all" ||
+        (bankFilter === "none" ? !t.bank_account_id : t.bank_account_id === bankFilter);
+      return matchesSearch && matchesType && matchesStatus && matchesCategory && matchesBank;
     });
-  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter]);
+  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter, bankFilter]);
+
+  const bankNameById = useMemo(
+    () => new Map<string, string>(bankAccounts.map((a: any) => [a.id, a.bank_name])),
+    [bankAccounts]
+  );
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -438,7 +446,21 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               ))}
             </SelectContent>
           </Select>
+          <Select value={bankFilter} onValueChange={setBankFilter}>
+            <SelectTrigger className="w-[170px]">
+              <Landmark className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Conta" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as contas</SelectItem>
+              <SelectItem value="none">Sem conta</SelectItem>
+              {bankAccounts.map(acc => (
+                <SelectItem key={acc.id} value={acc.id}>{acc.bank_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+
 
         <div className="flex gap-2 w-full md:w-auto">
           <Button variant="outline" className="flex-1 md:flex-none" onClick={() => setIsCategoryManagerOpen(true)}>
@@ -748,6 +770,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                     <TableHead className="w-[40px]"></TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
+                    <TableHead>Conta</TableHead>
                     <TableHead>Vencimento</TableHead>
                     <TableHead>Valor</TableHead>
                     <TableHead>Status</TableHead>
@@ -757,7 +780,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         Nenhuma transação encontrada.
                       </TableCell>
                     </TableRow>
@@ -786,6 +809,16 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                 >
                                   {t.category}
                                 </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {t.bank_account_id ? (
+                                  <span className="inline-flex items-center gap-1 text-sm">
+                                    <Landmark className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {bankNameById.get(t.bank_account_id) || '—'}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">Sem conta</span>
+                                )}
                               </TableCell>
                               <TableCell>{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
                               <TableCell className={t.type === 'income' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
