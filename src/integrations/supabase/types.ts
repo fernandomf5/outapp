@@ -3731,31 +3731,43 @@ export type Database = {
       }
       contact_form_submissions: {
         Row: {
+          agent_id: string | null
           created_at: string | null
           email: string
           id: string
           is_read: boolean | null
           message: string
           name: string
+          notes: string | null
           phone: string | null
+          replied_at: string | null
+          user_id: string | null
         }
         Insert: {
+          agent_id?: string | null
           created_at?: string | null
           email: string
           id?: string
           is_read?: boolean | null
           message: string
           name: string
+          notes?: string | null
           phone?: string | null
+          replied_at?: string | null
+          user_id?: string | null
         }
         Update: {
+          agent_id?: string | null
           created_at?: string | null
           email?: string
           id?: string
           is_read?: boolean | null
           message?: string
           name?: string
+          notes?: string | null
           phone?: string | null
+          replied_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
