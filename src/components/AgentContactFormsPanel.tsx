@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Phone, Trash2, CheckCheck, Search, Inbox, Send, Copy, CalendarDays, Clock } from "lucide-react";
+import { Mail, Phone, Trash2, CheckCheck, Search, Inbox, Copy, CalendarDays, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -50,8 +50,6 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
   const [items, setItems] = useState<Submission[]>([]);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Submission | null>(null);
-  const [replySubject, setReplySubject] = useState("");
-  const [replyBody, setReplyBody] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
@@ -92,8 +90,6 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
 
   const openConversation = async (item: Submission) => {
     setSelected(item);
-    setReplySubject(item.subject ? `Re: ${item.subject}` : `Re: sua mensagem no chat online`);
-    setReplyBody(`Olá ${item.name},\n\n`);
 
     if (!item.is_read) {
       await supabase
@@ -106,27 +102,24 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
     }
   };
 
-  const sendByEmail = async () => {
+  const markAsReplied = async () => {
     if (!selected) return;
-    const url = `mailto:${encodeURIComponent(selected.email)}?subject=${encodeURIComponent(
-      replySubject
-    )}&body=${encodeURIComponent(replyBody)}`;
-    window.open(url, "_blank");
-
+    const now = new Date().toISOString();
     await supabase
       .from("contact_form_submissions")
-      .update({ replied_at: new Date().toISOString(), is_read: true })
+      .update({ replied_at: now, is_read: true })
       .eq("id", selected.id);
 
     setItems((prev) =>
       prev.map((i) =>
-        i.id === selected.id
-          ? { ...i, replied_at: new Date().toISOString(), is_read: true }
-          : i
+        i.id === selected.id ? { ...i, replied_at: now, is_read: true } : i
       )
     );
-    toast.success("Abrindo seu e-mail para responder o cliente");
+    setSelected(null);
+    toast.success("Mensagem marcada como respondida");
   };
+
+
 
   const confirmDelete = async () => {
     if (!deleteId) return;
@@ -292,8 +285,9 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                           openConversation(item);
                         }}
                       >
-                        <Send className="w-3.5 h-3.5 mr-1" /> Responder por e-mail
+                        <Inbox className="w-3.5 h-3.5 mr-1" /> Ver mensagem
                       </Button>
+
                       <Button
                         size="sm"
                         variant="outline"
@@ -391,21 +385,6 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                 </Button>
               </div>
 
-              <div className="space-y-2">
-                <Input
-                  value={replySubject}
-                  onChange={(e) => setReplySubject(e.target.value)}
-                  placeholder="Assunto"
-                  maxLength={150}
-                />
-                <Textarea
-                  value={replyBody}
-                  onChange={(e) => setReplyBody(e.target.value)}
-                  rows={7}
-                  placeholder="Escreva sua resposta..."
-                  maxLength={3000}
-                />
-              </div>
             </div>
           )}
 
@@ -413,10 +392,11 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
             <Button variant="outline" onClick={() => setSelected(null)}>
               Fechar
             </Button>
-            <Button onClick={sendByEmail} disabled={!replyBody.trim()}>
-              <Mail className="w-4 h-4 mr-2" /> Enviar por e-mail
+            <Button onClick={markAsReplied} disabled={!selected}>
+              <CheckCheck className="w-4 h-4 mr-2" /> Marcar como respondida
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
 
