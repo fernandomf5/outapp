@@ -61,10 +61,6 @@ const AIAgentBuilder = () => {
         setContactEmailButtonText(agent.config?.contactEmailButtonText || "Fale conosco por e-mail");
         setLogoUrl(agent.config?.logoUrl || "");
         setIsFloating(!!agent.config?.isFloating);
-        const at = (agent as any).access_type || 'public';
-        const normalizedAt = at === 'restricted' ? 'private' : at;
-        setAccessType(normalizedAt);
-        setOriginalAccessType(normalizedAt);
       }).catch(console.error);
     }
   }, [agentId, user]);
