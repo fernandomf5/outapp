@@ -155,6 +155,39 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     }
   };
 
+  const handleCreateBusinessesFromRegistrations = async (
+    items: { name: string; business_type: 'personal' | 'company'; description: string }[]
+  ) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('financial_businesses')
+        .insert(
+          items.map((item) => ({
+            user_id: user.id,
+            name: item.name,
+            business_type: item.business_type,
+            description: item.description || null,
+          }))
+        );
+
+      if (error) throw error;
+
+      toast.success(
+        items.length > 1
+          ? `${items.length} gestões criadas a partir dos cadastros!`
+          : 'Gestão criada a partir do cadastro!'
+      );
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error('Erro ao criar gestões a partir dos cadastros');
+    }
+  };
+
+
+
   const handleUpdateBusiness = async (id: string, data: { name: string; business_type: 'personal' | 'company'; description: string }) => {
     try {
       const { error } = await supabase
@@ -213,6 +246,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           onSelectBusiness={handleSelectBusiness}
           onSelectMultipleBusinesses={handleSelectMultipleBusinesses}
           onCreateBusiness={handleCreateBusiness}
+          onCreateBusinessesFromRegistrations={handleCreateBusinessesFromRegistrations}
           onUpdateBusiness={handleUpdateBusiness}
           onDeleteBusiness={handleDeleteBusiness}
           onReorderBusinesses={handleReorderBusinesses}
