@@ -18,7 +18,7 @@ export default function AgentCustomerAuth() {
   const [attendantStatus, setAttendantStatus] = useState<string>('offline');
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [formData, setFormData] = useState({ name: "" });
 
   useEffect(() => {
     const loadAgent = async () => {
