@@ -1168,6 +1168,11 @@ export default function AgentCustomerChat() {
                             </span>
                           )}
                           <span className="text-muted-foreground">{queueMessage}</span>
+                          {queueEta > 0 && (
+                            <span className="text-muted-foreground">
+                              Tempo estimado: ~{queueEta * Math.max(1, queuePosition)} min.
+                            </span>
+                          )}
                         </span>
                       ) : (
                         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -1177,6 +1182,7 @@ export default function AgentCustomerChat() {
                             </Badge>
                           )}
                           <span>{queueMessage}</span>
+                          {queueEta > 0 && <span className="text-muted-foreground">Tempo estimado: ~{queueEta} min.</span>}
                         </span>
                       )}
                     </AlertDescription>
