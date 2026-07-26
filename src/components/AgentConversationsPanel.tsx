@@ -992,15 +992,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleRestartConversation(selectedConversation.id)}
-                      className="gap-2 border-primary text-primary hover:bg-primary hover:text-white transition-all shadow-sm font-bold"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Reiniciar Chat
-                    </Button>
+
 
                     <Select value={selectedConversation.status} onValueChange={updateStatus}>
                       <SelectTrigger className="w-[180px]">
