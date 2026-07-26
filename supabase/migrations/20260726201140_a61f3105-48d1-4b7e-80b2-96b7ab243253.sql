@@ -1,0 +1,1 @@
+ALTER TABLE public.registration_categories ADD COLUMN IF NOT EXISTS custom_schema jsonb NOT NULL DEFAULT '[]'::jsonb;
