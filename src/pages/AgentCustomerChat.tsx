@@ -1105,14 +1105,28 @@ export default function AgentCustomerChat() {
                 )}
 
                 {/* Aviso de fila de espera */}
-                {queueEnabled && attendantStatus !== 'online' && (
-                  <Alert className="mt-2 py-1.5 sm:py-2 border-yellow-500/60">
+                {queueEnabled && (queuePosition !== null || attendantStatus !== 'online') && (
+                  <Alert
+                    className={`mt-2 py-1.5 sm:py-2 ${
+                      queuePosition === 0 ? 'border-green-500/60' : 'border-yellow-500/60'
+                    }`}
+                  >
                     <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                     <AlertDescription className="ml-2 text-xs sm:text-sm">
-                      {queueMessage}
+                      {queuePosition === 0 ? (
+                        <span className="font-semibold">É a sua vez! O atendente já está com você.</span>
+                      ) : queuePosition !== null ? (
+                        <>
+                          <span className="font-semibold">Você é o nº {queuePosition} da fila.</span>{' '}
+                          {queueMessage}
+                        </>
+                      ) : (
+                        queueMessage
+                      )}
                     </AlertDescription>
                   </Alert>
                 )}
+
 
                 {/* Opção de contato por e-mail (sempre disponível) */}
                 <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">
