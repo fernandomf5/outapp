@@ -42,6 +42,11 @@ const AIAgentBuilder = () => {
   const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#6366f1");
   const [secondaryColor, setSecondaryColor] = useState("#8b5cf6");
+  const [onlineStatusColor, setOnlineStatusColor] = useState("#22c55e");
+  const [busyStatusColor, setBusyStatusColor] = useState("#eab308");
+  const [offlineStatusColor, setOfflineStatusColor] = useState("#64748b");
+  const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
+  const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
   const [isFloating, setIsFloating] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -53,6 +58,11 @@ const AIAgentBuilder = () => {
         setWelcomeMessage(agent.config?.welcomeMessage || "");
         setPrimaryColor(agent.config?.primaryColor || "#6366f1");
         setSecondaryColor(agent.config?.secondaryColor || "#8b5cf6");
+        setOnlineStatusColor(agent.config?.statusColors?.online || "#22c55e");
+        setBusyStatusColor(agent.config?.statusColors?.busy || "#eab308");
+        setOfflineStatusColor(agent.config?.statusColors?.offline || "#64748b");
+        setContactEmailMessage(agent.config?.contactEmailMessage || "Fale conosco por e-mail. Atendimento em até 24h.");
+        setContactEmailButtonText(agent.config?.contactEmailButtonText || "Fale conosco por e-mail");
         setLogoUrl(agent.config?.logoUrl || "");
         setIsFloating(!!agent.config?.isFloating);
         const at = (agent as any).access_type || 'public';
@@ -168,6 +178,13 @@ const AIAgentBuilder = () => {
           aiEnabled: false, // AI always disabled
           primaryColor,
           secondaryColor,
+          statusColors: {
+            online: onlineStatusColor,
+            busy: busyStatusColor,
+            offline: offlineStatusColor,
+          },
+          contactEmailMessage,
+          contactEmailButtonText,
           logoUrl,
           isFloating,
         },
@@ -198,7 +215,7 @@ const AIAgentBuilder = () => {
       return;
     }
 
-    const link = `${window.location.origin}/agent-auth/${agentId}`;
+    const link = `${window.location.origin}/chat-online/${agentId}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado! 🔗",
@@ -216,7 +233,7 @@ const AIAgentBuilder = () => {
       return;
     }
     
-    const link = `${window.location.origin}/agent-auth/${agentId}`;
+    const link = `${window.location.origin}/chat-online/${agentId}`;
     window.open(link, '_blank');
   };
 
@@ -290,16 +307,16 @@ const AIAgentBuilder = () => {
               </div>
 
               <div>
-                <Label className="text-base sm:text-lg font-semibold mb-3 block">Mensagem de Boas-vindas</Label>
+                <Label className="text-base sm:text-lg font-semibold mb-3 block">Aviso inicial do chat</Label>
                 <Textarea
                   value={welcomeMessage}
                   onChange={(e) => setWelcomeMessage(e.target.value)}
-                  placeholder="Ex: Olá! Como posso ajudar você hoje?"
+                  placeholder="Ex: Olá! Envie sua mensagem e nossa equipe responderá por aqui."
                   rows={3}
                   className="bg-background"
                 />
                 <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-                  Esta mensagem será exibida quando o cliente iniciar uma conversa
+                  Este aviso aparece no chat sem ser enviado como mensagem automática.
                 </p>
               </div>
             </div>
@@ -333,6 +350,34 @@ const AIAgentBuilder = () => {
                   ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
                   : '✓ Usuários podem se cadastrar e usar o chat livremente'}
               </p>
+            </div>
+          </Card>
+
+          <Card className="p-4 sm:p-6 border-primary/20">
+            <div className="max-w-2xl space-y-4">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                <Label className="text-base sm:text-lg font-semibold">Contato por e-mail no chat</Label>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Texto do botão</Label>
+                  <Input
+                    value={contactEmailButtonText}
+                    onChange={(e) => setContactEmailButtonText(e.target.value)}
+                    placeholder="Fale conosco por e-mail"
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label className="text-sm font-medium">Mensagem exibida</Label>
+                  <Textarea
+                    value={contactEmailMessage}
+                    onChange={(e) => setContactEmailMessage(e.target.value)}
+                    rows={2}
+                    placeholder="Fale conosco por e-mail. Atendimento em até 24h."
+                  />
+                </div>
+              </div>
             </div>
           </Card>
           
@@ -495,6 +540,29 @@ const AIAgentBuilder = () => {
                     Botão Secundário
                   </div>
                 </div>
+              </div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { label: 'Online', value: onlineStatusColor, onChange: setOnlineStatusColor },
+                  { label: 'Ocupado', value: busyStatusColor, onChange: setBusyStatusColor },
+                  { label: 'Offline', value: offlineStatusColor, onChange: setOfflineStatusColor },
+                ].map((item) => (
+                  <div key={item.label} className="space-y-2">
+                    <Label className="text-sm font-medium">Cor do status {item.label}</Label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={item.value}
+                        onChange={(e) => item.onChange(e.target.value)}
+                        className="w-12 h-12 rounded-lg border border-border cursor-pointer"
+                      />
+                      <Input
+                        value={item.value}
+                        onChange={(e) => item.onChange(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </Card>
