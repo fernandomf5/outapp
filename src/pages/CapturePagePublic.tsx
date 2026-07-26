@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { CapturePageRenderer } from "@/components/capture/CapturePageRenderer";
 import { DEFAULT_SETTINGS, DEFAULT_THEME } from "@/components/capture/captureTypes";
+import { PageEmbeds } from "@/components/embeds/PageEmbeds";
 
 const db = supabase as any;
 
@@ -64,6 +65,7 @@ const CapturePagePublic = () => {
         <link rel="canonical" href={`${window.location.origin}/captura/${page.slug}`} />
       </Helmet>
       <CapturePageRenderer page={page} mode="live" />
+      <PageEmbeds settings={page.settings} />
     </>
   );
 };

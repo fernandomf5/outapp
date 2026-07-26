@@ -1,5 +1,6 @@
 import { Camera, Code2, Film, Palette, Share2, Megaphone, Building2, HardHat, Briefcase, Brush, FolderKanban, Building, Wrench, UserRound, Sparkles, type LucideIcon } from "lucide-react";
 import { CaptureField, CaptureTheme, DEFAULT_THEME, makeField, uid } from "@/components/capture/captureTypes";
+import { DEFAULT_EMBEDS, PageEmbedSettings } from "@/components/embeds/pageEmbedTypes";
 
 export type PortfolioField = CaptureField;
 
@@ -504,6 +505,7 @@ export interface PortfolioRecord {
   sections: PortfolioSection[];
   custom_fields: PortfolioField[];
   contact: PortfolioContact;
+  settings: PageEmbedSettings;
   created_at: string;
   updated_at: string;
 }
@@ -528,6 +530,8 @@ export interface PortfolioItemRecord {
   is_published: boolean;
   display_order: number | null;
 }
+
+export const DEFAULT_PORTFOLIO_SETTINGS = (): PageEmbedSettings => ({ ...DEFAULT_EMBEDS });
 
 export const DEFAULT_PORTFOLIO_THEME = (): CaptureTheme => ({
   ...DEFAULT_THEME,

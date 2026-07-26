@@ -27,6 +27,7 @@ import { CaptureFormBuilder } from "./capture/CaptureFormBuilder";
 import { CaptureThemeEditor } from "./capture/CaptureThemeEditor";
 import { CapturePageRenderer } from "./capture/CapturePageRenderer";
 import { CaptureLeadsPanel } from "./capture/CaptureLeadsPanel";
+import { EmbedSettingsCard } from "./embeds/EmbedSettingsCard";
 
 const db = supabase as any;
 
@@ -282,7 +283,13 @@ export const CapturePageCreatorPanel = () => {
                       <Button variant="outline" size="sm" onClick={() => window.open(publicUrl(editing.slug), "_blank")}><ExternalLink className="mr-1 h-4 w-4" />Abrir</Button>
                     </div>
                   </Card>
+
+                  <EmbedSettingsCard
+                    value={editing.settings}
+                    onChange={(embeds) => patch({ settings: { ...editing.settings, ...embeds } as CaptureSettings })}
+                  />
                 </TabsContent>
+
               </div>
             </Tabs>
           </Card>

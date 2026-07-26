@@ -11,6 +11,7 @@ import {
   PortfolioRecord,
 } from "@/components/portfolio/portfolioTypes";
 import { PortfolioRenderer } from "@/components/portfolio/PortfolioRenderer";
+import { PageEmbeds } from "@/components/embeds/PageEmbeds";
 
 const db = supabase as any;
 
@@ -42,6 +43,7 @@ const PortfolioPublic = () => {
         custom_fields: Array.isArray(data.custom_fields) ? data.custom_fields : [],
         contact: { ...DEFAULT_CONTACT, ...(data.contact || {}) },
         layout: (data.layout || "grid") as PortfolioLayout,
+        settings: data.settings || {},
       };
       setPortfolio(record);
 
@@ -90,7 +92,12 @@ const PortfolioPublic = () => {
     );
   }
 
-  return <PortfolioRenderer portfolio={portfolio} items={items} mode="live" />;
+  return (
+    <>
+      <PortfolioRenderer portfolio={portfolio} items={items} mode="live" />
+      <PageEmbeds settings={portfolio.settings} />
+    </>
+  );
 };
 
 export default PortfolioPublic;
