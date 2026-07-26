@@ -13,6 +13,7 @@ import { FinancialOverview } from "./finance/FinancialOverview";
 import { TransactionManager } from "./finance/TransactionManager";
 import { BankAccountSection } from "./finance/BankAccountSection";
 import { ReportCenter } from "./finance/ReportCenter";
+import { TransactionHistory } from "./finance/TransactionHistory";
 import { BusinessSelector } from "@/components/financial/BusinessSelector";
 
 interface Business {
