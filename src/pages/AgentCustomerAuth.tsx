@@ -64,6 +64,8 @@ export default function AgentCustomerAuth() {
             offline: config.statusColors.offline || '#64748b',
           });
         }
+        if (config.contactEmailMessage) setContactEmailMessage(config.contactEmailMessage);
+        if (config.contactEmailButtonText) setContactEmailButtonText(config.contactEmailButtonText);
         if (agent.name) setAgentName(agent.name);
         setAttendantStatus(agent.attendant_status || 'offline');
         setAttendantName(agent.attendant_name || null);
