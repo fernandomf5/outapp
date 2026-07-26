@@ -21,6 +21,9 @@ verify_jwt = false
 [functions.init-agent-conversation]
 verify_jwt = false
 
+[functions.get-chat-online-config]
+verify_jwt = false
+
 [functions.send-verification-email]
 verify_jwt = false
 
