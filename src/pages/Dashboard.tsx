@@ -146,7 +146,9 @@ const Dashboard = () => {
   const [agentToDelete, setAgentToDelete] = useState<{id: string, name: string} | null>(null);
   const [selectedAgentForManagement, setSelectedAgentForManagement] = useState<any>(null);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const activeTab = searchParams.get('tab') || 'overview';
+  const rawTab = searchParams.get('tab');
+  // Compatibilidade: slug antigo "ai-agents" agora é "chat-online"
+  const activeTab = (rawTab === 'ai-agents' ? 'chat-online' : rawTab) || 'overview';
   const section = searchParams.get('section');
   const chatbotId = searchParams.get('chatbotId');
   const agentId = searchParams.get('agentId');
