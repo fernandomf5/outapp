@@ -22,6 +22,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2, GripVertical } from "lucide-react";
+import { ContactPicker } from "@/components/registration/ContactPicker";
+import { useResourceContactLink } from "@/hooks/useContactResourceLinks";
 
 interface Block {
   id: string;
@@ -76,6 +78,8 @@ export const TaskDialog = ({
   });
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [newItemText, setNewItemText] = useState("");
+  const { contactId, setContactId, saveLink } = useResourceContactLink("task", task?.id);
+
 
   useEffect(() => {
     if (task) {
@@ -157,6 +161,7 @@ export const TaskDialog = ({
           .eq("id", task.id);
         
         if (error) throw error;
+        await saveLink(task.id, contactId, formData.title);
         toast.success("Tarefa atualizada");
       } else {
         // Create
@@ -171,7 +176,7 @@ export const TaskDialog = ({
 
         const nextOrder = (lastTask?.task_order ?? -1) + 1;
 
-        const { error } = await supabase
+        const { data: created, error } = await supabase
           .from("tasks")
           .insert({
             title: formData.title,
@@ -185,12 +190,18 @@ export const TaskDialog = ({
             task_order: nextOrder,
             status: "pending",
             checklist: checklist as any
-          });
+          })
+          .select("id")
+          .maybeSingle();
 
         
         if (error) throw error;
+        if (created?.id && contactId) {
+          await saveLink(created.id, contactId, formData.title);
+        }
         toast.success("Tarefa criada");
       }
+
 
       onSuccess();
       onOpenChange(false);
@@ -290,6 +301,17 @@ export const TaskDialog = ({
               />
             </div>
           </div>
+
+          <div className="rounded-md border p-3">
+            <ContactPicker
+              value={contactId}
+              onChange={setContactId}
+              label="Cadastro vinculado (opcional)"
+              placeholder="Avulso (sem cadastro)"
+            />
+          </div>
+
+
 
           <div className="space-y-2 rounded-md border p-3">
             <div className="flex items-center justify-between">

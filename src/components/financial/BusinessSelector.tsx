@@ -58,7 +58,7 @@ interface BusinessSelectorProps {
   onSelectMultipleBusinesses?: (businessIds: string[]) => void;
   onCreateBusiness: (data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
   onCreateBusinessesFromRegistrations?: (
-    items: { name: string; business_type: 'personal' | 'company'; description: string }[]
+    items: { name: string; business_type: 'personal' | 'company'; description: string; contact_id?: string; category_id?: string | null }[]
   ) => Promise<void> | void;
   onUpdateBusiness?: (id: string, data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
   onDeleteBusiness?: (id: string) => void;
@@ -393,6 +393,8 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
       name: c.company?.trim() ? `${c.name} (${c.company})` : c.name,
       business_type: (c.company?.trim() ? 'company' : 'personal') as 'personal' | 'company',
       description: [c.phone, c.email].filter(Boolean).join(' • ') || 'Gestão criada a partir do Cadastro',
+      contact_id: c.id,
+      category_id: c.registration_category_id ?? null,
     }));
 
     try {

@@ -3865,6 +3865,53 @@ export type Database = {
           },
         ]
       }
+      contact_resource_links: {
+        Row: {
+          category_id: string | null
+          contact_id: string
+          created_at: string
+          id: string
+          resource_id: string
+          resource_title: string | null
+          resource_type: string
+          resource_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          contact_id: string
+          created_at?: string
+          id?: string
+          resource_id: string
+          resource_title?: string | null
+          resource_type: string
+          resource_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          contact_id?: string
+          created_at?: string
+          id?: string
+          resource_id?: string
+          resource_title?: string | null
+          resource_type?: string
+          resource_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_resource_links_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           address: string | null
