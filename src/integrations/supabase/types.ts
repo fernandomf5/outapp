@@ -2300,6 +2300,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           layout_style: string | null
+          linked_registration_category_ids: string[]
           logo_url: string | null
           name: string
           primary_color: string | null
@@ -2330,6 +2331,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           layout_style?: string | null
+          linked_registration_category_ids?: string[]
           logo_url?: string | null
           name: string
           primary_color?: string | null
@@ -2360,6 +2362,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           layout_style?: string | null
+          linked_registration_category_ids?: string[]
           logo_url?: string | null
           name?: string
           primary_color?: string | null
@@ -7684,6 +7687,7 @@ export type Database = {
           entity_kind: string
           icon: string | null
           id: string
+          item_groups: string[]
           logo_url: string | null
           name: string
           sort_order: number
@@ -7698,6 +7702,7 @@ export type Database = {
           entity_kind?: string
           icon?: string | null
           id?: string
+          item_groups?: string[]
           logo_url?: string | null
           name: string
           sort_order?: number
@@ -7712,6 +7717,7 @@ export type Database = {
           entity_kind?: string
           icon?: string | null
           id?: string
+          item_groups?: string[]
           logo_url?: string | null
           name?: string
           sort_order?: number

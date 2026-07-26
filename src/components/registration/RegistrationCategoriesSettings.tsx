@@ -16,6 +16,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { CSS } from "@dnd-kit/utilities";
 import { ENTITY_KINDS, getEntityKind, KindField } from "./entityKinds";
 import { KindFieldsBuilder } from "./KindFieldsBuilder";
+import { ItemGroupsEditor } from "./ItemGroupsEditor";
 
 
 interface Category {
@@ -26,6 +27,7 @@ interface Category {
   system_type: string | null;
   entity_kind?: string | null;
   custom_schema?: any;
+  item_groups?: string[] | null;
   sort_order?: number | null;
   logo_url?: string | null;
 }
@@ -141,6 +143,7 @@ export function RegistrationCategoriesSettings() {
     logo_url: "",
     entity_kind: "people",
     custom_schema: [] as KindField[],
+    item_groups: [] as string[],
   });
 
 
@@ -182,6 +185,7 @@ export function RegistrationCategoriesSettings() {
     logo_url: "",
     entity_kind: "people",
     custom_schema: [] as KindField[],
+    item_groups: [] as string[],
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -196,6 +200,7 @@ export function RegistrationCategoriesSettings() {
         logo_url: formData.logo_url,
         entity_kind: formData.entity_kind,
         custom_schema: formData.custom_schema as any,
+        item_groups: formData.item_groups as any,
       };
       if (editingId) {
         const { error } = await supabase
@@ -238,6 +243,7 @@ export function RegistrationCategoriesSettings() {
       logo_url: (category as any).logo_url || "",
       entity_kind: (category as any).entity_kind || "people",
       custom_schema: Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : [],
+      item_groups: Array.isArray((category as any).item_groups) ? (category as any).item_groups : [],
     });
     setIsDialogOpen(true);
   };
@@ -485,6 +491,15 @@ export function RegistrationCategoriesSettings() {
                 <KindFieldsBuilder
                   fields={formData.custom_schema}
                   onChange={(fields) => setFormData({ ...formData, custom_schema: fields })}
+                />
+              </div>
+            )}
+
+            {(formData.entity_kind === "product" || formData.entity_kind === "service") && (
+              <div className="rounded-lg border p-3">
+                <ItemGroupsEditor
+                  groups={formData.item_groups}
+                  onChange={(item_groups) => setFormData({ ...formData, item_groups })}
                 />
               </div>
             )}

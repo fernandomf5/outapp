@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import CatalogDashboard from "./catalog/CatalogDashboard";
 import CatalogProductSelector from "./catalog/CatalogProductSelector";
+import CatalogRegistrationLinker from "./catalog/CatalogRegistrationLinker";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
@@ -66,6 +67,7 @@ interface Catalog {
   show_all_items: boolean;
   selected_product_ids: string[] | null;
   selected_service_ids: string[] | null;
+  linked_registration_category_ids: string[] | null;
   views_count: number;
   head_code: string | null;
   footer_code: string | null;
@@ -93,6 +95,7 @@ const defaultCatalogForm = {
   show_all_items: true,
   selected_product_ids: [] as string[],
   selected_service_ids: [] as string[],
+  linked_registration_category_ids: [] as string[],
   group_by_category: false,
   head_code: "",
   footer_code: "",
@@ -143,6 +146,7 @@ export default function CatalogCreatorPanel() {
         show_all_items: editingCatalog.show_all_items ?? true,
         selected_product_ids: editingCatalog.selected_product_ids || [],
         selected_service_ids: editingCatalog.selected_service_ids || [],
+        linked_registration_category_ids: (editingCatalog as any).linked_registration_category_ids || [],
         group_by_category: (editingCatalog as any).group_by_category ?? false,
         head_code: editingCatalog.head_code || "",
         footer_code: editingCatalog.footer_code || "",
@@ -301,6 +305,7 @@ export default function CatalogCreatorPanel() {
         show_all_items: formData.show_all_items,
         selected_product_ids: formData.show_all_items ? [] : formData.selected_product_ids,
         selected_service_ids: formData.show_all_items ? [] : formData.selected_service_ids,
+        linked_registration_category_ids: formData.linked_registration_category_ids,
         group_by_category: formData.group_by_category,
       };
 
@@ -867,6 +872,14 @@ export default function CatalogCreatorPanel() {
                 }
                 onChangeServices={(ids) =>
                   setFormData((prev) => ({ ...prev, selected_service_ids: ids }))
+                }
+              />
+
+              <CatalogRegistrationLinker
+                userId={user?.id || ""}
+                selectedIds={formData.linked_registration_category_ids}
+                onChange={(ids) =>
+                  setFormData((prev) => ({ ...prev, linked_registration_category_ids: ids }))
                 }
               />
             </div>

@@ -166,6 +166,7 @@ interface Catalog {
   show_all_items: boolean;
   selected_product_ids: string[] | null;
   selected_service_ids: string[] | null;
+  linked_registration_category_ids: string[] | null;
   views_count: number;
   group_by_category: boolean;
   category_order: string[] | null;
@@ -345,7 +346,7 @@ export default function CatalogPublicPage() {
           .order("order_index", { ascending: true }),
       ]);
 
-      setCategories((categoriesRes.data as any) || []);
+      const baseCategories: Category[] = (categoriesRes.data as any) || [];
 
       let filteredProducts = (productsRes.data as any) || [];
       let filteredServices = (servicesRes.data as any) || [];
@@ -368,8 +369,85 @@ export default function CatalogPublicPage() {
         }
       }
 
+      // Itens vindos da Gestão Livre (categorias vinculadas)
+      const linkedIds = cat.linked_registration_category_ids || [];
+      if (linkedIds.length > 0) {
+        const [linkedCatsRes, linkedItemsRes] = await Promise.all([
+          supabase
+            .from("registration_categories" as any)
+            .select("id,name,color,entity_kind,item_groups,sort_order")
+            .in("id", linkedIds),
+          supabase
+            .from("contacts" as any)
+            .select("*")
+            .in("registration_category_id", linkedIds)
+            .order("name"),
+        ]);
+
+        const linkedCats = ((linkedCatsRes.data as any) || []) as any[];
+        const linkedItems = ((linkedItemsRes.data as any) || []) as any[];
+        const catById = new Map(linkedCats.map((c) => [c.id, c]));
+
+        let orderBase = baseCategories.length;
+        const syntheticCategories: Category[] = [];
+        const ensureCategory = (id: string, name: string, color: string) => {
+          if (syntheticCategories.some((c) => c.id === id)) return;
+          syntheticCategories.push({ id, name, color, order_index: orderBase++ });
+        };
+
+        linkedCats.forEach((c) => {
+          const groups: string[] = Array.isArray(c.item_groups) ? c.item_groups : [];
+          groups.forEach((g) => ensureCategory(`rc:${c.id}:${g}`, g, c.color || cat.primary_color));
+          ensureCategory(`rc:${c.id}:`, c.name, c.color || cat.primary_color);
+        });
+
+        const num = (v: any) => {
+          const n = parseFloat(String(v ?? "").replace(",", "."));
+          return Number.isFinite(n) ? n : 0;
+        };
+
+        linkedItems.forEach((item) => {
+          const parent = catById.get(item.registration_category_id);
+          if (!parent) return;
+          const cf = item.custom_fields || {};
+          const group = typeof cf.__group === "string" && cf.__group ? cf.__group : "";
+          const categoryId = `rc:${parent.id}:${group}`;
+          ensureCategory(categoryId, group || parent.name, parent.color || cat.primary_color);
+          const isService = parent.entity_kind === "service";
+          const mapped: any = {
+            id: item.id,
+            name: item.name,
+            description: cf.description || item.notes || null,
+            description_html: null,
+            category: group || parent.name,
+            category_id: categoryId,
+            price: num(isService ? cf.price : cf.sale_price ?? cf.price),
+            image_url: item.avatar_url || null,
+            gallery_urls: null,
+            is_active: true,
+          };
+          if (isService) {
+            filteredServices = [...filteredServices, { ...mapped, price_type: "fixed", duration_minutes: null }];
+          } else {
+            filteredProducts = [
+              ...filteredProducts,
+              { ...mapped, product_type: "physical", stock_quantity: cf.stock != null ? num(cf.stock) : null },
+            ];
+          }
+        });
+
+        // remove subcategorias vazias
+        const usedIds = new Set(
+          [...filteredProducts, ...filteredServices].map((i: any) => i.category_id).filter(Boolean)
+        );
+        setCategories([...baseCategories, ...syntheticCategories.filter((c) => usedIds.has(c.id))]);
+      } else {
+        setCategories(baseCategories);
+      }
+
       setProducts(filteredProducts);
       setServices(filteredServices);
+
     } catch (err) {
       setError("Erro ao carregar catálogo");
     } finally {
