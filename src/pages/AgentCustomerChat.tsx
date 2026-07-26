@@ -187,14 +187,25 @@ export default function AgentCustomerChat() {
         /* silencioso */
       }
     };
-    const interval = setInterval(refresh, 30000);
+    const interval = setInterval(refresh, 10000);
     const onVisible = () => {
       if (document.visibilityState === 'visible') refresh();
     };
     document.addEventListener('visibilitychange', onVisible);
+
+    // Status do atendente em tempo real
+    const statusChannel = supabase
+      .channel(`chat-status-${agentId}`)
+      .on('broadcast', { event: 'status' }, ({ payload }) => {
+        if (payload?.attendant_status) setAttendantStatus(payload.attendant_status);
+        setAttendantName(payload?.attendant_name || null);
+      })
+      .subscribe();
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
+      supabase.removeChannel(statusChannel);
     };
   }, [agentId]);
 

@@ -122,6 +122,20 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         variant: "destructive",
       });
     } else {
+      // Notifica os chats abertos em tempo real
+      try {
+        const channel = supabase.channel(`chat-status-${agentId}`);
+        await channel.subscribe();
+        await channel.send({
+          type: 'broadcast',
+          event: 'status',
+          payload: { attendant_status: status, attendant_name: senderName || null },
+        });
+        await supabase.removeChannel(channel);
+      } catch (e) {
+        console.error('broadcast status error', e);
+      }
+
       toast({
         title: "Status atualizado",
         description: `Seu status agora é ${status === 'online' ? 'Online' : status === 'busy' ? 'Ocupado' : 'Offline'}.`,
