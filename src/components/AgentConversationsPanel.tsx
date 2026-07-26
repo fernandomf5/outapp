@@ -262,6 +262,47 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     toast({ title: "Fila zerada", description: "Ninguém está mais aguardando na fila." });
   };
 
+  // Cliente saiu do chat: remove da fila e faz todos atrás dele avançarem
+  const handleQueueDropout = async (customerId: string) => {
+    const current = conversationsRef.current;
+    const leaving = current.find(
+      (c) => c.agent_customers?.id === customerId && (c.queue_position ?? 0) > 0,
+    );
+    if (!leaving) return;
+
+    const leftPos = leaving.queue_position as number;
+    const behind = current.filter(
+      (c) => c.id !== leaving.id && (c.queue_position ?? 0) > leftPos,
+    );
+
+    await Promise.all([
+      supabase.from('agent_conversations').update({ queue_position: null }).eq('id', leaving.id),
+      ...behind.map((c) =>
+        supabase
+          .from('agent_conversations')
+          .update({ queue_position: Math.max(0, (c.queue_position ?? 0) - 1) })
+          .eq('id', c.id),
+      ),
+    ]);
+
+    setConversations((prev) =>
+      prev.map((c) => {
+        if (c.id === leaving.id) return { ...c, queue_position: null };
+        if ((c.queue_position ?? 0) > leftPos)
+          return { ...c, queue_position: Math.max(0, (c.queue_position ?? 0) - 1) };
+        return c;
+      }),
+    );
+
+    await broadcastQueue();
+    toast({
+      title: 'Fila atualizada',
+      description: `${leaving.agent_customers?.name || 'Um cliente'} saiu do chat — os próximos avançaram automaticamente.`,
+    });
+  };
+
+
+
 
   const saveChatConfig = async (updates: Record<string, unknown>) => {
     const { data: agent } = await supabase
