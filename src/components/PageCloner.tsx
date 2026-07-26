@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText, Code, Pencil, ShoppingCart, Clock, Mail, FileCode } from "lucide-react";
 import { AnalyticsPanel } from "./cloner/AnalyticsPanel";
 import { LeadsManager } from "./cloner/LeadsManager";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
 interface ClonedPage {
