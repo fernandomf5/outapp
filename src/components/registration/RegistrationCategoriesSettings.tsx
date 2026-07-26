@@ -132,13 +132,17 @@ export function RegistrationCategoriesSettings() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pickingKind, setPickingKind] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     icon: "Database",
     color: "#3b82f6",
     system_type: "client",
     logo_url: "",
+    entity_kind: "people",
+    custom_schema: [] as KindField[],
   });
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
