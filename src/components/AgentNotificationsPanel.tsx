@@ -56,6 +56,10 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("unread");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
 
   useEffect(() => {
     fetchNotifications();
