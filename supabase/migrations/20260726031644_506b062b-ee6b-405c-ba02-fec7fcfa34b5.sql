@@ -1,0 +1,1 @@
+ALTER TABLE public.contact_form_submissions ADD COLUMN IF NOT EXISTS subject text;
