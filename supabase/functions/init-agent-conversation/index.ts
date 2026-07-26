@@ -49,12 +49,11 @@ serve(async (req) => {
     }
 
     if (!existingCustomer) {
-      // Create lightweight customer (name + email only, no registration required)
+      // Create lightweight customer (name only, no registration required)
       const anonName = customerName || 'Visitante';
       const anonEmail = (customerEmail && String(customerEmail).trim())
         ? String(customerEmail).trim().toLowerCase()
         : `anon_${Date.now()}@temp.com`;
-
 
       // Generate a password hash placeholder for anonymous customers
       const encoder = new TextEncoder();
@@ -86,7 +85,6 @@ serve(async (req) => {
         console.error('Error creating customer:', createCustomerError);
         throw new Error('Falha ao preparar sessão do cliente');
       }
-
     }
 
     // Find existing conversation
@@ -100,23 +98,19 @@ serve(async (req) => {
     if (convError) throw convError;
 
     let conversationId: string;
-    let activeConv = conversations?.find((c: any) => c.status === 'active');
+    const activeConv = conversations?.find((c: any) => c.status === 'active');
 
     if (activeConv) {
       conversationId = activeConv.id;
     } else {
-      // Check if AI or flows are enabled in agent config
-      const agentConfig = agent.config || {};
-      const aiEnabled = agentConfig.ai_enabled === true;
-      const flowsEnabled = agentConfig.flows_enabled !== false;
-      
+      // Atendimento 100% humano: nunca habilitar respostas automáticas
       const { data: newConv, error: newConvError } = await supabase
         .from('agent_conversations')
         .insert({
           agent_id: agentId,
           customer_id: customerId,
           status: 'active',
-          ai_enabled: aiEnabled,
+          ai_enabled: false,
           last_message_at: new Date().toISOString(),
         })
         .select()
@@ -134,177 +128,12 @@ serve(async (req) => {
       .order('created_at', { ascending: true });
 
     if (msgError) throw msgError;
-
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const { agentId, customerId, customerName, customerEmail } = await req.json();
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Load agent (server-side to bypass RLS for public access)
-    const { data: agent, error: agentError } = await supabase
-      .from('ai_agents')
-      .select('id, name, config, is_active, access_type, attendant_status, attendant_name')
-      .eq('id', agentId)
-      .single();
-
-    if (agentError || !agent) {
-      throw new Error('Agente não encontrado');
-    }
-
-    if (agent.is_active === false) {
-      return new Response(JSON.stringify({ error: 'Agente inativo' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Ensure customer exists or create anonymous if allowed
-    const { data: existingCustomer, error: customerCheckError } = await supabase
-      .from('agent_customers')
-      .select('id, agent_id')
-      .eq('id', customerId)
-      .eq('agent_id', agentId)
-      .maybeSingle();
-
-    if (customerCheckError) {
-      console.error('Error checking customer:', customerCheckError);
-    }
-
-    if (!existingCustomer) {
-      // Create lightweight customer (name + email only, no registration required)
-      const anonName = customerName || 'Visitante';
-      const anonEmail = (customerEmail && String(customerEmail).trim())
-        ? String(customerEmail).trim().toLowerCase()
-        : `anon_${Date.now()}@temp.com`;
-
-
-      // Generate a password hash placeholder for anonymous customers
-      const encoder = new TextEncoder();
-      const randomSeed = `${customerId}:${Date.now()}:${Math.random()}`;
-      const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(randomSeed));
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-      const insertCustomer = (email: string) => supabase
-        .from('agent_customers')
-        .insert({
-          id: customerId,
-          agent_id: agentId,
-          name: anonName,
-          email,
-          password_hash: passwordHash,
-          email_verified: false,
-        });
-
-      let { error: createCustomerError } = await insertCustomer(anonEmail);
-      if (createCustomerError) {
-        // Provável conflito de e-mail duplicado: cria sessão nova com e-mail único
-        const [local, domain] = anonEmail.split('@');
-        const fallbackEmail = `${local}+${Date.now()}@${domain || 'temp.com'}`;
-        const retry = await insertCustomer(fallbackEmail);
-        createCustomerError = retry.error;
-      }
-      if (createCustomerError) {
-        console.error('Error creating customer:', createCustomerError);
-        throw new Error('Falha ao preparar sessão do cliente');
-      }
-
-    }
-
-    // Find existing conversation
-    const { data: conversations, error: convError } = await supabase
-      .from('agent_conversations')
-      .select('*')
-      .eq('agent_id', agentId)
-      .eq('customer_id', customerId)
-      .order('last_message_at', { ascending: false });
-
-    if (convError) throw convError;
-
-    let conversationId: string;
-    let activeConv = conversations?.find((c: any) => c.status === 'active');
-
-    if (activeConv) {
-      conversationId = activeConv.id;
-    } else {
-      // Check if AI or flows are enabled in agent config
-      const agentConfig = agent.config || {};
-      const aiEnabled = agentConfig.ai_enabled === true;
-      const flowsEnabled = agentConfig.flows_enabled !== false;
-      
-      const { data: newConv, error: newConvError } = await supabase
-        .from('agent_conversations')
-        .insert({
-          agent_id: agentId,
-          customer_id: customerId,
-          status: 'active',
-          ai_enabled: aiEnabled,
-          last_message_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (newConvError || !newConv) throw newConvError || new Error('Falha ao criar conversa');
-      conversationId = newConv.id;
-    }
-
-    // Load messages for this conversation
-    const { data: messages, error: msgError } = await supabase
-      .from('agent_messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
-
-    if (msgError) throw msgError;
-
-    // Disparar gatilho inicial se for uma conversa nova ou se não houver mensagens
-    const messageCount = (messages || []).length;
-    console.log(`Conversa carregada com ${messageCount} mensagens.`);
-    
-    if (messageCount === 0) {
-      console.log('Disparando gatilho inicial para nova conversa...');
-      
-      // Chamada await para processar o gatilho inicial e retornar a primeira mensagem
-      const processUrl = `${supabaseUrl}/functions/v1/process-agent-customer-message`;
-      try {
-        await fetch(processUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            agentId,
-            customerId,
-            conversationId,
-            message: '' // Mensagem vazia sinaliza gatilho inicial
-          })
-        });
-
-        // Recarregar mensagens após o processamento
-        const { data: refreshedMessages } = await supabase
-          .from('agent_messages')
-          .select('*')
-          .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true });
-        
-        if (refreshedMessages) {
-          messages = refreshedMessages;
-        }
-      } catch (err) {
-        console.error('Erro ao disparar gatilho inicial:', err);
-      }
-    }
 
     return new Response(
       JSON.stringify({
-        agent: { 
-          id: agent.id, 
-          name: agent.name, 
+        agent: {
+          id: agent.id,
+          name: agent.name,
           config: agent.config,
           access_type: agent.access_type,
           attendant_status: agent.attendant_status || 'offline',
