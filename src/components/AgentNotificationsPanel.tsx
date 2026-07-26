@@ -217,7 +217,7 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             Central de Notificações
@@ -225,18 +225,18 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
               <Badge className="bg-red-500">{unreadCount}</Badge>
             )}
           </CardTitle>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={filter === "unread" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("unread")}
+              onClick={() => { setFilter("unread"); setSelectedIds([]); }}
             >
               Não Lidas
             </Button>
             <Button
               variant={filter === "all" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("all")}
+              onClick={() => { setFilter("all"); setSelectedIds([]); }}
             >
               Todas
             </Button>
@@ -246,7 +246,38 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
                 Marcar todas como lidas
               </Button>
             )}
+            {selectionMode ? (
+              <>
+                <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+                  {allSelected ? "Desmarcar tudo" : "Selecionar tudo"}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={selectedIds.length === 0}
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir ({selectedIds.length})
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setSelectionMode(false); setSelectedIds([]); }}
+                >
+                  Cancelar
+                </Button>
+              </>
+            ) : (
+              filteredNotifications.length > 0 && (
+                <Button variant="outline" size="sm" onClick={() => setSelectionMode(true)}>
+                  Selecionar
+                </Button>
+              )
+            )}
           </div>
+        </CardHeader>
+
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
