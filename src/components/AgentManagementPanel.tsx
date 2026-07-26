@@ -30,7 +30,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
-    { id: "ai", label: "Agente IA", icon: <Brain /> },
     { id: "customers", label: "Clientes", icon: <Users /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 /> },
   ];
