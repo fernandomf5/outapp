@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Search, User, Send, Trash2, Smile, ImagePlus, FileText, X, RefreshCw } from "lucide-react";
+import { MessageSquare, Search, User, Send, Trash2, Smile, ImagePlus, FileText, X } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -702,60 +702,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
-  const handleRestartConversation = async (conversationId?: string) => {
-    if (!selectedConversation) return;
-
-    try {
-      setLoading(true);
-      // Arquivar conversa atual
-      const { error: archiveError } = await supabase
-        .from('agent_conversations')
-        .update({ status: 'archived' })
-        .eq('id', selectedConversation.id);
-
-      if (archiveError) throw archiveError;
-
-      // Criar nova conversa
-      const { data: newConv, error: createError } = await supabase
-        .from('agent_conversations')
-        .insert({
-          agent_id: agentId,
-          customer_id: selectedConversation.agent_customers.id,
-          status: 'active',
-          ai_enabled: false,
-          last_message_at: new Date().toISOString(),
-        })
-        .select(`
-          *,
-          agent_customers (
-            id,
-            name,
-            email
-          )
-        `)
-        .single();
-
-      if (createError) throw createError;
-
-      setSelectedConversation(newConv as Conversation);
-      loadConversations();
-      
-      toast({
-        title: "Chat reiniciado",
-        description: "A conversa anterior foi arquivada e um novo atendimento foi iniciado.",
-      });
-    } catch (error: any) {
-      console.error('Error restarting conversation:', error);
-      toast({
-        title: "Erro ao reiniciar chat",
-        description: error.message || "Não foi possível reiniciar a conversa.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
     return <div>Carregando conversas...</div>;
   }
@@ -992,15 +938,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleRestartConversation(selectedConversation.id)}
-                      className="gap-2 border-primary text-primary hover:bg-primary hover:text-white transition-all shadow-sm font-bold"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Reiniciar Chat
-                    </Button>
+
 
                     <Select value={selectedConversation.status} onValueChange={updateStatus}>
                       <SelectTrigger className="w-[180px]">
