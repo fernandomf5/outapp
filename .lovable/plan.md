@@ -1,68 +1,63 @@
-## Objetivo
+## Contexto encontrado no projeto
 
-Permitir atrelar qualquer recurso criado na plataforma (tabelas, tarefas, notas, mapas, funis, briefings, etc.) a um cliente específico do Cadastro. Ao abrir "Ver Detalhes" do cliente, uma nova aba **Atividades** mostra cronologicamente tudo que foi criado/atribuído a ele.
+Boa notícia: parte da base já existe e pode ser reaproveitada em vez de recriar do zero.
 
-## Modelo de dados
+- **Catálogo**: as tabelas (`catalogs`, `catalog_orders`, `catalog_customers`, `catalog_banners`, `product_categories`, `products`, `stock_movements`) e os componentes (`CatalogCreatorPanel`, `CatalogDashboard`, `CatalogOrdersPanel`, `CatalogProductSelector`, `CatalogCart`, `CatalogBannersManager`, página pública `/catalogo/:slug`) **ainda existem no código**, apenas foram desligados do menu/dashboard.
+- **Produtos**: `ProductsServicesPanel` + estoque + categorias também existem, desligados do menu.
+- **Portfólio**: as tabelas `portfolios` e `portfolio_items` existem, mas **não há nenhuma interface** construída.
+- **Página de Captura**: existem `builder_pages` + `PageEditor` (editor de elementos) e `cloned_page_leads`, mas não há um criador de landing page com formulário configurável.
 
-Para evitar adicionar coluna `customer_id` em ~20 tabelas e ter que migrar dado a dado, criamos UMA tabela central de vínculos polimórfica:
+Observação: catálogo e produtos foram removidos do menu numa etapa anterior a pedido seu. Este plano os **reativa e evolui**, conforme o novo pedido.
 
-```sql
-CREATE TABLE public.customer_resource_links (
-  id uuid PK,
-  user_id uuid NOT NULL,          -- dono (RLS)
-  customer_id uuid NOT NULL,       -- ref customers.id (FK + ON DELETE CASCADE)
-  resource_type text NOT NULL,     -- 'organization_table' | 'task' | 'quick_note' | 'mind_map' | 'funnel' | 'briefing' | 'invoice' | 'proposal' | 'receipt' | 'qr_code' | 'short_link' | 'cloned_page' | 'catalog' | 'checkout' | 'popup' | 'floating_button' | 'link_bio' | 'agenda_event' | 'service_order' | 'contract'
-  resource_id uuid NOT NULL,
-  resource_title text,             -- snapshot do título p/ exibir mesmo se renomeado
-  resource_url text,               -- rota interna p/ "abrir"
-  created_at timestamptz
-);
--- UNIQUE (customer_id, resource_type, resource_id)
--- INDEX (customer_id, created_at desc)
-```
+---
 
-Vantagens: zero alteração nas tabelas existentes, novos módulos só registram um link.
+## Escopo e faseamento
 
-## Componentes reutilizáveis (frontend)
+O pedido completo (3 construtores visuais + captura de leads + pedidos + pagamentos + métricas) é grande demais para uma entrega única com qualidade. Proponho entregar em 3 fases, cada uma funcional de ponta a ponta.
 
-1. **`<CustomerPicker>`** — Select agrupado por categoria (`customer_categories` + `customers`) idêntico ao usado no diálogo de anúncios. Reusável em todo módulo. Props: `value`, `onChange`, `allowClear`.
-2. **`useCustomerLink(resourceType, resourceId)`** — hook que: (a) carrega vínculo atual, (b) `setCustomer(customerId)` faz upsert/delete em `customer_resource_links`.
-3. **`<LinkCustomerButton resourceType resourceId resourceTitle resourceUrl />`** — botão "Atrelar a cliente" pronto p/ dropar em qualquer painel.
+### Fase 1 — Criador de Página de Captura
 
-## Integração nos módulos (fase 1)
+Novo item no menu **Recursos Avançados: "Página de Captura"**.
 
-Adicionar `<LinkCustomerButton>` (ou campo no formulário) em:
+- **Lista**: criar, duplicar, editar, excluir, publicar/despublicar, copiar link, compartilhar, visualizar prévia.
+- **Construtor de formulário**: campos arrastáveis (nome, e-mail, telefone, WhatsApp, cidade, estado, nascimento, empresa, cargo, texto livre, seleção, checkbox, upload de arquivo, campo personalizado). Editar rótulo, placeholder, obrigatoriedade, opções; reordenar por arrastar e soltar.
+- **Editor visual da página** em blocos (adicionar/editar/excluir/reordenar): hero com título/subtítulo, texto, imagem, vídeo incorporado, botão, ícones, benefícios, depoimentos, FAQ, contador, cards, galeria, redes sociais, rodapé, bloco de formulário.
+- **Estilo global**: cor de fundo, imagem de fundo, paleta, tipografia, tamanho de texto, espaçamento, bordas, arredondamento, estilo de botão, animações.
+- **Página pública** em `/captura/:slug`, responsiva, com pixels/tracking já existentes na plataforma.
+- **Painel de leads**: listar, pesquisar, filtrar, ver dados enviados, alterar status, exportar CSV, ver origem. Botão "Enviar para Cadastro" (cria contato em `contacts`) e "Enviar para Funil de Vendas" (`funnel_leads`).
+- Botão **"Atribuir a cadastro"** (padrão `ResourceAssignmentsButton` já usado nos demais recursos).
 
-- Tabelas de Organização (`OrganizationTablePanel` / `FullOrganizationTable`)
-- Tarefas (`TaskDialog`)
-- Notas Rápidas (`QuickNotesPanel`)
-- Mapas Mentais (`MindMapCreatorPanel`)
-- Funis (`SalesFunnelPanel`)
-- Briefings, Propostas, Invoices, Recibos, QR Codes, Links Curtos, Páginas Clonadas, Catálogos, Checkouts, Popups, Botões Flutuantes, Link Bio, Agenda, OS, Contratos
+### Fase 2 — Criador de Portfólio
 
-Fase 1 entrega o componente + integração em **Tabelas, Tarefas, Notas, Mapas, Funis, Briefings**. Restante segue padrão e entramos por demanda.
+Novo item no menu **Recursos Avançados: "Portfólio"**.
 
-## Aba "Atividades" no Ver Detalhes do cliente
+- **Assistente inicial**: escolha do tipo (Desenvolvedor, Designer, Fotógrafo, Videomaker, Social Media, Marketing, Arquitetura, Engenharia, Freelancer, Artista, Projetos, Empresas, Serviços, Profissional, Personalizado, Criar do Zero) → gera automaticamente o esquema de campos dos projetos daquele nicho.
+- **Editor de campos dos projetos**: criar, editar, excluir e reordenar campos; tipos texto, texto longo, data, link, tags/tecnologias, imagem, galeria, vídeo, arquivo.
+- **Projetos**: cadastro, categorias, ordenação por arrastar e soltar, destaque.
+- **Personalização visual**: templates prontos, cores, fundo/imagem de fundo, fontes, cabeçalho, menu, seções (sobre, serviços, depoimentos, contato, galeria), redes sociais, WhatsApp, botões, rodapé, layouts de grade.
+- **Página pública** em `/portfolio/:slug`, responsiva, com prévia, publicar/despublicar, link e compartilhamento.
+- Formulário de contato do portfólio grava nos leads da plataforma.
 
-Novo arquivo `src/components/customer/CustomerActivitiesTab.tsx`:
-- Consulta `customer_resource_links` por `customer_id` ordenado `created_at desc`
-- Filtro por tipo (chips) e busca
-- Cada item: ícone por tipo + título + data + botão "Abrir" (usa `resource_url`)
+### Fase 3 — Criador de Catálogo (reativação + evolução)
 
-Adicionado como nova aba em `CustomerHistoryPanel.tsx` (entre as existentes).
+- Reativar no menu **Recursos Avançados: "Catálogo"** e **Básicos: "Produtos e Serviços"** (necessário para alimentar o catálogo).
+- Revisar e corrigir o que quebrou desde a remoção; integrar seleção de produtos já cadastrados, categorias/subcategorias, variações (tamanho/cor), promoção, destaque, estoque sincronizado.
+- **Aparência**: templates, cores, fundo, logo, banners promocionais, layouts de card, botões, redes sociais, WhatsApp, dados da empresa, endereço, horário.
+- **Status**: aberto/fechado, ativo/inativo, mensagem de fechado, horário de funcionamento.
+- **Pedidos**: painel com novo → confirmado → em preparo → pronto → concluído/cancelado, histórico e notificação em tempo real.
+- **Pagamentos**: PIX manual, Mercado Pago (integração já existente) e redirecionamento para o Criador de Checkout.
+- **Painel administrativo**: total de produtos, ativos/inativos, sem estoque, pedidos por status, faturamento, mais vendidos, catálogo mais acessado.
+
+---
 
 ## Detalhes técnicos
 
-- Migration cria tabela + GRANTs (`authenticated`, `service_role`) + RLS (`auth.uid() = user_id`) + índices.
-- `resource_url` é montado no momento do link (ex: `/dashboard?tab=tables&id=...`) para evitar lookup futuro.
-- Ao deletar o recurso original: não há trigger cross-table; o item simplesmente aparece como "indisponível" se o "Abrir" falhar (tratado no front). Podemos adicionar cleanup posterior.
-- `resource_type` validado por enum no front (constante `RESOURCE_TYPES`).
+- **Banco (Fase 1)**: `capture_pages` (slug, publicado, config JSONB de blocos/estilo, esquema de campos JSONB, contadores de visita) e `capture_leads` (page_id, dados JSONB, status, origem, UTM). RLS por `auth.uid()`, inserção pública liberada para o formulário, GRANTs explícitos para `anon`/`authenticated`/`service_role`.
+- **Banco (Fase 2)**: reutiliza `portfolios`/`portfolio_items`; migração adiciona `kind`, `field_schema` e `theme` JSONB se ausentes.
+- **Banco (Fase 3)**: ajustes pontuais em `catalogs` (horário, mensagem de fechado, meios de pagamento) e variações em `products`.
+- **Padrões**: tokens semânticos do design system, sem cores fixas; upload via buckets existentes (`portfolio-images`, `blog-images`, novo bucket para capturas); arrastar e soltar com `@dnd-kit` (já no projeto); páginas públicas registradas no `App.tsx` acima do catch-all.
+- **Integrações**: `contact_resource_links` para atribuição a cadastros; `funnel_leads` para funil; `checkouts` para pagamento do catálogo.
 
-## Entregáveis desta etapa
+## Entrega
 
-1. Migration `customer_resource_links` (tabela + RLS + grants).
-2. `CustomerPicker`, `useCustomerLink`, `LinkCustomerButton`.
-3. Integração em 6 módulos iniciais (Tabelas, Tarefas, Notas, Mapas, Funis, Briefings).
-4. Aba **Atividades** no histórico do cliente.
-
-Próximas fases (depois de aprovado): replicar `LinkCustomerButton` nos demais módulos listados.
+Começo pela Fase 1 completa nesta rodada. Ao aprovar, seguimos para a Fase 2 e depois a Fase 3.
