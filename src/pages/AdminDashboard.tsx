@@ -107,10 +107,19 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeSubscriptions: 0,
+    paidSubscriptions: 0,
+    trialActive: 0,
+    trialExpired: 0,
+    noPlan: 0,
+    mrr: 0,
     monthlyRevenue: 0,
+    totalRevenue: 0,
     growthRate: 0,
+    conversionRate: 0,
     newUsersThisMonth: 0,
+    newUsersLastMonth: 0,
   });
+
 
   const [plans, setPlans] = useState<Plan[]>([]);
 
