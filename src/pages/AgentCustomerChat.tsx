@@ -232,6 +232,30 @@ export default function AgentCustomerChat() {
     };
   }, [agentId, conversationId]);
 
+  // Notifica o cliente quando sua posição na fila muda
+  useEffect(() => {
+    if (!queueEnabled) return;
+    const prev = prevQueuePositionRef.current;
+    prevQueuePositionRef.current = queuePosition;
+    if (prev === undefined || prev === queuePosition || queuePosition === null) return;
+
+    if (queuePosition === 0) {
+      chatSounds.playNotificationSound();
+      toast({
+        title: 'É a sua vez! 🎉',
+        description: 'O atendente está pronto para falar com você.',
+      });
+    } else {
+      chatSounds.playNotificationSound();
+      toast({
+        title: `Você é o nº ${queuePosition} da fila`,
+        description:
+          typeof prev === 'number' && prev > queuePosition
+            ? 'Sua posição avançou. Aguarde só mais um pouco.'
+            : queueMessage,
+      });
+    }
+  }, [queuePosition, queueEnabled, queueMessage, toast]);
 
 
   useEffect(() => {
