@@ -257,6 +257,32 @@ export const ConversationNotificationBell = () => {
       }
     }
 
+    // Fetch unread contact form submissions
+    if (agents && agents.length > 0) {
+      const agentMap = new Map(agents.map(a => [a.id, a.name]));
+      const { data: forms } = await supabase
+        .from('contact_form_submissions')
+        .select('id, agent_id, name, subject, message, created_at')
+        .in('agent_id', agents.map(a => a.id))
+        .eq('is_read', false)
+        .order('created_at', { ascending: false });
+
+      for (const form of forms || []) {
+        notifications.push({
+          id: form.id,
+          type: 'form',
+          agent_id: form.agent_id || undefined,
+          agent_name: `Formulário • ${agentMap.get(form.agent_id || '') || 'Chat Online'}`,
+          customer_name: form.name,
+          last_message: form.subject ? `${form.subject}: ${form.message}` : form.message,
+          last_message_at: form.created_at || new Date().toISOString(),
+          unread_count: 1,
+        });
+        totalUnreadCount += 1;
+      }
+    }
+
+
     // Sort by last message time
     notifications.sort((a, b) => 
       new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
