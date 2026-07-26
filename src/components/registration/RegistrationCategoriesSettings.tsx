@@ -525,6 +525,8 @@ export function RegistrationCategoriesSettings() {
               </Button>
             </DialogFooter>
           </form>
+          )}
+
         </DialogContent>
       </Dialog>
 
