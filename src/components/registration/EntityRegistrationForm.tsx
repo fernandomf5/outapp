@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImageUpload } from "../ImageUpload";
 import { toast } from "sonner";
 import { EntityKind, KindField, getEntityKind } from "./entityKinds";
-import { useStatusOptions } from "./statusOptions";
+
 
 interface EntityRegistrationFormProps {
   categoryId: string;
