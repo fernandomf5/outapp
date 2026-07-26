@@ -2011,6 +2011,119 @@ export type Database = {
           },
         ]
       }
+      capture_leads: {
+        Row: {
+          created_at: string
+          data: Json
+          email: string | null
+          id: string
+          name: string | null
+          page_id: string
+          phone: string | null
+          referrer: string | null
+          source: string | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+          utm: Json
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          email?: string | null
+          id?: string
+          name?: string | null
+          page_id: string
+          phone?: string | null
+          referrer?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+          utm?: Json
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          email?: string | null
+          id?: string
+          name?: string | null
+          page_id?: string
+          phone?: string | null
+          referrer?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+          utm?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capture_leads_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "capture_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      capture_pages: {
+        Row: {
+          blocks: Json
+          conversions: number
+          created_at: string
+          form_fields: Json
+          id: string
+          internal_note: string | null
+          is_published: boolean
+          order_index: number
+          settings: Json
+          slug: string
+          theme: Json
+          title: string
+          updated_at: string
+          user_id: string
+          views: number
+        }
+        Insert: {
+          blocks?: Json
+          conversions?: number
+          created_at?: string
+          form_fields?: Json
+          id?: string
+          internal_note?: string | null
+          is_published?: boolean
+          order_index?: number
+          settings?: Json
+          slug: string
+          theme?: Json
+          title?: string
+          updated_at?: string
+          user_id: string
+          views?: number
+        }
+        Update: {
+          blocks?: Json
+          conversions?: number
+          created_at?: string
+          form_fields?: Json
+          id?: string
+          internal_note?: string | null
+          is_published?: boolean
+          order_index?: number
+          settings?: Json
+          slug?: string
+          theme?: Json
+          title?: string
+          updated_at?: string
+          user_id?: string
+          views?: number
+        }
+        Relationships: []
+      }
       catalog_banners: {
         Row: {
           catalog_id: string
