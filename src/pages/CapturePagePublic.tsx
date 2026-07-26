@@ -25,7 +25,7 @@ const CapturePagePublic = () => {
           theme: { ...DEFAULT_THEME, ...(data.theme || {}) },
           settings: { ...DEFAULT_SETTINGS, ...(data.settings || {}) },
         });
-        db.from("capture_pages").update({ views: (data.views || 0) + 1 }).eq("id", data.id).then(() => {});
+        db.rpc("increment_capture_page_view", { _page_id: data.id }).then(() => {});
       }
       setLoading(false);
     };
