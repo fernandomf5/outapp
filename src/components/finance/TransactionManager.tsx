@@ -119,9 +119,16 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       const matchesStatus = statusFilter === "all" || t.status === statusFilter;
       const matchesCategory = categoryFilter === "all" ||
         (t.category || "").trim().toLowerCase() === categoryFilter.trim().toLowerCase();
-      return matchesSearch && matchesType && matchesStatus && matchesCategory;
+      const matchesBank = bankFilter === "all" ||
+        (bankFilter === "none" ? !t.bank_account_id : t.bank_account_id === bankFilter);
+      return matchesSearch && matchesType && matchesStatus && matchesCategory && matchesBank;
     });
-  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter]);
+  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter, bankFilter]);
+
+  const bankNameById = useMemo(
+    () => new Map<string, string>(bankAccounts.map((a: any) => [a.id, a.bank_name])),
+    [bankAccounts]
+  );
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
