@@ -3,10 +3,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Bell, CheckCheck, Circle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+
 
 interface AgentNotificationsPanelProps {
   agentId: string;
@@ -44,6 +56,10 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("unread");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
 
   useEffect(() => {
     fetchNotifications();
@@ -161,7 +177,38 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
     return true;
   });
 
+  const allSelected = filteredNotifications.length > 0 && filteredNotifications.every(n => selectedIds.includes(n.id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? [] : filteredNotifications.map(n => n.id));
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const deleteSelected = async () => {
+    try {
+      const { error } = await supabase
+        .from('agent_notifications')
+        .delete()
+        .in('id', selectedIds);
+
+      if (error) throw error;
+      toast.success(`${selectedIds.length} notificação(ões) excluída(s)`);
+      setSelectedIds([]);
+      setSelectionMode(false);
+      setConfirmDelete(false);
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error deleting notifications:', error);
+      toast.error('Erro ao excluir notificações');
+      setConfirmDelete(false);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
+
 
   if (loading) {
     return <div className="p-8 text-center">Carregando...</div>;
@@ -170,7 +217,7 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             Central de Notificações
@@ -178,18 +225,18 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
               <Badge className="bg-red-500">{unreadCount}</Badge>
             )}
           </CardTitle>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={filter === "unread" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("unread")}
+              onClick={() => { setFilter("unread"); setSelectedIds([]); }}
             >
               Não Lidas
             </Button>
             <Button
               variant={filter === "all" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("all")}
+              onClick={() => { setFilter("all"); setSelectedIds([]); }}
             >
               Todas
             </Button>
@@ -198,6 +245,35 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
                 <CheckCheck className="h-4 w-4 mr-2" />
                 Marcar todas como lidas
               </Button>
+            )}
+            {selectionMode ? (
+              <>
+                <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+                  {allSelected ? "Desmarcar tudo" : "Selecionar tudo"}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={selectedIds.length === 0}
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir ({selectedIds.length})
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setSelectionMode(false); setSelectedIds([]); }}
+                >
+                  Cancelar
+                </Button>
+              </>
+            ) : (
+              filteredNotifications.length > 0 && (
+                <Button variant="outline" size="sm" onClick={() => setSelectionMode(true)}>
+                  Selecionar
+                </Button>
+              )
             )}
           </div>
         </CardHeader>
@@ -215,9 +291,16 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
                 >
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between">
+                      {selectionMode && (
+                        <Checkbox
+                          className="mr-3 mt-1"
+                          checked={selectedIds.includes(notification.id)}
+                          onCheckedChange={() => toggleSelect(notification.id)}
+                        />
+                      )}
                       <div 
                         className="flex-1 cursor-pointer"
-                        onClick={() => handleNotificationClick(notification)}
+                        onClick={() => selectionMode ? toggleSelect(notification.id) : handleNotificationClick(notification)}
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Badge className={notificationTypeColors[notification.notification_type] || "bg-gray-500"}>
@@ -270,6 +353,22 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir notificações?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedIds.length} notificação(ões) serão excluídas permanentemente. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteSelected}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 }
