@@ -435,6 +435,7 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
           <p className="text-sm text-muted-foreground mt-1">
             Clone landing pages e personalize links, pixels e códigos
           </p>
+          <div className="mt-3"><ResourceAssignmentsButton resourceType="cloned_page" /></div>
         </div>
         <div className="flex gap-2">
           <Dialog open={isCloneDialogOpen} onOpenChange={setIsCloneDialogOpen}>
