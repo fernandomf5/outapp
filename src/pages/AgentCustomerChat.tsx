@@ -167,8 +167,14 @@ export default function AgentCustomerChat() {
           if (agent.attendant_name !== undefined) {
             setAttendantName(agent.attendant_name);
           }
+          if (agent.config) {
+            const cfg = agent.config as any;
+            setQueueEnabled(cfg.queueEnabled === true);
+            if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+          }
         }
       )
+
       .subscribe();
 
     return () => {
