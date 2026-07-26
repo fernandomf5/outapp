@@ -378,7 +378,15 @@ export function RegistrationCategoriesSettings() {
                     key={k.key}
                     type="button"
                     onClick={() => {
-                      setFormData({ ...formData, entity_kind: k.key });
+                      setFormData({
+                        ...formData,
+                        entity_kind: k.key,
+                        icon: formData.icon,
+                        custom_schema: editingId && formData.entity_kind === k.key
+                          ? formData.custom_schema
+                          : [...k.fields],
+                      });
+
                       setPickingKind(false);
                     }}
                     className="text-left rounded-xl border-2 p-4 hover:border-primary/50 hover:bg-accent/40 transition-all"
