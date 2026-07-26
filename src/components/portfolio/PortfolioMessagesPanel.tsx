@@ -26,12 +26,15 @@ export const PortfolioMessagesPanel = ({ portfolios }: { portfolios: { id: strin
 
   const load = async () => {
     setLoading(true);
-    const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) return setLoading(false);
+    const ids = portfolios.map((p) => p.id);
+    if (ids.length === 0) {
+      setMessages([]);
+      return setLoading(false);
+    }
     const { data, error } = await db
       .from("portfolio_messages")
       .select("*")
-      .eq("user_id", auth.user.id)
+      .in("portfolio_id", ids)
       .order("created_at", { ascending: false });
     if (error) toast.error("Erro ao carregar mensagens");
     setMessages(data || []);
@@ -40,7 +43,9 @@ export const PortfolioMessagesPanel = ({ portfolios }: { portfolios: { id: strin
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [portfolios.map((p) => p.id).join(",")]);
+
 
   const toggleRead = async (m: MessageRow) => {
     await db.from("portfolio_messages").update({ is_read: !m.is_read }).eq("id", m.id);
