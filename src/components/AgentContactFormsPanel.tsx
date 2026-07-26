@@ -57,7 +57,7 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
     setLoading(true);
     const { data, error } = await supabase
       .from("contact_form_submissions")
-      .select("id, name, email, phone, message, is_read, replied_at, created_at")
+      .select("id, name, email, phone, subject, message, is_read, replied_at, created_at")
       .eq("agent_id", agentId)
       .order("created_at", { ascending: false });
 
