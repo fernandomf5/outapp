@@ -1,0 +1,3 @@
+ALTER TABLE public.agent_conversations REPLICA IDENTITY FULL;
+ALTER TABLE public.agent_messages REPLICA IDENTITY FULL;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.agent_conversations;
