@@ -2,15 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ContactCategoryPicker } from "./ContactCategoryPicker";
+
 
 interface ContactOption {
   id: string;
@@ -85,45 +78,15 @@ export function ContactPicker({
   return (
     <div className="space-y-2">
       {label && <Label>{label}</Label>}
-      <Select
-        value={value || NONE}
-        onValueChange={(v) => onChange(v === NONE ? null : v)}
+      <ContactCategoryPicker
+        value={value}
+        onChange={onChange}
+        contacts={contacts}
+        categories={categories}
         disabled={disabled}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent className="max-h-[320px]">
-          <SelectItem value={NONE}>{placeholder}</SelectItem>
-          {grouped.map((g) => (
-            <SelectGroup key={g.category.id}>
-              <SelectLabel>{g.category.name}</SelectLabel>
-              {g.items.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                  {c.company ? ` — ${c.company}` : ""}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          ))}
-          {ungrouped.length > 0 && (
-            <SelectGroup>
-              <SelectLabel>Sem categoria</SelectLabel>
-              {ungrouped.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                  {c.company ? ` — ${c.company}` : ""}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-          {contacts.length === 0 && (
-            <div className="px-3 py-2 text-sm text-muted-foreground">
-              Nenhum cadastro encontrado.
-            </div>
-          )}
-        </SelectContent>
-      </Select>
+        placeholder={placeholder}
+      />
     </div>
   );
 }
+
