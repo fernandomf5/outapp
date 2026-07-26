@@ -71,6 +71,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [bankFilter, setBankFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
