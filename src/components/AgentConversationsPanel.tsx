@@ -63,7 +63,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     const loadAttendantStatus = async () => {
       const { data: agent } = await supabase
         .from('ai_agents')
-        .select('attendant_status, attendant_name')
+        .select('attendant_status, attendant_name, config')
         .eq('id', agentId)
         .single();
       
@@ -72,6 +72,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         if (agent.attendant_name && !savedName) {
           setSenderName(agent.attendant_name);
         }
+        const cfg = (agent.config || {}) as any;
+        setQueueEnabled(cfg.queueEnabled === true);
+        if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
       }
     };
     
@@ -81,10 +84,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   // Função para atualizar status do atendente
   const updateAttendantStatus = async (status: 'online' | 'offline' | 'busy') => {
     setAttendantStatus(status);
-    
-    // Ao atualizar status, não alteramos a configuração da IA.
-    // A IA funcionará se estiver ativada nas configurações, mesmo com atendente online
-    // (a menos que o atendente responda manualmente ou force human mode).
     
     const { error } = await supabase
       .from('ai_agents')
@@ -109,6 +108,46 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
+  // Salvar configurações de fila de espera no config do agente
+  const saveQueueSettings = async (enabled: boolean, message: string) => {
+    const { data: agent } = await supabase
+      .from('ai_agents')
+      .select('config')
+      .eq('id', agentId)
+      .single();
+
+    const config = { ...((agent?.config || {}) as any), queueEnabled: enabled, queueMessage: message };
+
+    const { error } = await supabase
+      .from('ai_agents')
+      .update({ config, updated_at: new Date().toISOString() })
+      .eq('id', agentId);
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível salvar a fila de espera", variant: "destructive" });
+    } else {
+      toast({ title: "Fila de espera atualizada", description: enabled ? "Clientes verão o aviso de fila." : "Fila de espera desativada." });
+    }
+  };
+
+  // Enviar aviso de fila na conversa selecionada
+  const sendQueueNotice = async () => {
+    if (!selectedConversation) return;
+    const { error } = await supabase.from('agent_messages').insert({
+      conversation_id: selectedConversation.id,
+      role: 'agent',
+      content: queueMessage,
+      sender_name: senderName || 'Atendimento',
+    });
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível enviar o aviso de fila", variant: "destructive" });
+    } else {
+      toast({ title: "Aviso enviado", description: "O cliente foi informado sobre a fila de espera." });
+      loadMessages(selectedConversation.id);
+    }
+  };
+
   // Atualizar nome do atendente quando mudar
   const handleSenderNameChange = (name: string) => {
     setSenderName(name);
@@ -121,6 +160,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       .eq('id', agentId)
       .then();
   };
+
 
   useEffect(() => {
     loadConversations();
