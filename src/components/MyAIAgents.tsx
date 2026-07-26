@@ -158,7 +158,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
   };
 
   const handleEdit = (agentId: string) => {
-    navigate(`/ai-agent?id=${agentId}`);
+    navigate(`/chat-online?id=${agentId}`);
   };
 
   const handleDelete = async () => {
@@ -226,7 +226,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
         <p className="text-muted-foreground mb-6">
           Crie seu primeiro chat para atender clientes
         </p>
-        <Button onClick={() => navigate("/ai-agent")} className="mx-auto">
+        <Button onClick={() => navigate("/chat-online")} className="mx-auto">
           <MessageSquare className="w-4 h-4 mr-2" />
           Criar Chat
         </Button>
@@ -238,7 +238,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Meus Chats</h2>
-        <Button onClick={() => navigate("/ai-agent")}>
+        <Button onClick={() => navigate("/chat-online")}>
           <MessageSquare className="w-4 h-4 mr-2" />
           Novo Chat
         </Button>
