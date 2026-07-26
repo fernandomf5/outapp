@@ -459,7 +459,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         )
       `)
       .eq('agent_id', agentId)
-      .order('last_message_at', { ascending: false });
+      .order('created_at', { ascending: true });
 
     if (error) {
       toast({
