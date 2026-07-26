@@ -211,6 +211,8 @@ export function UserSidebar() {
     
     { title: "Chat Online", icon: MessageSquare, path: "/dashboard", tab: "chat-online", moduleKey: "ai_agents" },
     { title: "Página de Captura", icon: Target, path: "/dashboard", tab: "pagina-captura", hideForTeamMember: true },
+    { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio", hideForTeamMember: true },
+
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: t('link_in_bio'), icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
     { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },

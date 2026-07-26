@@ -62,6 +62,8 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
 import InvoicePublicPage from "./pages/InvoicePublicPage";
 import CapturePagePublic from "./pages/CapturePagePublic";
+import PortfolioPublic from "./pages/PortfolioPublic";
+
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { RoutePersistence } from "@/components/RoutePersistence";
 
@@ -137,6 +139,8 @@ const AppContent = () => {
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
               <Route path="/fatura/:token" element={<InvoicePublicPage />} />
               <Route path="/captura/:slug" element={<CapturePagePublic />} />
+              <Route path="/portfolio/:slug" element={<PortfolioPublic />} />
+
               <Route path="/checkout-editor/:id" element={
                 <ProtectedRoute>
                   <CheckoutEditorPage />

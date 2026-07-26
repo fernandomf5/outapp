@@ -7081,16 +7081,22 @@ export type Database = {
           category: string
           client_name: string | null
           created_at: string | null
+          custom_data: Json
           description: string | null
           display_order: number | null
+          files: Json
           id: string
           image_url: string | null
           images: string[] | null
           is_featured: boolean | null
+          is_published: boolean
           is_scrollable_screenshot: boolean | null
+          links: Json
           portfolio_id: string | null
+          project_date: string | null
           project_url: string | null
           scroll_image_url: string | null
+          tags: string[]
           title: string
           updated_at: string | null
           video_url: string | null
@@ -7099,16 +7105,22 @@ export type Database = {
           category: string
           client_name?: string | null
           created_at?: string | null
+          custom_data?: Json
           description?: string | null
           display_order?: number | null
+          files?: Json
           id?: string
           image_url?: string | null
           images?: string[] | null
           is_featured?: boolean | null
+          is_published?: boolean
           is_scrollable_screenshot?: boolean | null
+          links?: Json
           portfolio_id?: string | null
+          project_date?: string | null
           project_url?: string | null
           scroll_image_url?: string | null
+          tags?: string[]
           title: string
           updated_at?: string | null
           video_url?: string | null
@@ -7117,16 +7129,22 @@ export type Database = {
           category?: string
           client_name?: string | null
           created_at?: string | null
+          custom_data?: Json
           description?: string | null
           display_order?: number | null
+          files?: Json
           id?: string
           image_url?: string | null
           images?: string[] | null
           is_featured?: boolean | null
+          is_published?: boolean
           is_scrollable_screenshot?: boolean | null
+          links?: Json
           portfolio_id?: string | null
+          project_date?: string | null
           project_url?: string | null
           scroll_image_url?: string | null
+          tags?: string[]
           title?: string
           updated_at?: string | null
           video_url?: string | null
@@ -7134,6 +7152,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "portfolio_items_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_messages: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_read: boolean
+          message: string
+          name: string
+          phone: string | null
+          portfolio_id: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          name: string
+          phone?: string | null
+          portfolio_id: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          name?: string
+          phone?: string | null
+          portfolio_id?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_messages_portfolio_id_fkey"
             columns: ["portfolio_id"]
             isOneToOne: false
             referencedRelation: "portfolios"
@@ -7160,13 +7225,17 @@ export type Database = {
           button2_url: string | null
           card_background_color: string | null
           card_text_color: string | null
+          category: string
+          contact: Json
           cover_url: string | null
           created_at: string
+          custom_fields: Json
           description: string | null
           description_color: string | null
           id: string
           is_active: boolean | null
           is_public: boolean | null
+          layout: string
           logo_url: string | null
           name: string
           niche: string
@@ -7174,10 +7243,14 @@ export type Database = {
           overlay_opacity: number | null
           primary_color: string | null
           secondary_color: string | null
+          sections: Json
           slug: string | null
+          template: string
+          theme: Json
           title_color: string | null
           updated_at: string
           user_id: string
+          views: number
         }
         Insert: {
           background_color?: string | null
@@ -7197,13 +7270,17 @@ export type Database = {
           button2_url?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
+          category?: string
+          contact?: Json
           cover_url?: string | null
           created_at?: string
+          custom_fields?: Json
           description?: string | null
           description_color?: string | null
           id?: string
           is_active?: boolean | null
           is_public?: boolean | null
+          layout?: string
           logo_url?: string | null
           name: string
           niche?: string
@@ -7211,10 +7288,14 @@ export type Database = {
           overlay_opacity?: number | null
           primary_color?: string | null
           secondary_color?: string | null
+          sections?: Json
           slug?: string | null
+          template?: string
+          theme?: Json
           title_color?: string | null
           updated_at?: string
           user_id: string
+          views?: number
         }
         Update: {
           background_color?: string | null
@@ -7234,13 +7315,17 @@ export type Database = {
           button2_url?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
+          category?: string
+          contact?: Json
           cover_url?: string | null
           created_at?: string
+          custom_fields?: Json
           description?: string | null
           description_color?: string | null
           id?: string
           is_active?: boolean | null
           is_public?: boolean | null
+          layout?: string
           logo_url?: string | null
           name?: string
           niche?: string
@@ -7248,10 +7333,14 @@ export type Database = {
           overlay_opacity?: number | null
           primary_color?: string | null
           secondary_color?: string | null
+          sections?: Json
           slug?: string | null
+          template?: string
+          theme?: Json
           title_color?: string | null
           updated_at?: string
           user_id?: string
+          views?: number
         }
         Relationships: []
       }
@@ -9958,6 +10047,10 @@ export type Database = {
       }
       increment_capture_page_view: {
         Args: { _page_id: string }
+        Returns: undefined
+      }
+      increment_portfolio_view: {
+        Args: { _portfolio_id: string }
         Returns: undefined
       }
       team_member_can: {
