@@ -42,6 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 interface AdClient {
   id: string;
@@ -1311,6 +1312,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           <p className="text-muted-foreground mt-2">
             Selecione um cliente para gerenciar suas campanhas de anúncios
           </p>
+          <div className="mt-3 flex justify-center"><ResourceAssignmentsButton resourceType="ad_campaign" /></div>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

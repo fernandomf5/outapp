@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import AgentConversationsPanel from "./AgentConversationsPanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
 import AgentContactFormsPanel from "./AgentContactFormsPanel";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
 interface AgentManagementPanelProps {
@@ -110,6 +111,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
           <p className="text-muted-foreground text-sm leading-relaxed">
             Central de comando para suas automações e atendimentos.
           </p>
+          <div className="mt-3"><ResourceAssignmentsButton resourceType="chat_online" /></div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

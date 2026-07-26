@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
 interface Proposal {
@@ -371,6 +372,7 @@ export function ProposalCreatorPanel() {
             Criador de Propostas
           </h1>
           <p className="text-muted-foreground">Crie e gerencie propostas comerciais profissionais</p>
+            <div className="mt-3"><ResourceAssignmentsButton resourceType="proposal" /></div>
         </div>
       </div>
 
