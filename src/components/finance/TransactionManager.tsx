@@ -561,10 +561,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   <Label>Categoria</Label>
                   <Input 
                     required 
+                    list="financial-categories-list"
                     value={formData.category}
                     onChange={e => setFormData({...formData, category: e.target.value})}
                     placeholder="Ex: Alimentação, Lazer"
                   />
+                  <datalist id="financial-categories-list">
+                    {categories.map(c => <option key={c.id} value={c.name} />)}
+                  </datalist>
+
                 </div>
                 <div className="space-y-2">
                   <Label>Vencimento</Label>
