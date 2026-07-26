@@ -202,6 +202,7 @@ export function UserSidebar() {
     { title: t('qr_code_generator'), icon: QrCode, path: "/dashboard", tab: "qrcode", hideForTeamMember: true },
     
     { title: "Scripts de Atendimento", icon: MessageSquare, path: "/dashboard", tab: "scripts", hideForTeamMember: true },
+    { title: "Produtos e Serviços", icon: ShoppingBag, path: "/dashboard", tab: "produtos-servicos", hideForTeamMember: true },
   ];
 
   const advancedResourcesItems: MenuItem[] = [
