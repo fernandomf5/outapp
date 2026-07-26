@@ -270,6 +270,17 @@ export default function AgentCustomerAuth() {
               />
             </div>
             <div className="space-y-1.5">
+            <div className="space-y-1.5">
+              <Label htmlFor="contact-subject">Assunto</Label>
+              <Input
+                id="contact-subject"
+                value={contactForm.subject}
+                onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                maxLength={150}
+                placeholder="Ex: Dúvida sobre planos"
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="contact-message">Mensagem</Label>
               <Textarea
                 id="contact-message"
