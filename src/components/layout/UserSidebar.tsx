@@ -182,8 +182,8 @@ export function UserSidebar() {
   const organizerItems: MenuItem[] = [
     { title: "Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
     { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
-    { title: "Tabela de Organização", icon: Table, path: "/dashboard", tab: "tabelas-organizacao", moduleKey: "financial" },
     { title: "Rotina", icon: CalendarCheck, path: "/dashboard", tab: "rotina", hideForTeamMember: true },
+    { title: "Tabela de Organização", icon: Table, path: "/dashboard", tab: "tabelas-organizacao", moduleKey: "financial" },
   ];
 
   const financialItems: MenuItem[] = [
