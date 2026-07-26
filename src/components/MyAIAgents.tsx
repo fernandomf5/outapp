@@ -444,9 +444,14 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
               )}
             </div>
           </Card>
+            )}
+          </SortableAgentCard>
         );
         })}
       </div>
+        </SortableContext>
+      </DndContext>
+
 
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
         <AlertDialogContent>
