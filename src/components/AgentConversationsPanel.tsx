@@ -855,6 +855,60 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                 rows={2}
                 placeholder="Mensagem exibida ao cliente na fila"
               />
+
+              {queueEnabled && (
+                <div className="space-y-2 rounded-md border border-border p-2">
+                  <Label className="text-xs">Pessoas na fila antes dos chats</Label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        const next = Math.max(0, queueAhead - 1);
+                        setQueueAhead(next);
+                        saveQueueSettings(queueEnabled, queueMessage, next, true);
+                      }}
+                    >
+                      -
+                    </Button>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={queueAhead}
+                      onChange={(e) => setQueueAhead(Math.max(0, Number(e.target.value) || 0))}
+                      onBlur={() => saveQueueSettings(queueEnabled, queueMessage, queueAhead, true)}
+                      className="h-8 text-center"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        const next = queueAhead + 1;
+                        setQueueAhead(next);
+                        saveQueueSettings(queueEnabled, queueMessage, next, true);
+                      }}
+                    >
+                      +
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Aguardando agora: {queueAhead + conversations.filter((c) => (c.queue_position ?? 0) > 0).length} pessoa(s)
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button type="button" size="sm" onClick={callNextInQueue}>
+                      Chamar próximo
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={resetQueue}>
+                      Zerar fila
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
@@ -865,6 +919,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                 Enviar aviso de fila no chat
               </Button>
             </div>
+
 
             <div className="space-y-2 md:col-span-3">
               <Label className="text-xs">Cores dos status no chat</Label>
