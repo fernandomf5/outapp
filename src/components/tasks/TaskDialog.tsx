@@ -161,6 +161,7 @@ export const TaskDialog = ({
           .eq("id", task.id);
         
         if (error) throw error;
+        await saveLink(task.id, contactId, formData.title);
         toast.success("Tarefa atualizada");
       } else {
         // Create
@@ -175,7 +176,7 @@ export const TaskDialog = ({
 
         const nextOrder = (lastTask?.task_order ?? -1) + 1;
 
-        const { error } = await supabase
+        const { data: created, error } = await supabase
           .from("tasks")
           .insert({
             title: formData.title,
@@ -189,12 +190,18 @@ export const TaskDialog = ({
             task_order: nextOrder,
             status: "pending",
             checklist: checklist as any
-          });
+          })
+          .select("id")
+          .maybeSingle();
 
         
         if (error) throw error;
+        if (created?.id && contactId) {
+          await saveLink(created.id, contactId, formData.title);
+        }
         toast.success("Tarefa criada");
       }
+
 
       onSuccess();
       onOpenChange(false);
