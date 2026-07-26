@@ -28,6 +28,8 @@ import {
   getResourceType,
   resourceLabel,
 } from "@/lib/resourceLinks";
+import { ContactCategoryPicker } from "./ContactCategoryPicker";
+
 
 interface Props {
   resourceType: string;
