@@ -291,8 +291,15 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
                 >
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between">
+                      {selectionMode && (
+                        <Checkbox
+                          className="mr-3 mt-1"
+                          checked={selectedIds.includes(notification.id)}
+                          onCheckedChange={() => toggleSelect(notification.id)}
+                        />
+                      )}
                       <div 
-                        className="flex-1 cursor-pointer"
+
                         onClick={() => handleNotificationClick(notification)}
                       >
                         <div className="flex items-center gap-2 mb-2">
