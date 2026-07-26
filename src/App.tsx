@@ -61,6 +61,7 @@ import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
 import InvoicePublicPage from "./pages/InvoicePublicPage";
+import CapturePagePublic from "./pages/CapturePagePublic";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { RoutePersistence } from "@/components/RoutePersistence";
 
