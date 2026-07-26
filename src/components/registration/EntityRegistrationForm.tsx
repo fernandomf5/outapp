@@ -52,7 +52,7 @@ export function EntityRegistrationForm({
 }: EntityRegistrationFormProps) {
   const { user } = useAuth();
   const kind: EntityKind = getEntityKind(entityKind);
-  const { options: statusOptions } = useStatusOptions();
+  
   const [loading, setLoading] = useState(false);
 
   const fields = useMemo<KindField[]>(() => {
@@ -289,19 +289,6 @@ export function EntityRegistrationForm({
 
             {fields.filter((f) => f.type !== "textarea").map(renderField)}
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={values.status || ""} onValueChange={(v) => set("status", v)} disabled={isViewOnly}>
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Selecione um status (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             {fields.filter((f) => f.type === "textarea").map(renderField)}
 
