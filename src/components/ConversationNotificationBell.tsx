@@ -15,7 +15,8 @@ import {
 
 interface ConversationNotification {
   id: string;
-  type: 'agent' | 'chatbot';
+  type: 'agent' | 'chatbot' | 'form';
+
   agent_id?: string;
   chatbot_id?: string;
   agent_name?: string;
@@ -93,13 +94,28 @@ export const ConversationNotificationBell = () => {
       )
       .subscribe();
 
+    const formsChannel = supabase
+      .channel('contact-forms-notif')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'contact_form_submissions',
+        },
+        () => fetchNotifications()
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(agentConvChannel);
       supabase.removeChannel(agentMsgChannel);
       supabase.removeChannel(chatbotConvChannel);
       supabase.removeChannel(chatbotMsgChannel);
+      supabase.removeChannel(formsChannel);
     };
   }, [user]);
+
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -241,6 +257,32 @@ export const ConversationNotificationBell = () => {
       }
     }
 
+    // Fetch unread contact form submissions
+    if (agents && agents.length > 0) {
+      const agentMap = new Map(agents.map(a => [a.id, a.name]));
+      const { data: forms } = await supabase
+        .from('contact_form_submissions')
+        .select('id, agent_id, name, subject, message, created_at')
+        .in('agent_id', agents.map(a => a.id))
+        .eq('is_read', false)
+        .order('created_at', { ascending: false });
+
+      for (const form of forms || []) {
+        notifications.push({
+          id: form.id,
+          type: 'form',
+          agent_id: form.agent_id || undefined,
+          agent_name: `Formulário • ${agentMap.get(form.agent_id || '') || 'Chat Online'}`,
+          customer_name: form.name,
+          last_message: form.subject ? `${form.subject}: ${form.message}` : form.message,
+          last_message_at: form.created_at || new Date().toISOString(),
+          unread_count: 1,
+        });
+        totalUnreadCount += 1;
+      }
+    }
+
+
     // Sort by last message time
     notifications.sort((a, b) => 
       new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
@@ -255,7 +297,14 @@ export const ConversationNotificationBell = () => {
     
     // Mark conversation as read
     try {
-      if (notification.type === 'agent') {
+      if (notification.type === 'form') {
+        await supabase
+          .from('contact_form_submissions')
+          .update({ is_read: true })
+          .eq('id', notification.id);
+
+        navigate(`/dashboard?tab=chat-online&agentId=${notification.agent_id}&agentView=forms`);
+      } else if (notification.type === 'agent') {
         await supabase
           .from('agent_conversations')
           .update({ last_read_by_owner_at: new Date().toISOString() })
@@ -270,6 +319,7 @@ export const ConversationNotificationBell = () => {
         
         navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&chatbotView=conversations&conversationId=${notification.id}`);
       }
+
       
       // Update notifications immediately
       fetchNotifications();
@@ -282,7 +332,12 @@ export const ConversationNotificationBell = () => {
     e.stopPropagation();
     
     try {
-      if (notification.type === 'agent') {
+      if (notification.type === 'form') {
+        await supabase
+          .from('contact_form_submissions')
+          .delete()
+          .eq('id', notification.id);
+      } else if (notification.type === 'agent') {
         await supabase
           .from('agent_conversations')
           .delete()
@@ -294,7 +349,8 @@ export const ConversationNotificationBell = () => {
           .eq('id', notification.id);
       }
       
-      toast.success('Conversa removida');
+      toast.success(notification.type === 'form' ? 'Mensagem removida' : 'Conversa removida');
+
       fetchNotifications();
     } catch (error) {
       console.error('Error deleting conversation:', error);
@@ -349,7 +405,7 @@ export const ConversationNotificationBell = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-2 h-2 rounded-full bg-primary" />
                         <p className="font-medium text-sm">
-                          {notification.type === 'agent' ? notification.agent_name : notification.chatbot_name}
+                          {notification.type === 'chatbot' ? notification.chatbot_name : notification.agent_name}
                         </p>
                         <Badge variant="secondary" className="text-xs">
                           {notification.unread_count}

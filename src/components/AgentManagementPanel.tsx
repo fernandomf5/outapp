@@ -30,6 +30,14 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
   const [unreadForms, setUnreadForms] = useState(0);
 
   useEffect(() => {
+    const view = new URLSearchParams(window.location.search).get("agentView");
+    if (view === "forms" || view === "conversations" || view === "analytics") {
+      setActiveTab(view);
+    }
+  }, []);
+
+
+  useEffect(() => {
     if (!agentId) return;
     const loadUnread = async () => {
       const { count } = await supabase
