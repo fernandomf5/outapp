@@ -80,7 +80,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
 
-  const { categories } = useFinancialCategories(businessId);
+  const { categories, createCategory } = useFinancialCategories(businessId);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const [formData, setFormData] = useState({
