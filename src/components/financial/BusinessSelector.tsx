@@ -501,6 +501,22 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Create From Registrations Card */}
+                {!reorderMode && (
+                  <Card
+                    className="cursor-pointer border-dashed hover:border-primary hover:bg-primary/5 transition-all"
+                    onClick={() => setIsRegistrationDialogOpen(true)}
+                  >
+                    <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[160px] text-center">
+                      <div className="p-3 rounded-full bg-muted mb-3">
+                        <Users className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                      <p className="font-medium text-muted-foreground">Gestão de um Cadastro</p>
+                      <p className="text-xs text-muted-foreground mt-1">Use seus cadastros do módulo Cadastro</p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </SortableContext>
           </DndContext>
@@ -513,14 +529,116 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipl
               Crie seu primeiro negócio para começar a gerenciar suas finanças
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="flex flex-col sm:flex-row justify-center gap-3">
             <Button size="lg" onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Criar Primeiro Negócio
+              Criar Gestão Normal
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => setIsRegistrationDialogOpen(true)}>
+              <Users className="w-4 h-4 mr-2" />
+              Criar de um Cadastro
             </Button>
           </CardContent>
         </Card>
       )}
+
+      {/* Create From Registrations Dialog */}
+      <Dialog open={isRegistrationDialogOpen} onOpenChange={setIsRegistrationDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5" />
+              Criar Gestão Financeira de Cadastros
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Buscar por nome, e-mail, telefone..."
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                />
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="sm:w-56">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <Button variant="ghost" size="sm" onClick={toggleAllFilteredContacts} disabled={filteredContacts.length === 0}>
+                {filteredContacts.length > 0 && filteredContacts.every(c => selectedContactIds.has(c.id))
+                  ? 'Limpar seleção'
+                  : 'Selecionar todos'}
+              </Button>
+              <span className="text-muted-foreground">{selectedContactIds.size} selecionado(s)</span>
+            </div>
+
+            <div className="max-h-[320px] overflow-y-auto border rounded-lg divide-y">
+              {loadingContacts ? (
+                <div className="p-8 flex justify-center">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredContacts.length === 0 ? (
+                <p className="p-6 text-sm text-center text-muted-foreground">
+                  Nenhum cadastro encontrado no módulo Cadastro.
+                </p>
+              ) : (
+                filteredContacts.map((contact) => {
+                  const alreadyExists = existingNames.has(
+                    (contact.company?.trim() ? `${contact.name} (${contact.company})` : contact.name).trim().toLowerCase()
+                  );
+                  return (
+                    <label
+                      key={contact.id}
+                      className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        checked={selectedContactIds.has(contact.id)}
+                        onCheckedChange={() => toggleContact(contact.id)}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{contact.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {[contact.company, contact.phone, contact.email].filter(Boolean).join(' • ') || 'Sem dados de contato'}
+                        </p>
+                      </div>
+                      {alreadyExists && (
+                        <Badge variant="secondary" className="text-[10px] shrink-0">Já existe</Badge>
+                      )}
+                    </label>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRegistrationDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateFromRegistrations}
+              disabled={selectedContactIds.size === 0 || creatingFromRegistrations}
+            >
+              {creatingFromRegistrations && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Criar {selectedContactIds.size > 0 ? `(${selectedContactIds.size})` : ''} Gestão(ões)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
