@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Building2, User, Plus, ArrowRight, Briefcase, Layers, MoreVertical, Pencil, Trash2, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
+import { Building2, User, Plus, ArrowRight, Briefcase, Layers, MoreVertical, Pencil, Trash2, GripVertical, ArrowUp, ArrowDown, Users, Search, Loader2, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DndContext,
