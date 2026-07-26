@@ -25,12 +25,14 @@ interface Conversation {
   status: string;
   created_at: string;
   last_message_at: string;
+  queue_position?: number | null;
   agent_customers: {
     id: string;
     name: string;
     email: string;
   };
 }
+
 
 export default function AgentConversationsPanel({ agentId }: { agentId: string }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
