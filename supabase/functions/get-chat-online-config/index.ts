@@ -105,6 +105,19 @@ serve(async (req) => {
       .eq('status', 'active')
       .gt('queue_position', 0);
 
+    // Maior posição já ocupada (inclui posições definidas manualmente pelo atendente)
+    const { data: topQueue } = await supabase
+      .from('agent_conversations')
+      .select('queue_position')
+      .eq('agent_id', agentId)
+      .eq('status', 'active')
+      .not('queue_position', 'is', null)
+      .order('queue_position', { ascending: false })
+      .limit(1);
+
+    const maxPosition = Number(topQueue?.[0]?.queue_position ?? 0) || 0;
+    const nextPosition = Math.max(maxPosition, queueAhead) + 1;
+
     return new Response(
       JSON.stringify({
         agent: {
@@ -119,13 +132,17 @@ serve(async (req) => {
         queue: {
           enabled: cfg.queueEnabled === true,
           message: cfg.queueMessage ?? null,
+          etaMinutes: Number(cfg.queueEtaMinutes ?? 0) || 0,
           ahead: queueAhead,
           waiting: waitingCount ?? 0,
           position: queuePosition,
+          max: maxPosition,
+          next: nextPosition,
         },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
+
 
   } catch (e) {
     console.error('get-chat-online-config fatal:', e);
