@@ -88,7 +88,9 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         .from('financial_transactions')
         .select('*')
         .eq('user_id', targetUserId)
+        .order('order_index', { ascending: true, nullsFirst: false })
         .order('due_date', { ascending: true });
+
 
       if (isConsolidatedView && selectedBusinessIds.length > 0) {
         query = query.in('business_id', selectedBusinessIds);
