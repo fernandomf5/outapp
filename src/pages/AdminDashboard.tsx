@@ -664,63 +664,79 @@ const AdminDashboard = () => {
             {currentSection === 'overview' && (
               <>
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow">
                           <Users className="w-6 h-6 text-primary" />
                         </div>
-                        <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+{stats.newUsersThisMonth} este mês</span>
+                        <span className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+{stats.newUsersThisMonth} este mês</span>
                       </div>
-                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.totalUsers}</h3>
-                      <p className="text-muted-foreground">Usuários Totais</p>
+                      <h3 className="text-3xl font-bold mb-1">{stats.totalUsers}</h3>
+                      <p className="text-muted-foreground text-sm">Usuários cadastrados</p>
                     </div>
                   </Card>
 
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-success/5 border-success/20 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <div className="bg-gradient-to-br from-success/20 to-success/10 p-3 rounded-xl shadow-glow">
                           <TrendingUp className="w-6 h-6 text-success" />
                         </div>
-                        <span className="text-sm font-semibold text-success bg-success/10 px-3 py-1 rounded-full">Ativo</span>
+                        <span className="text-xs font-semibold text-success bg-success/10 px-3 py-1 rounded-full">{stats.conversionRate}% conversão</span>
                       </div>
-                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.activeSubscriptions}</h3>
-                      <p className="text-muted-foreground">Assinaturas Ativas</p>
+                      <h3 className="text-3xl font-bold mb-1">{stats.paidSubscriptions}</h3>
+                      <p className="text-muted-foreground text-sm">Assinaturas pagas ativas</p>
                     </div>
                   </Card>
 
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-warning/5 border-warning/20 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow">
                           <DollarSign className="w-6 h-6 text-warning" />
                         </div>
-                        <span className="text-sm font-semibold text-warning bg-warning/10 px-3 py-1 rounded-full">+{stats.growthRate}%</span>
+                        <span className="text-xs font-semibold text-warning bg-warning/10 px-3 py-1 rounded-full">Pagamentos aprovados</span>
                       </div>
-                      <h3 className="text-3xl font-bold mb-1 text-success">R$ {stats.monthlyRevenue.toLocaleString()}</h3>
-                      <p className="text-muted-foreground">Receita Mensal</p>
+                      <h3 className="text-3xl font-bold mb-1">R$ {stats.monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                      <p className="text-muted-foreground text-sm">Receita do mês</p>
                     </div>
                   </Card>
 
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-info/5 border-info/20 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-info/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
                         <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow">
-                          <TrendingUp className="w-6 h-6 text-info" />
+                          <BarChart3 className="w-6 h-6 text-info" />
                         </div>
-                        <span className="text-sm font-semibold text-info bg-info/10 px-3 py-1 rounded-full">Crescimento</span>
+                        <span className="text-xs font-semibold text-info bg-info/10 px-3 py-1 rounded-full">
+                          {stats.growthRate >= 0 ? '+' : ''}{stats.growthRate}% vs mês anterior
+                        </span>
                       </div>
-                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.growthRate}%</h3>
-                      <p className="text-muted-foreground">Taxa de Crescimento</p>
+                      <h3 className="text-3xl font-bold mb-1">R$ {stats.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                      <p className="text-muted-foreground text-sm">MRR estimado</p>
                     </div>
                   </Card>
                 </div>
+
+                {/* Detalhamento real da base */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                  {[
+                    { label: 'Testes ativos', value: stats.trialActive, hint: 'Trial em andamento' },
+                    { label: 'Testes expirados', value: stats.trialExpired, hint: 'Precisam converter' },
+                    { label: 'Sem plano', value: stats.noPlan, hint: 'Nenhuma assinatura válida' },
+                    { label: 'Receita total', value: `R$ ${stats.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, hint: 'Histórico aprovado' },
+                    { label: 'Novos no mês passado', value: stats.newUsersLastMonth, hint: 'Base comparativa' },
+                  ].map((item) => (
+                    <Card key={item.label} className="p-4 bg-card/60 border-border/60">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">{item.label}</p>
+                      <p className="text-2xl font-bold mt-1">{item.value}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">{item.hint}</p>
+                    </Card>
+                  ))}
+                </div>
+
 
                 {/* Quick Actions */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
