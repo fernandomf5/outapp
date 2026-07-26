@@ -257,8 +257,8 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogFooter>
         </AlertDialogContent>
+
       </AlertDialog>
     </>
   );
