@@ -2,13 +2,29 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell, Link2, Share2, Code, ChevronDown } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell, Link2, Share2, Code, ChevronDown, GripVertical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +48,35 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+function SortableAgentCard({ id, children }: { id: string; children: (handle: React.ReactNode) => React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.8 : 1,
+  } as React.CSSProperties;
+
+  const handle = (
+    <button
+      type="button"
+      className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted cursor-grab active:cursor-grabbing touch-none"
+      title="Arraste para reordenar"
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical className="w-4 h-4" />
+    </button>
+  );
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children(handle)}
+    </div>
+  );
+}
+
 
 interface TeamContext {
   adminUserId: string;
@@ -96,6 +141,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
       .from('ai_agents')
       .select('*')
       .eq('user_id', effectiveUserId)
+      .order('order_index', { ascending: true })
       .order('created_at', { ascending: false });
 
     if (isTeamMember && Array.isArray(allowedIds) && allowedIds.length > 0) {
@@ -198,6 +244,37 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
     window.open(`/chat-online/${agentId}`, '_blank');
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = agents.findIndex((a) => a.id === active.id);
+    const newIndex = agents.findIndex((a) => a.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(agents, oldIndex, newIndex);
+    setAgents(reordered);
+
+    const updates = reordered.map((agent, index) =>
+      supabase.from('ai_agents').update({ order_index: index } as any).eq('id', agent.id)
+    );
+    const results = await Promise.all(updates);
+    const failed = results.find((r: any) => r.error);
+    if (failed) {
+      toast({
+        title: t('error'),
+        description: "Não foi possível salvar a nova ordem.",
+        variant: "destructive",
+      });
+      fetchAgents();
+    }
+  };
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -224,28 +301,42 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Meus Chats</h2>
-        <Button onClick={() => navigate("/chat-online")}>
-          <MessageSquare className="w-4 h-4 mr-2" />
-          Novo Chat
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold">Meus Chats</h2>
+          <p className="text-xs text-muted-foreground mt-1">Arraste pelo ícone para reordenar seus chats.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ResourceAssignmentsButton resourceType="chat_online" />
+          <Button onClick={() => navigate("/chat-online")}>
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Novo Chat
+          </Button>
+        </div>
       </div>
 
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={agents.map((a) => a.id)} strategy={rectSortingStrategy}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {agents.map((agent) => {
           const totalNotifications = (notifications[agent.id]?.appointments || 0) + (notifications[agent.id]?.orders || 0) + (notifications[agent.id]?.messages || 0);
           
           return (
-          <Card key={agent.id} className="flex flex-col p-4 sm:p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-primary/20 group relative overflow-hidden bg-card/50 backdrop-blur-sm">
+          <SortableAgentCard key={agent.id} id={agent.id}>
+            {(dragHandle) => (
+          <Card className="flex flex-col p-4 sm:p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-primary/20 group relative overflow-hidden bg-card/50 backdrop-blur-sm h-full">
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
 
             <div className="flex items-start justify-between mb-4 relative z-10">
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              <div className="flex items-center gap-1">
+                {dragHandle}
+                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
               </div>
               <div className="flex gap-1.5">
+
                 <Button
                   variant="ghost"
                   size="icon"
@@ -353,9 +444,14 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
               )}
             </div>
           </Card>
+            )}
+          </SortableAgentCard>
         );
         })}
       </div>
+        </SortableContext>
+      </DndContext>
+
 
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
         <AlertDialogContent>

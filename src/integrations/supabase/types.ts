@@ -1376,6 +1376,7 @@ export type Database = {
           is_active: boolean
           name: string
           niche: string
+          order_index: number
           training_data: Json
           updated_at: string
           user_id: string
@@ -1392,6 +1393,7 @@ export type Database = {
           is_active?: boolean
           name: string
           niche: string
+          order_index?: number
           training_data?: Json
           updated_at?: string
           user_id: string
@@ -1408,6 +1410,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           niche?: string
+          order_index?: number
           training_data?: Json
           updated_at?: string
           user_id?: string
