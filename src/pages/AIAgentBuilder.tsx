@@ -541,23 +541,6 @@ const AIAgentBuilder = () => {
         </div>
       </div>
 
-      {/* Dialog de confirmação de mudança de tipo de acesso */}
-      <AlertDialog open={showAccessChangeDialog} onOpenChange={setShowAccessChangeDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>⚠️ Alterar tipo de acesso</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ao alterar o tipo de acesso, <strong>todos os usuários cadastrados serão excluídos</strong>. Eles poderão se cadastrar novamente seguindo as novas regras de acesso.
-              <br/><br/>
-              Tem certeza que deseja continuar?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelAccessTypeChange}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmAccessTypeChange}>Confirmar</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
