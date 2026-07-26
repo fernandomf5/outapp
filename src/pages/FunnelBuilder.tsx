@@ -210,9 +210,9 @@ const FunnelBuilder = () => {
 
       <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
         <Sparkles className="w-16 h-16 text-primary mb-6 animate-pulse" />
-        <h2 className="text-3xl font-bold mb-4">O Funil de Vendas está sendo integrado à Inteligência Artificial</h2>
+        <h2 className="text-3xl font-bold mb-4">O Funil de Vendas está sendo reorganizado</h2>
         <p className="text-muted-foreground max-w-md">
-          Estamos removendo o sistema de fluxos manuais para dar lugar a um sistema de funil completamente humanizado e gerido por Agentes IA. Em breve você poderá criar estratégias de vendas automáticas usando apenas prompts.
+          Estamos simplificando esta área para uma experiência mais direta, humanizada e fácil de gerenciar.
         </p>
         <Button onClick={() => navigate("/dashboard")} className="mt-8">
           Voltar para o Dashboard

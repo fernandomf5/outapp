@@ -824,7 +824,7 @@ export default function AgentCustomerChat() {
 
   const handleLogout = () => {
     localStorage.removeItem(`agent_customer_${agentId}`);
-    navigate(`/agent-auth/${agentId}`);
+    navigate(`/chat-online/${agentId}`);
   };
 
   const handleCancelAppointment = async () => {

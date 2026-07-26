@@ -33,7 +33,6 @@ interface Lead {
 
 const SOURCE_COLORS: Record<string, string> = {
   "Chat Online": "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  "Agente IA": "bg-purple-500/10 text-purple-600 border-purple-500/20",
   "Clonador de Páginas": "bg-orange-500/10 text-orange-600 border-orange-500/20",
   "Quiz": "bg-pink-500/10 text-pink-600 border-pink-500/20",
   "Briefing": "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
@@ -69,14 +68,14 @@ export function CapturedLeads() {
         created_at: c.started_at, source: "Chat Online",
       }));
 
-      // 2. Agente IA (agent_customers)
+      // 2. Chat Online (agent_customers)
       const { data: agentLeads } = await supabase
         .from("agent_customers")
         .select("id, name, email, phone, created_at, ai_agents!inner(user_id)")
         .eq("ai_agents.user_id", user.id);
       agentLeads?.forEach((c: any) => all.push({
         id: `agent-${c.id}`, name: c.name, email: c.email, phone: c.phone,
-        created_at: c.created_at, source: "Agente IA",
+        created_at: c.created_at, source: "Chat Online",
       }));
 
       // 3. Clonador de Páginas (cloned_page_leads)
