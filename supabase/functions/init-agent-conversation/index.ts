@@ -162,7 +162,9 @@ serve(async (req) => {
           attendant_name: agent.attendant_name
         },
         conversationId,
+        queuePosition,
         messages: messages || [],
+
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
