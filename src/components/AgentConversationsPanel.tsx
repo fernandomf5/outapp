@@ -654,35 +654,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h3 className="text-2xl font-bold">Conversas</h3>
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Status do Atendente */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Tipo de Atendimento:</span>
-              <Select value={attendantStatus} onValueChange={(v) => updateAttendantStatus(v as 'online' | 'offline' | 'busy')}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="online">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500" />
-                      Atendimento Humano
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="busy">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                      Ocupado (Humano)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="offline">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-blue-500" />
-                      Agente IA Ativo
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
             
             {unreadCount > 0 && (
               <Badge variant="destructive" className="rounded-full">
