@@ -146,8 +146,9 @@ export function ContactCategoryPicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[220px] z-[400]"
+          className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[220px] z-[500] pointer-events-auto"
           align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
 
           <Command>
