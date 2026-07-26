@@ -1140,7 +1140,7 @@ export default function AgentCustomerChat() {
                 )}
 
                 {/* Aviso de fila de espera */}
-                {queueEnabled && (queuePosition !== null || attendantStatus !== 'online') && (
+                {(queuePosition !== null || (queueEnabled && attendantStatus !== 'online')) && (
                   <Alert
                     className={`mt-2 py-1.5 sm:py-2 ${
                       queuePosition === 0 ? 'border-green-500/60' : 'border-yellow-500/60'
