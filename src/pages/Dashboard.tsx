@@ -1378,6 +1378,15 @@ const Dashboard = () => {
             </ErrorBoundary>
           </TabsContent>
 
+          <TabsContent value="portfolio">
+            <ErrorBoundary>
+              <FeatureTutorialVideo featureKey="portfolio" />
+              <PortfolioCreatorPanel />
+            </ErrorBoundary>
+          </TabsContent>
+
+
+
           <TabsContent value="popups">
             <FeatureGate featureKey="popup_creator">
               <FeatureTutorialVideo featureKey="popups" />
