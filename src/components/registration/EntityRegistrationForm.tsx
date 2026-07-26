@@ -62,7 +62,7 @@ export function EntityRegistrationForm({
     return Array.from(seen.values());
   }, [kind, customSchema]);
 
-  );
+
 
   const buildInitialValues = () => {
     const base: Record<string, any> = {};
