@@ -256,7 +256,9 @@ export const THEME_PRESETS: { name: string; theme: Partial<CaptureTheme> }[] = [
 
 /* --------------------------------- Settings -------------------------------- */
 
-export interface CaptureSettings {
+import type { PageEmbedSettings } from "@/components/embeds/pageEmbedTypes";
+
+export interface CaptureSettings extends PageEmbedSettings {
   successMessage: string;
   redirectUrl: string;
   buttonText: string;
@@ -272,6 +274,12 @@ export const DEFAULT_SETTINGS: CaptureSettings = {
   seoTitle: "",
   seoDescription: "",
   whatsappRedirect: "",
+  headScripts: "",
+  bodyScripts: "",
+  floatingButtonId: "",
+  floatingButtonCode: "",
+  popupId: "",
+  popupConfig: null,
 };
 
 export interface CapturePageRecord {

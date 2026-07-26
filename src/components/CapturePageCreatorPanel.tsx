@@ -27,6 +27,7 @@ import { CaptureFormBuilder } from "./capture/CaptureFormBuilder";
 import { CaptureThemeEditor } from "./capture/CaptureThemeEditor";
 import { CapturePageRenderer } from "./capture/CapturePageRenderer";
 import { CaptureLeadsPanel } from "./capture/CaptureLeadsPanel";
+import { EmbedSettingsCard } from "./embeds/EmbedSettingsCard";
 
 const db = supabase as any;
 
