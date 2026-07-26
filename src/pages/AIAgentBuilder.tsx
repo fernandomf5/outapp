@@ -36,10 +36,6 @@ const AIAgentBuilder = () => {
   const [agentName, setAgentName] = useState("Novo Chat");
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
-  const [originalAccessType, setOriginalAccessType] = useState<'public' | 'anonymous'>('public');
-  const [showAccessChangeDialog, setShowAccessChangeDialog] = useState(false);
-  const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#6366f1");
   const [secondaryColor, setSecondaryColor] = useState("#8b5cf6");
   const [onlineStatusColor, setOnlineStatusColor] = useState("#22c55e");
