@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { agentId, customerId, customerName } = await req.json();
+    const { agentId, customerId, customerName, customerEmail } = await req.json();
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -49,17 +49,12 @@ serve(async (req) => {
     }
 
     if (!existingCustomer) {
-      const access = (agent.access_type || '').toString().toLowerCase();
-      const isRestricted = access === 'restricted' || access === 'private' || access === 'privado' || access === 'acesso_privado';
-      if (isRestricted) {
-        return new Response(JSON.stringify({ error: 'Agente requer autenticação' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      // Create anonymous/customer placeholder so FK is satisfied
+      // Create lightweight customer (name + email only, no registration required)
       const anonName = customerName || 'Visitante';
-      const anonEmail = `anon_${Date.now()}@temp.com`;
+      const anonEmail = (customerEmail && String(customerEmail).trim())
+        ? String(customerEmail).trim().toLowerCase()
+        : `anon_${Date.now()}@temp.com`;
+
 
       // Generate a password hash placeholder for anonymous customers
       const encoder = new TextEncoder();
@@ -68,20 +63,30 @@ serve(async (req) => {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-      const { error: createCustomerError } = await supabase
+      const insertCustomer = (email: string) => supabase
         .from('agent_customers')
         .insert({
           id: customerId,
           agent_id: agentId,
           name: anonName,
-          email: anonEmail,
+          email,
           password_hash: passwordHash,
           email_verified: false,
         });
+
+      let { error: createCustomerError } = await insertCustomer(anonEmail);
       if (createCustomerError) {
-        console.error('Error creating anonymous customer:', createCustomerError);
+        // Provável conflito de e-mail duplicado: cria sessão nova com e-mail único
+        const [local, domain] = anonEmail.split('@');
+        const fallbackEmail = `${local}+${Date.now()}@${domain || 'temp.com'}`;
+        const retry = await insertCustomer(fallbackEmail);
+        createCustomerError = retry.error;
+      }
+      if (createCustomerError) {
+        console.error('Error creating customer:', createCustomerError);
         throw new Error('Falha ao preparar sessão do cliente');
       }
+
     }
 
     // Find existing conversation

@@ -74,6 +74,8 @@ export default function AgentCustomerChat() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
   const [attendantName, setAttendantName] = useState<string | null>(null);
+  const [queueEnabled, setQueueEnabled] = useState(false);
+  const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -99,13 +101,14 @@ export default function AgentCustomerChat() {
           try {
             const parsedCustomer = JSON.parse(customerData);
             setCustomer(parsedCustomer);
-            loadAgentAndConversation(parsedCustomer.id, parsedCustomer.name);
+            loadAgentAndConversation(parsedCustomer.id, parsedCustomer.name, parsedCustomer.email);
             return;
           } catch (error) {
             console.error('Error parsing customer data:', error);
             localStorage.removeItem(`agent_customer_${agentId}`);
           }
         }
+
 
         // Se não tem dados no localStorage
         if (agent?.access_type === 'anonymous') {
@@ -164,8 +167,14 @@ export default function AgentCustomerChat() {
           if (agent.attendant_name !== undefined) {
             setAttendantName(agent.attendant_name);
           }
+          if (agent.config) {
+            const cfg = agent.config as any;
+            setQueueEnabled(cfg.queueEnabled === true);
+            if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+          }
         }
       )
+
       .subscribe();
 
     return () => {
@@ -347,12 +356,13 @@ export default function AgentCustomerChat() {
     };
   }, [customer?.id, agentId]);
 
-  const loadAgentAndConversation = async (customerId: string, customerName?: string) => {
+  const loadAgentAndConversation = async (customerId: string, customerName?: string, customerEmail?: string) => {
     try {
       // Chamar edge function para inicializar conversa (bypass RLS)
       const { data, error } = await supabase.functions.invoke('init-agent-conversation', {
-        body: { agentId, customerId, customerName, timestamp: Date.now() }
+        body: { agentId, customerId, customerName, customerEmail, timestamp: Date.now() }
       });
+
 
       if (error) {
         let errorMessage = "Não foi possível conectar ao agente";
@@ -419,6 +429,13 @@ export default function AgentCustomerChat() {
         }
       }
       
+      // Configurações de fila
+      if (data.agent?.config) {
+        const cfg = data.agent.config as any;
+        setQueueEnabled(cfg.queueEnabled === true);
+        if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+      }
+
       // Set attendant status from agent data
       if (data.agent?.attendant_status) {
         setAttendantStatus(data.agent.attendant_status);
@@ -1036,7 +1053,18 @@ export default function AgentCustomerChat() {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                {/* Aviso de fila de espera */}
+                {queueEnabled && attendantStatus !== 'online' && (
+                  <Alert className="mt-2 py-1.5 sm:py-2 border-yellow-500/60">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <AlertDescription className="ml-2 text-xs sm:text-sm">
+                      {queueMessage}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
+
             </div>
             
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
