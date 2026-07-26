@@ -184,6 +184,7 @@ export default function AgentCustomerChat() {
           setQueuePosition(
             data.queue.position === null || data.queue.position === undefined ? null : Number(data.queue.position),
           );
+          setQueueWaiting(Number(data.queue.waiting || 0));
         }
         if (cfg.statusColors) {
           setStatusColors({
