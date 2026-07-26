@@ -356,6 +356,10 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           />
         </TabsContent>
 
+        <TabsContent value="history" className="space-y-4">
+          <TransactionHistory transactions={transactions} bankAccounts={bankAccounts} />
+        </TabsContent>
+
         <TabsContent value="reports" className="space-y-4">
           <ReportCenter transactions={transactions} />
         </TabsContent>
