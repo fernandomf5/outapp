@@ -274,6 +274,9 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
           {selected && (
             <div className="space-y-4">
               <div className="rounded-lg bg-muted p-3 text-sm whitespace-pre-wrap max-h-40 overflow-y-auto">
+                {selected.subject && (
+                  <p className="font-semibold mb-1">Assunto: {selected.subject}</p>
+                )}
                 {selected.message}
               </div>
               <div className="space-y-2">
