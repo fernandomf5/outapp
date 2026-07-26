@@ -61,8 +61,11 @@ export default function AgentCustomerAuth() {
         if (config.logoUrl) setLogoUrl(config.logoUrl);
         setQueueEnabled(config.queueEnabled === true);
         if (data.queue) {
-          setQueueNext(Math.max(1, Number(data.queue.ahead || 0) + Number(data.queue.waiting || 0) + 1));
+          const next = Number(data.queue.next ?? 0);
+          setQueueNext(next > 0 ? next : Math.max(1, Number(data.queue.ahead || 0) + Number(data.queue.waiting || 0) + 1));
+          setQueueEta(Number(data.queue.etaMinutes || 0) || 0);
         }
+
 
         if (config.statusColors) {
           setStatusColors({
