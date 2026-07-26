@@ -27,6 +27,12 @@ export default function AgentCustomerAuth() {
     offline: '#64748b',
   });
   const [formData, setFormData] = useState({ name: "" });
+  const { toast } = useToast();
+  const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
+  const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [sendingContact, setSendingContact] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", message: "" });
 
   useEffect(() => {
     if (!agentId) return;
