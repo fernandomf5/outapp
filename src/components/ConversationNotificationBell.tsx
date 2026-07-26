@@ -332,7 +332,12 @@ export const ConversationNotificationBell = () => {
     e.stopPropagation();
     
     try {
-      if (notification.type === 'agent') {
+      if (notification.type === 'form') {
+        await supabase
+          .from('contact_form_submissions')
+          .delete()
+          .eq('id', notification.id);
+      } else if (notification.type === 'agent') {
         await supabase
           .from('agent_conversations')
           .delete()
@@ -344,7 +349,8 @@ export const ConversationNotificationBell = () => {
           .eq('id', notification.id);
       }
       
-      toast.success('Conversa removida');
+      toast.success(notification.type === 'form' ? 'Mensagem removida' : 'Conversa removida');
+
       fetchNotifications();
     } catch (error) {
       console.error('Error deleting conversation:', error);
