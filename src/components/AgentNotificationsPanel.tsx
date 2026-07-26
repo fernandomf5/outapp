@@ -299,8 +299,8 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
                         />
                       )}
                       <div 
-
-                        onClick={() => handleNotificationClick(notification)}
+                        className="flex-1 cursor-pointer"
+                        onClick={() => selectionMode ? toggleSelect(notification.id) : handleNotificationClick(notification)}
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Badge className={notificationTypeColors[notification.notification_type] || "bg-gray-500"}>
