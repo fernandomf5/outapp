@@ -283,7 +283,7 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                     <p className="mt-1 text-sm line-clamp-2 whitespace-pre-wrap">
                       {item.message}
                     </p>
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -296,6 +296,26 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                       </Button>
                       <Button
                         size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(item.message, "Mensagem");
+                        }}
+                      >
+                        <Copy className="w-3.5 h-3.5 mr-1" /> Copiar mensagem
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(item.email, "E-mail");
+                        }}
+                      >
+                        <Mail className="w-3.5 h-3.5 mr-1" /> Copiar e-mail
+                      </Button>
+                      <Button
+                        size="sm"
                         variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -305,6 +325,7 @@ export default function AgentContactFormsPanel({ agentId }: Props) {
                         <Trash2 className="w-3.5 h-3.5 text-destructive" />
                       </Button>
                     </div>
+
                   </div>
                 ))}
               </div>
