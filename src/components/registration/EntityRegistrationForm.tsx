@@ -55,9 +55,13 @@ export function EntityRegistrationForm({
   const { options: statusOptions } = useStatusOptions();
   const [loading, setLoading] = useState(false);
 
-  const fields = useMemo<KindField[]>(
-    () => [...kind.fields, ...(Array.isArray(customSchema) ? customSchema : [])],
-    [kind, customSchema]
+  const fields = useMemo<KindField[]>(() => {
+    const merged = [...kind.fields, ...(Array.isArray(customSchema) ? customSchema : [])];
+    const seen = new Map<string, KindField>();
+    merged.forEach((f) => f?.key && seen.set(f.key, f));
+    return Array.from(seen.values());
+  }, [kind, customSchema]);
+
   );
 
   const buildInitialValues = () => {
