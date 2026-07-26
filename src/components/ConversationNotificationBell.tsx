@@ -15,7 +15,8 @@ import {
 
 interface ConversationNotification {
   id: string;
-  type: 'agent' | 'chatbot';
+  type: 'agent' | 'chatbot' | 'form';
+
   agent_id?: string;
   chatbot_id?: string;
   agent_name?: string;
@@ -93,13 +94,28 @@ export const ConversationNotificationBell = () => {
       )
       .subscribe();
 
+    const formsChannel = supabase
+      .channel('contact-forms-notif')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'contact_form_submissions',
+        },
+        () => fetchNotifications()
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(agentConvChannel);
       supabase.removeChannel(agentMsgChannel);
       supabase.removeChannel(chatbotConvChannel);
       supabase.removeChannel(chatbotMsgChannel);
+      supabase.removeChannel(formsChannel);
     };
   }, [user]);
+
 
   const fetchNotifications = async () => {
     if (!user) return;
