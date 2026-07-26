@@ -109,22 +109,37 @@ export function EntityRegistrationForm({
 
   const set = (key: string, val: any) => setValues((p) => ({ ...p, [key]: val }));
 
+  const hasCustom = Array.isArray(customSchema) && customSchema.length > 0;
+
+  const resolveName = () => {
+    if (values.name?.trim()) return values.name.trim();
+    if (hasCustom) {
+      for (const f of customSchema) {
+        const v = values[f.key];
+        if (typeof v === "string" && v.trim()) return v.trim();
+      }
+    }
+    return "";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || isViewOnly) return;
-    if (!values.name?.trim()) {
-      toast.error("O nome é obrigatório");
+    const resolvedName = resolveName();
+    if (!resolvedName) {
+      toast.error("Preencha ao menos um campo do formulário");
       return;
     }
     setLoading(true);
     try {
       const custom: Record<string, any> = { ...(initialData?.custom_fields || {}) };
       const payload: Record<string, any> = {
-        name: values.name?.trim(),
+        name: resolvedName,
         avatar_url: values.avatar_url || null,
         notes: values.notes || null,
         status: values.status || null,
       };
+
 
       if (kind.showContactBlock) {
         payload.email = values.email || null;
@@ -244,17 +259,20 @@ export function EntityRegistrationForm({
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="name">{kind.nameLabel}</Label>
-              <Input
-                id="name"
-                value={values.name}
-                placeholder={kind.namePlaceholder}
-                onChange={(e) => set("name", e.target.value)}
-                disabled={isViewOnly}
-                required
-              />
-            </div>
+            {!hasCustom && (
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="name">{kind.nameLabel}</Label>
+                <Input
+                  id="name"
+                  value={values.name}
+                  placeholder={kind.namePlaceholder}
+                  onChange={(e) => set("name", e.target.value)}
+                  disabled={isViewOnly}
+                  required
+                />
+              </div>
+            )}
+
 
             {kind.showContactBlock && (
               <>
