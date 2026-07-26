@@ -390,6 +390,25 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
 
       <div className="mt-6">
         {activeTab === "form" ? (
+          ((category as any).entity_kind && (category as any).entity_kind !== "people") ? (
+            <EntityRegistrationForm
+              categoryId={category.id}
+              categoryName={category.name}
+              entityKind={(category as any).entity_kind}
+              customSchema={Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : []}
+              initialData={selectedItem}
+              isViewOnly={isViewOnly}
+              onSuccess={() => {
+                setActiveTab("list");
+                fetchItems();
+                setSelectedItem(null);
+              }}
+              onCancel={() => {
+                setActiveTab("list");
+                setSelectedItem(null);
+              }}
+            />
+          ) : (
           <UnifiedRegistrationForm 
             categoryId={category.id} 
             categoryName={category.name}
@@ -406,6 +425,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               setSelectedItem(null);
             }}
           />
+          )
+
         ) : activeTab === "history" && selectedItem ? (
           <ContactHistoryPanel contactId={selectedItem.id} contactName={selectedItem.name} />
         ) : activeTab === "resources" && selectedItem ? (
