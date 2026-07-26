@@ -77,6 +77,7 @@ export default function AgentCustomerChat() {
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [queueWaiting, setQueueWaiting] = useState(0);
+  const [queueEta, setQueueEta] = useState(0);
   const prevQueuePositionRef = useRef<number | null | undefined>(undefined);
   const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
 
@@ -111,6 +112,7 @@ export default function AgentCustomerChat() {
           const cfg = agent.config as any;
           setQueueEnabled(cfg.queueEnabled === true);
           if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+          setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
           if (cfg.statusColors) {
             setStatusColors({
               online: cfg.statusColors.online || '#22c55e',
@@ -180,11 +182,13 @@ export default function AgentCustomerChat() {
         const cfg = (agent.config || {}) as any;
         setQueueEnabled(cfg.queueEnabled === true);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+          setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
         if (data?.queue) {
           setQueuePosition(
             data.queue.position === null || data.queue.position === undefined ? null : Number(data.queue.position),
           );
           setQueueWaiting(Number(data.queue.waiting || 0));
+          setQueueEta(Number(data.queue.etaMinutes || 0) || 0);
         }
         if (cfg.statusColors) {
           setStatusColors({
@@ -295,6 +299,7 @@ export default function AgentCustomerChat() {
             const cfg = agent.config as any;
             setQueueEnabled(cfg.queueEnabled === true);
             if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+          setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
             if (cfg.statusColors) {
               setStatusColors({
                 online: cfg.statusColors.online || '#22c55e',
@@ -554,6 +559,7 @@ export default function AgentCustomerChat() {
         const cfg = data.agent.config as any;
         setQueueEnabled(cfg.queueEnabled === true);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+          setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
         if (cfg.statusColors) {
           setStatusColors({
             online: cfg.statusColors.online || '#22c55e',
@@ -1162,6 +1168,11 @@ export default function AgentCustomerChat() {
                             </span>
                           )}
                           <span className="text-muted-foreground">{queueMessage}</span>
+                          {queueEta > 0 && (
+                            <span className="text-muted-foreground">
+                              Tempo estimado: ~{queueEta * Math.max(1, queuePosition)} min.
+                            </span>
+                          )}
                         </span>
                       ) : (
                         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -1171,6 +1182,7 @@ export default function AgentCustomerChat() {
                             </Badge>
                           )}
                           <span>{queueMessage}</span>
+                          {queueEta > 0 && <span className="text-muted-foreground">Tempo estimado: ~{queueEta} min.</span>}
                         </span>
                       )}
                     </AlertDescription>

@@ -104,24 +104,39 @@ serve(async (req) => {
     const queueAhead = Number(agentCfg.queueAhead ?? 0) || 0;
     const activeConv = conversations?.find((c: any) => c.status === 'active');
 
+    // Próxima posição = maior posição já ocupada (inclusive as definidas manualmente
+    // pelo atendente) ou a quantidade informada de pessoas na fila, o que for maior, + 1
+    const getNextPosition = async () => {
+      const { data: waiting } = await supabase
+        .from('agent_conversations')
+        .select('queue_position')
+        .eq('agent_id', agentId)
+        .eq('status', 'active')
+        .not('queue_position', 'is', null)
+        .order('queue_position', { ascending: false })
+        .limit(1);
+
+      const maxPos = Number(waiting?.[0]?.queue_position ?? 0) || 0;
+      return Math.max(maxPos, queueAhead) + 1;
+    };
+
     if (activeConv) {
       conversationId = activeConv.id;
       queuePosition = activeConv.queue_position ?? null;
-    } else {
-      // Calcula a posição na fila: depois de quem já está esperando
-      if (queueEnabled) {
-        const { data: waiting } = await supabase
-          .from('agent_conversations')
-          .select('queue_position')
-          .eq('agent_id', agentId)
-          .eq('status', 'active')
-          .not('queue_position', 'is', null)
-          .order('queue_position', { ascending: false })
-          .limit(1);
 
-        const maxPos = Number(waiting?.[0]?.queue_position ?? 0) || 0;
-        queuePosition = Math.max(maxPos, queueAhead) + 1;
+      // Conversa já existente ainda sem posição: entra no fim da fila
+      if (queueEnabled && (queuePosition === null || queuePosition === undefined)) {
+        queuePosition = await getNextPosition();
+        await supabase
+          .from('agent_conversations')
+          .update({ queue_position: queuePosition })
+          .eq('id', conversationId);
       }
+    } else {
+      if (queueEnabled) {
+        queuePosition = await getNextPosition();
+      }
+
 
       // Atendimento 100% humano: nunca habilitar respostas automáticas
       const { data: newConv, error: newConvError } = await supabase

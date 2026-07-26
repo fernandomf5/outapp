@@ -45,6 +45,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queueAhead, setQueueAhead] = useState(0);
+  const [queueEtaMinutes, setQueueEtaMinutes] = useState(0);
   const [queueMessage, setQueueMessage] = useState("Seu atendimento está na fila de espera. Em breve um atendente responderá.");
 
   const [statusColors, setStatusColors] = useState({
@@ -92,6 +93,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         const cfg = (agent.config || {}) as any;
         setQueueEnabled(cfg.queueEnabled === true);
         setQueueAhead(Number(cfg.queueAhead ?? 0) || 0);
+        setQueueEtaMinutes(Number(cfg.queueEtaMinutes ?? 0) || 0);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
 
         if (cfg.statusColors) {
@@ -169,6 +171,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     message: string,
     ahead: number = queueAhead,
     silent = false,
+    etaMinutes: number = queueEtaMinutes,
   ) => {
     const { data: agent } = await supabase
       .from('ai_agents')
@@ -181,6 +184,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       queueEnabled: enabled,
       queueMessage: message,
       queueAhead: Math.max(0, Math.round(ahead || 0)),
+      queueEtaMinutes: Math.max(0, Math.round(etaMinutes || 0)),
     };
 
     const { error } = await supabase
@@ -896,8 +900,21 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     </Button>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Aguardando agora: {queueAhead + conversations.filter((c) => (c.queue_position ?? 0) > 0).length} pessoa(s)
+                    Aguardando agora: {Math.max(queueAhead, ...conversations.map((c) => c.queue_position ?? 0), 0)} na maior posição •{' '}
+                    {conversations.filter((c) => (c.queue_position ?? 0) > 0).length} chat(s) em espera. Quem entrar agora será o nº{' '}
+                    {Math.max(queueAhead, ...conversations.map((c) => c.queue_position ?? 0), 0) + 1}.
                   </p>
+                  <Label className="text-xs">Tempo estimado de atendimento (minutos)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={queueEtaMinutes}
+                    onChange={(e) => setQueueEtaMinutes(Math.max(0, Number(e.target.value) || 0))}
+                    onBlur={() => saveQueueSettings(queueEnabled, queueMessage, queueAhead, true, queueEtaMinutes)}
+                    className="h-8"
+                    placeholder="0 = não exibir"
+                  />
+
                   <div className="grid grid-cols-2 gap-2">
                     <Button type="button" size="sm" onClick={callNextInQueue}>
                       Chamar próximo

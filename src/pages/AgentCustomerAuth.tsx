@@ -22,6 +22,7 @@ export default function AgentCustomerAuth() {
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queueNext, setQueueNext] = useState(1);
+  const [queueEta, setQueueEta] = useState(0);
 
   const [statusColors, setStatusColors] = useState({
     online: '#22c55e',
@@ -61,8 +62,11 @@ export default function AgentCustomerAuth() {
         if (config.logoUrl) setLogoUrl(config.logoUrl);
         setQueueEnabled(config.queueEnabled === true);
         if (data.queue) {
-          setQueueNext(Math.max(1, Number(data.queue.ahead || 0) + Number(data.queue.waiting || 0) + 1));
+          const next = Number(data.queue.next ?? 0);
+          setQueueNext(next > 0 ? next : Math.max(1, Number(data.queue.ahead || 0) + Number(data.queue.waiting || 0) + 1));
+          setQueueEta(Number(data.queue.etaMinutes || 0) || 0);
         }
+
 
         if (config.statusColors) {
           setStatusColors({
@@ -218,6 +222,11 @@ export default function AgentCustomerAuth() {
                 </>
               ) : (
                 'A fila está livre — ao iniciar você será o próximo a ser atendido.'
+              )}
+              {queueEta > 0 && (
+                <div className="mt-1 text-xs">
+                  Tempo estimado de atendimento: <span className="font-semibold text-foreground">~{queueEta} min</span>
+                </div>
               )}
             </div>
           )}
