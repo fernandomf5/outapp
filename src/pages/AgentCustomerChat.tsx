@@ -76,6 +76,8 @@ export default function AgentCustomerChat() {
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
+  const [queueWaiting, setQueueWaiting] = useState(0);
+  const prevQueuePositionRef = useRef<number | null | undefined>(undefined);
   const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
 
   const [statusColors, setStatusColors] = useState({
