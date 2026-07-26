@@ -50,16 +50,37 @@ interface TransactionManagerProps {
   businessId: string;
 }
 
+const SortableTransactionRow = ({ id, children, className }: { id: string; children: (handle: React.ReactNode) => React.ReactNode; className?: string }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const handle = (
+    <button type="button" className="cursor-grab text-muted-foreground touch-none" {...attributes} {...listeners}>
+      <GripVertical className="h-4 w-4" />
+    </button>
+  );
+  return (
+    <TableRow ref={setNodeRef} style={style} className={className}>
+      {children(handle)}
+    </TableRow>
+  );
+};
+
 export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId }: TransactionManagerProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [orderedIds, setOrderedIds] = useState<string[]>([]);
+
+  const { categories } = useFinancialCategories(businessId);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const [formData, setFormData] = useState({
     description: "",
@@ -77,15 +98,61 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     { description: "", amount: "", type: "expense", category: "", due_date: format(new Date(), "yyyy-MM-dd"), status: "pending", payment_method: "pix", bank_account_id: "" }
   ]);
 
+  useEffect(() => {
+    setOrderedIds(transactions.map(t => t.id));
+  }, [transactions]);
+
+  const orderedTransactions = useMemo(() => {
+    const map = new Map(transactions.map(t => [t.id, t]));
+    const ordered = orderedIds.map(id => map.get(id)).filter(Boolean) as Transaction[];
+    const missing = transactions.filter(t => !orderedIds.includes(t.id));
+    return [...ordered, ...missing];
+  }, [transactions, orderedIds]);
+
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
+    return orderedTransactions.filter(t => {
       const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           t.category.toLowerCase().includes(searchTerm.toLowerCase());
+                           (t.category || "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === "all" || t.type === typeFilter;
       const matchesStatus = statusFilter === "all" || t.status === statusFilter;
-      return matchesSearch && matchesType && matchesStatus;
+      const matchesCategory = categoryFilter === "all" ||
+        (t.category || "").trim().toLowerCase() === categoryFilter.trim().toLowerCase();
+      return matchesSearch && matchesType && matchesStatus && matchesCategory;
     });
-  }, [transactions, searchTerm, typeFilter, statusFilter]);
+  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter]);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const visibleIds = filteredTransactions.map(t => t.id);
+    const oldIndex = visibleIds.indexOf(active.id as string);
+    const newIndex = visibleIds.indexOf(over.id as string);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const newVisibleOrder = arrayMove(visibleIds, oldIndex, newIndex);
+    // Rebuild global order keeping hidden items in place
+    const positions = orderedTransactions
+      .map((t, index) => (visibleIds.includes(t.id) ? index : -1))
+      .filter(i => i >= 0);
+    const nextGlobal = orderedTransactions.map(t => t.id);
+    positions.forEach((pos, i) => {
+      nextGlobal[pos] = newVisibleOrder[i];
+    });
+    setOrderedIds(nextGlobal);
+
+    try {
+      await Promise.all(
+        nextGlobal.map((id, index) =>
+          supabase.from('financial_transactions').update({ order_index: index }).eq('id', id)
+        )
+      );
+    } catch {
+      toast.error("Erro ao salvar a ordem");
+      onRefresh();
+    }
+  };
+
 
   const updateAccountBalance = async (accountId: string, amountChange: number) => {
     try {
