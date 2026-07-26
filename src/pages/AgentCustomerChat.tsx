@@ -84,7 +84,6 @@ export default function AgentCustomerChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [visibleMessagesCount, setVisibleMessagesCount] = useState(20);
-  const [requestingHuman, setRequestingHuman] = useState(false);
   const MAX_VISIBLE_MESSAGES = 20;
 
   useEffect(() => {
