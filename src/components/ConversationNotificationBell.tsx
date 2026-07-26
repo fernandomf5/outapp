@@ -405,7 +405,7 @@ export const ConversationNotificationBell = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-2 h-2 rounded-full bg-primary" />
                         <p className="font-medium text-sm">
-                          {notification.type === 'agent' ? notification.agent_name : notification.chatbot_name}
+                          {notification.type === 'chatbot' ? notification.chatbot_name : notification.agent_name}
                         </p>
                         <Badge variant="secondary" className="text-xs">
                           {notification.unread_count}
