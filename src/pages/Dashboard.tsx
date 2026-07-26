@@ -50,6 +50,7 @@ import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
 import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
+import { CapturePageCreatorPanel } from "@/components/CapturePageCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
 import { MarketingQuestionnairePanel } from "@/components/MarketingQuestionnairePanel";
