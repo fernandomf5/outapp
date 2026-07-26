@@ -39,7 +39,7 @@ import { LinkShortener } from "@/components/LinkShortener";
 import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
-import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
+
 import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGenerator";
