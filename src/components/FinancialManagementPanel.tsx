@@ -156,13 +156,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   };
 
   const handleCreateBusinessesFromRegistrations = async (
-    items: { name: string; business_type: 'personal' | 'company'; description: string }[]
+    items: { name: string; business_type: 'personal' | 'company'; description: string; contact_id?: string; category_id?: string | null }[]
   ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
+      const { data: created, error } = await supabase
         .from('financial_businesses')
         .insert(
           items.map((item) => ({
@@ -171,9 +171,31 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             business_type: item.business_type,
             description: item.description || null,
           }))
-        );
+        )
+        .select('id, name');
 
       if (error) throw error;
+
+      // Register the link between each created management and its cadastro
+      const links = (created || [])
+        .map((biz: any, index: number) => {
+          const source = items[index];
+          if (!source?.contact_id) return null;
+          return {
+            user_id: user.id,
+            contact_id: source.contact_id,
+            category_id: source.category_id ?? null,
+            resource_type: 'financial_business',
+            resource_id: biz.id,
+            resource_title: biz.name,
+            resource_url: `/dashboard?tab=financeiro&resourceId=${biz.id}`,
+          };
+        })
+        .filter(Boolean);
+
+      if (links.length > 0) {
+        await supabase.from('contact_resource_links' as any).insert(links as any);
+      }
 
       toast.success(
         items.length > 1
@@ -185,6 +207,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       toast.error('Erro ao criar gestões a partir dos cadastros');
     }
   };
+
 
 
 
