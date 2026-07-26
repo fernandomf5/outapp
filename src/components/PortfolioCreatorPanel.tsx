@@ -27,8 +27,10 @@ import { CaptureFormBuilder } from "./capture/CaptureFormBuilder";
 import {
   DEFAULT_CONTACT, DEFAULT_PORTFOLIO_THEME, DEFAULT_SECTIONS, LAYOUT_OPTIONS, PORTFOLIO_CATEGORIES,
   PORTFOLIO_TEMPLATES, PortfolioItemRecord, PortfolioLayout, PortfolioRecord, SOCIAL_FIELDS,
-  fieldsFromCategory, getCategoryDef,
+  fieldsFromCategory, getCategoryDef, DEFAULT_PORTFOLIO_SETTINGS,
 } from "./portfolio/portfolioTypes";
+import { EmbedSettingsCard } from "./embeds/EmbedSettingsCard";
+import { PageEmbedSettings } from "./embeds/pageEmbedTypes";
 import { PortfolioSectionsEditor } from "./portfolio/PortfolioSectionsEditor";
 import { PortfolioItemsEditor } from "./portfolio/PortfolioItemsEditor";
 import { PortfolioRenderer } from "./portfolio/PortfolioRenderer";
@@ -43,6 +45,7 @@ const normalize = (row: any): PortfolioRecord => ({
   custom_fields: Array.isArray(row.custom_fields) ? row.custom_fields : [],
   contact: { ...DEFAULT_CONTACT, ...(row.contact || {}) },
   layout: (row.layout || "grid") as PortfolioLayout,
+  settings: { ...DEFAULT_PORTFOLIO_SETTINGS(), ...(row.settings || {}) },
 });
 
 const normalizeItem = (row: any): PortfolioItemRecord => ({
@@ -171,6 +174,7 @@ export const PortfolioCreatorPanel = () => {
         sections: p.sections,
         custom_fields: p.custom_fields,
         contact: p.contact,
+        settings: p.settings,
       })
       .eq("id", p.id);
     setSaving(false);
@@ -213,6 +217,7 @@ export const PortfolioCreatorPanel = () => {
         sections: p.sections,
         custom_fields: p.custom_fields,
         contact: p.contact,
+        settings: p.settings,
       })
       .select()
       .single();
@@ -394,6 +399,11 @@ export const PortfolioCreatorPanel = () => {
                       </div>
                     ))}
                   </Card>
+
+                  <EmbedSettingsCard
+                    value={editing.settings || DEFAULT_PORTFOLIO_SETTINGS()}
+                    onChange={(settings: PageEmbedSettings) => patch({ settings })}
+                  />
                 </TabsContent>
               </div>
             </Tabs>
