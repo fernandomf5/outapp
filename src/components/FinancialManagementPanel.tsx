@@ -305,7 +305,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[600px] mb-8">
+        <TabsList className="grid w-full grid-cols-5 lg:w-[700px] mb-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline">Geral</span>
@@ -318,11 +318,16 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             <Receipt className="h-4 w-4" />
             <span className="hidden sm:inline">Transações</span>
           </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            <span className="hidden sm:inline">Histórico</span>
+          </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <FileBarChart className="h-4 w-4" />
             <span className="hidden sm:inline">Relatórios</span>
           </TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="overview" className="space-y-4">
           <FinancialOverview 
