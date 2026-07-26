@@ -3,14 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Users, BarChart3, ArrowLeft, Brain } from "lucide-react";
+import { MessageSquare, Users, BarChart3, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import AgentCustomersPanel from "./AgentCustomersPanel";
 import AgentConversationsPanel from "./AgentConversationsPanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
 
-import AgentAIPanel from "./AgentAIPanel";
 
 interface AgentManagementPanelProps {
   agentId: string;
@@ -30,7 +29,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare /> },
-    { id: "ai", label: "Agente IA", icon: <Brain /> },
     { id: "customers", label: "Clientes", icon: <Users /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 /> },
   ];
@@ -39,8 +37,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
     switch (activeTab) {
       case "conversations":
         return <AgentConversationsPanel agentId={agentId} />;
-      case "ai":
-        return <AgentAIPanel agentId={agentId} />;
       case "customers":
         return <AgentCustomersPanel agentId={agentId} />;
       case "analytics":
