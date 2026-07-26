@@ -14,6 +14,9 @@ import { ImageUpload } from "../ImageUpload";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ENTITY_KINDS, getEntityKind, KindField } from "./entityKinds";
+import { KindFieldsBuilder } from "./KindFieldsBuilder";
+
 
 interface Category {
   id: string;
