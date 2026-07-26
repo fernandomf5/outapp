@@ -136,7 +136,7 @@ const AIAgentBuilder = () => {
         },
         training_data: {},
         is_active: true,
-        access_type: accessType,
+        access_type: 'anonymous',
       };
 
       const result = await saveAgent(agentData, user.id);
