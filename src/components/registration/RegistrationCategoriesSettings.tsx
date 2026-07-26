@@ -21,9 +21,12 @@ interface Category {
   icon: string | null;
   color: string;
   system_type: string | null;
+  entity_kind?: string | null;
+  custom_schema?: any;
   sort_order?: number | null;
   logo_url?: string | null;
 }
+
 
 const AVAILABLE_ICONS = [
   { name: "Building2", icon: Building2 },
