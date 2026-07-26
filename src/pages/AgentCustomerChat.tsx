@@ -403,34 +403,8 @@ export default function AgentCustomerChat() {
         // Limpamos mensagens e resetamos o Set de mensagens enviadas
         setMessages([]);
         sentMessagesRef.current = new Set();
-        
-        // Forçar um primeiro processamento caso a Edge Function não tenha retornado mensagens
-        // mas o fluxo deva iniciar (isso garante o disparo do gatilho inicial)
-        if (data.conversationId) {
-          console.log('Nenhuma mensagem inicial retornada, solicitando processamento...');
-          const { error: processError } = await supabase.functions.invoke('process-agent-customer-message', {
-            body: { 
-              agentId, 
-              customerId, 
-              conversationId: data.conversationId, 
-              message: '',
-              timestamp: Date.now()
-            }
-          });
-
-          if (processError) throw processError;
-
-          const { data: refreshedMessages } = await supabase
-            .from('agent_messages')
-            .select('*')
-            .eq('conversation_id', data.conversationId)
-            .order('created_at', { ascending: true });
-
-          if (refreshedMessages) {
-            setMessages(refreshedMessages as unknown as Message[]);
-          }
-        }
       }
+
       
       // Configurações de fila
       if (data.agent?.config) {
