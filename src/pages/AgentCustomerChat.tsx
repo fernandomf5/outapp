@@ -823,30 +823,12 @@ export default function AgentCustomerChat() {
         media_type: mediaType,
       });
 
-      // Processar mensagem com IA/Fluxo
-      const { data: processData, error: processError } = await supabase.functions.invoke('process-agent-customer-message', {
-        body: {
-          agentId,
-          customerId: customer.id,
-          conversationId,
-          message: messageContent,
-          timestamp: Date.now()
-        }
-      });
+      // Chat 100% humano: nenhuma resposta automática é gerada.
+      await supabase
+        .from('agent_conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId);
 
-      if (processError) throw processError;
-
-      if (processData?.response) {
-        const { data: refreshedMessages } = await supabase
-          .from('agent_messages')
-          .select('*')
-          .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true });
-
-        if (refreshedMessages) {
-          setMessages(refreshedMessages as unknown as Message[]);
-        }
-      }
     } catch (error: any) {
       toast({
         title: "Erro",
