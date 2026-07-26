@@ -3926,6 +3926,7 @@ export type Database = {
           company: string | null
           contact_person: string | null
           created_at: string
+          custom_fields: Json
           document: string | null
           email: string | null
           id: string
@@ -3951,6 +3952,7 @@ export type Database = {
           company?: string | null
           contact_person?: string | null
           created_at?: string
+          custom_fields?: Json
           document?: string | null
           email?: string | null
           id?: string
@@ -3976,6 +3978,7 @@ export type Database = {
           company?: string | null
           contact_person?: string | null
           created_at?: string
+          custom_fields?: Json
           document?: string | null
           email?: string | null
           id?: string
@@ -7472,6 +7475,7 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string
+          entity_kind: string
           icon: string | null
           id: string
           logo_url: string | null
@@ -7484,6 +7488,7 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string
+          entity_kind?: string
           icon?: string | null
           id?: string
           logo_url?: string | null
@@ -7496,6 +7501,7 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string
+          entity_kind?: string
           icon?: string | null
           id?: string
           logo_url?: string | null
