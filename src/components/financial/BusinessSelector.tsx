@@ -55,6 +55,9 @@ interface BusinessSelectorProps {
   onSelectBusiness: (businessId: string) => void;
   onSelectMultipleBusinesses?: (businessIds: string[]) => void;
   onCreateBusiness: (data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
+  onCreateBusinessesFromRegistrations?: (
+    items: { name: string; business_type: 'personal' | 'company'; description: string }[]
+  ) => Promise<void> | void;
   onUpdateBusiness?: (id: string, data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
   onDeleteBusiness?: (id: string) => void;
   onReorderBusinesses?: (orderedIds: string[]) => void;
