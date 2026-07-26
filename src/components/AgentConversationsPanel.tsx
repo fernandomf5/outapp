@@ -38,6 +38,8 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [newMessage, setNewMessage] = useState("");
   const [senderName, setSenderName] = useState("");
   const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
+  const [queueEnabled, setQueueEnabled] = useState(false);
+  const [queueMessage, setQueueMessage] = useState("Seu atendimento está na fila de espera. Em breve um atendente responderá.");
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
