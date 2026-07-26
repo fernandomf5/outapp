@@ -425,12 +425,28 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               <SelectItem value="expense">Despesas</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[170px]">
+              <Tags className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas categorias</SelectItem>
+              {categories.map(c => (
+                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex gap-2 w-full md:w-auto">
+          <Button variant="outline" className="flex-1 md:flex-none" onClick={() => setIsCategoryManagerOpen(true)}>
+            <Tags className="h-4 w-4 mr-2" /> Categorias
+          </Button>
           <Dialog open={isBulkAddOpen} onOpenChange={setIsBulkAddOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="flex-1 md:flex-none">
+
                 <ListPlus className="h-4 w-4 mr-2" /> Adicionar Múltiplas
               </Button>
             </DialogTrigger>
