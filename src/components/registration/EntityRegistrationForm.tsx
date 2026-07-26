@@ -220,17 +220,7 @@ export function EntityRegistrationForm({
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
-      <CardHeader>
-        <CardTitle>
-          {isViewOnly
-            ? `Detalhes — ${categoryName}`
-            : initialData?.id
-            ? `Editar ${kind.itemLabel}`
-            : `Cadastrar ${kind.itemLabel} em ${categoryName}`}
-        </CardTitle>
-        <CardDescription>{kind.label} • {kind.description}</CardDescription>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           {kind.showAvatar && (
             <div className="flex justify-center mb-4">
