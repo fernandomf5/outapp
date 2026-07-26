@@ -1136,20 +1136,6 @@ export default function AgentCustomerChat() {
             </div>
             
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRequestHuman}
-                disabled={requestingHuman || attendantStatus === 'online'}
-                className="flex items-center gap-2 h-8 text-xs border-white/20 text-white hover:bg-white/10 px-2 sm:px-3"
-              >
-                <Headset className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">
-                  {attendantStatus === 'online' ? 'Em Atendimento' : 'Falar com Humano'}
-                </span>
-                <span className="xs:hidden">Humano</span>
-              </Button>
-              
               {window.self === window.top && (
                 <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 sm:h-10 sm:w-10">
                   <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
