@@ -1,137 +1,232 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, Users, MessageSquare, DollarSign, Calendar as CalendarIcon, ShoppingCart } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  MessageSquare,
+  MousePointerClick,
+  Users,
+  Inbox,
+  Timer,
+  Activity,
+  RefreshCw,
+  TrendingUp,
+} from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
-interface AnalyticsData {
-  totalCustomers: number;
-  totalConversations: number;
-  totalOrders: number;
-  totalAppointments: number;
-  totalRevenue: number;
-  averageRating: number;
-  conversationsPerDay: any[];
-  ordersPerDay: any[];
-  topProducts: any[];
-  topServices: any[];
+interface DayPoint {
+  name: string;
+  date: string;
+  conversas: number;
+  mensagens: number;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+interface AnalyticsData {
+  chatOpens: number;
+  conversations: number;
+  activeConversations: number;
+  archivedConversations: number;
+  uniqueVisitors: number;
+  totalMessages: number;
+  customerMessages: number;
+  agentMessages: number;
+  formSubmissions: number;
+  unreadForms: number;
+  answeredRate: number;
+  avgMessagesPerConversation: number;
+  avgFirstResponseMin: number | null;
+  perDay: DayPoint[];
+  perHour: { name: string; mensagens: number }[];
+  statusBreakdown: { name: string; value: number }[];
+}
+
+const COLORS = ["hsl(var(--primary))", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+
+const emptyData: AnalyticsData = {
+  chatOpens: 0,
+  conversations: 0,
+  activeConversations: 0,
+  archivedConversations: 0,
+  uniqueVisitors: 0,
+  totalMessages: 0,
+  customerMessages: 0,
+  agentMessages: 0,
+  formSubmissions: 0,
+  unreadForms: 0,
+  answeredRate: 0,
+  avgMessagesPerConversation: 0,
+  avgFirstResponseMin: null,
+  perDay: [],
+  perHour: [],
+  statusBreakdown: [],
+};
+
+const RANGES = [
+  { label: "7 dias", days: 7 },
+  { label: "14 dias", days: 14 },
+  { label: "30 dias", days: 30 },
+];
 
 export default function AgentAnalyticsPanel({ agentId }: { agentId: string }) {
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
-    totalCustomers: 0,
-    totalConversations: 0,
-    totalOrders: 0,
-    totalAppointments: 0,
-    totalRevenue: 0,
-    averageRating: 0,
-    conversationsPerDay: [],
-    ordersPerDay: [],
-    topProducts: [],
-    topServices: [],
-  });
+  const [data, setData] = useState<AnalyticsData>(emptyData);
+  const [days, setDays] = useState(14);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadAnalytics();
-  }, [agentId]);
+    if (agentId) loadAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentId, days]);
 
   const loadAnalytics = async () => {
+    setLoading(true);
     try {
-      // Total de clientes
-      const { count: customersCount } = await supabase
-        .from('agent_customers')
-        .select('*', { count: 'exact', head: true })
-        .eq('agent_id', agentId);
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
-      // Total de conversas
-      const { count: conversationsCount } = await supabase
-        .from('agent_conversations')
-        .select('*', { count: 'exact', head: true })
-        .eq('agent_id', agentId);
+      const [convRes, custRes, formsRes] = await Promise.all([
+        supabase
+          .from("agent_conversations")
+          .select("id, status, created_at")
+          .eq("agent_id", agentId)
+          .gte("created_at", since)
+          .order("created_at"),
+        supabase
+          .from("agent_customers")
+          .select("id, created_at")
+          .eq("agent_id", agentId)
+          .gte("created_at", since),
+        supabase
+          .from("contact_form_submissions")
+          .select("id, is_read, replied_at, created_at")
+          .eq("agent_id", agentId)
+          .gte("created_at", since),
+      ]);
 
-      // Total de pedidos
-      const { count: ordersCount } = await supabase
-        .from('agent_orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('agent_id', agentId);
+      const conversations = convRes.data || [];
+      const convIds = conversations.map((c) => c.id);
 
-      // Total de agendamentos
-      const { count: appointmentsCount } = await supabase
-        .from('agent_appointments')
-        .select('*', { count: 'exact', head: true })
-        .eq('agent_id', agentId);
+      let messages: any[] = [];
+      if (convIds.length > 0) {
+        const { data: msgs } = await supabase
+          .from("agent_messages")
+          .select("id, conversation_id, role, created_at")
+          .in("conversation_id", convIds)
+          .order("created_at");
+        messages = msgs || [];
+      }
 
-      // Receita total
-      const { data: orders } = await supabase
-        .from('agent_orders')
-        .select('total_amount')
-        .eq('agent_id', agentId)
-        .neq('status', 'cancelled');
+      // Séries por dia
+      const perDay: DayPoint[] = Array.from({ length: days }, (_, i) => {
+        const d = new Date(Date.now() - (days - 1 - i) * 24 * 60 * 60 * 1000);
+        return {
+          name: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          date: d.toISOString().split("T")[0],
+          conversas: 0,
+          mensagens: 0,
+        };
+      });
+      const dayIndex = new Map(perDay.map((p, i) => [p.date, i]));
 
-      const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
+      conversations.forEach((c) => {
+        const key = new Date(c.created_at).toISOString().split("T")[0];
+        const i = dayIndex.get(key);
+        if (i !== undefined) perDay[i].conversas++;
+      });
+      messages.forEach((m) => {
+        const key = new Date(m.created_at).toISOString().split("T")[0];
+        const i = dayIndex.get(key);
+        if (i !== undefined) perDay[i].mensagens++;
+      });
 
-      // Média de avaliações
-      const { data: reviews } = await supabase
-        .from('agent_reviews')
-        .select('rating')
-        .eq('agent_id', agentId);
+      // Mensagens por hora do dia
+      const perHour = Array.from({ length: 24 }, (_, h) => ({
+        name: `${String(h).padStart(2, "0")}h`,
+        mensagens: 0,
+      }));
+      messages.forEach((m) => {
+        perHour[new Date(m.created_at).getHours()].mensagens++;
+      });
 
-      const averageRating = reviews && reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-        : 0;
+      // Primeira resposta do atendente por conversa
+      const firstCustomer = new Map<string, number>();
+      const firstAgentAfter = new Map<string, number>();
+      messages.forEach((m) => {
+        const t = new Date(m.created_at).getTime();
+        if (m.role === "customer") {
+          if (!firstCustomer.has(m.conversation_id)) firstCustomer.set(m.conversation_id, t);
+        } else {
+          const c = firstCustomer.get(m.conversation_id);
+          if (c !== undefined && !firstAgentAfter.has(m.conversation_id) && t >= c) {
+            firstAgentAfter.set(m.conversation_id, t);
+          }
+        }
+      });
+      const diffs: number[] = [];
+      firstAgentAfter.forEach((t, convId) => {
+        const c = firstCustomer.get(convId);
+        if (c !== undefined) diffs.push((t - c) / 60000);
+      });
+      const avgFirstResponseMin =
+        diffs.length > 0 ? diffs.reduce((a, b) => a + b, 0) / diffs.length : null;
 
-      // Conversas por dia (últimos 7 dias)
-      const { data: conversationsData } = await supabase
-        .from('agent_conversations')
-        .select('created_at')
-        .eq('agent_id', agentId)
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at');
+      const customerMessages = messages.filter((m) => m.role === "customer").length;
+      const agentMessages = messages.length - customerMessages;
+      const answered = firstAgentAfter.size;
+      const withCustomerMsg = firstCustomer.size;
 
-      const conversationsPerDay = processDataByDay(conversationsData);
+      const statusCounts: Record<string, number> = {};
+      conversations.forEach((c) => {
+        const s = c.status || "unknown";
+        statusCounts[s] = (statusCounts[s] || 0) + 1;
+      });
+      const statusLabels: Record<string, string> = {
+        active: "Ativas",
+        archived: "Arquivadas",
+        closed: "Encerradas",
+        unknown: "Sem status",
+      };
 
-      // Pedidos por dia
-      const { data: ordersData } = await supabase
-        .from('agent_orders')
-        .select('created_at, total_amount')
-        .eq('agent_id', agentId)
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at');
+      const forms = formsRes.data || [];
 
-      const ordersPerDay = processOrdersByDay(ordersData);
-
-      // Produtos mais vendidos
-      const { data: allOrders } = await supabase
-        .from('agent_orders')
-        .select('items')
-        .eq('agent_id', agentId);
-
-      const topProducts = processTopItems(allOrders);
-
-      // Serviços mais agendados
-      const { data: appointments } = await supabase
-        .from('agent_appointments')
-        .select('service_name')
-        .eq('agent_id', agentId);
-
-      const topServices = processTopServices(appointments);
-
-      setAnalytics({
-        totalCustomers: customersCount || 0,
-        totalConversations: conversationsCount || 0,
-        totalOrders: ordersCount || 0,
-        totalAppointments: appointmentsCount || 0,
-        totalRevenue,
-        averageRating,
-        conversationsPerDay,
-        ordersPerDay,
-        topProducts,
-        topServices,
+      setData({
+        chatOpens: (custRes.data || []).length,
+        conversations: conversations.length,
+        activeConversations: statusCounts["active"] || 0,
+        archivedConversations:
+          (statusCounts["archived"] || 0) + (statusCounts["closed"] || 0),
+        uniqueVisitors: (custRes.data || []).length,
+        totalMessages: messages.length,
+        customerMessages,
+        agentMessages,
+        formSubmissions: forms.length,
+        unreadForms: forms.filter((f) => !f.is_read).length,
+        answeredRate: withCustomerMsg > 0 ? (answered / withCustomerMsg) * 100 : 0,
+        avgMessagesPerConversation:
+          conversations.length > 0 ? messages.length / conversations.length : 0,
+        avgFirstResponseMin,
+        perDay,
+        perHour,
+        statusBreakdown: Object.entries(statusCounts).map(([k, v]) => ({
+          name: statusLabels[k] || k,
+          value: v,
+        })),
       });
     } catch (error: any) {
       toast({
@@ -144,246 +239,246 @@ export default function AgentAnalyticsPanel({ agentId }: { agentId: string }) {
     }
   };
 
-  const processDataByDay = (data: any[]) => {
-    if (!data) return [];
-    const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000);
-      return {
-        name: days[date.getDay()],
-        value: 0,
-        date: date.toISOString().split('T')[0]
-      };
-    });
-
-    data.forEach(item => {
-      const itemDate = new Date(item.created_at).toISOString().split('T')[0];
-      const dayIndex = last7Days.findIndex(d => d.date === itemDate);
-      if (dayIndex !== -1) {
-        last7Days[dayIndex].value++;
-      }
-    });
-
-    return last7Days;
-  };
-
-  const processOrdersByDay = (data: any[]) => {
-    if (!data) return [];
-    const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000);
-      return {
-        name: days[date.getDay()],
-        pedidos: 0,
-        receita: 0,
-        date: date.toISOString().split('T')[0]
-      };
-    });
-
-    data.forEach(item => {
-      const itemDate = new Date(item.created_at).toISOString().split('T')[0];
-      const dayIndex = last7Days.findIndex(d => d.date === itemDate);
-      if (dayIndex !== -1) {
-        last7Days[dayIndex].pedidos++;
-        last7Days[dayIndex].receita += Number(item.total_amount);
-      }
-    });
-
-    return last7Days;
-  };
-
-  const processTopItems = (orders: any[]) => {
-    if (!orders) return [];
-    const itemCounts: Record<string, number> = {};
-    
-    orders.forEach(order => {
-      const items = Array.isArray(order.items) ? order.items : [];
-      items.forEach((item: any) => {
-        const name = item.name || 'Sem nome';
-        itemCounts[name] = (itemCounts[name] || 0) + (item.quantity || 1);
-      });
-    });
-
-    return Object.entries(itemCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-  };
-
-  const processTopServices = (appointments: any[]) => {
-    if (!appointments) return [];
-    const serviceCounts: Record<string, number> = {};
-    
-    appointments.forEach(apt => {
-      const name = apt.service_name || 'Sem nome';
-      serviceCounts[name] = (serviceCounts[name] || 0) + 1;
-    });
-
-    return Object.entries(serviceCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-  };
-
-  if (loading) {
-    return <div>Carregando analytics...</div>;
-  }
+  const kpis = [
+    {
+      label: "Cliques no chat",
+      value: data.chatOpens,
+      hint: "Sessões iniciadas no widget",
+      icon: MousePointerClick,
+    },
+    {
+      label: "Conversas iniciadas",
+      value: data.conversations,
+      hint: `${data.activeConversations} ativas · ${data.archivedConversations} encerradas`,
+      icon: MessageSquare,
+    },
+    {
+      label: "Visitantes únicos",
+      value: data.uniqueVisitors,
+      hint: "Pessoas diferentes no período",
+      icon: Users,
+    },
+    {
+      label: "Mensagens trocadas",
+      value: data.totalMessages,
+      hint: `${data.customerMessages} do cliente · ${data.agentMessages} do atendente`,
+      icon: Activity,
+    },
+    {
+      label: "Taxa de resposta",
+      value: `${data.answeredRate.toFixed(0)}%`,
+      hint: "Conversas com resposta do atendente",
+      icon: TrendingUp,
+    },
+    {
+      label: "1ª resposta média",
+      value:
+        data.avgFirstResponseMin === null
+          ? "—"
+          : data.avgFirstResponseMin < 60
+          ? `${data.avgFirstResponseMin.toFixed(0)} min`
+          : `${(data.avgFirstResponseMin / 60).toFixed(1)} h`,
+      hint: "Tempo médio até o atendente responder",
+      icon: Timer,
+    },
+    {
+      label: "Formulários recebidos",
+      value: data.formSubmissions,
+      hint: `${data.unreadForms} não lida(s)`,
+      icon: Inbox,
+    },
+    {
+      label: "Msgs por conversa",
+      value: data.avgMessagesPerConversation.toFixed(1),
+      hint: "Profundidade média do atendimento",
+      icon: MessageSquare,
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <h3 className="text-2xl font-bold">Analytics & Métricas</h3>
-
-      {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalCustomers}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Conversas</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalConversations}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalOrders}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Agendamentos</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalAppointments}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {analytics.totalRevenue.toFixed(2)}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.averageRating.toFixed(1)} ⭐</div>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold">Analytics do Chat Online</h3>
+          <p className="text-sm text-muted-foreground">
+            Desempenho do atendimento nos últimos {days} dias
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {RANGES.map((r) => (
+            <Button
+              key={r.days}
+              size="sm"
+              variant={days === r.days ? "default" : "outline"}
+              onClick={() => setDays(r.days)}
+            >
+              {r.label}
+            </Button>
+          ))}
+          <Button size="icon" variant="ghost" onClick={loadAnalytics} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
-      {/* Gráficos */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Conversas nos últimos 7 dias</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={analytics.conversationsPerDay}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="value" stroke="#8884d8" name="Conversas" />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-xl" />
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+            {kpis.map((kpi) => (
+              <Card key={kpi.label} className="rounded-xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+                  <CardTitle className="text-[11px] sm:text-sm font-medium leading-tight">
+                    {kpi.label}
+                  </CardTitle>
+                  <kpi.icon className="h-4 w-4 text-primary shrink-0" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl sm:text-2xl font-bold">{kpi.value}</div>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-snug">
+                    {kpi.hint}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Pedidos nos últimos 7 dias</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={analytics.ordersPerDay}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="pedidos" fill="#82ca9d" name="Pedidos" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {analytics.topProducts.length > 0 && (
           <Card>
-            <CardHeader>
-              <CardTitle>Produtos Mais Vendidos</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base sm:text-lg">
+                Conversas e mensagens por dia
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={analytics.topProducts}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {analytics.topProducts.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={data.perDay}>
+                  <defs>
+                    <linearGradient id="convGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="msgGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#00C49F" stopOpacity={0.5} />
+                      <stop offset="95%" stopColor="#00C49F" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis dataKey="name" fontSize={11} />
+                  <YAxis fontSize={11} allowDecimals={false} />
                   <Tooltip />
-                </PieChart>
+                  <Legend />
+                  <Area
+                    type="monotone"
+                    dataKey="conversas"
+                    stroke="hsl(var(--primary))"
+                    fill="url(#convGrad)"
+                    name="Conversas iniciadas"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="mensagens"
+                    stroke="#00C49F"
+                    fill="url(#msgGrad)"
+                    name="Mensagens"
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        )}
 
-        {analytics.topServices.length > 0 && (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-lg">
+                  Horários de maior movimento
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={data.perHour}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                    <XAxis dataKey="name" fontSize={10} interval={2} />
+                    <YAxis fontSize={11} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar
+                      dataKey="mensagens"
+                      fill="hsl(var(--primary))"
+                      name="Mensagens"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-lg">
+                  Situação das conversas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {data.statusBreakdown.length === 0 ? (
+                  <div className="h-[260px] flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
+                    <MessageSquare className="w-8 h-8 opacity-40" />
+                    Nenhuma conversa no período
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <PieChart>
+                      <Pie
+                        data={data.statusBreakdown}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={90}
+                        dataKey="value"
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
+                        labelLine={false}
+                      >
+                        {data.statusBreakdown.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
-            <CardHeader>
-              <CardTitle>Serviços Mais Agendados</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base sm:text-lg">Resumo do período</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={analytics.topServices} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" width={100} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#8884d8" name="Agendamentos" />
-                </BarChart>
-              </ResponsiveContainer>
+            <CardContent className="flex flex-wrap gap-2 text-xs sm:text-sm">
+              <Badge variant="secondary">
+                Conversão clique → conversa:{" "}
+                {data.chatOpens > 0
+                  ? `${((data.conversations / data.chatOpens) * 100).toFixed(0)}%`
+                  : "—"}
+              </Badge>
+              <Badge variant="secondary">
+                Mensagens do cliente: {data.customerMessages}
+              </Badge>
+              <Badge variant="secondary">
+                Mensagens do atendente: {data.agentMessages}
+              </Badge>
+              <Badge variant="secondary">
+                Formulários respondidos por e-mail: {data.formSubmissions - data.unreadForms}
+              </Badge>
             </CardContent>
           </Card>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
