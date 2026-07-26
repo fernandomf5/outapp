@@ -1058,6 +1058,45 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     <div className="text-xs text-muted-foreground mt-2">
                       {format(new Date(conv.last_message_at), "dd/MM HH:mm", { locale: ptBR })}
                     </div>
+
+                    {queueEnabled && (
+                      <div
+                        className="mt-2 flex items-center gap-1.5 border-t border-border pt-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="text-[11px] text-muted-foreground shrink-0">Fila nº</span>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={conv.queue_position ?? ''}
+                          placeholder="-"
+                          onChange={(e) => {
+                            const v = e.target.value === '' ? null : Math.max(0, Number(e.target.value) || 0);
+                            setConversations((prev) => prev.map((c) => (c.id === conv.id ? { ...c, queue_position: v } : c)));
+                          }}
+                          onBlur={(e) => {
+                            const v = e.target.value === '' ? null : Math.max(0, Number(e.target.value) || 0);
+                            setConversationQueuePosition(conv.id, v);
+                          }}
+                          className="h-7 w-16 text-center text-xs"
+                        />
+                        {(conv.queue_position ?? 0) > 0 ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-[11px] px-2"
+                            onClick={() => setConversationQueuePosition(conv.id, 0)}
+                          >
+                            Atender
+                          </Button>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px]">
+                            {conv.queue_position === 0 ? 'É a vez dele' : 'Sem fila'}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
                   </CardContent>
                 </Card>
               ))}
