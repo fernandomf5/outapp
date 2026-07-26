@@ -1282,21 +1282,6 @@ export default function AgentCustomerChat() {
           )}
 
           <div className="p-3 sm:p-4 border-t space-y-2">
-            <div className="flex justify-center sm:hidden">
-              {agentInfo?.config?.ai_enabled !== false && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRequestHuman}
-                  disabled={requestingHuman || attendantStatus === 'online'}
-                  className="gap-2 text-xs font-medium hover:bg-primary/5 border border-dashed border-primary/20 w-full mb-2"
-                  style={{ color: primaryColor, borderColor: `${primaryColor}40` }}
-                >
-                  <Headset className="w-4 h-4" />
-                  {attendantStatus === 'online' ? 'Já em atendimento humano' : 'Falar com Atendente Humano'}
-                </Button>
-              )}
-            </div>
             {(hasServices || hasProducts) && (
               <div className={`grid gap-2 ${hasServices && hasProducts ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {hasServices && (
