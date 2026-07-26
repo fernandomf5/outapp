@@ -7475,6 +7475,7 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string
+          custom_schema: Json
           entity_kind: string
           icon: string | null
           id: string
@@ -7488,6 +7489,7 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string
+          custom_schema?: Json
           entity_kind?: string
           icon?: string | null
           id?: string
@@ -7501,6 +7503,7 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string
+          custom_schema?: Json
           entity_kind?: string
           icon?: string | null
           id?: string

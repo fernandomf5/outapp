@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
+import { EntityRegistrationForm } from "./EntityRegistrationForm";
+
+
 import { useStatusOptions } from "./statusOptions";
 import { StatusManagerDialog } from "./StatusManagerDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -390,6 +393,25 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
 
       <div className="mt-6">
         {activeTab === "form" ? (
+          ((category as any).entity_kind && (category as any).entity_kind !== "people") ? (
+            <EntityRegistrationForm
+              categoryId={category.id}
+              categoryName={category.name}
+              entityKind={(category as any).entity_kind}
+              customSchema={Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : []}
+              initialData={selectedItem}
+              isViewOnly={isViewOnly}
+              onSuccess={() => {
+                setActiveTab("list");
+                fetchItems();
+                setSelectedItem(null);
+              }}
+              onCancel={() => {
+                setActiveTab("list");
+                setSelectedItem(null);
+              }}
+            />
+          ) : (
           <UnifiedRegistrationForm 
             categoryId={category.id} 
             categoryName={category.name}
@@ -406,6 +428,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               setSelectedItem(null);
             }}
           />
+          )
+
         ) : activeTab === "history" && selectedItem ? (
           <ContactHistoryPanel contactId={selectedItem.id} contactName={selectedItem.name} />
         ) : activeTab === "resources" && selectedItem ? (

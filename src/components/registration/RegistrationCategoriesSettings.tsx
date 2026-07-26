@@ -14,6 +14,9 @@ import { ImageUpload } from "../ImageUpload";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ENTITY_KINDS, getEntityKind, KindField } from "./entityKinds";
+import { KindFieldsBuilder } from "./KindFieldsBuilder";
+
 
 interface Category {
   id: string;
@@ -21,9 +24,12 @@ interface Category {
   icon: string | null;
   color: string;
   system_type: string | null;
+  entity_kind?: string | null;
+  custom_schema?: any;
   sort_order?: number | null;
   logo_url?: string | null;
 }
+
 
 const AVAILABLE_ICONS = [
   { name: "Building2", icon: Building2 },
@@ -106,8 +112,9 @@ function SortableCategoryCard({
           </div>
           <CardTitle className="mt-4">{cat.name}</CardTitle>
           <CardDescription>
-            {cat.system_type ? `Categoria do Sistema (${cat.system_type})` : 'Categoria Personalizada'}
+            {getEntityKind(cat.entity_kind).label}
           </CardDescription>
+
         </CardHeader>
       </Card>
     </div>
@@ -125,13 +132,17 @@ export function RegistrationCategoriesSettings() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pickingKind, setPickingKind] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     icon: "Database",
     color: "#3b82f6",
     system_type: "client",
     logo_url: "",
+    entity_kind: "people",
+    custom_schema: [] as KindField[],
   });
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -163,20 +174,33 @@ export function RegistrationCategoriesSettings() {
     }
   };
 
+  const emptyForm = {
+    name: "",
+    icon: "Database",
+    color: "#3b82f6",
+    system_type: "client",
+    logo_url: "",
+    entity_kind: "people",
+    custom_schema: [] as KindField[],
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     try {
+      const payload = {
+        name: formData.name,
+        icon: formData.icon,
+        color: formData.color,
+        system_type: formData.system_type,
+        logo_url: formData.logo_url,
+        entity_kind: formData.entity_kind,
+        custom_schema: formData.custom_schema as any,
+      };
       if (editingId) {
         const { error } = await supabase
           .from('registration_categories')
-          .update({
-            name: formData.name,
-            icon: formData.icon,
-            color: formData.color,
-            system_type: formData.system_type,
-            logo_url: formData.logo_url,
-          })
+          .update(payload as any)
           .eq('id', editingId);
         if (error) throw error;
         toast.success('Categoria atualizada com sucesso!');
@@ -186,11 +210,7 @@ export function RegistrationCategoriesSettings() {
           .from('registration_categories')
           .insert({
             user_id: user.id,
-            name: formData.name,
-            icon: formData.icon,
-            color: formData.color,
-            system_type: formData.system_type,
-            logo_url: formData.logo_url,
+            ...payload,
             sort_order: nextOrder,
           } as any);
         if (error) throw error;
@@ -198,7 +218,7 @@ export function RegistrationCategoriesSettings() {
       }
       setIsDialogOpen(false);
       setEditingId(null);
-      setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client", logo_url: "" });
+      setFormData({ ...emptyForm });
       fetchCategories();
       window.dispatchEvent(new CustomEvent('registration-categories-updated'));
     } catch (error) {
@@ -209,15 +229,19 @@ export function RegistrationCategoriesSettings() {
 
   const handleEdit = (category: Category) => {
     setEditingId(category.id);
+    setPickingKind(false);
     setFormData({
       name: category.name,
       icon: category.icon || "Database",
       color: category.color,
       system_type: category.system_type || "client",
       logo_url: (category as any).logo_url || "",
+      entity_kind: (category as any).entity_kind || "people",
+      custom_schema: Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : [],
     });
     setIsDialogOpen(true);
   };
+
 
   const confirmDelete = (category: Category) => {
     setCategoryToDelete(category);
@@ -293,7 +317,8 @@ export function RegistrationCategoriesSettings() {
           <Button
             onClick={() => {
               setEditingId(null);
-              setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client", logo_url: "" });
+              setFormData({ ...emptyForm });
+              setPickingKind(true);
               setIsDialogOpen(true);
             }}
             className="gradient-primary"
@@ -302,6 +327,7 @@ export function RegistrationCategoriesSettings() {
             <Plus className="h-4 w-4 mr-2" />
             Nova Categoria
           </Button>
+
         </div>
       </div>
 
@@ -329,23 +355,80 @@ export function RegistrationCategoriesSettings() {
 
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
         setIsDialogOpen(open);
-        if (!open) setEditingId(null);
+        if (!open) { setEditingId(null); setPickingKind(false); }
       }}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "Editar Categoria" : "Nova Categoria"}</DialogTitle>
+            <DialogTitle>
+              {pickingKind ? "O que você quer gerenciar?" : editingId ? "Editar Categoria" : "Nova Categoria"}
+            </DialogTitle>
             <DialogDescription>
-              {editingId ? "Atualize as informações da categoria." : "Crie uma nova categoria para organizar seus cadastros."}
+              {pickingKind
+                ? "Escolha o tipo de gestão. Cada tipo tem um formulário próprio."
+                : editingId ? "Atualize as informações da categoria." : "Configure sua nova gestão."}
             </DialogDescription>
           </DialogHeader>
+
+          {pickingKind ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {ENTITY_KINDS.map((k) => {
+                const KIcon = k.icon;
+                return (
+                  <button
+                    key={k.key}
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        entity_kind: k.key,
+                        icon: formData.icon,
+                        custom_schema: editingId && formData.entity_kind === k.key
+                          ? formData.custom_schema
+                          : [...k.fields],
+                      });
+
+                      setPickingKind(false);
+                    }}
+                    className="text-left rounded-xl border-2 p-4 hover:border-primary/50 hover:bg-accent/40 transition-all"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                        <KIcon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{k.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{k.description}</p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+            <div className="rounded-lg border bg-muted/30 p-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {(() => {
+                  const KIcon = getEntityKind(formData.entity_kind).icon;
+                  return <KIcon className="h-4 w-4 text-primary shrink-0" />;
+                })()}
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{getEntityKind(formData.entity_kind).label}</p>
+                  <p className="text-xs text-muted-foreground truncate">{getEntityKind(formData.entity_kind).description}</p>
+                </div>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => setPickingKind(true)}>
+                Trocar
+              </Button>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">Nome da Categoria</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ex: Fornecedores, Parceiros..."
+                placeholder="Ex: Fornecedores, Produtos, Frota..."
                 required
               />
             </div>
@@ -359,6 +442,7 @@ export function RegistrationCategoriesSettings() {
               />
             </div>
 
+            {formData.entity_kind === "people" && (
             <div className="space-y-2">
               <Label htmlFor="system_type">Tipo de Cadastro</Label>
               <Select
@@ -394,6 +478,17 @@ export function RegistrationCategoriesSettings() {
               </Select>
               <p className="text-xs text-muted-foreground">O tipo define os campos que aparecerão no formulário.</p>
             </div>
+            )}
+
+            {formData.entity_kind !== "people" && (
+              <div className="rounded-lg border p-3">
+                <KindFieldsBuilder
+                  fields={formData.custom_schema}
+                  onChange={(fields) => setFormData({ ...formData, custom_schema: fields })}
+                />
+              </div>
+            )}
+
 
             <div className="space-y-2">
               <Label>Ícone</Label>
@@ -438,6 +533,8 @@ export function RegistrationCategoriesSettings() {
               </Button>
             </DialogFooter>
           </form>
+          )}
+
         </DialogContent>
       </Dialog>
 
