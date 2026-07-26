@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import CatalogDashboard from "./catalog/CatalogDashboard";
 import CatalogProductSelector from "./catalog/CatalogProductSelector";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
 interface Catalog {
