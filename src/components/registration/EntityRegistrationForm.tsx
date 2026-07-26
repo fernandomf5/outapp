@@ -259,17 +259,20 @@ export function EntityRegistrationForm({
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="name">{kind.nameLabel}</Label>
-              <Input
-                id="name"
-                value={values.name}
-                placeholder={kind.namePlaceholder}
-                onChange={(e) => set("name", e.target.value)}
-                disabled={isViewOnly}
-                required
-              />
-            </div>
+            {!hasCustom && (
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="name">{kind.nameLabel}</Label>
+                <Input
+                  id="name"
+                  value={values.name}
+                  placeholder={kind.namePlaceholder}
+                  onChange={(e) => set("name", e.target.value)}
+                  disabled={isViewOnly}
+                  required
+                />
+              </div>
+            )}
+
 
             {kind.showContactBlock && (
               <>
