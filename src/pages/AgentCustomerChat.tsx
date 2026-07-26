@@ -234,10 +234,10 @@ export default function AgentCustomerChat() {
 
   // Notifica o cliente quando sua posição na fila muda
   useEffect(() => {
-    if (!queueEnabled) return;
     const prev = prevQueuePositionRef.current;
     prevQueuePositionRef.current = queuePosition;
     if (prev === undefined || prev === queuePosition || queuePosition === null) return;
+
 
     if (queuePosition === 0) {
       chatSounds.playNotificationSound();
