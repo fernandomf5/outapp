@@ -858,7 +858,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                   variant="ghost" 
                                   size="sm" 
                                   className={t.status === 'paid' ? 'text-green-600' : 'text-orange-600'}
-                                  onClick={() => handleToggleStatus(t)}
+                                  onClick={() => openStatusDialog(t)}
                                 >
                                   {t.status === 'paid' ? <CheckCircle className="h-4 w-4 mr-1" /> : <Clock className="h-4 w-4 mr-1" />}
                                   {t.status === 'paid' ? 'Pago' : 'Pendente'}
