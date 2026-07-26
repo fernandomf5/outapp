@@ -687,6 +687,11 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                                 <History className="h-4 w-4 mr-2" />
                                 Ver Histórico
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedItem(item); setIsViewOnly(false); setActiveTab("resources"); }}>
+                                <Link2 className="h-4 w-4 mr-2" />
+                                Ver Atribuições
+                              </DropdownMenuItem>
+
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onClick={() => confirmDelete(item.id, item.name)}
