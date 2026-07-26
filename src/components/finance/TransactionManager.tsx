@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X } from "lucide-react";
+import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useFinancialCategories } from "@/hooks/useFinancialCategories";
+import { CategoryManager } from "./CategoryManager";
+
 
 const PAYMENT_METHODS: Record<string, string> = {
   pix: "PIX",
@@ -44,16 +50,37 @@ interface TransactionManagerProps {
   businessId: string;
 }
 
+const SortableTransactionRow = ({ id, children, className }: { id: string; children: (handle: React.ReactNode) => React.ReactNode; className?: string }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const handle = (
+    <button type="button" className="cursor-grab text-muted-foreground touch-none" {...attributes} {...listeners}>
+      <GripVertical className="h-4 w-4" />
+    </button>
+  );
+  return (
+    <TableRow ref={setNodeRef} style={style} className={className}>
+      {children(handle)}
+    </TableRow>
+  );
+};
+
 export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId }: TransactionManagerProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [orderedIds, setOrderedIds] = useState<string[]>([]);
+
+  const { categories } = useFinancialCategories(businessId);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const [formData, setFormData] = useState({
     description: "",
@@ -71,15 +98,61 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     { description: "", amount: "", type: "expense", category: "", due_date: format(new Date(), "yyyy-MM-dd"), status: "pending", payment_method: "pix", bank_account_id: "" }
   ]);
 
+  useEffect(() => {
+    setOrderedIds(transactions.map(t => t.id));
+  }, [transactions]);
+
+  const orderedTransactions = useMemo(() => {
+    const map = new Map(transactions.map(t => [t.id, t]));
+    const ordered = orderedIds.map(id => map.get(id)).filter(Boolean) as Transaction[];
+    const missing = transactions.filter(t => !orderedIds.includes(t.id));
+    return [...ordered, ...missing];
+  }, [transactions, orderedIds]);
+
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
+    return orderedTransactions.filter(t => {
       const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           t.category.toLowerCase().includes(searchTerm.toLowerCase());
+                           (t.category || "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === "all" || t.type === typeFilter;
       const matchesStatus = statusFilter === "all" || t.status === statusFilter;
-      return matchesSearch && matchesType && matchesStatus;
+      const matchesCategory = categoryFilter === "all" ||
+        (t.category || "").trim().toLowerCase() === categoryFilter.trim().toLowerCase();
+      return matchesSearch && matchesType && matchesStatus && matchesCategory;
     });
-  }, [transactions, searchTerm, typeFilter, statusFilter]);
+  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter]);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const visibleIds = filteredTransactions.map(t => t.id);
+    const oldIndex = visibleIds.indexOf(active.id as string);
+    const newIndex = visibleIds.indexOf(over.id as string);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const newVisibleOrder = arrayMove(visibleIds, oldIndex, newIndex);
+    // Rebuild global order keeping hidden items in place
+    const positions = orderedTransactions
+      .map((t, index) => (visibleIds.includes(t.id) ? index : -1))
+      .filter(i => i >= 0);
+    const nextGlobal = orderedTransactions.map(t => t.id);
+    positions.forEach((pos, i) => {
+      nextGlobal[pos] = newVisibleOrder[i];
+    });
+    setOrderedIds(nextGlobal);
+
+    try {
+      await Promise.all(
+        nextGlobal.map((id, index) =>
+          supabase.from('financial_transactions').update({ order_index: index }).eq('id', id)
+        )
+      );
+    } catch {
+      toast.error("Erro ao salvar a ordem");
+      onRefresh();
+    }
+  };
+
 
   const updateAccountBalance = async (accountId: string, amountChange: number) => {
     try {
@@ -352,12 +425,28 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               <SelectItem value="expense">Despesas</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[170px]">
+              <Tags className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas categorias</SelectItem>
+              {categories.map(c => (
+                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex gap-2 w-full md:w-auto">
+          <Button variant="outline" className="flex-1 md:flex-none" onClick={() => setIsCategoryManagerOpen(true)}>
+            <Tags className="h-4 w-4 mr-2" /> Categorias
+          </Button>
           <Dialog open={isBulkAddOpen} onOpenChange={setIsBulkAddOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="flex-1 md:flex-none">
+
                 <ListPlus className="h-4 w-4 mr-2" /> Adicionar Múltiplas
               </Button>
             </DialogTrigger>
@@ -561,10 +650,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   <Label>Categoria</Label>
                   <Input 
                     required 
+                    list="financial-categories-list"
                     value={formData.category}
                     onChange={e => setFormData({...formData, category: e.target.value})}
                     placeholder="Ex: Alimentação, Lazer"
                   />
+                  <datalist id="financial-categories-list">
+                    {categories.map(c => <option key={c.id} value={c.name} />)}
+                  </datalist>
+
                 </div>
                 <div className="space-y-2">
                   <Label>Vencimento</Label>
@@ -649,71 +743,97 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.length === 0 ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Nenhuma transação encontrada.
-                    </TableCell>
+                    <TableHead className="w-[40px]"></TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ) : (
-                  filteredTransactions.map(t => (
-                    <TableRow key={t.id} className={t.status === 'paid' ? 'bg-muted/30' : ''}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{t.description}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {PAYMENT_METHODS[t.payment_method] || t.payment_method}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{t.category}</Badge>
-                      </TableCell>
-                      <TableCell>{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                      <TableCell className={t.type === 'income' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                        {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className={t.status === 'paid' ? 'text-green-600' : 'text-orange-600'}
-                          onClick={() => handleToggleStatus(t)}
-                        >
-                          {t.status === 'paid' ? <CheckCircle className="h-4 w-4 mr-1" /> : <Clock className="h-4 w-4 mr-1" />}
-                          {t.status === 'paid' ? 'Pago' : 'Pendente'}
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => confirmDelete(t)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        Nenhuma transação encontrada.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    <SortableContext items={filteredTransactions.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                      {filteredTransactions.map(t => (
+                        <SortableTransactionRow key={t.id} id={t.id} className={t.status === 'paid' ? 'bg-muted/30' : ''}>
+                          {(handle) => (
+                            <>
+                              <TableCell className="w-[40px]">{handle}</TableCell>
+                              <TableCell>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{t.description}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {PAYMENT_METHODS[t.payment_method] || t.payment_method}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="secondary"
+                                  style={(() => {
+                                    const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
+                                    return cat?.color ? { backgroundColor: `${cat.color}22`, color: cat.color } : undefined;
+                                  })()}
+                                >
+                                  {t.category}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+                              <TableCell className={t.type === 'income' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                                {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className={t.status === 'paid' ? 'text-green-600' : 'text-orange-600'}
+                                  onClick={() => handleToggleStatus(t)}
+                                >
+                                  {t.status === 'paid' ? <CheckCircle className="h-4 w-4 mr-1" /> : <Clock className="h-4 w-4 mr-1" />}
+                                  {t.status === 'paid' ? 'Pago' : 'Pendente'}
+                                </Button>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => confirmDelete(t)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </>
+                          )}
+                        </SortableTransactionRow>
+                      ))}
+                    </SortableContext>
+                  )}
+                </TableBody>
+              </Table>
+            </DndContext>
           </div>
         </CardContent>
       </Card>
+
+      <CategoryManager
+        open={isCategoryManagerOpen}
+        onOpenChange={setIsCategoryManagerOpen}
+        businessId={businessId}
+        transactions={transactions}
+        onSelectCategory={(name) => setCategoryFilter(name)}
+      />
 
       <SecureDeleteDialog
         open={deleteDialogOpen}
@@ -723,6 +843,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         description="Esta ação excluirá permanentemente os dados desta transação e reverterá qualquer impacto no saldo da conta vinculada (se paga). Para confirmar, digite 'excluir' abaixo."
         itemName={transactionToDelete?.description}
       />
+
     </div>
   );
 };
