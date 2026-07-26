@@ -1038,7 +1038,18 @@ export default function AgentCustomerChat() {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                {/* Aviso de fila de espera */}
+                {queueEnabled && attendantStatus !== 'online' && (
+                  <Alert className="mt-2 py-1.5 sm:py-2 border-yellow-500/60">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <AlertDescription className="ml-2 text-xs sm:text-sm">
+                      {queueMessage}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
+
             </div>
             
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
