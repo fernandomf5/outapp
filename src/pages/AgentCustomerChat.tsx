@@ -1475,6 +1475,17 @@ export default function AgentCustomerChat() {
                   className="flex-1 resize-none rounded-md border border-input bg-background text-foreground px-4 py-3 md:py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-40"
                 />
 
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={openContactForm}
+                  title="Enviar mensagem por e-mail"
+                  aria-label="Enviar mensagem por e-mail"
+                  className="h-11 w-11 md:h-10 md:w-10"
+                >
+                  <Mail className="w-5 h-5" />
+                </Button>
+
                 <Button 
                   type="submit"
                   disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
@@ -1483,6 +1494,7 @@ export default function AgentCustomerChat() {
                 >
                   <Send className="w-5 h-5" />
                 </Button>
+
               </div>
             </form>
           </div>
