@@ -127,18 +127,8 @@ export default function AgentCustomerAuth() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                maxLength={255}
-                placeholder="seu@email.com"
-              />
-            </div>
+
+
 
             <Button type="submit" className="w-full text-white gap-2" style={buttonStyle} disabled={loading}>
               <MessageSquare className="w-4 h-4" />
