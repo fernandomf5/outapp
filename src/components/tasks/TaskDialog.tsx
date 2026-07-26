@@ -78,6 +78,8 @@ export const TaskDialog = ({
   });
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [newItemText, setNewItemText] = useState("");
+  const { contactId, setContactId, saveLink } = useResourceContactLink("task", task?.id);
+
 
   useEffect(() => {
     if (task) {
