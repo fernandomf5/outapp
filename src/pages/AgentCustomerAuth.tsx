@@ -21,6 +21,8 @@ export default function AgentCustomerAuth() {
   const [attendantStatus, setAttendantStatus] = useState<string>('offline');
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const [queueEnabled, setQueueEnabled] = useState(false);
+  const [queueNext, setQueueNext] = useState(1);
+
   const [statusColors, setStatusColors] = useState({
     online: '#22c55e',
     busy: '#eab308',
