@@ -810,6 +810,16 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                   {t.category}
                                 </Badge>
                               </TableCell>
+                              <TableCell>
+                                {t.bank_account_id ? (
+                                  <span className="inline-flex items-center gap-1 text-sm">
+                                    <Landmark className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {bankNameById.get(t.bank_account_id) || '—'}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">Sem conta</span>
+                                )}
+                              </TableCell>
                               <TableCell>{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
                               <TableCell className={t.type === 'income' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
