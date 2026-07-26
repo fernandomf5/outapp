@@ -201,7 +201,7 @@ export default function AgentCustomerChat() {
       }
     };
     refresh();
-    const interval = setInterval(refresh, 10000);
+    const interval = setInterval(refresh, 5000);
     const onVisible = () => {
       if (document.visibilityState === 'visible') refresh();
     };
