@@ -84,7 +84,6 @@ export default function AgentCustomerChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [visibleMessagesCount, setVisibleMessagesCount] = useState(20);
-  const [requestingHuman, setRequestingHuman] = useState(false);
   const MAX_VISIBLE_MESSAGES = 20;
 
   useEffect(() => {
@@ -403,34 +402,8 @@ export default function AgentCustomerChat() {
         // Limpamos mensagens e resetamos o Set de mensagens enviadas
         setMessages([]);
         sentMessagesRef.current = new Set();
-        
-        // Forçar um primeiro processamento caso a Edge Function não tenha retornado mensagens
-        // mas o fluxo deva iniciar (isso garante o disparo do gatilho inicial)
-        if (data.conversationId) {
-          console.log('Nenhuma mensagem inicial retornada, solicitando processamento...');
-          const { error: processError } = await supabase.functions.invoke('process-agent-customer-message', {
-            body: { 
-              agentId, 
-              customerId, 
-              conversationId: data.conversationId, 
-              message: '',
-              timestamp: Date.now()
-            }
-          });
-
-          if (processError) throw processError;
-
-          const { data: refreshedMessages } = await supabase
-            .from('agent_messages')
-            .select('*')
-            .eq('conversation_id', data.conversationId)
-            .order('created_at', { ascending: true });
-
-          if (refreshedMessages) {
-            setMessages(refreshedMessages as unknown as Message[]);
-          }
-        }
       }
+
       
       // Configurações de fila
       if (data.agent?.config) {
@@ -686,54 +659,6 @@ export default function AgentCustomerChat() {
     }
   };
 
-  const handleRequestHuman = async () => {
-    if (!conversationId || requestingHuman || !customer) return;
-    
-    setRequestingHuman(true);
-    try {
-      // 1. Enviar mensagem do cliente
-      const content = "Preciso falar com um atendente humano.";
-      
-      // Adicionar mensagem do cliente otimisticamente na UI
-      const optimisticMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'customer',
-        content: content,
-        created_at: new Date().toISOString(),
-        sender_name: customer.name,
-      };
-      setMessages(prev => [...prev, optimisticMessage]);
-      chatSounds.playSendSound();
-
-      // 2. Chamar a Edge Function com flag para forçar atendimento humano
-      const { error } = await supabase.functions.invoke('process-agent-customer-message', {
-        body: { 
-          agentId, 
-          customerId: customer.id, 
-          conversationId, 
-          message: content,
-          forceHuman: true 
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Solicitação enviada",
-        description: "Um atendente humano foi notificado para assumir o chat.",
-      });
-
-    } catch (error) {
-      console.error('Error requesting human:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível solicitar atendimento humano.",
-        variant: "destructive",
-      });
-    } finally {
-      setRequestingHuman(false);
-    }
-  };
 
   const openContactForm = () => {
     setContactForm(prev => ({ ...prev, name: prev.name || customer?.name || '' }));
@@ -849,30 +774,12 @@ export default function AgentCustomerChat() {
         media_type: mediaType,
       });
 
-      // Processar mensagem com IA/Fluxo
-      const { data: processData, error: processError } = await supabase.functions.invoke('process-agent-customer-message', {
-        body: {
-          agentId,
-          customerId: customer.id,
-          conversationId,
-          message: messageContent,
-          timestamp: Date.now()
-        }
-      });
+      // Chat 100% humano: nenhuma resposta automática é gerada.
+      await supabase
+        .from('agent_conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId);
 
-      if (processError) throw processError;
-
-      if (processData?.response) {
-        const { data: refreshedMessages } = await supabase
-          .from('agent_messages')
-          .select('*')
-          .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true });
-
-        if (refreshedMessages) {
-          setMessages(refreshedMessages as unknown as Message[]);
-        }
-      }
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -1069,11 +976,11 @@ export default function AgentCustomerChat() {
                     }`} />
                     <span className="hidden sm:inline">
                       {attendantStatus === 'online' ? 'Atendente Online' : 
-                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Agente IA Ativo'}
+                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
                     </span>
                     <span className="sm:hidden">
                       {attendantStatus === 'online' ? 'Online' : 
-                       attendantStatus === 'busy' ? 'Ocupado' : 'Agente IA'}
+                       attendantStatus === 'busy' ? 'Ocupado' : 'Offline'}
                     </span>
                   </Badge>
                 </div>

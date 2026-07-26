@@ -49,12 +49,11 @@ serve(async (req) => {
     }
 
     if (!existingCustomer) {
-      // Create lightweight customer (name + email only, no registration required)
+      // Create lightweight customer (name only, no registration required)
       const anonName = customerName || 'Visitante';
       const anonEmail = (customerEmail && String(customerEmail).trim())
         ? String(customerEmail).trim().toLowerCase()
         : `anon_${Date.now()}@temp.com`;
-
 
       // Generate a password hash placeholder for anonymous customers
       const encoder = new TextEncoder();
@@ -86,7 +85,6 @@ serve(async (req) => {
         console.error('Error creating customer:', createCustomerError);
         throw new Error('Falha ao preparar sessão do cliente');
       }
-
     }
 
     // Find existing conversation
@@ -100,23 +98,19 @@ serve(async (req) => {
     if (convError) throw convError;
 
     let conversationId: string;
-    let activeConv = conversations?.find((c: any) => c.status === 'active');
+    const activeConv = conversations?.find((c: any) => c.status === 'active');
 
     if (activeConv) {
       conversationId = activeConv.id;
     } else {
-      // Check if AI or flows are enabled in agent config
-      const agentConfig = agent.config || {};
-      const aiEnabled = agentConfig.ai_enabled === true;
-      const flowsEnabled = agentConfig.flows_enabled !== false;
-      
+      // Atendimento 100% humano: nunca habilitar respostas automáticas
       const { data: newConv, error: newConvError } = await supabase
         .from('agent_conversations')
         .insert({
           agent_id: agentId,
           customer_id: customerId,
           status: 'active',
-          ai_enabled: aiEnabled,
+          ai_enabled: false,
           last_message_at: new Date().toISOString(),
         })
         .select()
@@ -127,7 +121,7 @@ serve(async (req) => {
     }
 
     // Load messages for this conversation
-    let { data: messages, error: msgError } = await supabase
+    const { data: messages, error: msgError } = await supabase
       .from('agent_messages')
       .select('*')
       .eq('conversation_id', conversationId)
@@ -135,50 +129,11 @@ serve(async (req) => {
 
     if (msgError) throw msgError;
 
-    // Disparar gatilho inicial se for uma conversa nova ou se não houver mensagens
-    const messageCount = (messages || []).length;
-    console.log(`Conversa carregada com ${messageCount} mensagens.`);
-    
-    if (messageCount === 0) {
-      console.log('Disparando gatilho inicial para nova conversa...');
-      
-      // Chamada await para processar o gatilho inicial e retornar a primeira mensagem
-      const processUrl = `${supabaseUrl}/functions/v1/process-agent-customer-message`;
-      try {
-        await fetch(processUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            agentId,
-            customerId,
-            conversationId,
-            message: '' // Mensagem vazia sinaliza gatilho inicial
-          })
-        });
-
-        // Recarregar mensagens após o processamento
-        const { data: refreshedMessages } = await supabase
-          .from('agent_messages')
-          .select('*')
-          .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true });
-        
-        if (refreshedMessages) {
-          messages = refreshedMessages;
-        }
-      } catch (err) {
-        console.error('Erro ao disparar gatilho inicial:', err);
-      }
-    }
-
     return new Response(
       JSON.stringify({
-        agent: { 
-          id: agent.id, 
-          name: agent.name, 
+        agent: {
+          id: agent.id,
+          name: agent.name,
           config: agent.config,
           access_type: agent.access_type,
           attendant_status: agent.attendant_status || 'offline',

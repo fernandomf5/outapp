@@ -660,7 +660,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
           agent_id: agentId,
           customer_id: selectedConversation.agent_customers.id,
           status: 'active',
-          ai_enabled: true,
+          ai_enabled: false,
           last_message_at: new Date().toISOString(),
         })
         .select(`
@@ -675,27 +675,12 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
       if (createError) throw createError;
 
-      // Disparar gatilho inicial
-      const supabaseUrl = (supabase as any).supabaseUrl;
-      const processUrl = `${supabaseUrl}/functions/v1/process-agent-customer-message`;
-      
-      // Obter a chave anon do localStorage ou config (o browser geralmente tem acesso via client)
-      // Como estamos no frontend, usamos o client.invoke ou fetch direto
-      await supabase.functions.invoke('process-agent-customer-message', {
-        body: {
-          agentId,
-          customerId: selectedConversation.agent_customers.id,
-          conversationId: newConv.id,
-          message: '' // Gatilho inicial
-        }
-      });
-
       setSelectedConversation(newConv as Conversation);
       loadConversations();
       
       toast({
         title: "Chat reiniciado",
-        description: "A conversa foi arquivada e um novo fluxo foi iniciado para o cliente.",
+        description: "A conversa anterior foi arquivada e um novo atendimento foi iniciado.",
       });
     } catch (error: any) {
       console.error('Error restarting conversation:', error);
