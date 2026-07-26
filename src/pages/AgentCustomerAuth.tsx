@@ -26,39 +26,53 @@ export default function AgentCustomerAuth() {
   const [formData, setFormData] = useState({ name: "" });
 
   useEffect(() => {
+    if (!agentId) return;
+    let cancelled = false;
+
     const loadAgent = async () => {
       try {
-        const { data: agent } = await supabase
-          .from('ai_agents')
-          .select('config, name, attendant_status, attendant_name')
-          .eq('id', agentId)
-          .single();
+        // Edge function pública (service role) — funciona em qualquer navegador,
+        // logado ou não, sem depender de RLS/sessão.
+        const { data, error } = await supabase.functions.invoke('get-chat-online-config', {
+          body: { agentId },
+        });
 
-        if (agent?.config) {
-          const config = agent.config as any;
-          if (config.primaryColor) setPrimaryColor(config.primaryColor);
-          if (config.logoUrl) setLogoUrl(config.logoUrl);
-          setQueueEnabled(config.queueEnabled === true);
-          if (config.statusColors) {
-            setStatusColors({
-              online: config.statusColors.online || '#22c55e',
-              busy: config.statusColors.busy || '#eab308',
-              offline: config.statusColors.offline || '#64748b',
-            });
-          }
+        if (cancelled) return;
+        if (error || !data?.agent) {
+          console.error('Error loading chat config:', error || data?.error);
+          return;
         }
-        if (agent?.name) setAgentName(agent.name);
-        setAttendantStatus(agent?.attendant_status || 'offline');
-        setAttendantName(agent?.attendant_name || null);
+
+        const agent = data.agent;
+        const config = (agent.config || {}) as any;
+        if (config.primaryColor) setPrimaryColor(config.primaryColor);
+        if (config.logoUrl) setLogoUrl(config.logoUrl);
+        setQueueEnabled(config.queueEnabled === true);
+        if (config.statusColors) {
+          setStatusColors({
+            online: config.statusColors.online || '#22c55e',
+            busy: config.statusColors.busy || '#eab308',
+            offline: config.statusColors.offline || '#64748b',
+          });
+        }
+        if (agent.name) setAgentName(agent.name);
+        setAttendantStatus(agent.attendant_status || 'offline');
+        setAttendantName(agent.attendant_name || null);
       } catch (error) {
         console.error('Error loading agent:', error);
       } finally {
-        setCheckingAccess(false);
+        if (!cancelled) setCheckingAccess(false);
       }
     };
 
     loadAgent();
+    const interval = setInterval(loadAgent, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [agentId]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
