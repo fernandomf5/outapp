@@ -1,16 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -65,6 +57,8 @@ export function ContactCategoryPicker({
   const [categories, setCategories] = useState<CategoryOption[]>(categoriesProp || []);
   const [categoryId, setCategoryId] = useState<string>(ALL);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (contactsProp) setContacts(contactsProp);
@@ -95,6 +89,16 @@ export function ContactCategoryPicker({
     load();
   }, [user?.id, contactsProp]);
 
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (pickerRef.current?.contains(event.target as Node)) return;
+      setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
+
   const selected = contacts.find((c) => c.id === value) || null;
 
   // Keep category filter in sync with the currently selected contact
@@ -113,6 +117,21 @@ export function ContactCategoryPicker({
     return contacts.filter((c) => c.registration_category_id === categoryId);
   }, [contacts, categories, categoryId]);
 
+  const visibleContacts = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return filtered;
+    return filtered.filter((contact) => {
+      const searchable = `${contact.name} ${contact.company || ""}`.toLowerCase();
+      return searchable.includes(term);
+    });
+  }, [filtered, query]);
+
+  const handleSelect = (contactId: string | null) => {
+    onChange(contactId);
+    setOpen(false);
+    setQuery("");
+  };
+
   return (
     <div className={cn("grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0", className)}>
       <Select value={categoryId} onValueChange={setCategoryId} disabled={disabled}>
@@ -130,13 +149,14 @@ export function ContactCategoryPicker({
         </SelectContent>
       </Select>
 
-      <Popover open={open} onOpenChange={setOpen} modal>
-        <PopoverTrigger asChild>
+      <div ref={pickerRef} className="relative min-w-0">
           <Button
             type="button"
             variant="outline"
             role="combobox"
+            aria-expanded={open}
             disabled={disabled}
+            onClick={() => setOpen((current) => !current)}
             className="h-9 w-full min-w-0 justify-between font-normal text-sm"
           >
             <span className="truncate">
@@ -144,66 +164,60 @@ export function ContactCategoryPicker({
             </span>
             <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[220px] z-[500] pointer-events-auto"
-          align="start"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-
-          <Command>
-            <CommandInput placeholder="Pesquisar cadastro..." />
-            <CommandList className="max-h-[260px]">
-              <CommandEmpty>Nenhum cadastro encontrado.</CommandEmpty>
-              <CommandGroup>
-                <CommandItem
-                  value={placeholder}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    onChange(null);
-                    setOpen(false);
-                  }}
-                  onSelect={() => {
-                    onChange(null);
-                    setOpen(false);
-                  }}
+          {open && (
+            <div className="absolute left-0 right-0 top-[calc(100%+0.25rem)] z-[500] rounded-md border bg-popover text-popover-foreground shadow-lg">
+              <div className="border-b p-2">
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Pesquisar cadastro..."
+                  className="h-9"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-[260px] overflow-y-auto p-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-9 w-full justify-start px-2 font-normal"
+                  onClick={() => handleSelect(null)}
                 >
                   <Check
                     className={cn("mr-2 h-4 w-4", !value ? "opacity-100" : "opacity-0")}
                   />
-                  {placeholder}
-                </CommandItem>
-                {filtered.map((c) => (
-                  <CommandItem
-                    key={c.id}
-                    value={`${c.name} ${c.company || ""}`}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      onChange(c.id);
-                      setOpen(false);
-                    }}
-                    onSelect={() => {
-                      onChange(c.id);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === c.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <span className="truncate">
-                      {c.name}
-                      {c.company ? ` — ${c.company}` : ""}
-                    </span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+                  <span className="truncate">{placeholder}</span>
+                </Button>
+
+                {visibleContacts.length === 0 ? (
+                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                    Nenhum cadastro encontrado.
+                  </div>
+                ) : (
+                  visibleContacts.map((contact) => (
+                    <Button
+                      key={contact.id}
+                      type="button"
+                      variant="ghost"
+                      className="h-9 w-full justify-start px-2 font-normal"
+                      onClick={() => handleSelect(contact.id)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4 shrink-0",
+                          value === contact.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <span className="truncate text-left">
+                        {contact.name}
+                        {contact.company ? ` — ${contact.company}` : ""}
+                      </span>
+                    </Button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
     </div>
   );
 }
