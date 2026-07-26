@@ -130,7 +130,7 @@ export function ContactCategoryPicker({
         </SelectContent>
       </Select>
 
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild>
           <Button
             type="button"
@@ -146,8 +146,9 @@ export function ContactCategoryPicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[220px] z-[400]"
+          className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[220px] z-[500] pointer-events-auto"
           align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
 
           <Command>
@@ -157,6 +158,11 @@ export function ContactCategoryPicker({
               <CommandGroup>
                 <CommandItem
                   value={placeholder}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    onChange(null);
+                    setOpen(false);
+                  }}
                   onSelect={() => {
                     onChange(null);
                     setOpen(false);
@@ -171,6 +177,11 @@ export function ContactCategoryPicker({
                   <CommandItem
                     key={c.id}
                     value={`${c.name} ${c.company || ""}`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      onChange(c.id);
+                      setOpen(false);
+                    }}
                     onSelect={() => {
                       onChange(c.id);
                       setOpen(false);
