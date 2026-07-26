@@ -96,12 +96,28 @@ export default function AgentCustomerChat() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Verifica o tipo de acesso do agente
-        const { data: agent } = await supabase
-          .from('ai_agents')
-          .select('access_type')
-          .eq('id', agentId)
-          .single();
+        // Config pública via edge function (funciona em qualquer navegador/aba)
+        const { data: cfgData } = await supabase.functions.invoke('get-chat-online-config', {
+          body: { agentId },
+        });
+        const agent = cfgData?.agent;
+
+        if (agent?.config) {
+          const cfg = agent.config as any;
+          setQueueEnabled(cfg.queueEnabled === true);
+          if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+          if (cfg.statusColors) {
+            setStatusColors({
+              online: cfg.statusColors.online || '#22c55e',
+              busy: cfg.statusColors.busy || '#eab308',
+              offline: cfg.statusColors.offline || '#64748b',
+            });
+          }
+          if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
+          if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
+        }
+        if (agent?.attendant_status) setAttendantStatus(agent.attendant_status);
+        if (agent?.attendant_name !== undefined) setAttendantName(agent.attendant_name);
 
         // Verificar se tem dados no localStorage
         const customerData = localStorage.getItem(`agent_customer_${agentId}`);
@@ -142,6 +158,46 @@ export default function AgentCustomerChat() {
 
     checkAuth();
   }, [agentId, navigate]);
+
+  // Mantém status/config do atendente atualizados mesmo sem realtime (aba nova, outro navegador)
+  useEffect(() => {
+    if (!agentId) return;
+    const refresh = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('get-chat-online-config', {
+          body: { agentId },
+        });
+        const agent = data?.agent;
+        if (!agent) return;
+        if (agent.attendant_status) setAttendantStatus(agent.attendant_status);
+        setAttendantName(agent.attendant_name || null);
+        const cfg = (agent.config || {}) as any;
+        setQueueEnabled(cfg.queueEnabled === true);
+        if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
+        if (cfg.statusColors) {
+          setStatusColors({
+            online: cfg.statusColors.online || '#22c55e',
+            busy: cfg.statusColors.busy || '#eab308',
+            offline: cfg.statusColors.offline || '#64748b',
+          });
+        }
+        if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
+        if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
+      } catch {
+        /* silencioso */
+      }
+    };
+    const interval = setInterval(refresh, 30000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [agentId]);
+
 
   useEffect(() => {
     if (conversationId) {
