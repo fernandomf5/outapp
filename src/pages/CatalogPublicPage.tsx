@@ -1118,6 +1118,8 @@ export default function CatalogPublicPage() {
           onSelect={setActiveCategory}
           onWhatsApp={catalog.whatsapp_number ? () => handleWhatsAppContact() : undefined}
           config={layout.footer}
+          pages={menuPages}
+          catalogSlug={slug}
         />
 
 
