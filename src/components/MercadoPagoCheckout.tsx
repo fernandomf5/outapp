@@ -274,7 +274,7 @@ export const MercadoPagoCheckout = ({ plan, onClose }: MercadoPagoCheckoutProps)
               {plan.features && plan.features.length > 0 && plan.features.map((feature, idx) => (
                 <div key={idx} className="flex items-start gap-2 text-sm">
                   <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                  <span>{feature}</span>
+                  <RichFeatureText html={feature} />
                 </div>
               ))}
             </div>
