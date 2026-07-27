@@ -1,6 +1,13 @@
-import { useRef } from "react";
-import { Search, ShieldCheck, Truck, Headphones, RefreshCw, Store, Instagram, Facebook, Youtube, MessageCircle } from "lucide-react";
+import { useRef, useState } from "react";
+import { Search, ShieldCheck, Truck, Headphones, RefreshCw, Store, Instagram, Facebook, Youtube, MessageCircle, ChevronDown, LayoutGrid } from "lucide-react";
 import type { CatalogLayoutSettings } from "./catalogLayout";
+
+export interface StorePageLink {
+  id: string;
+  title: string;
+  slug: string;
+}
+
 
 export interface StoreCategory {
   id: string;
