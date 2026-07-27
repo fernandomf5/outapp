@@ -419,6 +419,25 @@ export function SimpleMembersArea() {
     }
   };
 
+  const handleSaveBanners = async (banners: AreaBanner[]) => {
+    if (!selectedArea) return;
+    try {
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .update({ banners: banners as any })
+        .eq('id', selectedArea.id);
+      if (error) throw error;
+
+      const updatedArea = { ...selectedArea, banners };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
+      toast.success('Banners salvos!');
+      setIsBannersDialogOpen(false);
+    } catch (error: any) {
+      toast.error('Erro ao salvar banners: ' + error.message);
+    }
+  };
+
   const handleAddSection = async () => {
     if (!selectedArea) return;
 
@@ -427,6 +446,7 @@ export function SimpleMembersArea() {
         id: crypto.randomUUID(),
         title: sectionFormData.title,
         description: sectionFormData.description,
+        cover_image: sectionFormData.cover_image || undefined,
         order_index: selectedArea.sections.length,
         blocks_layout: sectionFormData.blocks_layout,
         blocks: [],
@@ -445,7 +465,7 @@ export function SimpleMembersArea() {
       setSelectedArea(updatedArea);
       setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setIsAddSectionDialogOpen(false);
-      setSectionFormData({ title: '', description: '', blocks_layout: ['full'] });
+      setSectionFormData({ title: '', description: '', cover_image: '', blocks_layout: ['full'] });
       toast.success('Seção adicionada!');
     } catch (error: any) {
       toast.error('Erro ao adicionar seção: ' + error.message);
