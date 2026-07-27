@@ -1205,3 +1205,123 @@ All colors MUST be HSL.
   text-underline-offset: 3px;
 }
 .legal-content a:hover { opacity: .85; }
+
+/* ========================================
+   MOBILE APP EXPERIENCE (global)
+   ======================================== */
+
+html, body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Never let content push the viewport horizontally */
+#root {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Any horizontally scrollable region should feel native */
+.overflow-x-auto,
+[data-radix-scroll-area-viewport] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+@media (max-width: 767px) {
+  /* Avoid iOS auto-zoom on focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Tab bars: scroll horizontally instead of squeezing */
+  [role="tablist"] {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0.25rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  [role="tablist"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [role="tablist"] > [role="tab"] {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    font-size: 0.8125rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Tables never break the layout */
+  table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Compact cards / spacing for an app-like density */
+  .card-compact-mobile {
+    padding: 0.75rem !important;
+  }
+
+  /* Dropdowns, popovers and selects stay inside the screen */
+  [data-radix-popper-content-wrapper] {
+    max-width: 100vw;
+  }
+
+  [role="menu"],
+  [role="listbox"],
+  [data-radix-popover-content] {
+    max-width: calc(100vw - 1.5rem) !important;
+  }
+
+  /* Long words / URLs shouldn't overflow */
+  h1, h2, h3, h4, p, span, div {
+    overflow-wrap: anywhere;
+  }
+
+  /* Big titles get an app-like scale */
+  .text-4xl { font-size: 1.75rem !important; line-height: 1.15 !important; }
+  .text-3xl { font-size: 1.5rem !important; line-height: 1.2 !important; }
+  .text-2xl { font-size: 1.3rem !important; line-height: 1.25 !important; }
+
+  /* Reduce oversized paddings coming from desktop layouts */
+  .p-8 { padding: 1rem !important; }
+  .p-10 { padding: 1.25rem !important; }
+  .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .py-12 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+  .gap-8 { gap: 1rem !important; }
+  .gap-10 { gap: 1.25rem !important; }
+
+  /* Safe area breathing room at the bottom of scrollable pages */
+  main {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Tablet: use the space without desktop-only density */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .p-10 { padding: 1.5rem !important; }
+  [role="tablist"] {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  [role="tablist"]::-webkit-scrollbar { display: none; }
+}
