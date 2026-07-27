@@ -59,7 +59,7 @@ export const FeatureTutorialVideo = ({ featureKey }: FeatureTutorialVideoProps) 
         className="gap-2 mb-4 border-primary/50 text-primary hover:bg-primary/10 animate-pulse shadow-[0_0_12px_hsl(var(--primary)/0.4)]"
       >
         <Video className="w-4 h-4" />
-        📺 Como usar este recurso
+        📺 Aprenda como usar este recurso
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

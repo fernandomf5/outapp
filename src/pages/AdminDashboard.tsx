@@ -73,6 +73,8 @@ import {
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { RichFeaturesEditor } from "@/components/admin/RichFeaturesEditor";
+import { TUTORIAL_FEATURES, TUTORIAL_FEATURE_GROUPS, getTutorialFeatureLabel } from "@/lib/tutorialFeatures";
+
 
 interface Plan {
   id: string;
@@ -881,6 +883,55 @@ const AdminDashboard = () => {
             </Button>
           </div>
 
+          {/* Cobertura de vídeos por recurso */}
+          <Card className="p-4 mb-6 bg-background/60 border-primary/20">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <h3 className="font-semibold">Vídeo por Recurso</h3>
+              <span className="text-xs text-muted-foreground">
+                {TUTORIAL_FEATURES.filter(f => tutorials.some(t => t.featureKey === f.key)).length} de {TUTORIAL_FEATURES.length} recursos com vídeo
+              </span>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {TUTORIAL_FEATURES.map((f) => {
+                const existing = tutorials.find(t => t.featureKey === f.key);
+                return (
+                  <div key={f.key} className="flex items-center justify-between gap-2 rounded-md border border-border/60 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{f.label}</p>
+                      <p className={`text-xs ${existing ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {existing ? '✅ Com vídeo' : 'Sem vídeo'}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={existing ? 'outline' : 'default'}
+                      onClick={() => {
+                        if (existing) {
+                          setEditingVideo(existing);
+                        } else {
+                          setEditingVideo({
+                            id: 'new',
+                            title: `Como usar: ${f.label}`,
+                            description: '',
+                            videoUrl: '',
+                            duration: '',
+                            category: 'Iniciante',
+                            featureKey: f.key,
+                          });
+                        }
+                        setIsVideoDialogOpen(true);
+                      }}
+                    >
+                      {existing ? 'Editar' : 'Adicionar'}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+
+
           <div className="grid md:grid-cols-2 gap-6">
             {tutorials.map((tutorial) => (
               <Card key={tutorial.id} className="p-5 hover:shadow-lg transition-smooth bg-gradient-to-br from-background to-warning/5 border-warning/10">
@@ -895,7 +946,7 @@ const AdminDashboard = () => {
                         <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full">{tutorial.category}</span>
                         <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{tutorial.duration}</span>
                         {tutorial.featureKey && (
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">📌 {tutorial.featureKey}</span>
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">📌 {getTutorialFeatureLabel(tutorial.featureKey)}</span>
                         )}
                       </div>
                     </div>
@@ -1093,41 +1144,19 @@ const AdminDashboard = () => {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">Nenhum (vídeo geral)</option>
-                  <option value="tarefas">Organizador de Tarefas</option>
-                  <option value="agenda">Agenda / Agendamento</option>
-                  <option value="rotina">Organizador de Rotina</option>
-                  <option value="negocios">Gestão de Negócios</option>
-                  <option value="clientes">Gestão de Clientes</option>
-                  <option value="fornecedores">Gestão de Fornecedores</option>
-                  <option value="produtos-servicos">Produtos e Serviços</option>
-                  <option value="catalogo">Catálogo</option>
-                  <option value="equipe">Gestão de Equipe</option>
-                  <option value="financeiro">Gestão Financeira</option>
-                  <option value="recibos">Gerador de Recibos</option>
-                  <option value="anuncios">Gestão de Anúncios</option>
-                  <option value="funil-vendas">Funil de Vendas</option>
-                  <option value="extrator-criativos">Extrator de Criativos</option>
-                  <option value="popups">Criador de Popups</option>
-                  <option value="ai-agents">Chat Online</option>
-                  <option value="tools">Gerador de Link WhatsApp</option>
-                  <option value="floating-button">Botão Flutuante</option>
-                  <option value="shortlinks">Encurtador de Links</option>
-                  <option value="qrcode">Gerador de QR Code</option>
-                  <option value="linkbio">Link na Bio</option>
-                  <option value="disparador">Disparador Zap Manual</option>
-                  <option value="cloner">Clonador de Páginas</option>
-                  <option value="questionario-marketing">Questionário Marketing</option>
-                  <option value="briefing">Criador de Briefing</option>
-                  <option value="area-membros">Área de Membros</option>
-                  <option value="mapa-mental">Mapa Mental</option>
-                  <option value="propostas">Proposta Comercial</option>
-                  <option value="aprova-job">Aprova Job</option>
-                  
+                  {Object.entries(TUTORIAL_FEATURE_GROUPS).map(([group, items]) => (
+                    <optgroup key={group} label={group}>
+                      {items.map((f) => (
+                        <option key={f.key} value={f.key}>{f.label}</option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Se selecionado, o vídeo aparecerá como "Como usar" dentro do recurso correspondente no painel do usuário.
+                  Se selecionado, o vídeo aparecerá como "Aprenda como usar este recurso" dentro do recurso correspondente no painel do usuário.
                 </p>
               </div>
+
               <div className="flex gap-3 justify-end pt-4">
                 <Button variant="outline" onClick={() => setIsVideoDialogOpen(false)}>
                   Cancelar

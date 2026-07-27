@@ -1092,6 +1092,7 @@ const Dashboard = () => {
 
           <TabsContent value="cadastro">
             <ErrorBoundary>
+              <FeatureTutorialVideo featureKey="cadastro" />
               <RegistrationManagerPanel 
                 categoryId={searchParams.get('categoryId')} 
               />
@@ -1100,9 +1101,11 @@ const Dashboard = () => {
 
           <TabsContent value="cadastro-settings">
             <ErrorBoundary>
+              <FeatureTutorialVideo featureKey="cadastro-settings" />
               <RegistrationCategoriesSettings />
             </ErrorBoundary>
           </TabsContent>
+
 
 
           <TabsContent value="clientes">
@@ -1244,6 +1247,7 @@ const Dashboard = () => {
 
           <TabsContent value="crm">
             <FeatureGate featureKey="crm_contacts">
+              <FeatureTutorialVideo featureKey="crm" />
               <CRMContacts />
             </FeatureGate>
           </TabsContent>
@@ -1257,9 +1261,11 @@ const Dashboard = () => {
 
           <TabsContent value="support">
             <FeatureGate featureKey="ticket_system">
+              <FeatureTutorialVideo featureKey="support" />
               <TicketSystem />
             </FeatureGate>
           </TabsContent>
+
 
           <TabsContent value="chat-online">
             <FeatureGate featureKey="ai_agent">
@@ -1317,6 +1323,7 @@ const Dashboard = () => {
           <TabsContent value="tabelas-organizacao" className="m-0 p-0 border-none outline-none">
             <FeatureGate featureKey="financial_management">
               <div className="py-0">
+                <FeatureTutorialVideo featureKey="tabelas-organizacao" />
                 <OrganizationTablesPanel />
               </div>
             </FeatureGate>
@@ -1324,9 +1331,11 @@ const Dashboard = () => {
 
           <TabsContent value="checkout-creator">
             <FeatureGate featureKey="checkout_creator">
+              <FeatureTutorialVideo featureKey="checkout-creator" />
               <CheckoutCreatorPanel />
             </FeatureGate>
           </TabsContent>
+
 
           <TabsContent value="equipe">
             <FeatureGate featureKey="team_management">
@@ -1479,8 +1488,10 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="contratos">
+            <FeatureTutorialVideo featureKey="contratos" />
             <ContractCreatorPanel />
           </TabsContent>
+
 
           <TabsContent value="agenda">
             <FeatureGate featureKey="agenda">
@@ -1514,15 +1525,18 @@ const Dashboard = () => {
 
           <TabsContent value="faturas">
             <FeatureGate featureKey="invoice_generator">
+              <FeatureTutorialVideo featureKey="faturas" />
               <InvoiceGeneratorPanel />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="scripts">
             <FeatureGate featureKey="script_organizer">
+              <FeatureTutorialVideo featureKey="scripts" />
               <ScriptOrganizerPanel />
             </FeatureGate>
           </TabsContent>
+
           </SubscriptionGate>
         </Tabs>
       </main>
