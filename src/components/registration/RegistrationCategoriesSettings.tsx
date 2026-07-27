@@ -28,7 +28,7 @@ interface Category {
   entity_kind?: string | null;
   custom_schema?: any;
   item_groups?: string[] | null;
-  item_group_images?: Record<string, string> | null;
+  item_group_images?: any;
   sort_order?: number | null;
   logo_url?: string | null;
 }
