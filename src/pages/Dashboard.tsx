@@ -1101,6 +1101,7 @@ const Dashboard = () => {
 
           <TabsContent value="cadastro-settings">
             <ErrorBoundary>
+              <FeatureTutorialVideo featureKey="cadastro" />
               <FeatureTutorialVideo featureKey="cadastro-settings" />
               <RegistrationCategoriesSettings />
             </ErrorBoundary>
