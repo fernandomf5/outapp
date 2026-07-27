@@ -1224,34 +1224,59 @@ export default function MembersAreaPublic() {
                   )}
                 </div>
 
-                {/* Quick Access */}
-                <Card style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
-                  <CardContent className="p-4">
-                    <h4 className="font-semibold mb-3" style={{ color: cardTextColor }}>Acesso Rápido</h4>
-                    <div className="space-y-2">
-                      {area.sections.slice(0, 3).map((section, index) => (
+                {/* Modules Grid */}
+                {area.sections.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-lg" style={{ color: textColor }}>Módulos</h4>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {area.sections.map((section, index) => (
                         <button
                           key={section.id}
                           onClick={() => {
                             setActiveSection(section.id);
                             setActiveView('content');
                           }}
-                          className="w-full p-3 rounded-lg flex items-center gap-3 transition-all text-left hover:opacity-80"
-                          style={{ backgroundColor: `${accentColor}10` }}
+                          className="group text-left rounded-2xl overflow-hidden border transition-all hover:-translate-y-1 hover:shadow-xl"
+                          style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}
                         >
-                          <div 
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
-                            style={{ backgroundColor: accentColor }}
+                          <div
+                            className="relative aspect-video overflow-hidden"
+                            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
                           >
-                            {index + 1}
+                            {section.cover_image ? (
+                              <img
+                                src={section.cover_image}
+                                alt={section.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold opacity-80">
+                                {index + 1}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                            <span className="absolute bottom-2 left-3 text-white text-xs font-semibold uppercase tracking-wide">
+                              Módulo {index + 1}
+                            </span>
                           </div>
-                          <span className="font-medium" style={{ color: cardTextColor }}>{section.title}</span>
-                          <ChevronRight className="w-4 h-4 ml-auto" style={{ color: cardTextColor }} />
+                          <div className="p-4">
+                            <p className="font-semibold line-clamp-1" style={{ color: cardTextColor }}>{section.title}</p>
+                            {section.description && (
+                              <p className="text-sm mt-1 opacity-70 line-clamp-2" style={{ color: cardTextColor }}>
+                                {section.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-1 mt-3 text-sm font-medium" style={{ color: accentColor }}>
+                              Acessar
+                              <ChevronRight className="w-4 h-4" />
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                )}
               </div>
             </>
           )}
