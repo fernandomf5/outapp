@@ -1,0 +1,1 @@
+UPDATE site_settings SET value = 'A Out App reúne ferramentas inteligentes para facilitar a gestão, organização e crescimento do seu negócio. Tenha em um só lugar recursos para criar, organizar, automatizar e gerenciar suas atividades, projetos, clientes e estratégias.' WHERE key = 'video_section_subtitle';
