@@ -24,6 +24,14 @@ import {
 import { CatalogCart, CartItem } from "@/components/catalog/CatalogCart";
 import { ProductDetailModal } from "@/components/catalog/ProductDetailModal";
 import { BannerCarousel } from "@/components/catalog/BannerCarousel";
+import {
+  StoreTopBar,
+  StoreHeader,
+  StoreNav,
+  StoreCategoryStrip,
+  StoreBenefits,
+  StoreFooter,
+} from "@/components/catalog/StoreChrome";
 import { toast } from "sonner";
 
 // Horizontal scroll component with arrows and drag
@@ -234,6 +242,8 @@ export default function CatalogPublicPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [viewAllCategory, setViewAllCategory] = useState<{ category: Category; items: any[] } | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
 
   // Cart functions
   const addToCart = (item: any) => {
@@ -602,6 +612,20 @@ export default function CatalogPublicPage() {
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
+  const palette = { primary: catalog.primary_color, text: textColor, background: backgroundColor };
+
+  const isFiltering = activeCategory !== "all" || search.trim().length > 0;
+  const term = search.trim().toLowerCase();
+  const visibleItems = filteredItems.filter((item: any) => {
+    if (activeCategory !== "all" && item.category_id !== activeCategory) return false;
+    if (!term) return true;
+    return (
+      String(item.name || "").toLowerCase().includes(term) ||
+      String(item.description || "").toLowerCase().includes(term) ||
+      String(item.category || "").toLowerCase().includes(term)
+    );
+  });
+
   const renderItem = (item: any) => {
     const isProduct = item.type === "product";
 
@@ -920,122 +944,128 @@ export default function CatalogPublicPage() {
       </Helmet>
 
       <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
-        {/* Header */}
-        <header
-          className="relative"
-          style={{
-            background: catalog.cover_url
-              ? undefined
-              : `linear-gradient(135deg, ${catalog.primary_color} 0%, ${catalog.primary_color}dd 100%)`,
+        <div id="topo" />
+        <StoreTopBar palette={palette} hasWhatsApp={!!catalog.whatsapp_number} />
+        <StoreHeader
+          palette={palette}
+          name={catalog.name}
+          description={catalog.description}
+          logoUrl={catalog.logo_url}
+          search={search}
+          onSearch={setSearch}
+          onWhatsApp={catalog.whatsapp_number ? () => handleWhatsAppContact() : undefined}
+        />
+        <StoreNav
+          palette={palette}
+          categories={categories}
+          active={activeCategory}
+          onSelect={(id) => {
+            setActiveCategory(id);
+            setSearch("");
           }}
-        >
-          {catalog.cover_url && (
-            <div className="absolute inset-0">
-              <img
-                src={catalog.cover_url}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-              <div
-                className="absolute inset-0"
-                style={{ backgroundColor: `${catalog.primary_color}aa` }}
-              />
+        />
+
+        {/* Hero */}
+        <div className="container mx-auto px-3 sm:px-4 pt-5">
+          {banners.length > 0 ? (
+            <BannerCarousel banners={banners} primaryColor={catalog.primary_color} textColor={textColor} />
+          ) : (
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{
+                background: catalog.cover_url
+                  ? undefined
+                  : `linear-gradient(120deg, ${catalog.primary_color} 0%, ${catalog.primary_color}bb 100%)`,
+              }}
+            >
+              {catalog.cover_url && (
+                <>
+                  <img src={catalog.cover_url} alt={`Capa de ${catalog.name}`} className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-0" style={{ backgroundColor: `${catalog.primary_color}aa` }} />
+                </>
+              )}
+              <div className="relative z-10 px-6 sm:px-12 py-12 sm:py-20 text-white max-w-2xl">
+                <span className="inline-block text-[11px] font-bold uppercase tracking-wider rounded-full px-3 py-1 bg-white/20 mb-3">
+                  Catálogo online
+                </span>
+                <h1 className="text-2xl sm:text-4xl font-extrabold mb-2">{catalog.name}</h1>
+                {catalog.description && <p className="text-sm sm:text-lg opacity-90">{catalog.description}</p>}
+                {catalog.whatsapp_number && (
+                  <Button onClick={() => handleWhatsAppContact()} className="mt-6" size="lg" variant="secondary">
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Falar no WhatsApp
+                  </Button>
+                )}
+              </div>
             </div>
           )}
-          <div
-            className="relative z-10 container mx-auto px-4 py-8 sm:py-12 text-center text-white"
-          >
-            {catalog.logo_url && (
-              <img
-                src={catalog.logo_url}
-                alt={catalog.name}
-                className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 rounded-full object-cover border-4 border-white/30"
-              />
-            )}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
-              {catalog.name}
-            </h1>
-            {catalog.description && (
-              <p className="text-sm sm:text-lg opacity-90 max-w-2xl mx-auto px-2">
-                {catalog.description}
-              </p>
-            )}
-            {catalog.whatsapp_number && (
-              <Button
-                onClick={() => handleWhatsAppContact()}
-                className="mt-6"
-                size="lg"
-                variant="secondary"
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Falar no WhatsApp
-              </Button>
-            )}
-
-            {/* Banner Carousel - Below WhatsApp button */}
-            {banners.length > 0 && (
-              <div className="mt-8 max-w-4xl mx-auto">
-                <BannerCarousel 
-                  banners={banners} 
-                  primaryColor={catalog.primary_color}
-                  textColor={textColor}
-                />
-              </div>
-            )}
-          </div>
-        </header>
+        </div>
 
         {/* Content */}
-        <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <main className="container mx-auto px-3 sm:px-4 py-8">
+          {activeCategory === "all" && !search && (
+            <StoreCategoryStrip palette={palette} categories={categories} onSelect={setActiveCategory} />
+          )}
+
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4 sm:mb-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
             <TabsList
-              className="grid w-full max-w-md mx-auto grid-cols-3"
+              className="inline-flex h-auto rounded-full p-1"
               style={{ backgroundColor: `${textColor}10` }}
             >
-              <TabsTrigger value="all" className="text-xs sm:text-sm">Todos ({allItems.length})</TabsTrigger>
-              <TabsTrigger value="products" className="text-xs sm:text-sm">
-                <Package className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                <span className="hidden xs:inline">Produtos</span> ({products.length})
+              <TabsTrigger value="all" className="rounded-full text-xs sm:text-sm px-4">Todos ({allItems.length})</TabsTrigger>
+              <TabsTrigger value="products" className="rounded-full text-xs sm:text-sm px-4">
+                <Package className="w-3.5 h-3.5 mr-1" />
+                Produtos ({products.length})
               </TabsTrigger>
-              <TabsTrigger value="services" className="text-xs sm:text-sm">
-                <Wrench className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                <span className="hidden xs:inline">Serviços</span> ({services.length})
+              <TabsTrigger value="services" className="rounded-full text-xs sm:text-sm px-4">
+                <Wrench className="w-3.5 h-3.5 mr-1" />
+                Serviços ({services.length})
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
           {/* Items */}
-          {filteredItems.length === 0 ? (
-            <div className="text-center py-12">
-              <Package
-                className="w-16 h-16 mx-auto mb-4"
-                style={{ color: `${textColor}50` }}
-              />
-              <h3 className="text-lg font-semibold mb-2">
-                Nenhum item encontrado
-              </h3>
+          {visibleItems.length === 0 ? (
+            <div className="text-center py-16">
+              <Package className="w-16 h-16 mx-auto mb-4" style={{ color: `${textColor}50` }} />
+              <h3 className="text-lg font-semibold mb-2">Nenhum item encontrado</h3>
               <p style={{ color: `${textColor}80` }}>
-                {activeTab === "products"
-                  ? "Não há produtos disponíveis no momento."
-                  : activeTab === "services"
-                    ? "Não há serviços disponíveis no momento."
-                    : "Não há itens disponíveis no momento."}
+                {search ? `Nada encontrado para "${search}".` : "Não há itens disponíveis no momento."}
               </p>
             </div>
-          ) : catalog.group_by_category && itemsByCategory ? (
-            /* Grouped by Category View */
-            <div className="space-y-8">
-              {itemsByCategory.sortedCategoryIds.map((categoryId) => {
+          ) : isFiltering || !catalog.group_by_category || !itemsByCategory ? (
+            <>
+              <div className="flex items-baseline justify-between mb-4">
+                <h2 className="text-xl font-bold">
+                  {search
+                    ? `Resultados para “${search}”`
+                    : activeCategory !== "all"
+                      ? getCategoryById(activeCategory)?.name || "Itens"
+                      : "Todos os itens"}
+                </h2>
+                <span className="text-xs" style={{ color: `${textColor}80` }}>{visibleItems.length} itens</span>
+              </div>
+              {catalog.layout_style === "list" ? (
+                <div className="space-y-3">{visibleItems.map(renderItem)}</div>
+              ) : (
+                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                  {visibleItems.map(renderItem)}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="space-y-10">
+              {itemsByCategory.sortedCategoryIds.map((categoryId, idx) => {
                 const category = getCategoryById(categoryId);
                 const items = itemsByCategory.grouped[categoryId];
                 if (!category || !items || items.length === 0) return null;
-
-                const displayItems = items.slice(0, 6);
-                const hasMore = items.length > 6;
+                const displayItems = items.slice(0, 5);
+                const hasMore = items.length > 5;
 
                 return (
                   <div key={categoryId}>
+                    {idx === 2 && <StoreBenefits palette={palette} />}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         {category.image_url ? (
@@ -1047,26 +1077,15 @@ export default function CatalogPublicPage() {
                             style={{ border: `2px solid ${category.color}` }}
                           />
                         ) : (
-                          <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: category.color }}
-                          />
+                          <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: category.color }} />
                         )}
-                        <h3
-                          className="text-xl font-bold"
-                          style={{ color: textColor }}
-                        >
-                          {category.name}
-                        </h3>
-                        <span className="text-sm" style={{ color: `${textColor}60` }}>
-                          ({items.length} {items.length === 1 ? "item" : "itens"})
-                        </span>
+                        <h2 className="text-xl font-bold">{category.name}</h2>
                       </div>
                       {hasMore && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setViewAllCategory({ category, items })}
+                          onClick={() => setActiveCategory(category.id)}
                           style={{ color: catalog.primary_color }}
                           className="text-sm hover:underline"
                         >
@@ -1079,107 +1098,42 @@ export default function CatalogPublicPage() {
                     {catalog.layout_style === "list" ? (
                       <div className="space-y-3">{displayItems.map(renderItem)}</div>
                     ) : (
-                      <HorizontalScrollRow primaryColor={catalog.primary_color}>
-                        {displayItems.map((item) => (
-                          <div 
-                            key={item.id} 
-                            className="shrink-0 w-[calc(100%-0px)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
-                          >
-                            {renderItem(item)}
-                          </div>
-                        ))}
-                      </HorizontalScrollRow>
+                      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+                        {displayItems.map(renderItem)}
+                      </div>
                     )}
                   </div>
                 );
               })}
-              
-              {/* Uncategorized items */}
-              {itemsByCategory.uncategorized.length > 0 && (() => {
-                const uncatItems = itemsByCategory.uncategorized;
-                const displayItems = uncatItems.slice(0, 6);
-                const hasMore = uncatItems.length > 6;
 
-                return (
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 rounded-full bg-muted" />
-                        <h3 className="text-xl font-bold" style={{ color: textColor }}>
-                          Outros
-                        </h3>
-                        <span className="text-sm" style={{ color: `${textColor}60` }}>
-                          ({uncatItems.length} {uncatItems.length === 1 ? "item" : "itens"})
-                        </span>
-                      </div>
-                      {hasMore && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setViewAllCategory({ 
-                            category: { id: 'uncategorized', name: 'Outros', color: '#9ca3af', order_index: 999 }, 
-                            items: uncatItems 
-                          })}
-                          style={{ color: catalog.primary_color }}
-                          className="text-sm hover:underline"
-                        >
-                          Ver todos
-                          <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
-                      )}
+              {itemsByCategory.uncategorized.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">Outros</h2>
+                  {catalog.layout_style === "list" ? (
+                    <div className="space-y-3">{itemsByCategory.uncategorized.map(renderItem)}</div>
+                  ) : (
+                    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+                      {itemsByCategory.uncategorized.map(renderItem)}
                     </div>
+                  )}
+                </div>
+              )}
 
-                    {catalog.layout_style === "list" ? (
-                      <div className="space-y-3">{displayItems.map(renderItem)}</div>
-                    ) : (
-                      <HorizontalScrollRow primaryColor={catalog.primary_color}>
-                        {displayItems.map((item) => (
-                          <div 
-                            key={item.id} 
-                            className="shrink-0 w-[calc(100%-0px)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
-                          >
-                            {renderItem(item)}
-                          </div>
-                        ))}
-                      </HorizontalScrollRow>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          ) : catalog.layout_style === "list" ? (
-            <div className="space-y-3">{filteredItems.map(renderItem)}</div>
-          ) : (
-            <div
-              className={`grid gap-4 ${
-                catalog.layout_style === "cards"
-                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                  : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-              }`}
-            >
-              {filteredItems.map(renderItem)}
+              <StoreBenefits palette={palette} />
             </div>
           )}
         </main>
 
-        {/* Footer */}
-        <footer
-          className="py-4 sm:py-6 text-center text-xs sm:text-sm border-t px-4"
-          style={{ borderColor: `${textColor}20`, color: `${textColor}80` }}
-        >
-          <p>
-            Catálogo criado com{" "}
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium hover:underline"
-              style={{ color: catalog.primary_color }}
-            >
-              Out App
-            </a>
-          </p>
-        </footer>
+        <StoreFooter
+          palette={palette}
+          name={catalog.name}
+          description={catalog.description}
+          logoUrl={catalog.logo_url}
+          categories={categories}
+          onSelect={setActiveCategory}
+          onWhatsApp={catalog.whatsapp_number ? () => handleWhatsAppContact() : undefined}
+        />
+
 
         {/* Shopping Cart */}
         <CatalogCart
