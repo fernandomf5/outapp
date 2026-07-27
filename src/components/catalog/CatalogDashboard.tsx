@@ -206,10 +206,22 @@ export default function CatalogDashboard({
 
       {/* Tabs for Content */}
       <Tabs defaultValue="orders" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="orders" className="flex items-center gap-2">
             <ShoppingBag className="w-4 h-4" />
             <span className="hidden sm:inline">Pedidos</span>
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Relatórios</span>
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="flex items-center gap-2">
+            <CreditCard className="w-4 h-4" />
+            <span className="hidden sm:inline">Pagamentos</span>
+          </TabsTrigger>
+          <TabsTrigger value="pages" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Páginas</span>
           </TabsTrigger>
           <TabsTrigger value="customers" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
@@ -220,6 +232,49 @@ export default function CatalogDashboard({
             <span className="hidden sm:inline">Banners</span>
           </TabsTrigger>
         </TabsList>
+        <TabsContent value="reports" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Relatórios e Analytics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CatalogAnalyticsPanel catalogId={catalog.id} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="payments" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Formas de Pagamento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CatalogPaymentSettingsPanel catalogId={catalog.id} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="pages" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Páginas do Catálogo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CatalogPagesManager
+                catalogId={catalog.id}
+                catalogSlug={catalog.slug}
+                userId={userId}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
         <TabsContent value="orders" className="mt-4">
           <Card>
             <CardHeader>
