@@ -1132,7 +1132,9 @@ export default function CatalogPublicPage() {
           categories={categories}
           onSelect={setActiveCategory}
           onWhatsApp={catalog.whatsapp_number ? () => handleWhatsAppContact() : undefined}
+          config={layout.footer}
         />
+
 
 
         {/* Shopping Cart */}
