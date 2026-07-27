@@ -72,6 +72,7 @@ import {
 } from "@/components/ui/dialog";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { RichFeaturesEditor } from "@/components/admin/RichFeaturesEditor";
 
 interface Plan {
   id: string;
