@@ -634,9 +634,10 @@ const Index = () => {
         </div>
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-5xl 3xl:max-w-7xl">
-          <div className="inline-block mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-            <img src={heroIcon} alt="Out App" className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 3xl:w-52 3xl:h-52 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.35)]" />
+          <div className="hero-lion-wrap inline-block mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8 [perspective:900px]">
+            <img src={heroIcon} alt="Out App" className="hero-lion-spin w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 3xl:w-52 3xl:h-52 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.35)]" />
           </div>
+
           
           <h1 
             className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl 3xl:text-7xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 animate-fade-in leading-tight px-1 xs:px-2 sm:px-4 md:px-8 lg:px-12"
