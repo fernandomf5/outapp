@@ -26,7 +26,8 @@ import showcaseAsset from "@/assets/out-app-showcase.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIconAsset from "@/assets/lion-3d-white.png.asset.json";
 const heroIcon = heroIconAsset.url;
-import logoLion from "@/assets/logo-lion.png";
+import logoAsset from "@/assets/logo-outapp.png.asset.json";
+const logoLion = logoAsset.url;
 import { AIAgentFloatingChat } from "@/components/AIAgentFloatingChat";
 
 interface Plan {
