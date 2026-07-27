@@ -42,6 +42,8 @@ export interface CatalogLayoutSettings {
     contactTitle: string;
     contactText: string;
     contactCta: string;
+    showPages: boolean;
+    pagesTitle: string;
     copyright: string;
     showCredits: boolean;
     instagram: string;
