@@ -99,7 +99,9 @@ const defaultCatalogForm = {
   group_by_category: false,
   head_code: "",
   footer_code: "",
+  layout_settings: defaultCatalogLayout,
 };
+
 
 export default function CatalogCreatorPanel() {
   const { user } = useAuth();
