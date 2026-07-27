@@ -507,7 +507,7 @@ const Dashboard = () => {
                   </div>
 
                   {!isTeamMember && (
-                    <div className="flex items-center gap-1 sm:gap-2 border-l border-border pl-2 sm:pl-4 ml-1 sm:ml-2">
+                    <div className="hidden sm:flex items-center gap-1 sm:gap-2 border-l border-border pl-2 sm:pl-4 ml-1 sm:ml-2">
                       <Button
                         variant="ghost"
                         size="icon"
