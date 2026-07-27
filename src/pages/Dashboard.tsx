@@ -1525,15 +1525,18 @@ const Dashboard = () => {
 
           <TabsContent value="faturas">
             <FeatureGate featureKey="invoice_generator">
+              <FeatureTutorialVideo featureKey="faturas" />
               <InvoiceGeneratorPanel />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="scripts">
             <FeatureGate featureKey="script_organizer">
+              <FeatureTutorialVideo featureKey="scripts" />
               <ScriptOrganizerPanel />
             </FeatureGate>
           </TabsContent>
+
           </SubscriptionGate>
         </Tabs>
       </main>
