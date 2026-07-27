@@ -235,6 +235,7 @@ export default function CatalogPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [menuPages, setMenuPages] = useState<{ id: string; title: string; slug: string }[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
