@@ -759,24 +759,30 @@ const Index = () => {
           
           <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-sm xs:max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto">
             {plans.map((plan) => {
-              const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
+              const isAnnual = plan.plan_type === 'annual';
+              const isPopular = isAnnual || (plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150);
               const features = Array.isArray(plan.features) ? plan.features : [];
               const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Date(plan.countdown_ends_at) > new Date();
+              const monthlyEquivalent = isAnnual && plan.price > 0 ? plan.price / 12 : null;
               
               return (
                 <div
                   key={plan.id}
-                  className={`bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-smooth hover-scale ${
+                  className={`group relative bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 ${
                     isPopular 
-                      ? 'border-primary shadow-glow relative' 
-                      : 'border-border'
+                      ? 'plan-card-featured border-primary bg-gradient-to-b from-primary/[0.07] via-card to-card sm:scale-[1.03] z-10' 
+                      : 'border-primary/30 hover:border-primary/70 hover:shadow-[0_0_30px_-8px_hsl(var(--primary)/0.5)]'
                   }`}
                 >
+                  {/* Top accent line */}
+                  <div className={`pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent ${isPopular ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} transition-opacity`} />
+
                   {isPopular && (
-                    <div className="absolute -top-2 xs:-top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-2 xs:px-3 sm:px-4 py-0.5 xs:py-1 sm:py-1.5 rounded-full text-[10px] xs:text-xs sm:text-sm font-semibold whitespace-nowrap">
-                      Mais Popular
+                    <div className="absolute -top-3 sm:-top-3.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] xs:text-xs sm:text-sm font-bold whitespace-nowrap shadow-[0_0_20px_-2px_hsl(var(--primary)/0.8)]">
+                      {isAnnual ? '★ Melhor Custo-Benefício' : 'Mais Popular'}
                     </div>
                   )}
+
                   
                   {isOfferActive && (
                     <div className="mb-2 xs:mb-3 sm:mb-4 p-2 xs:p-2.5 sm:p-3 bg-destructive/10 border border-destructive/20 rounded-md xs:rounded-lg sm:rounded-xl text-center">
