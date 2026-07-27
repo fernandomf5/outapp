@@ -500,7 +500,7 @@ export function SimpleMembersArea() {
       setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setIsEditSectionDialogOpen(false);
       setEditingSection(null);
-      setSectionFormData({ title: '', description: '', blocks_layout: ['full'] });
+      setSectionFormData({ title: '', description: '', cover_image: '', blocks_layout: ['full'] });
       toast.success('Seção atualizada!');
     } catch (error: any) {
       toast.error('Erro ao atualizar seção: ' + error.message);
