@@ -206,25 +206,25 @@ export function UserSidebar() {
   ];
 
   const advancedResourcesItems: MenuItem[] = [
-    { title: t('members_area'), icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
+    { title: "Criador de Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
     { title: "Criador de Checkout", icon: ShoppingBag, path: "/dashboard", tab: "checkout-creator", hideForTeamMember: true },
-    { title: "Apresentador de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
+    { title: "Criador de Apresentação de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
     
-    { title: "Chat Online", icon: MessageSquare, path: "/dashboard", tab: "chat-online", moduleKey: "ai_agents" },
+    { title: "Criador de Chat Online", icon: MessageSquare, path: "/dashboard", tab: "chat-online", moduleKey: "ai_agents" },
     { title: "Página de Captura", icon: Target, path: "/dashboard", tab: "pagina-captura", hideForTeamMember: true },
     { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio", hideForTeamMember: true },
     { title: "Criador de Catálogo", icon: ShoppingBag, path: "/dashboard", tab: "catalogo", hideForTeamMember: true },
 
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
-    { title: t('link_in_bio'), icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
-    { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
+    { title: "Criador de Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
+    { title: "Criador de Funil de Vendas", icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
     { title: t('briefing'), icon: FileText, path: "/dashboard", tab: "briefing", moduleKey: "briefings" },
-    { title: "Questionário Marketing", icon: ClipboardCheck, path: "/dashboard", tab: "questionario-marketing", hideForTeamMember: true },
+    { title: "Criador de Questionário", icon: ClipboardCheck, path: "/dashboard", tab: "questionario-marketing", hideForTeamMember: true },
     { title: t('popup_creator'), icon: Megaphone, path: "/dashboard", tab: "popups", hideForTeamMember: true },
     { title: t('mind_map'), icon: Brain, path: "/dashboard", tab: "mapa-mental", hideForTeamMember: true },
     { title: t('proposal_creator'), icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
     { title: "Criador de Contratos", icon: Gavel, path: "/dashboard", tab: "contratos", hideForTeamMember: true },
-    { title: t('aprova_job'), icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
+    { title: "Criador de Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
     { title: t('creative_extractor'), icon: Download, path: "/dashboard", tab: "extrator-criativos", hideForTeamMember: true },
   ];
 
