@@ -542,7 +542,7 @@ const Dashboard = () => {
                       variant="outline"
                       onClick={() => window.open("/?site=1", "_blank")}
                       size="icon"
-                      className="h-8 w-8 sm:h-9 sm:w-9 ml-1"
+                      className="hidden sm:inline-flex h-8 w-8 sm:h-9 sm:w-9 ml-1"
                       title="Visitar site"
                     >
                       <Globe className="w-4 h-4" />
