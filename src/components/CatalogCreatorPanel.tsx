@@ -1052,6 +1052,13 @@ export default function CatalogCreatorPanel() {
               </div>
             </div>
 
+            <CatalogLayoutEditor
+              value={formData.layout_settings as CatalogLayoutSettings}
+              onChange={(next) => setFormData((prev) => ({ ...prev, layout_settings: next }))}
+            />
+
+
+
             <Button onClick={handleSave} className="w-full" disabled={saving}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editingCatalog ? "Atualizar" : "Criar"} Catálogo
