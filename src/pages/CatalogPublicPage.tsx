@@ -612,6 +612,20 @@ export default function CatalogPublicPage() {
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
+  const palette = { primary: catalog.primary_color, text: textColor, background: backgroundColor };
+
+  const isFiltering = activeCategory !== "all" || search.trim().length > 0;
+  const term = search.trim().toLowerCase();
+  const visibleItems = filteredItems.filter((item: any) => {
+    if (activeCategory !== "all" && item.category_id !== activeCategory) return false;
+    if (!term) return true;
+    return (
+      String(item.name || "").toLowerCase().includes(term) ||
+      String(item.description || "").toLowerCase().includes(term) ||
+      String(item.category || "").toLowerCase().includes(term)
+    );
+  });
+
   const renderItem = (item: any) => {
     const isProduct = item.type === "product";
 
