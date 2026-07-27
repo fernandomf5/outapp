@@ -634,9 +634,10 @@ const Index = () => {
         </div>
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-5xl 3xl:max-w-7xl">
-          <div className="inline-block mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-            <img src={heroIcon} alt="Out App" className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 3xl:w-52 3xl:h-52 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.35)]" />
+          <div className="hero-lion-wrap inline-block mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8 [perspective:900px]">
+            <img src={heroIcon} alt="Out App" className="hero-lion-spin w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 3xl:w-52 3xl:h-52 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.35)]" />
           </div>
+
           
           <h1 
             className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl 3xl:text-7xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 animate-fade-in leading-tight px-1 xs:px-2 sm:px-4 md:px-8 lg:px-12"
@@ -704,8 +705,16 @@ const Index = () => {
 
 
       {/* Features Section */}
-      <section id="recursos" className="py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-background">
-        <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px]">
+      <section id="recursos" className="relative overflow-hidden py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-background">
+        {/* Ambient glow background */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <div className="features-glow-a absolute -top-24 left-[8%] w-[26rem] h-[26rem] rounded-full bg-primary/25 blur-[120px]" />
+          <div className="features-glow-b absolute top-1/3 right-[4%] w-[30rem] h-[30rem] rounded-full bg-primary/20 blur-[140px]" />
+          <div className="features-glow-c absolute -bottom-32 left-1/3 w-[28rem] h-[28rem] rounded-full bg-accent/20 blur-[130px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(var(--background))_88%)]" />
+        </div>
+        <div className="relative z-10 container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px]">
+
           <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-1">
             <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 3xl:text-6xl font-bold mb-2 xs:mb-3 sm:mb-4 md:mb-5 leading-tight">
               {landingSettings.features_title}
@@ -750,24 +759,30 @@ const Index = () => {
           
           <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-sm xs:max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto">
             {plans.map((plan) => {
-              const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
+              const isAnnual = plan.plan_type === 'annual';
+              const isPopular = isAnnual || (plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150);
               const features = Array.isArray(plan.features) ? plan.features : [];
               const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Date(plan.countdown_ends_at) > new Date();
+              const monthlyEquivalent = isAnnual && plan.price > 0 ? plan.price / 12 : null;
               
               return (
                 <div
                   key={plan.id}
-                  className={`bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-smooth hover-scale ${
+                  className={`group relative bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 ${
                     isPopular 
-                      ? 'border-primary shadow-glow relative' 
-                      : 'border-border'
+                      ? 'plan-card-featured border-primary bg-gradient-to-b from-primary/[0.07] via-card to-card sm:scale-[1.03] z-10' 
+                      : 'border-primary/30 hover:border-primary/70 hover:shadow-[0_0_30px_-8px_hsl(var(--primary)/0.5)]'
                   }`}
                 >
+                  {/* Top accent line */}
+                  <div className={`pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent ${isPopular ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} transition-opacity`} />
+
                   {isPopular && (
-                    <div className="absolute -top-2 xs:-top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-2 xs:px-3 sm:px-4 py-0.5 xs:py-1 sm:py-1.5 rounded-full text-[10px] xs:text-xs sm:text-sm font-semibold whitespace-nowrap">
-                      Mais Popular
+                    <div className="absolute -top-3 sm:-top-3.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] xs:text-xs sm:text-sm font-bold whitespace-nowrap shadow-[0_0_20px_-2px_hsl(var(--primary)/0.8)]">
+                      {isAnnual ? '★ Melhor Custo-Benefício' : 'Mais Popular'}
                     </div>
                   )}
+
                   
                   {isOfferActive && (
                     <div className="mb-2 xs:mb-3 sm:mb-4 p-2 xs:p-2.5 sm:p-3 bg-destructive/10 border border-destructive/20 rounded-md xs:rounded-lg sm:rounded-xl text-center">
@@ -796,7 +811,7 @@ const Index = () => {
                   </div>
                   
                   <div className="mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-                    <span className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold">
+                    <span className={`text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold ${isPopular ? 'text-primary' : ''}`}>
                       {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
                     </span>
                     {plan.price > 0 && (
@@ -804,7 +819,13 @@ const Index = () => {
                         /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : plan.duration_days + ' dias'}
                       </span>
                     )}
+                    {monthlyEquivalent !== null && (
+                      <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[10px] xs:text-xs sm:text-sm font-semibold text-primary">
+                        sai a R$ {monthlyEquivalent.toFixed(2).replace('.', ',')} o mês
+                      </div>
+                    )}
                   </div>
+
                   
                   <ul className="space-y-1.5 xs:space-y-2 sm:space-y-3">
                     {features.map((feature: string, featureIndex: number) => (
