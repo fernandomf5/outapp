@@ -946,7 +946,7 @@ const AdminDashboard = () => {
                         <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full">{tutorial.category}</span>
                         <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{tutorial.duration}</span>
                         {tutorial.featureKey && (
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">📌 {tutorial.featureKey}</span>
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">📌 {getTutorialFeatureLabel(tutorial.featureKey)}</span>
                         )}
                       </div>
                     </div>
