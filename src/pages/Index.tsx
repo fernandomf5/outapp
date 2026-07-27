@@ -811,7 +811,7 @@ const Index = () => {
                   </div>
                   
                   <div className="mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-                    <span className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold">
+                    <span className={`text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold ${isPopular ? 'text-primary' : ''}`}>
                       {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
                     </span>
                     {plan.price > 0 && (
@@ -819,7 +819,13 @@ const Index = () => {
                         /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : plan.duration_days + ' dias'}
                       </span>
                     )}
+                    {monthlyEquivalent !== null && (
+                      <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[10px] xs:text-xs sm:text-sm font-semibold text-primary">
+                        sai a R$ {monthlyEquivalent.toFixed(2).replace('.', ',')} o mês
+                      </div>
+                    )}
                   </div>
+
                   
                   <ul className="space-y-1.5 xs:space-y-2 sm:space-y-3">
                     {features.map((feature: string, featureIndex: number) => (
