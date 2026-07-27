@@ -364,7 +364,25 @@ export function CatalogCart({
             </SheetTitle>
           </SheetHeader>
 
-          {items.length === 0 ? (
+          {pendingOrder ? (
+            <div className="flex-1 overflow-y-auto -mx-6 px-6 py-4">
+              <CatalogCheckoutPayment
+                orderId={pendingOrder.id}
+                orderNumber={pendingOrder.number}
+                amount={pendingOrder.amount}
+                catalogName={catalogName}
+                config={paymentConfig || {}}
+                primaryColor={primaryColor}
+                textColor={textColor}
+                onBack={() => setPendingOrder(null)}
+                onPaid={() => {
+                  onClearCart();
+                  setPendingOrder(null);
+                  setIsOpen(false);
+                }}
+              />
+            </div>
+          ) : items.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
               <ShoppingCart
                 className="w-16 h-16 mb-4"
