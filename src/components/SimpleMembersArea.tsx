@@ -905,6 +905,16 @@ export function SimpleMembersArea() {
             <p className="text-muted-foreground">{selectedArea.description}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setBannersDraft(selectedArea.banners || []);
+                setIsBannersDialogOpen(true);
+              }}
+            >
+              <Images className="w-4 h-4 mr-2" />
+              Banners
+            </Button>
             <Button variant="outline" onClick={() => handleCopyLink(selectedArea)}>
               <LinkIcon className="w-4 h-4 mr-2" />
               Copiar Link
