@@ -54,6 +54,7 @@ import InstallApp from "./pages/InstallApp";
 import CampaignPublicView from "./pages/CampaignPublicView";
 import ClientCampaignsPublicView from "./pages/ClientCampaignsPublicView";
 import CatalogPublicPage from "./pages/CatalogPublicPage";
+import CatalogContentPage from "./pages/CatalogContentPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutThankYouPage from "./pages/CheckoutThankYouPage";
 import TeamMemberAuth from "./pages/TeamMemberAuth";
