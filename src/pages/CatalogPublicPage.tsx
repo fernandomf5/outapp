@@ -234,6 +234,8 @@ export default function CatalogPublicPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [viewAllCategory, setViewAllCategory] = useState<{ category: Category; items: any[] } | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
 
   // Cart functions
   const addToCart = (item: any) => {
