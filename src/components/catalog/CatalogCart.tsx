@@ -242,7 +242,7 @@ export function CatalogCart({
 
     try {
       // Save order to database first
-      const orderNumber = await saveOrderToDatabase();
+      const { orderNumber } = await saveOrderToDatabase();
 
       // Build WhatsApp message
       let message = `🛒 *Novo Pedido - ${catalogName}*\n`;
