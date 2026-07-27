@@ -984,6 +984,8 @@ export default function CatalogPublicPage() {
             setSearch("");
           }}
           config={layout.categories}
+          pages={menuPages}
+          catalogSlug={slug}
         />
 
         {/* Hero: apenas os banners cadastrados no Dashboard > Banners */}
