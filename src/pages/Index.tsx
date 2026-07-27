@@ -705,8 +705,16 @@ const Index = () => {
 
 
       {/* Features Section */}
-      <section id="recursos" className="py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-background">
-        <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px]">
+      <section id="recursos" className="relative overflow-hidden py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-background">
+        {/* Ambient glow background */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <div className="features-glow-a absolute -top-24 left-[8%] w-[26rem] h-[26rem] rounded-full bg-primary/25 blur-[120px]" />
+          <div className="features-glow-b absolute top-1/3 right-[4%] w-[30rem] h-[30rem] rounded-full bg-primary/20 blur-[140px]" />
+          <div className="features-glow-c absolute -bottom-32 left-1/3 w-[28rem] h-[28rem] rounded-full bg-accent/20 blur-[130px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(var(--background))_88%)]" />
+        </div>
+        <div className="relative z-10 container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px]">
+
           <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-1">
             <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 3xl:text-6xl font-bold mb-2 xs:mb-3 sm:mb-4 md:mb-5 leading-tight">
               {landingSettings.features_title}
