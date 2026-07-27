@@ -21,6 +21,7 @@ import { CountdownTimer } from "@/components/CountdownTimer";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { VideoCover } from "@/components/VideoCover";
 import { NeonImageFrame } from "@/components/NeonImageFrame";
+import { Feature3DCard } from "@/components/Feature3DCard";
 import showcaseAsset from "@/assets/out-app-showcase.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIcon from "@/assets/hero-icon.png";
