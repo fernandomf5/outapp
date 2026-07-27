@@ -468,8 +468,9 @@ const Dashboard = () => {
           <TeamMemberBanner />
           
           {/* Header */}
-          <header className="bg-card/80 backdrop-blur-md border-b border-border px-4 sm:px-6 lg:px-8 h-[72px] flex items-center sticky top-0 z-40">
-            <div className="flex items-center justify-between w-full gap-4">
+          <header className="bg-card/80 backdrop-blur-md border-b border-border px-2 sm:px-6 lg:px-8 h-14 sm:h-[72px] flex items-center sticky top-0 z-40">
+            <div className="flex items-center justify-between w-full gap-2 sm:gap-4">
+
                 {/* Greeting */}
                 <div className="flex flex-col flex-1 min-w-0">
                   <h1 className="text-base sm:text-lg md:text-xl font-bold leading-tight truncate flex items-center gap-2">
@@ -506,7 +507,7 @@ const Dashboard = () => {
                   </div>
 
                   {!isTeamMember && (
-                    <div className="flex items-center gap-1 sm:gap-2 border-l border-border pl-2 sm:pl-4 ml-1 sm:ml-2">
+                    <div className="hidden sm:flex items-center gap-1 sm:gap-2 border-l border-border pl-2 sm:pl-4 ml-1 sm:ml-2">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -541,7 +542,7 @@ const Dashboard = () => {
                       variant="outline"
                       onClick={() => window.open("/?site=1", "_blank")}
                       size="icon"
-                      className="h-8 w-8 sm:h-9 sm:w-9 ml-1"
+                      className="hidden sm:inline-flex h-8 w-8 sm:h-9 sm:w-9 ml-1"
                       title="Visitar site"
                     >
                       <Globe className="w-4 h-4" />
