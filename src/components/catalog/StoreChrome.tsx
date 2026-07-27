@@ -388,6 +388,23 @@ export const StoreFooter = ({
           </ul>
         </div>
 
+        {footerPages.length > 0 && (
+          <div>
+            <h3 className="text-sm font-bold mb-3">{config.pagesTitle || "Páginas"}</h3>
+            <ul className="space-y-2 text-xs" style={{ color: `${palette.text}99` }}>
+              {footerPages.map((p) => (
+                <li key={p.id}>
+                  <a href={`/catalogo/${catalogSlug}/p/${p.slug}`} className="hover:underline">
+                    {p.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+
+
         <div>
           <h3 className="text-sm font-bold mb-3">{config.helpTitle}</h3>
           <ul className="space-y-2 text-xs" style={{ color: `${palette.text}99` }}>
