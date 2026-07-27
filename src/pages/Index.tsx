@@ -713,21 +713,21 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 3xl:grid-cols-4 gap-2.5 xs:gap-3 sm:gap-4 md:gap-5 lg:gap-6 max-w-lg xs:max-w-2xl sm:max-w-3xl md:max-w-4xl lg:max-w-6xl 3xl:max-w-[2200px] mx-auto">
+          <div className="features-3d grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-7 max-w-lg xs:max-w-2xl sm:max-w-3xl md:max-w-4xl lg:max-w-6xl 3xl:max-w-[2200px] mx-auto">
             {features.map((feature, index) => {
               const Icon = getIconComponent(feature.icon);
               return (
-                <div
+                <Feature3DCard
                   key={feature.id || index}
-                  className="bg-card p-3 xs:p-3.5 sm:p-4 md:p-5 lg:p-6 xl:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-xl md:rounded-2xl border border-border hover:shadow-xl transition-smooth hover-scale"
+                  className="p-3 xs:p-3.5 sm:p-4 md:p-5 lg:p-6 xl:p-8 3xl:p-10 rounded-xl sm:rounded-2xl overflow-hidden"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className="bg-primary/10 w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 3xl:w-16 3xl:h-16 rounded-md xs:rounded-lg sm:rounded-lg md:rounded-xl flex items-center justify-center mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 lg:mb-5">
+                  <div className="card-3d-icon bg-primary/10 w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 3xl:w-16 3xl:h-16 rounded-md xs:rounded-lg sm:rounded-lg md:rounded-xl flex items-center justify-center mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 lg:mb-5">
                     <Icon className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 3xl:w-8 3xl:h-8 text-primary" />
                   </div>
-                  <h3 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl font-bold mb-1 xs:mb-1.5 sm:mb-2 md:mb-3 leading-tight line-clamp-2">{feature.title}</h3>
-                  <p className="text-[10px] xs:text-xs sm:text-sm md:text-base 3xl:text-lg text-muted-foreground leading-relaxed line-clamp-3">{feature.description}</p>
-                </div>
+                  <h3 className="card-3d-layer text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl font-bold mb-1 xs:mb-1.5 sm:mb-2 md:mb-3 leading-tight line-clamp-2">{feature.title}</h3>
+                  <p className="card-3d-layer text-[10px] xs:text-xs sm:text-sm md:text-base 3xl:text-lg text-muted-foreground leading-relaxed line-clamp-3">{feature.description}</p>
+                </Feature3DCard>
               );
             })}
           </div>
