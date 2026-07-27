@@ -235,6 +235,7 @@ export default function CatalogPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [menuPages, setMenuPages] = useState<{ id: string; title: string; slug: string }[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -336,6 +337,20 @@ export default function CatalogPublicPage() {
         .order("order_index", { ascending: true });
 
       setBanners((bannersData as any) || []);
+
+      // Load published catalog pages (menu)
+      const { data: pagesData } = await supabase
+        .from("catalog_pages" as any)
+        .select("id, title, slug, show_in_menu")
+        .eq("catalog_id", cat.id)
+        .eq("is_published", true)
+        .order("sort_order", { ascending: true });
+
+      setMenuPages(
+        ((pagesData as any[]) || [])
+          .filter((p) => p.show_in_menu !== false)
+          .map((p) => ({ id: p.id, title: p.title, slug: p.slug }))
+      );
 
       // Load products, services, and categories
       const [productsRes, servicesRes, categoriesRes] = await Promise.all([
@@ -969,6 +984,8 @@ export default function CatalogPublicPage() {
             setSearch("");
           }}
           config={layout.categories}
+          pages={menuPages}
+          catalogSlug={slug}
         />
 
         {/* Hero: apenas os banners cadastrados no Dashboard > Banners */}
@@ -1101,6 +1118,8 @@ export default function CatalogPublicPage() {
           onSelect={setActiveCategory}
           onWhatsApp={catalog.whatsapp_number ? () => handleWhatsAppContact() : undefined}
           config={layout.footer}
+          pages={menuPages}
+          catalogSlug={slug}
         />
 
 

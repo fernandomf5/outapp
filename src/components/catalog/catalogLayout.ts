@@ -42,6 +42,8 @@ export interface CatalogLayoutSettings {
     contactTitle: string;
     contactText: string;
     contactCta: string;
+    showPages: boolean;
+    pagesTitle: string;
     copyright: string;
     showCredits: boolean;
     instagram: string;
@@ -94,6 +96,8 @@ export const defaultCatalogLayout: CatalogLayoutSettings = {
     contactTitle: "Atendimento",
     contactText: "Fale com a gente e tire suas dúvidas sobre qualquer item do catálogo.",
     contactCta: "Chamar no WhatsApp",
+    showPages: true,
+    pagesTitle: "Páginas",
     copyright: "",
     showCredits: true,
     instagram: "",
