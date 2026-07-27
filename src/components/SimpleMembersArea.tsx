@@ -482,6 +482,7 @@ export function SimpleMembersArea() {
               ...section,
               title: sectionFormData.title,
               description: sectionFormData.description,
+              cover_image: sectionFormData.cover_image || undefined,
               blocks_layout: sectionFormData.blocks_layout,
             }
           : section
