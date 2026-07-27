@@ -1269,7 +1269,7 @@ const Dashboard = () => {
 
           <TabsContent value="chat-online">
             <FeatureGate featureKey="ai_agent">
-              <FeatureTutorialVideo featureKey="ai-agents" />
+              <FeatureTutorialVideo featureKey="chat-online" />
               {selectedAgentForManagement ? (
                 <Card className="p-6">
                   <div className="mb-6">
