@@ -32,6 +32,8 @@ import {
   StoreBenefits,
   StoreFooter,
 } from "@/components/catalog/StoreChrome";
+import { mergeCatalogLayout } from "@/components/catalog/catalogLayout";
+
 import { toast } from "sonner";
 
 // Horizontal scroll component with arrows and drag
