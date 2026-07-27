@@ -66,6 +66,7 @@ export function CatalogCart({
   textColor,
   backgroundColor,
   showPrices,
+  paymentConfig,
 }: CatalogCartProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -75,6 +76,13 @@ export function CatalogCart({
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; number: string; amount: number } | null>(null);
+
+  const paymentsEnabled = !!(
+    paymentConfig &&
+    ((paymentConfig.enable_pix && paymentConfig.pix_key) || paymentConfig.enable_mp)
+  );
+
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce(
