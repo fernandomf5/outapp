@@ -183,24 +183,55 @@ export function CatalogCart({
 
     // Save the order
     try {
-      await supabase.from("catalog_orders" as any).insert({
-        catalog_id: catalogId,
-        customer_id: customerId,
-        order_number: orderNumber,
-        customer_name: customerName || "Cliente Anônimo",
-        customer_phone: customerPhone || null,
-        customer_email: customerEmail || null,
-        customer_address: customerAddress || null,
-        items: orderItems,
-        total_amount: totalPrice,
-        status: "pending",
-        notes: customerNotes || null,
-      });
+      const { data: created } = await supabase
+        .from("catalog_orders" as any)
+        .insert({
+          catalog_id: catalogId,
+          customer_id: customerId,
+          order_number: orderNumber,
+          customer_name: customerName || "Cliente Anônimo",
+          customer_phone: customerPhone || null,
+          customer_email: customerEmail || null,
+          customer_address: customerAddress || null,
+          items: orderItems,
+          total_amount: totalPrice,
+          status: "pending",
+          notes: customerNotes || null,
+        })
+        .select("id")
+        .single();
 
-      return orderNumber;
+      return { orderNumber, orderId: (created as any)?.id as string | undefined };
     } catch (error) {
       console.error("Error saving order:", error);
-      return orderNumber;
+      return { orderNumber, orderId: undefined };
+    }
+  };
+
+  const handlePayCheckout = async () => {
+    if (items.length === 0) return;
+    if (!customerName) {
+      toast({
+        title: "Informe seu nome",
+        description: "Precisamos do seu nome para registrar o pedido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { orderNumber, orderId } = await saveOrderToDatabase();
+      if (!orderId) throw new Error("Pedido não registrado");
+      setPendingOrder({ id: orderId, number: orderNumber, amount: totalPrice });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível iniciar o pagamento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
