@@ -1092,6 +1092,7 @@ const Dashboard = () => {
 
           <TabsContent value="cadastro">
             <ErrorBoundary>
+              <FeatureTutorialVideo featureKey="cadastro" />
               <RegistrationManagerPanel 
                 categoryId={searchParams.get('categoryId')} 
               />
@@ -1100,9 +1101,11 @@ const Dashboard = () => {
 
           <TabsContent value="cadastro-settings">
             <ErrorBoundary>
+              <FeatureTutorialVideo featureKey="cadastro-settings" />
               <RegistrationCategoriesSettings />
             </ErrorBoundary>
           </TabsContent>
+
 
 
           <TabsContent value="clientes">
