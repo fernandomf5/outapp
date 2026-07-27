@@ -423,8 +423,8 @@ export default function CatalogPublicPage() {
           groups.forEach((g) =>
             ensureCategory(`rc:${c.id}:${g}`, g, c.color || cat.primary_color, groupImage(c, g))
           );
-          ensureCategory(`rc:${c.id}:`, c.name, c.color || cat.primary_color, c.logo_url || null);
         });
+
 
         const num = (v: any) => {
           const n = parseFloat(String(v ?? "").replace(",", "."));
@@ -436,16 +436,20 @@ export default function CatalogPublicPage() {
           if (!parent) return;
           const cf = item.custom_fields || {};
           const group = typeof cf.__group === "string" && cf.__group ? cf.__group : "";
-          const categoryId = `rc:${parent.id}:${group}`;
-          ensureCategory(categoryId, group || parent.name, parent.color || cat.primary_color, groupImage(parent, group));
+          // Somente subcategorias (grupos) criadas na Gestão Livre viram categorias do catálogo
+          const categoryId = group ? `rc:${parent.id}:${group}` : null;
+          if (group) {
+            ensureCategory(categoryId!, group, parent.color || cat.primary_color, groupImage(parent, group));
+          }
           const isService = parent.entity_kind === "service";
           const mapped: any = {
             id: item.id,
             name: item.name,
             description: cf.description || item.notes || null,
             description_html: null,
-            category: group || parent.name,
+            category: group || null,
             category_id: categoryId,
+
             price: num(isService ? cf.price : cf.sale_price ?? cf.price),
             image_url: item.avatar_url || null,
             gallery_urls: null,
@@ -968,47 +972,13 @@ export default function CatalogPublicPage() {
           config={layout.categories}
         />
 
-        {/* Hero */}
-        {layout.hero.enabled && (
+        {/* Hero: apenas os banners cadastrados no Dashboard > Banners */}
+        {layout.hero.enabled && banners.length > 0 && (
           <div className="container mx-auto px-3 sm:px-4 pt-5">
-            {banners.length > 0 ? (
-              <BannerCarousel banners={banners} primaryColor={catalog.primary_color} textColor={textColor} />
-            ) : (
-              <div
-                className="relative rounded-2xl overflow-hidden"
-                style={{
-                  background: catalog.cover_url
-                    ? undefined
-                    : `linear-gradient(120deg, ${catalog.primary_color} 0%, ${catalog.primary_color}bb 100%)`,
-                }}
-              >
-                {catalog.cover_url && (
-                  <>
-                    <img src={catalog.cover_url} alt={`Capa de ${catalog.name}`} className="absolute inset-0 w-full h-full object-cover" />
-                    <div className="absolute inset-0" style={{ backgroundColor: `${catalog.primary_color}aa` }} />
-                  </>
-                )}
-                <div className="relative z-10 px-6 sm:px-12 py-12 sm:py-20 text-white max-w-2xl">
-                  {layout.hero.badge && (
-                    <span className="inline-block text-[11px] font-bold uppercase tracking-wider rounded-full px-3 py-1 bg-white/20 mb-3">
-                      {layout.hero.badge}
-                    </span>
-                  )}
-                  <h1 className="text-2xl sm:text-4xl font-extrabold mb-2">{layout.hero.title || catalog.name}</h1>
-                  {(layout.hero.subtitle || catalog.description) && (
-                    <p className="text-sm sm:text-lg opacity-90">{layout.hero.subtitle || catalog.description}</p>
-                  )}
-                  {catalog.whatsapp_number && layout.hero.ctaLabel && (
-                    <Button onClick={() => handleWhatsAppContact()} className="mt-6" size="lg" variant="secondary">
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      {layout.hero.ctaLabel}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
+            <BannerCarousel banners={banners} primaryColor={catalog.primary_color} textColor={textColor} />
           </div>
         )}
+
 
 
         {/* Content */}
