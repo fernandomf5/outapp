@@ -24,7 +24,8 @@ import { NeonImageFrame } from "@/components/NeonImageFrame";
 import { Feature3DCard } from "@/components/Feature3DCard";
 import showcaseAsset from "@/assets/out-app-showcase.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
-import heroIcon from "@/assets/hero-icon.png";
+import heroIconAsset from "@/assets/lion-3d-white.png.asset.json";
+const heroIcon = heroIconAsset.url;
 import logoLion from "@/assets/logo-lion.png";
 import { AIAgentFloatingChat } from "@/components/AIAgentFloatingChat";
 
@@ -634,7 +635,7 @@ const Index = () => {
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-5xl 3xl:max-w-7xl">
           <div className="inline-block mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-            <img src={heroIcon} alt="Out App" className="w-12 h-12 xs:w-16 xs:h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 3xl:w-48 3xl:h-48" />
+            <img src={heroIcon} alt="Out App" className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 3xl:w-52 3xl:h-52 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.35)]" />
           </div>
           
           <h1 
