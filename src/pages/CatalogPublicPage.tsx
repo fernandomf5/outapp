@@ -240,7 +240,7 @@ export default function CatalogPublicPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
+  
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [viewAllCategory, setViewAllCategory] = useState<{ category: Category; items: any[] } | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
