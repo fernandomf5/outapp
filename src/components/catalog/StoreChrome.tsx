@@ -322,6 +322,8 @@ export const StoreFooter = ({
   onSelect,
   onWhatsApp,
   config,
+  pages = [],
+  catalogSlug,
 }: {
   palette: Palette;
   name: string;
@@ -331,6 +333,8 @@ export const StoreFooter = ({
   onSelect: (id: string) => void;
   onWhatsApp?: () => void;
   config: CatalogLayoutSettings["footer"];
+  pages?: StorePageLink[];
+  catalogSlug?: string;
 }) => {
   if (!config.enabled) return null;
   const about = config.about || description;
