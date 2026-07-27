@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { Search, ShieldCheck, Truck, Headphones, RefreshCw, Store, Instagram, Facebook, Youtube, MessageCircle } from "lucide-react";
+import type { CatalogLayoutSettings } from "./catalogLayout";
 
 export interface StoreCategory {
   id: string;
@@ -14,26 +15,41 @@ interface Palette {
   background: string;
 }
 
-export const StoreTopBar = ({ palette, hasWhatsApp }: { palette: Palette; hasWhatsApp: boolean }) => (
-  <div className="w-full text-[11px] sm:text-xs" style={{ backgroundColor: `${palette.text}0d`, color: `${palette.text}b3` }}>
-    <div className="container mx-auto px-4 py-2 flex items-center justify-center gap-4 sm:gap-10 overflow-x-auto whitespace-nowrap">
-      <span className="flex items-center gap-1.5">
-        <Truck className="w-3.5 h-3.5" style={{ color: palette.primary }} />
-        <strong className="font-semibold">Entrega rápida</strong> para todo o Brasil
-      </span>
-      <span className="hidden sm:flex items-center gap-1.5">
-        <ShieldCheck className="w-3.5 h-3.5" style={{ color: palette.primary }} />
-        <strong className="font-semibold">Compra 100% segura</strong>
-      </span>
-      {hasWhatsApp && (
-        <span className="flex items-center gap-1.5">
-          <MessageCircle className="w-3.5 h-3.5" style={{ color: palette.primary }} />
-          <strong className="font-semibold">Atendimento</strong> via WhatsApp
-        </span>
-      )}
+export const StoreTopBar = ({
+  palette,
+  hasWhatsApp,
+  config,
+}: {
+  palette: Palette;
+  hasWhatsApp: boolean;
+  config: CatalogLayoutSettings["topbar"];
+}) => {
+  if (!config.enabled) return null;
+  return (
+    <div className="w-full text-[11px] sm:text-xs" style={{ backgroundColor: `${palette.text}0d`, color: `${palette.text}b3` }}>
+      <div className="container mx-auto px-4 py-2 flex items-center justify-center gap-4 sm:gap-10 overflow-x-auto whitespace-nowrap">
+        {config.item1 && (
+          <span className="flex items-center gap-1.5">
+            <Truck className="w-3.5 h-3.5" style={{ color: palette.primary }} />
+            {config.item1}
+          </span>
+        )}
+        {config.item2 && (
+          <span className="hidden sm:flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" style={{ color: palette.primary }} />
+            {config.item2}
+          </span>
+        )}
+        {hasWhatsApp && config.item3 && (
+          <span className="flex items-center gap-1.5">
+            <MessageCircle className="w-3.5 h-3.5" style={{ color: palette.primary }} />
+            {config.item3}
+          </span>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const StoreHeader = ({
   palette,
@@ -44,6 +60,7 @@ export const StoreHeader = ({
   onSearch,
   onWhatsApp,
   right,
+  config,
 }: {
   palette: Palette;
   name: string;
@@ -53,6 +70,7 @@ export const StoreHeader = ({
   onSearch: (v: string) => void;
   onWhatsApp?: () => void;
   right?: React.ReactNode;
+  config: CatalogLayoutSettings["header"];
 }) => (
   <div className="border-b" style={{ borderColor: `${palette.text}14`, backgroundColor: palette.background }}>
     <div className="container mx-auto px-4 py-4 flex items-center gap-4">
@@ -74,53 +92,57 @@ export const StoreHeader = ({
         </span>
       </a>
 
-      <div className="flex-1 hidden md:block">
-        <div
-          className="flex items-center rounded-full overflow-hidden border"
-          style={{ borderColor: `${palette.text}1f`, backgroundColor: `${palette.text}08` }}
-        >
-          <input
-            value={search}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="O que você está buscando?"
-            aria-label="Buscar no catálogo"
-            className="flex-1 bg-transparent px-5 py-2.5 text-sm outline-none"
-            style={{ color: palette.text }}
-          />
-          <span className="flex items-center justify-center w-12 h-10 mr-1 rounded-full" style={{ backgroundColor: palette.primary }}>
-            <Search className="w-4 h-4 text-white" />
-          </span>
+      {config.showSearch && (
+        <div className="flex-1 hidden md:block">
+          <div
+            className="flex items-center rounded-full overflow-hidden border"
+            style={{ borderColor: `${palette.text}1f`, backgroundColor: `${palette.text}08` }}
+          >
+            <input
+              value={search}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder={config.searchPlaceholder}
+              aria-label="Buscar no catálogo"
+              className="flex-1 bg-transparent px-5 py-2.5 text-sm outline-none"
+              style={{ color: palette.text }}
+            />
+            <span className="flex items-center justify-center w-12 h-10 mr-1 rounded-full" style={{ backgroundColor: palette.primary }}>
+              <Search className="w-4 h-4 text-white" />
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="ml-auto flex items-center gap-2">
-        {onWhatsApp && (
+        {onWhatsApp && config.showCta && (
           <button
             onClick={onWhatsApp}
             className="hidden sm:flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white"
             style={{ backgroundColor: palette.primary }}
           >
             <MessageCircle className="w-4 h-4" />
-            Falar agora
+            {config.ctaLabel}
           </button>
         )}
         {right}
       </div>
     </div>
 
-    <div className="md:hidden container mx-auto px-4 pb-3">
-      <div className="flex items-center rounded-full border px-4" style={{ borderColor: `${palette.text}1f`, backgroundColor: `${palette.text}08` }}>
-        <Search className="w-4 h-4" style={{ color: `${palette.text}80` }} />
-        <input
-          value={search}
-          onChange={(e) => onSearch(e.target.value)}
-          placeholder="Buscar produtos..."
-          aria-label="Buscar no catálogo"
-          className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
-          style={{ color: palette.text }}
-        />
+    {config.showSearch && (
+      <div className="md:hidden container mx-auto px-4 pb-3">
+        <div className="flex items-center rounded-full border px-4" style={{ borderColor: `${palette.text}1f`, backgroundColor: `${palette.text}08` }}>
+          <Search className="w-4 h-4" style={{ color: `${palette.text}80` }} />
+          <input
+            value={search}
+            onChange={(e) => onSearch(e.target.value)}
+            placeholder={config.searchPlaceholder}
+            aria-label="Buscar no catálogo"
+            className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
+            style={{ color: palette.text }}
+          />
+        </div>
       </div>
-    </div>
+    )}
   </div>
 );
 
@@ -129,13 +151,18 @@ export const StoreNav = ({
   categories,
   active,
   onSelect,
+  config,
 }: {
   palette: Palette;
   categories: StoreCategory[];
   active: string;
   onSelect: (id: string) => void;
+  config: CatalogLayoutSettings["categories"];
 }) => {
-  const items = [{ id: "all", name: "Início", color: palette.primary }, ...categories];
+  const items = config.showHomeInNav
+    ? [{ id: "all", name: config.homeLabel, color: palette.primary }, ...categories]
+    : categories;
+  if (items.length === 0) return null;
   return (
     <nav className="border-b sticky top-0 z-30 backdrop-blur" style={{ borderColor: `${palette.text}14`, backgroundColor: `${palette.background}f2` }}>
       <div className="container mx-auto px-4">
@@ -166,16 +193,18 @@ export const StoreCategoryStrip = ({
   palette,
   categories,
   onSelect,
+  title,
 }: {
   palette: Palette;
   categories: StoreCategory[];
   onSelect: (id: string) => void;
+  title: string;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   if (categories.length === 0) return null;
   return (
     <section className="mb-10">
-      <h2 className="text-xl font-bold mb-4">Categorias</h2>
+      {title && <h2 className="text-xl font-bold mb-4">{title}</h2>}
       <div ref={ref} className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         {categories.slice(0, 8).map((c) => (
           <button
@@ -199,29 +228,32 @@ export const StoreCategoryStrip = ({
   );
 };
 
-export const StoreBenefits = ({ palette }: { palette: Palette }) => (
-  <section
-    className="rounded-2xl border grid grid-cols-2 lg:grid-cols-4 gap-4 p-5 my-10"
-    style={{ borderColor: `${palette.text}14`, backgroundColor: `${palette.text}06` }}
-  >
-    {[
-      { icon: Truck, title: "Entrega rápida", sub: "Envio para todo o Brasil" },
-      { icon: RefreshCw, title: "Troca fácil", sub: "Atendimento sem burocracia" },
-      { icon: ShieldCheck, title: "Compra segura", sub: "Ambiente 100% protegido" },
-      { icon: Headphones, title: "Atendimento", sub: "Suporte rápido e humano" },
-    ].map(({ icon: Icon, title, sub }) => (
-      <div key={title} className="flex items-center gap-3">
-        <span className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${palette.primary}1a` }}>
-          <Icon className="w-5 h-5" style={{ color: palette.primary }} />
-        </span>
-        <span className="leading-tight">
-          <span className="block text-sm font-semibold">{title}</span>
-          <span className="block text-[11px]" style={{ color: `${palette.text}99` }}>{sub}</span>
-        </span>
-      </div>
-    ))}
-  </section>
-);
+const benefitIcons = [Truck, RefreshCw, ShieldCheck, Headphones];
+
+export const StoreBenefits = ({ palette, config }: { palette: Palette; config: CatalogLayoutSettings["benefits"] }) => {
+  if (!config.enabled) return null;
+  return (
+    <section
+      className="rounded-2xl border grid grid-cols-2 lg:grid-cols-4 gap-4 p-5 my-10"
+      style={{ borderColor: `${palette.text}14`, backgroundColor: `${palette.text}06` }}
+    >
+      {config.items.map((item, i) => {
+        const Icon = benefitIcons[i] || Truck;
+        return (
+          <div key={i} className="flex items-center gap-3">
+            <span className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${palette.primary}1a` }}>
+              <Icon className="w-5 h-5" style={{ color: palette.primary }} />
+            </span>
+            <span className="leading-tight">
+              <span className="block text-sm font-semibold">{item.title}</span>
+              <span className="block text-[11px]" style={{ color: `${palette.text}99` }}>{item.sub}</span>
+            </span>
+          </div>
+        );
+      })}
+    </section>
+  );
+};
 
 export const StoreFooter = ({
   palette,
@@ -231,6 +263,7 @@ export const StoreFooter = ({
   categories,
   onSelect,
   onWhatsApp,
+  config,
 }: {
   palette: Palette;
   name: string;
@@ -239,82 +272,102 @@ export const StoreFooter = ({
   categories: StoreCategory[];
   onSelect: (id: string) => void;
   onWhatsApp?: () => void;
-}) => (
-  <footer className="mt-12" style={{ backgroundColor: `${palette.text}0d` }}>
-    <div className="container mx-auto px-4 py-10 grid gap-8 md:grid-cols-4">
-      <div>
-        <div className="flex items-center gap-2.5 mb-3">
-          {logoUrl ? (
-            <img src={logoUrl} alt={`Logo ${name}`} className="w-10 h-10 rounded-xl object-cover" />
-          ) : (
-            <span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${palette.primary}1a` }}>
-              <Store className="w-5 h-5" style={{ color: palette.primary }} />
+  config: CatalogLayoutSettings["footer"];
+}) => {
+  if (!config.enabled) return null;
+  const about = config.about || description;
+  const socials = [
+    { url: config.instagram, Icon: Instagram, label: "Instagram" },
+    { url: config.facebook, Icon: Facebook, label: "Facebook" },
+    { url: config.youtube, Icon: Youtube, label: "YouTube" },
+  ].filter((s) => !!s.url);
+
+  return (
+    <footer className="mt-12" style={{ backgroundColor: `${palette.text}0d` }}>
+      <div className="container mx-auto px-4 py-10 grid gap-8 md:grid-cols-4">
+        <div>
+          <div className="flex items-center gap-2.5 mb-3">
+            {logoUrl ? (
+              <img src={logoUrl} alt={`Logo ${name}`} className="w-10 h-10 rounded-xl object-cover" />
+            ) : (
+              <span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${palette.primary}1a` }}>
+                <Store className="w-5 h-5" style={{ color: palette.primary }} />
+              </span>
+            )}
+            <span className="text-lg font-extrabold">{name}</span>
+          </div>
+          {about && (
+            <p className="text-xs leading-relaxed" style={{ color: `${palette.text}99` }}>
+              {about}
+            </p>
+          )}
+          {socials.length > 0 && (
+            <div className="flex gap-3 mt-4" style={{ color: `${palette.text}80` }}>
+              {socials.map(({ url, Icon, label }) => (
+                <a key={label} href={url} target="_blank" rel="noopener noreferrer" aria-label={label}>
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <h3 className="text-sm font-bold mb-3">{config.categoriesTitle}</h3>
+          <ul className="space-y-2 text-xs" style={{ color: `${palette.text}99` }}>
+            {categories.slice(0, 6).map((c) => (
+              <li key={c.id}>
+                <button onClick={() => onSelect(c.id)} className="hover:underline">{c.name}</button>
+              </li>
+            ))}
+            {categories.length === 0 && <li>Em breve</li>}
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-bold mb-3">{config.helpTitle}</h3>
+          <ul className="space-y-2 text-xs" style={{ color: `${palette.text}99` }}>
+            {config.helpItems.filter(Boolean).map((h, i) => (
+              <li key={i}>{h}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-bold mb-3">{config.contactTitle}</h3>
+          {config.contactText && (
+            <p className="text-xs mb-3" style={{ color: `${palette.text}99` }}>
+              {config.contactText}
+            </p>
+          )}
+          {onWhatsApp && (
+            <button
+              onClick={onWhatsApp}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-white"
+              style={{ backgroundColor: palette.primary }}
+            >
+              <MessageCircle className="w-4 h-4" />
+              {config.contactCta}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t" style={{ borderColor: `${palette.text}14` }}>
+        <div className="container mx-auto px-4 py-4 text-[11px] flex flex-col sm:flex-row items-center justify-between gap-2" style={{ color: `${palette.text}80` }}>
+          <span>
+            {config.copyright || `© ${new Date().getFullYear()} ${name}. Todos os direitos reservados.`}
+          </span>
+          {config.showCredits && (
+            <span>
+              Catálogo criado com{" "}
+              <a href="/" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline" style={{ color: palette.primary }}>
+                Out App
+              </a>
             </span>
           )}
-          <span className="text-lg font-extrabold">{name}</span>
-        </div>
-        {description && (
-          <p className="text-xs leading-relaxed" style={{ color: `${palette.text}99` }}>
-            {description}
-          </p>
-        )}
-        <div className="flex gap-3 mt-4" style={{ color: `${palette.text}80` }}>
-          <Instagram className="w-4 h-4" />
-          <Facebook className="w-4 h-4" />
-          <Youtube className="w-4 h-4" />
         </div>
       </div>
-
-      <div>
-        <h3 className="text-sm font-bold mb-3">Categorias</h3>
-        <ul className="space-y-2 text-xs" style={{ color: `${palette.text}99` }}>
-          {categories.slice(0, 6).map((c) => (
-            <li key={c.id}>
-              <button onClick={() => onSelect(c.id)} className="hover:underline">{c.name}</button>
-            </li>
-          ))}
-          {categories.length === 0 && <li>Em breve</li>}
-        </ul>
-      </div>
-
-      <div>
-        <h3 className="text-sm font-bold mb-3">Ajuda</h3>
-        <ul className="space-y-2 text-xs" style={{ color: `${palette.text}99` }}>
-          <li>Como comprar</li>
-          <li>Formas de pagamento</li>
-          <li>Prazo de entrega</li>
-          <li>Trocas e devoluções</li>
-        </ul>
-      </div>
-
-      <div>
-        <h3 className="text-sm font-bold mb-3">Atendimento</h3>
-        <p className="text-xs mb-3" style={{ color: `${palette.text}99` }}>
-          Fale com a gente e tire suas dúvidas sobre qualquer item do catálogo.
-        </p>
-        {onWhatsApp && (
-          <button
-            onClick={onWhatsApp}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-white"
-            style={{ backgroundColor: palette.primary }}
-          >
-            <MessageCircle className="w-4 h-4" />
-            Chamar no WhatsApp
-          </button>
-        )}
-      </div>
-    </div>
-
-    <div className="border-t" style={{ borderColor: `${palette.text}14` }}>
-      <div className="container mx-auto px-4 py-4 text-[11px] flex flex-col sm:flex-row items-center justify-between gap-2" style={{ color: `${palette.text}80` }}>
-        <span>© {new Date().getFullYear()} {name}. Todos os direitos reservados.</span>
-        <span>
-          Catálogo criado com{" "}
-          <a href="/" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline" style={{ color: palette.primary }}>
-            Out App
-          </a>
-        </span>
-      </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
