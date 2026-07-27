@@ -5,6 +5,7 @@ import { Helmet } from "react-helmet-async";
 import { LandingHeader } from "@/components/layout/LandingHeader";
 import { LandingFooter } from "@/components/layout/LandingFooter";
 import DOMPurify from "dompurify";
+import { ShieldCheck, CalendarClock } from "lucide-react";
 import NotFound from "@/pages/NotFound";
 
 interface CustomPageData {
