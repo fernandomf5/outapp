@@ -17,7 +17,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from "react-helmet-async";
 import { linkifyText } from "@/utils/linkify";
-import logoAsset from "@/assets/logo-outapp.png.asset.json";
+import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
 const lionLogo = logoAsset.url;
 
 interface BlogPost {

@@ -26,7 +26,7 @@ import showcaseAsset from "@/assets/out-app-showcase-2.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIconAsset from "@/assets/lion-3d-white.png.asset.json";
 const heroIcon = heroIconAsset.url;
-import logoAsset from "@/assets/logo-outapp.png.asset.json";
+import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
 const logoLion = logoAsset.url;
 import { AIAgentFloatingChat } from "@/components/AIAgentFloatingChat";
 

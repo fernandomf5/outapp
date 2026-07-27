@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import klicLogoAsset from "@/assets/klic-smart-logo.png.asset.json";
-import logoAsset from "@/assets/logo-outapp.png.asset.json";
+import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
 
 interface CustomPageItem {
   id: string;
