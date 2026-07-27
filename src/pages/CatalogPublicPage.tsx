@@ -423,8 +423,8 @@ export default function CatalogPublicPage() {
           groups.forEach((g) =>
             ensureCategory(`rc:${c.id}:${g}`, g, c.color || cat.primary_color, groupImage(c, g))
           );
-          ensureCategory(`rc:${c.id}:`, c.name, c.color || cat.primary_color, c.logo_url || null);
         });
+
 
         const num = (v: any) => {
           const n = parseFloat(String(v ?? "").replace(",", "."));
