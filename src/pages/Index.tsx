@@ -678,23 +678,26 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Video Section */}
-      {videoUrl && (
-        <section className="py-16 xs:py-20 sm:py-24 md:py-28 lg:py-32 3xl:py-40 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30 flex items-center justify-center">
-          <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px] flex flex-col items-center justify-center w-full">
-            <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-2">
-              <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 leading-tight">
-                {landingSettings.video_section_title}
-              </h2>
-              <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl text-muted-foreground max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
-                {landingSettings.video_section_subtitle}
-              </p>
-            </div>
-            
-            <VideoCover videoUrl={videoUrl} logoUrl={logoUrl || outAppLogo} />
+      {/* Showcase Section */}
+      <section className="py-16 xs:py-20 sm:py-24 md:py-28 lg:py-32 3xl:py-40 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30 flex items-center justify-center overflow-hidden">
+        <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px] flex flex-col items-center justify-center w-full">
+          <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-2">
+            <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 leading-tight">
+              {landingSettings.video_section_title}
+            </h2>
+            <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl text-muted-foreground max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
+              {landingSettings.video_section_subtitle}
+            </p>
           </div>
-        </section>
-      )}
+
+          <NeonImageFrame
+            src={showcaseAsset.url}
+            alt="Painel da Out App com todos os recursos da plataforma em um só lugar"
+            className="max-w-5xl 3xl:max-w-6xl"
+          />
+        </div>
+      </section>
+
 
       {/* Features Section */}
       <section id="recursos" className="py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-background">
