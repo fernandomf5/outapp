@@ -2299,6 +2299,7 @@ export type Database = {
           head_code: string | null
           id: string
           is_active: boolean | null
+          layout_settings: Json
           layout_style: string | null
           linked_registration_category_ids: string[]
           logo_url: string | null
@@ -2330,6 +2331,7 @@ export type Database = {
           head_code?: string | null
           id?: string
           is_active?: boolean | null
+          layout_settings?: Json
           layout_style?: string | null
           linked_registration_category_ids?: string[]
           logo_url?: string | null
@@ -2361,6 +2363,7 @@ export type Database = {
           head_code?: string | null
           id?: string
           is_active?: boolean | null
+          layout_settings?: Json
           layout_style?: string | null
           linked_registration_category_ids?: string[]
           logo_url?: string | null
