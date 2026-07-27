@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import CatalogCheckoutPayment, { CatalogPaymentConfig } from "./CatalogCheckoutPayment";
 
 export interface CartItem {
   id: string;
@@ -50,6 +51,7 @@ interface CatalogCartProps {
   textColor: string;
   backgroundColor: string;
   showPrices: boolean;
+  paymentConfig?: CatalogPaymentConfig | null;
 }
 
 export function CatalogCart({
