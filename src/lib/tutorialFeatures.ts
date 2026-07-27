@@ -9,55 +9,50 @@ export interface TutorialFeature {
  * A `key` é a mesma usada em <FeatureTutorialVideo featureKey="..." />.
  */
 export const TUTORIAL_FEATURES: TutorialFeature[] = [
+  // Gestão Livre
+  { key: "cadastro", label: "Gestão Livre (Cadastros)", group: "Gestão Livre" },
+  { key: "cadastro-settings", label: "Categorias de Cadastro", group: "Gestão Livre" },
+
   // Organizador
   { key: "tarefas", label: "Organizador de Tarefas", group: "Organizador" },
+  { key: "agenda", label: "Agenda / Agendamento", group: "Organizador" },
   { key: "rotina", label: "Organizador de Rotina", group: "Organizador" },
   { key: "tabelas-organizacao", label: "Tabela de Organização", group: "Organizador" },
-  { key: "agenda", label: "Agenda / Agendamento", group: "Organizador" },
-  { key: "mapa-mental", label: "Criador de Mapa Mental", group: "Organizador" },
-  { key: "scripts", label: "Organizador de Scripts", group: "Organizador" },
-
-  // Cadastros e CRM
-  { key: "cadastro", label: "Gestão Livre (Cadastros)", group: "Cadastros" },
-  { key: "cadastro-settings", label: "Categorias de Cadastro", group: "Cadastros" },
-  { key: "clientes", label: "Gestão de Clientes", group: "Cadastros" },
-  { key: "crm", label: "Contatos / CRM", group: "Cadastros" },
-  { key: "negocios", label: "Gestão de Negócios", group: "Cadastros" },
-  { key: "equipe", label: "Gestão de Equipe", group: "Cadastros" },
 
   // Financeiro
   { key: "financeiro", label: "Gestão Financeira", group: "Financeiro" },
   { key: "recibos", label: "Gerador de Recibos", group: "Financeiro" },
-  { key: "faturas", label: "Gerador de Faturas", group: "Financeiro" },
-  { key: "checkout-creator", label: "Criador de Checkout", group: "Financeiro" },
 
-  // Vendas e Marketing
-  { key: "funil-vendas", label: "Funil de Vendas", group: "Vendas e Marketing" },
-  { key: "anuncios", label: "Criador de Dados de Anúncios", group: "Vendas e Marketing" },
-  { key: "extrator-criativos", label: "Extrator de Criativos", group: "Vendas e Marketing" },
-  { key: "questionario-marketing", label: "Questionário Marketing", group: "Vendas e Marketing" },
-  { key: "popups", label: "Criador de Pop-ups", group: "Vendas e Marketing" },
-  { key: "pagina-captura", label: "Criador de Página de Captura", group: "Vendas e Marketing" },
-  { key: "portfolio", label: "Criador de Portfólio", group: "Vendas e Marketing" },
-  { key: "catalogo", label: "Criador de Catálogo", group: "Vendas e Marketing" },
-  { key: "produtos-servicos", label: "Produtos e Serviços", group: "Vendas e Marketing" },
-  { key: "cloner", label: "Clonador de Páginas", group: "Vendas e Marketing" },
+  // Recursos Básicos
+  { key: "tools", label: "Gerador de Link WhatsApp", group: "Recursos Básicos" },
+  { key: "floating-button", label: "Botão Flutuante", group: "Recursos Básicos" },
+  { key: "shortlinks", label: "Encurtador de Links", group: "Recursos Básicos" },
+  { key: "qrcode", label: "Gerador de QR Code", group: "Recursos Básicos" },
+  { key: "scripts", label: "Scripts de Atendimento", group: "Recursos Básicos" },
+  { key: "produtos-servicos", label: "Produtos e Serviços", group: "Recursos Básicos" },
 
-  // Atendimento
-  { key: "ai-agents", label: "Chat Online", group: "Atendimento" },
-  { key: "aprova-job", label: "Aprova Job", group: "Atendimento" },
-  { key: "briefing", label: "Criador de Briefing", group: "Atendimento" },
-  { key: "propostas", label: "Criador de Proposta Comercial", group: "Atendimento" },
-  { key: "contratos", label: "Criador de Contratos", group: "Atendimento" },
-  { key: "area-membros", label: "Criador de Área de Membros", group: "Atendimento" },
-  { key: "support", label: "Suporte / Tickets", group: "Atendimento" },
+  // Recursos Avançados
+  { key: "area-membros", label: "Criador de Área de Membros", group: "Recursos Avançados" },
+  { key: "checkout-creator", label: "Criador de Checkout", group: "Recursos Avançados" },
+  { key: "anuncios", label: "Criador de Dados de Anúncios", group: "Recursos Avançados" },
+  { key: "chat-online", label: "Criador de Chat Online", group: "Recursos Avançados" },
+  { key: "pagina-captura", label: "Página de Captura", group: "Recursos Avançados" },
+  { key: "portfolio", label: "Criador de Portfólio", group: "Recursos Avançados" },
+  { key: "catalogo", label: "Criador de Catálogo", group: "Recursos Avançados" },
+  { key: "cloner", label: "Clonador de Páginas", group: "Recursos Avançados" },
+  { key: "linkbio", label: "Criador de Link na Bio", group: "Recursos Avançados" },
+  { key: "funil-vendas", label: "Criador de Funil de Vendas", group: "Recursos Avançados" },
+  { key: "briefing", label: "Criador de Briefing", group: "Recursos Avançados" },
+  { key: "questionario-marketing", label: "Criador de Questionário", group: "Recursos Avançados" },
+  { key: "popups", label: "Criador de Pop-ups", group: "Recursos Avançados" },
+  { key: "mapa-mental", label: "Criador de Mapa Mental", group: "Recursos Avançados" },
+  { key: "propostas", label: "Criador de Proposta Comercial", group: "Recursos Avançados" },
+  { key: "contratos", label: "Criador de Contratos", group: "Recursos Avançados" },
+  { key: "aprova-job", label: "Criador de Aprova Job", group: "Recursos Avançados" },
+  { key: "extrator-criativos", label: "Extrator de Criativos", group: "Recursos Avançados" },
 
-  // Utilidades
-  { key: "tools", label: "Gerador de Link WhatsApp", group: "Utilidades" },
-  { key: "floating-button", label: "Botão Flutuante", group: "Utilidades" },
-  { key: "shortlinks", label: "Encurtador de Links", group: "Utilidades" },
-  { key: "qrcode", label: "Gerador de QR Code", group: "Utilidades" },
-  { key: "linkbio", label: "Link na Bio", group: "Utilidades" },
+  // Suporte e Essenciais
+  { key: "support", label: "Suporte / Tickets", group: "Suporte e Essenciais" },
 ];
 
 export const TUTORIAL_FEATURE_GROUPS = TUTORIAL_FEATURES.reduce<Record<string, TutorialFeature[]>>(
