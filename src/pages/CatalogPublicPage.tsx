@@ -338,6 +338,20 @@ export default function CatalogPublicPage() {
 
       setBanners((bannersData as any) || []);
 
+      // Load published catalog pages (menu)
+      const { data: pagesData } = await supabase
+        .from("catalog_pages" as any)
+        .select("id, title, slug, show_in_menu")
+        .eq("catalog_id", cat.id)
+        .eq("is_published", true)
+        .order("sort_order", { ascending: true });
+
+      setMenuPages(
+        ((pagesData as any[]) || [])
+          .filter((p) => p.show_in_menu !== false)
+          .map((p) => ({ id: p.id, title: p.title, slug: p.slug }))
+      );
+
       // Load products, services, and categories
       const [productsRes, servicesRes, categoriesRes] = await Promise.all([
         supabase
