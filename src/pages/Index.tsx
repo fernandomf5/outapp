@@ -941,7 +941,7 @@ const Index = () => {
             >
               <span>Criado com carinho pela agência</span>
               <img 
-                src="/klic-smart-logo.png" 
+                src={klicLogoAsset.url} 
                 alt="Klic Smart AI" 
                 className="h-3.5 xs:h-4 sm:h-5 w-3.5 xs:w-4 sm:w-5 object-contain"
               />
