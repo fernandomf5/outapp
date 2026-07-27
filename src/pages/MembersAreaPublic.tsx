@@ -1141,12 +1141,20 @@ export default function MembersAreaPublic() {
                     borderWidth: '2px'
                   }}
                 >
-                  <div 
-                    className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
-                  >
-                    {index + 1}
-                  </div>
+                  {section.cover_image ? (
+                    <img
+                      src={section.cover_image}
+                      alt={section.title}
+                      className="w-14 h-9 rounded-lg object-cover shrink-0"
+                    />
+                  ) : (
+                    <div 
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                      style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
+                    >
+                      {index + 1}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
                     {section.description && (
