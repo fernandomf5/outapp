@@ -208,7 +208,7 @@ export function UserSidebar() {
   const advancedResourcesItems: MenuItem[] = [
     { title: "Criador de Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
     { title: "Criador de Checkout", icon: ShoppingBag, path: "/dashboard", tab: "checkout-creator", hideForTeamMember: true },
-    { title: "Criador de Apresentação de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
+    { title: "Criador de Dados de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
     
     { title: "Criador de Chat Online", icon: MessageSquare, path: "/dashboard", tab: "chat-online", moduleKey: "ai_agents" },
     { title: "Página de Captura", icon: Target, path: "/dashboard", tab: "pagina-captura", hideForTeamMember: true },
