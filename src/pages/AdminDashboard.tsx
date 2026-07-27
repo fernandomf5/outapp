@@ -1507,22 +1507,16 @@ const AdminDashboard = () => {
 
               <div>
                 <Label htmlFor="plan-features">Recursos (pressione Enter para adicionar novos)</Label>
-                <Textarea
-                  id="plan-features"
-                  className="min-h-[150px]"
-                  value={editingPlan.features.join("\n")}
-                  onChange={(e) =>
-                    setEditingPlan({
-                      ...editingPlan,
-                      features: e.target.value.split("\n").filter((f) => f.trim()),
-                    })
-                  }
-                  placeholder="Recurso 1&#10;Recurso 2&#10;Recurso 3"
+                <RichFeaturesEditor
+                  value={editingPlan.features || []}
+                  onChange={(features) => setEditingPlan({ ...editingPlan, features })}
+                  placeholder="Recurso 1"
                 />
                 <p className="text-xs text-muted-foreground mt-2">
-                  Digite um recurso por linha. Eles aparecerão organizados na landing page com ícones de check.
+                  Cada linha é um recurso. Use os botões para negrito, itálico, sublinhado ou tachado — a formatação aparece igual no site.
                 </p>
               </div>
+
 
               <div className="border-t pt-4 space-y-4">
                 <h3 className="font-semibold">Visibilidade do Plano</h3>
