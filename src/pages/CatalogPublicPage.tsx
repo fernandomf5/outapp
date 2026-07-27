@@ -461,11 +461,12 @@ export default function CatalogPublicPage() {
           }
         });
 
-        // remove subcategorias vazias
+        // Apenas as subcategorias criadas na Gestão Livre (sem vazias)
         const usedIds = new Set(
           [...filteredProducts, ...filteredServices].map((i: any) => i.category_id).filter(Boolean)
         );
-        setCategories([...baseCategories, ...syntheticCategories.filter((c) => usedIds.has(c.id))]);
+        setCategories(syntheticCategories.filter((c) => usedIds.has(c.id)));
+
       } else {
         setCategories(baseCategories);
       }
