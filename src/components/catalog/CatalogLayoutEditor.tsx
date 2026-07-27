@@ -213,6 +213,17 @@ export default function CatalogLayoutEditor({ value, onChange }: Props) {
                 placeholder="Vazio = © ano + nome da loja"
               />
             </div>
+            {row("Exibir páginas criadas no rodapé", value.footer.showPages, (v) => set("footer", { showPages: v }))}
+            {value.footer.showPages && (
+              <div>
+                <Label className="text-xs">Título da coluna de páginas</Label>
+                <Input
+                  value={value.footer.pagesTitle}
+                  onChange={(e) => set("footer", { pagesTitle: e.target.value })}
+                  placeholder="Páginas"
+                />
+              </div>
+            )}
             {row("Exibir crédito Out App", value.footer.showCredits, (v) => set("footer", { showCredits: v }))}
           </AccordionContent>
         </AccordionItem>
