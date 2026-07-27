@@ -10,6 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import CatalogLayoutEditor from "@/components/catalog/CatalogLayoutEditor";
+import { defaultCatalogLayout, mergeCatalogLayout, type CatalogLayoutSettings } from "@/components/catalog/catalogLayout";
+
 import {
   BookOpen,
   Plus,
