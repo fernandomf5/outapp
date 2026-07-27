@@ -314,7 +314,11 @@ export default function CatalogCreatorPanel() {
         selected_service_ids: formData.show_all_items ? [] : formData.selected_service_ids,
         linked_registration_category_ids: formData.linked_registration_category_ids,
         group_by_category: formData.group_by_category,
+        head_code: formData.head_code || null,
+        footer_code: formData.footer_code || null,
+        layout_settings: formData.layout_settings,
       };
+
 
       if (editingCatalog) {
         const { error } = await supabase
