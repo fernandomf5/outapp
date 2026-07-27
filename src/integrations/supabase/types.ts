@@ -2234,6 +2234,11 @@ export type Database = {
           items: Json
           notes: string | null
           order_number: string
+          paid_at: string | null
+          payment_id: string | null
+          payment_method: string | null
+          payment_status: string
+          pix_payload: string | null
           status: string
           total_amount: number
           updated_at: string
@@ -2250,6 +2255,11 @@ export type Database = {
           items?: Json
           notes?: string | null
           order_number: string
+          paid_at?: string | null
+          payment_id?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          pix_payload?: string | null
           status?: string
           total_amount?: number
           updated_at?: string
@@ -2266,6 +2276,11 @@ export type Database = {
           items?: Json
           notes?: string | null
           order_number?: string
+          paid_at?: string | null
+          payment_id?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          pix_payload?: string | null
           status?: string
           total_amount?: number
           updated_at?: string
@@ -2287,6 +2302,88 @@ export type Database = {
           },
         ]
       }
+      catalog_pages: {
+        Row: {
+          catalog_id: string
+          content: string
+          created_at: string
+          id: string
+          is_published: boolean
+          show_in_menu: boolean
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          catalog_id: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          show_in_menu?: boolean
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          catalog_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          show_in_menu?: boolean
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_pages_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "catalogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      catalog_payment_credentials: {
+        Row: {
+          catalog_id: string
+          created_at: string
+          mp_access_token: string | null
+          mp_public_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          catalog_id: string
+          created_at?: string
+          mp_access_token?: string | null
+          mp_public_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          catalog_id?: string
+          created_at?: string
+          mp_access_token?: string | null
+          mp_public_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_payment_credentials_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: true
+            referencedRelation: "catalogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalogs: {
         Row: {
           background_color: string | null
@@ -2304,6 +2401,7 @@ export type Database = {
           linked_registration_category_ids: string[]
           logo_url: string | null
           name: string
+          payment_settings: Json
           primary_color: string | null
           selected_product_ids: string[] | null
           selected_service_ids: string[] | null
@@ -2336,6 +2434,7 @@ export type Database = {
           linked_registration_category_ids?: string[]
           logo_url?: string | null
           name: string
+          payment_settings?: Json
           primary_color?: string | null
           selected_product_ids?: string[] | null
           selected_service_ids?: string[] | null
@@ -2368,6 +2467,7 @@ export type Database = {
           linked_registration_category_ids?: string[]
           logo_url?: string | null
           name?: string
+          payment_settings?: Json
           primary_color?: string | null
           selected_product_ids?: string[] | null
           selected_service_ids?: string[] | null
