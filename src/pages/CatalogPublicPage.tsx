@@ -436,16 +436,20 @@ export default function CatalogPublicPage() {
           if (!parent) return;
           const cf = item.custom_fields || {};
           const group = typeof cf.__group === "string" && cf.__group ? cf.__group : "";
-          const categoryId = `rc:${parent.id}:${group}`;
-          ensureCategory(categoryId, group || parent.name, parent.color || cat.primary_color, groupImage(parent, group));
+          // Somente subcategorias (grupos) criadas na Gestão Livre viram categorias do catálogo
+          const categoryId = group ? `rc:${parent.id}:${group}` : null;
+          if (group) {
+            ensureCategory(categoryId!, group, parent.color || cat.primary_color, groupImage(parent, group));
+          }
           const isService = parent.entity_kind === "service";
           const mapped: any = {
             id: item.id,
             name: item.name,
             description: cf.description || item.notes || null,
             description_html: null,
-            category: group || parent.name,
+            category: group || null,
             category_id: categoryId,
+
             price: num(isService ? cf.price : cf.sale_price ?? cf.price),
             image_url: item.avatar_url || null,
             gallery_urls: null,
