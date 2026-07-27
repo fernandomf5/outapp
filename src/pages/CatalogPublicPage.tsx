@@ -1003,27 +1003,15 @@ export default function CatalogPublicPage() {
 
         {/* Content */}
         <main className="container mx-auto px-3 sm:px-4 py-8">
-          {activeCategory === "all" && !search && (
-            <StoreCategoryStrip palette={palette} categories={categories} onSelect={setActiveCategory} />
+          {activeCategory === "all" && !search && layout.categories.showStrip && (
+            <StoreCategoryStrip
+              palette={palette}
+              categories={categories}
+              onSelect={setActiveCategory}
+              title={layout.categories.title}
+            />
           )}
 
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList
-              className="inline-flex h-auto rounded-full p-1"
-              style={{ backgroundColor: `${textColor}10` }}
-            >
-              <TabsTrigger value="all" className="rounded-full text-xs sm:text-sm px-4">Todos ({allItems.length})</TabsTrigger>
-              <TabsTrigger value="products" className="rounded-full text-xs sm:text-sm px-4">
-                <Package className="w-3.5 h-3.5 mr-1" />
-                Produtos ({products.length})
-              </TabsTrigger>
-              <TabsTrigger value="services" className="rounded-full text-xs sm:text-sm px-4">
-                <Wrench className="w-3.5 h-3.5 mr-1" />
-                Serviços ({services.length})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
 
           {/* Items */}
           {visibleItems.length === 0 ? (
