@@ -17,9 +17,13 @@ import {
   ShoppingBag,
   Users,
 } from "lucide-react";
+import { BarChart3, CreditCard, FileText } from "lucide-react";
 import CatalogBannersManager from "./CatalogBannersManager";
 import CatalogOrdersPanel from "./CatalogOrdersPanel";
 import CatalogCustomersPanel from "./CatalogCustomersPanel";
+import CatalogPaymentSettingsPanel from "./CatalogPaymentSettings";
+import CatalogPagesManager from "./CatalogPagesManager";
+import CatalogAnalyticsPanel from "./CatalogAnalyticsPanel";
 
 interface Catalog {
   id: string;
