@@ -945,7 +945,7 @@ export default function CatalogPublicPage() {
 
       <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
         <div id="topo" />
-        <StoreTopBar palette={palette} hasWhatsApp={!!catalog.whatsapp_number} />
+        <StoreTopBar palette={palette} hasWhatsApp={!!catalog.whatsapp_number} config={layout.topbar} />
         <StoreHeader
           palette={palette}
           name={catalog.name}
@@ -954,6 +954,7 @@ export default function CatalogPublicPage() {
           search={search}
           onSearch={setSearch}
           onWhatsApp={catalog.whatsapp_number ? () => handleWhatsAppContact() : undefined}
+          config={layout.header}
         />
         <StoreNav
           palette={palette}
@@ -963,43 +964,51 @@ export default function CatalogPublicPage() {
             setActiveCategory(id);
             setSearch("");
           }}
+          config={layout.categories}
         />
 
         {/* Hero */}
-        <div className="container mx-auto px-3 sm:px-4 pt-5">
-          {banners.length > 0 ? (
-            <BannerCarousel banners={banners} primaryColor={catalog.primary_color} textColor={textColor} />
-          ) : (
-            <div
-              className="relative rounded-2xl overflow-hidden"
-              style={{
-                background: catalog.cover_url
-                  ? undefined
-                  : `linear-gradient(120deg, ${catalog.primary_color} 0%, ${catalog.primary_color}bb 100%)`,
-              }}
-            >
-              {catalog.cover_url && (
-                <>
-                  <img src={catalog.cover_url} alt={`Capa de ${catalog.name}`} className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute inset-0" style={{ backgroundColor: `${catalog.primary_color}aa` }} />
-                </>
-              )}
-              <div className="relative z-10 px-6 sm:px-12 py-12 sm:py-20 text-white max-w-2xl">
-                <span className="inline-block text-[11px] font-bold uppercase tracking-wider rounded-full px-3 py-1 bg-white/20 mb-3">
-                  Catálogo online
-                </span>
-                <h1 className="text-2xl sm:text-4xl font-extrabold mb-2">{catalog.name}</h1>
-                {catalog.description && <p className="text-sm sm:text-lg opacity-90">{catalog.description}</p>}
-                {catalog.whatsapp_number && (
-                  <Button onClick={() => handleWhatsAppContact()} className="mt-6" size="lg" variant="secondary">
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Falar no WhatsApp
-                  </Button>
+        {layout.hero.enabled && (
+          <div className="container mx-auto px-3 sm:px-4 pt-5">
+            {banners.length > 0 ? (
+              <BannerCarousel banners={banners} primaryColor={catalog.primary_color} textColor={textColor} />
+            ) : (
+              <div
+                className="relative rounded-2xl overflow-hidden"
+                style={{
+                  background: catalog.cover_url
+                    ? undefined
+                    : `linear-gradient(120deg, ${catalog.primary_color} 0%, ${catalog.primary_color}bb 100%)`,
+                }}
+              >
+                {catalog.cover_url && (
+                  <>
+                    <img src={catalog.cover_url} alt={`Capa de ${catalog.name}`} className="absolute inset-0 w-full h-full object-cover" />
+                    <div className="absolute inset-0" style={{ backgroundColor: `${catalog.primary_color}aa` }} />
+                  </>
                 )}
+                <div className="relative z-10 px-6 sm:px-12 py-12 sm:py-20 text-white max-w-2xl">
+                  {layout.hero.badge && (
+                    <span className="inline-block text-[11px] font-bold uppercase tracking-wider rounded-full px-3 py-1 bg-white/20 mb-3">
+                      {layout.hero.badge}
+                    </span>
+                  )}
+                  <h1 className="text-2xl sm:text-4xl font-extrabold mb-2">{layout.hero.title || catalog.name}</h1>
+                  {(layout.hero.subtitle || catalog.description) && (
+                    <p className="text-sm sm:text-lg opacity-90">{layout.hero.subtitle || catalog.description}</p>
+                  )}
+                  {catalog.whatsapp_number && layout.hero.ctaLabel && (
+                    <Button onClick={() => handleWhatsAppContact()} className="mt-6" size="lg" variant="secondary">
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      {layout.hero.ctaLabel}
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
+
 
         {/* Content */}
         <main className="container mx-auto px-3 sm:px-4 py-8">
