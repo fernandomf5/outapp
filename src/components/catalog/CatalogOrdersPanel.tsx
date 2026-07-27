@@ -381,6 +381,43 @@ export default function CatalogOrdersPanel({ catalogId }: CatalogOrdersPanelProp
                   </div>
                 )}
 
+                {/* Payment */}
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Pagamento</h4>
+                  <div className="flex items-center gap-2 flex-wrap text-sm text-muted-foreground">
+                    <Badge
+                      className={`${paymentColors[selectedOrder.payment_status || "pending"] || "bg-slate-500"} text-white`}
+                    >
+                      {paymentLabels[selectedOrder.payment_status || "pending"] ||
+                        selectedOrder.payment_status}
+                    </Badge>
+                    {selectedOrder.payment_method && (
+                      <span>
+                        via {methodLabels[selectedOrder.payment_method] || selectedOrder.payment_method}
+                      </span>
+                    )}
+                    {selectedOrder.paid_at && (
+                      <span>
+                        em {format(new Date(selectedOrder.paid_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      </span>
+                    )}
+                  </div>
+                  <Select
+                    value={selectedOrder.payment_status || "pending"}
+                    onValueChange={(v) => updatePaymentStatus(selectedOrder.id, v)}
+                    disabled={updating}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(paymentLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Update Status */}
                 <div className="space-y-2">
                   <h4 className="font-semibold">Atualizar Status</h4>
