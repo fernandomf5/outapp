@@ -328,7 +328,7 @@ export function CatalogCart({
     }
   };
 
-  if (!whatsappNumber) return null;
+  if (!whatsappNumber && !paymentsEnabled) return null;
 
   return (
     <>
