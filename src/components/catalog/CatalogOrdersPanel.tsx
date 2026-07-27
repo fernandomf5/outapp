@@ -263,13 +263,23 @@ export default function CatalogOrdersPanel({ catalogId }: CatalogOrdersPanelProp
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-mono text-sm font-medium">
                         #{order.order_number}
                       </span>
                       <Badge className={`${statusColors[order.status]} text-white`}>
                         {statusLabels[order.status] || order.status}
                       </Badge>
+                      <Badge
+                        className={`${paymentColors[order.payment_status || "pending"] || "bg-slate-500"} text-white`}
+                      >
+                        {paymentLabels[order.payment_status || "pending"] || order.payment_status}
+                      </Badge>
+                      {order.payment_method && (
+                        <Badge variant="outline">
+                          {methodLabels[order.payment_method] || order.payment_method}
+                        </Badge>
+                      )}
                     </div>
                     <p className="font-medium truncate">{order.customer_name}</p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
