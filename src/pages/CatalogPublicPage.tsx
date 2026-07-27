@@ -188,6 +188,7 @@ interface Category {
   name: string;
   color: string;
   order_index: number;
+  image_url?: string | null;
 }
 
 interface Product {
@@ -375,7 +376,7 @@ export default function CatalogPublicPage() {
         const [linkedCatsRes, linkedItemsRes] = await Promise.all([
           supabase
             .from("registration_categories" as any)
-            .select("id,name,color,entity_kind,item_groups,sort_order")
+            .select("id,name,color,entity_kind,item_groups,item_group_images,sort_order")
             .in("id", linkedIds),
           supabase
             .from("contacts" as any)
@@ -390,15 +391,27 @@ export default function CatalogPublicPage() {
 
         let orderBase = baseCategories.length;
         const syntheticCategories: Category[] = [];
-        const ensureCategory = (id: string, name: string, color: string) => {
-          if (syntheticCategories.some((c) => c.id === id)) return;
-          syntheticCategories.push({ id, name, color, order_index: orderBase++ });
+        const ensureCategory = (id: string, name: string, color: string, image_url?: string | null) => {
+          const existing = syntheticCategories.find((c) => c.id === id);
+          if (existing) {
+            if (image_url && !existing.image_url) existing.image_url = image_url;
+            return;
+          }
+          syntheticCategories.push({ id, name, color, order_index: orderBase++, image_url: image_url || null });
+        };
+
+        const groupImage = (c: any, group: string): string | null => {
+          const imgs = c?.item_group_images;
+          if (!group || !imgs || typeof imgs !== "object") return null;
+          return typeof imgs[group] === "string" ? imgs[group] : null;
         };
 
         linkedCats.forEach((c) => {
           const groups: string[] = Array.isArray(c.item_groups) ? c.item_groups : [];
-          groups.forEach((g) => ensureCategory(`rc:${c.id}:${g}`, g, c.color || cat.primary_color));
-          ensureCategory(`rc:${c.id}:`, c.name, c.color || cat.primary_color);
+          groups.forEach((g) =>
+            ensureCategory(`rc:${c.id}:${g}`, g, c.color || cat.primary_color, groupImage(c, g))
+          );
+          ensureCategory(`rc:${c.id}:`, c.name, c.color || cat.primary_color, c.logo_url || null);
         });
 
         const num = (v: any) => {
@@ -412,7 +425,7 @@ export default function CatalogPublicPage() {
           const cf = item.custom_fields || {};
           const group = typeof cf.__group === "string" && cf.__group ? cf.__group : "";
           const categoryId = `rc:${parent.id}:${group}`;
-          ensureCategory(categoryId, group || parent.name, parent.color || cat.primary_color);
+          ensureCategory(categoryId, group || parent.name, parent.color || cat.primary_color, groupImage(parent, group));
           const isService = parent.entity_kind === "service";
           const mapped: any = {
             id: item.id,
@@ -1025,10 +1038,20 @@ export default function CatalogPublicPage() {
                   <div key={categoryId}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: category.color }}
-                        />
+                        {category.image_url ? (
+                          <img
+                            src={category.image_url}
+                            alt={`Imagem da categoria ${category.name}`}
+                            loading="lazy"
+                            className="w-10 h-10 rounded-lg object-cover"
+                            style={{ border: `2px solid ${category.color}` }}
+                          />
+                        ) : (
+                          <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                        )}
                         <h3
                           className="text-xl font-bold"
                           style={{ color: textColor }}
