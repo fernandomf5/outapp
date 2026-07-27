@@ -812,7 +812,7 @@ const Index = () => {
                   
                   <div className="mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8">
                     <span className={`text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold ${isPopular ? 'text-primary' : ''}`}>
-                      {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
+                      {plan.price === 0 ? 'Grátis' : `R$ ${Number(plan.price).toFixed(2).replace('.', ',')}`}
                     </span>
                     {plan.price > 0 && (
                       <span className="text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground">
