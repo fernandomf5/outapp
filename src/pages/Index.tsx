@@ -24,7 +24,8 @@ import { NeonImageFrame } from "@/components/NeonImageFrame";
 import { Feature3DCard } from "@/components/Feature3DCard";
 import showcaseAsset from "@/assets/out-app-showcase.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
-import heroIcon from "@/assets/hero-icon.png";
+import heroIconAsset from "@/assets/lion-3d-white.png.asset.json";
+const heroIcon = heroIconAsset.url;
 import logoLion from "@/assets/logo-lion.png";
 import { AIAgentFloatingChat } from "@/components/AIAgentFloatingChat";
 
