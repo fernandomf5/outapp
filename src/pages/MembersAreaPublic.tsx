@@ -135,6 +135,55 @@ interface MembersArea {
   manager_whatsapp?: string;
 }
 
+function AreaBannerCarousel({ banners, accentColor }: { banners: AreaBanner[]; accentColor: string }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (banners.length < 2) return;
+    const t = setInterval(() => setIndex(i => (i + 1) % banners.length), 5000);
+    return () => clearInterval(t);
+  }, [banners.length]);
+
+  if (banners.length === 0) return null;
+
+  return (
+    <div className="relative w-full overflow-hidden rounded-2xl shadow-lg">
+      <div
+        className="flex transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${index * 100}%)` }}
+      >
+        {banners.map((banner) => (
+          <div key={banner.id} className="min-w-full aspect-[21/9] md:aspect-[3/1] bg-black/20">
+            {banner.link ? (
+              <a href={banner.link} target="_blank" rel="noopener noreferrer">
+                <img src={banner.image_url} alt="Banner" className="w-full h-full object-cover" />
+              </a>
+            ) : (
+              <img src={banner.image_url} alt="Banner" className="w-full h-full object-cover" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {banners.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+          {banners.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              className="h-2 rounded-full transition-all"
+              style={{
+                width: i === index ? 24 : 8,
+                backgroundColor: i === index ? accentColor : 'rgba(255,255,255,0.6)',
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 export default function MembersAreaPublic() {
   const { slug } = useParams();
