@@ -163,6 +163,38 @@ export default function CatalogOrdersPanel({ catalogId }: CatalogOrdersPanelProp
     }
   };
 
+  const updatePaymentStatus = async (orderId: string, newPaymentStatus: string) => {
+    setUpdating(true);
+    try {
+      const patch: Record<string, any> = {
+        payment_status: newPaymentStatus,
+        paid_at: newPaymentStatus === "paid" ? new Date().toISOString() : null,
+      };
+      const { error } = await supabase
+        .from("catalog_orders" as any)
+        .update(patch)
+        .eq("id", orderId);
+
+      if (error) throw error;
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o))
+      );
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, ...patch } as Order);
+      }
+      toast({ title: "Pagamento atualizado!" });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar pagamento",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
