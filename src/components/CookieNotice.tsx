@@ -51,6 +51,11 @@ export const CookieNotice = () => {
     setIsVisible(false);
   };
 
+  const handleReject = () => {
+    localStorage.setItem('cookies_accepted', 'essential');
+    setIsVisible(false);
+  };
+
   const handleDismiss = () => {
     setIsVisible(false);
   };
