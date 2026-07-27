@@ -1,3 +1,4 @@
+import { RichFeatureText } from "@/components/RichFeatureText";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -802,7 +803,7 @@ const Index = () => {
                     {features.map((feature: string, featureIndex: number) => (
                       <li key={featureIndex} className="flex items-start gap-1.5 xs:gap-2 sm:gap-3">
                         <CheckCircle2 className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg leading-tight">{feature}</span>
+                        <RichFeatureText html={feature} className="text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg leading-tight" />
                       </li>
                     ))}
                   </ul>
