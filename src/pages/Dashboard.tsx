@@ -1247,6 +1247,7 @@ const Dashboard = () => {
 
           <TabsContent value="crm">
             <FeatureGate featureKey="crm_contacts">
+              <FeatureTutorialVideo featureKey="crm" />
               <CRMContacts />
             </FeatureGate>
           </TabsContent>
@@ -1260,9 +1261,11 @@ const Dashboard = () => {
 
           <TabsContent value="support">
             <FeatureGate featureKey="ticket_system">
+              <FeatureTutorialVideo featureKey="support" />
               <TicketSystem />
             </FeatureGate>
           </TabsContent>
+
 
           <TabsContent value="chat-online">
             <FeatureGate featureKey="ai_agent">
