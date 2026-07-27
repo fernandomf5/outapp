@@ -91,7 +91,7 @@ export function RichFeaturesEditor({ value, onChange, placeholder }: RichFeature
   return (
     <div className="rounded-md border border-input bg-background">
       <div className="flex flex-wrap items-center gap-1 border-b border-border p-1">
-        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onМouseDown={undefined} onMouseDown={(e) => e.preventDefault()} onClick={() => exec("bold")} title="Negrito">
+        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("bold")} title="Negrito">
           <Bold className="h-4 w-4" />
         </Button>
         <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("italic")} title="Itálico">
