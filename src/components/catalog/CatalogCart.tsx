@@ -555,25 +555,49 @@ export function CatalogCart({
                     *Alguns itens precisam de orçamento
                   </p>
                 )}
-                <Button
-                  onClick={handleWhatsAppCheckout}
-                  className="w-full text-white"
-                  size="lg"
-                  disabled={isSubmitting}
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      Enviar Pedido via WhatsApp
-                    </>
-                  )}
-                </Button>
+                {paymentsEnabled && !hasQuoteItems && (
+                  <Button
+                    onClick={handlePayCheckout}
+                    className="w-full text-white"
+                    size="lg"
+                    disabled={isSubmitting}
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-5 h-5 mr-2" />
+                        Finalizar e Pagar
+                      </>
+                    )}
+                  </Button>
+                )}
+                {whatsappNumber && (
+                  <Button
+                    onClick={handleWhatsAppCheckout}
+                    className={paymentsEnabled ? "w-full" : "w-full text-white"}
+                    size="lg"
+                    variant={paymentsEnabled ? "outline" : "default"}
+                    disabled={isSubmitting}
+                    style={paymentsEnabled ? { borderColor: primaryColor, color: primaryColor } : { backgroundColor: primaryColor }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        Enviar Pedido via WhatsApp
+                      </>
+                    )}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   onClick={onClearCart}
