@@ -24,6 +24,14 @@ import {
 import { CatalogCart, CartItem } from "@/components/catalog/CatalogCart";
 import { ProductDetailModal } from "@/components/catalog/ProductDetailModal";
 import { BannerCarousel } from "@/components/catalog/BannerCarousel";
+import {
+  StoreTopBar,
+  StoreHeader,
+  StoreNav,
+  StoreCategoryStrip,
+  StoreBenefits,
+  StoreFooter,
+} from "@/components/catalog/StoreChrome";
 import { toast } from "sonner";
 
 // Horizontal scroll component with arrows and drag
