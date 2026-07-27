@@ -159,42 +159,93 @@ export const StoreNav = ({
   active,
   onSelect,
   config,
+  pages = [],
+  catalogSlug,
 }: {
   palette: Palette;
   categories: StoreCategory[];
   active: string;
   onSelect: (id: string) => void;
   config: CatalogLayoutSettings["categories"];
+  pages?: StorePageLink[];
+  catalogSlug?: string;
 }) => {
-  const items = config.showHomeInNav
-    ? [{ id: "all", name: config.homeLabel, color: palette.primary }, ...categories]
-    : categories;
-  if (items.length === 0) return null;
+  const [openCats, setOpenCats] = useState(false);
+  const hasHome = config.showHomeInNav;
+  if (!hasHome && pages.length === 0 && categories.length === 0) return null;
+
   return (
     <nav className="border-b sticky top-0 z-30 backdrop-blur" style={{ borderColor: `${palette.text}14`, backgroundColor: `${palette.background}f2` }}>
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2">
-          {items.map((c) => {
-            const isActive = active === c.id;
-            return (
+          {hasHome && (
+            <button
+              onClick={() => {
+                setOpenCats(false);
+                onSelect("all");
+              }}
+              className="shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors"
+              style={{
+                color: active === "all" ? palette.primary : `${palette.text}b3`,
+                backgroundColor: active === "all" ? `${palette.primary}14` : "transparent",
+              }}
+            >
+              {config.homeLabel}
+            </button>
+          )}
+
+          {pages.map((p) => (
+            <a
+              key={p.id}
+              href={`/catalogo/${catalogSlug}/p/${p.slug}`}
+              className="shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors hover:underline"
+              style={{ color: `${palette.text}b3` }}
+            >
+              {p.title}
+            </a>
+          ))}
+
+          {categories.length > 0 && (
+            <button
+              onClick={() => setOpenCats((v) => !v)}
+              className="shrink-0 ml-auto px-3.5 py-1.5 rounded-full text-sm font-semibold inline-flex items-center gap-1.5"
+              style={{ color: palette.primary, backgroundColor: `${palette.primary}14` }}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              Ver todas as categorias
+              <ChevronDown className={`w-4 h-4 transition-transform ${openCats ? "rotate-180" : ""}`} />
+            </button>
+          )}
+        </div>
+
+        {openCats && categories.length > 0 && (
+          <div
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 pb-4 pt-1"
+            style={{ borderTop: `1px solid ${palette.text}14` }}
+          >
+            {categories.map((c) => (
               <button
                 key={c.id}
-                onClick={() => onSelect(c.id)}
-                className="shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors"
+                onClick={() => {
+                  onSelect(c.id);
+                  setOpenCats(false);
+                }}
+                className="text-left text-sm px-3 py-2 rounded-lg transition-colors"
                 style={{
-                  color: isActive ? palette.primary : `${palette.text}b3`,
-                  backgroundColor: isActive ? `${palette.primary}14` : "transparent",
+                  color: active === c.id ? palette.primary : `${palette.text}cc`,
+                  backgroundColor: active === c.id ? `${palette.primary}14` : `${palette.text}08`,
                 }}
               >
                 {c.name}
               </button>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </nav>
   );
 };
+
 
 export const StoreCategoryStrip = ({
   palette,
