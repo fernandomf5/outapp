@@ -1,0 +1,1 @@
+ALTER TABLE public.catalogs ADD COLUMN IF NOT EXISTS layout_settings jsonb NOT NULL DEFAULT '{}'::jsonb;

@@ -10,6 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import CatalogLayoutEditor from "@/components/catalog/CatalogLayoutEditor";
+import { defaultCatalogLayout, mergeCatalogLayout, type CatalogLayoutSettings } from "@/components/catalog/catalogLayout";
+
 import {
   BookOpen,
   Plus,
@@ -99,7 +102,9 @@ const defaultCatalogForm = {
   group_by_category: false,
   head_code: "",
   footer_code: "",
+  layout_settings: defaultCatalogLayout,
 };
+
 
 export default function CatalogCreatorPanel() {
   const { user } = useAuth();
@@ -150,7 +155,9 @@ export default function CatalogCreatorPanel() {
         group_by_category: (editingCatalog as any).group_by_category ?? false,
         head_code: editingCatalog.head_code || "",
         footer_code: editingCatalog.footer_code || "",
+        layout_settings: mergeCatalogLayout((editingCatalog as any).layout_settings),
       });
+
     } else {
       setFormData(defaultCatalogForm);
     }
@@ -307,7 +314,11 @@ export default function CatalogCreatorPanel() {
         selected_service_ids: formData.show_all_items ? [] : formData.selected_service_ids,
         linked_registration_category_ids: formData.linked_registration_category_ids,
         group_by_category: formData.group_by_category,
+        head_code: formData.head_code || null,
+        footer_code: formData.footer_code || null,
+        layout_settings: formData.layout_settings,
       };
+
 
       if (editingCatalog) {
         const { error } = await supabase
@@ -1040,6 +1051,13 @@ export default function CatalogCreatorPanel() {
                 </p>
               </div>
             </div>
+
+            <CatalogLayoutEditor
+              value={formData.layout_settings as CatalogLayoutSettings}
+              onChange={(next) => setFormData((prev) => ({ ...prev, layout_settings: next }))}
+            />
+
+
 
             <Button onClick={handleSave} className="w-full" disabled={saving}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

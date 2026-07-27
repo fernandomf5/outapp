@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Helmet } from "react-helmet-async";
 import {
@@ -32,6 +32,8 @@ import {
   StoreBenefits,
   StoreFooter,
 } from "@/components/catalog/StoreChrome";
+import { mergeCatalogLayout } from "@/components/catalog/catalogLayout";
+
 import { toast } from "sonner";
 
 // Horizontal scroll component with arrows and drag
@@ -238,7 +240,7 @@ export default function CatalogPublicPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
+  
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [viewAllCategory, setViewAllCategory] = useState<{ category: Category; items: any[] } | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -459,11 +461,12 @@ export default function CatalogPublicPage() {
           }
         });
 
-        // remove subcategorias vazias
+        // Apenas as subcategorias criadas na Gestão Livre (sem vazias)
         const usedIds = new Set(
           [...filteredProducts, ...filteredServices].map((i: any) => i.category_id).filter(Boolean)
         );
-        setCategories([...baseCategories, ...syntheticCategories.filter((c) => usedIds.has(c.id))]);
+        setCategories(syntheticCategories.filter((c) => usedIds.has(c.id)));
+
       } else {
         setCategories(baseCategories);
       }
@@ -598,21 +601,19 @@ export default function CatalogPublicPage() {
   const backgroundColor = catalog.background_color || "#ffffff";
   const textColor = catalog.text_color || "#1f2937";
 
+  const layout = mergeCatalogLayout((catalog as any).layout_settings);
+
   const allItems = [
     ...products.map((p) => ({ ...p, type: "product" as const })),
     ...services.map((s) => ({ ...s, type: "service" as const })),
   ];
 
-  const filteredItems =
-    activeTab === "all"
-      ? allItems
-      : activeTab === "products"
-        ? products.map((p) => ({ ...p, type: "product" as const }))
-        : services.map((s) => ({ ...s, type: "service" as const }));
+  const filteredItems = allItems;
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
   const palette = { primary: catalog.primary_color, text: textColor, background: backgroundColor };
+
 
   const isFiltering = activeCategory !== "all" || search.trim().length > 0;
   const term = search.trim().toLowerCase();
@@ -945,7 +946,7 @@ export default function CatalogPublicPage() {
 
       <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
         <div id="topo" />
-        <StoreTopBar palette={palette} hasWhatsApp={!!catalog.whatsapp_number} />
+        <StoreTopBar palette={palette} hasWhatsApp={!!catalog.whatsapp_number} config={layout.topbar} />
         <StoreHeader
           palette={palette}
           name={catalog.name}
@@ -954,6 +955,7 @@ export default function CatalogPublicPage() {
           search={search}
           onSearch={setSearch}
           onWhatsApp={catalog.whatsapp_number ? () => handleWhatsAppContact() : undefined}
+          config={layout.header}
         />
         <StoreNav
           palette={palette}
@@ -963,67 +965,63 @@ export default function CatalogPublicPage() {
             setActiveCategory(id);
             setSearch("");
           }}
+          config={layout.categories}
         />
 
         {/* Hero */}
-        <div className="container mx-auto px-3 sm:px-4 pt-5">
-          {banners.length > 0 ? (
-            <BannerCarousel banners={banners} primaryColor={catalog.primary_color} textColor={textColor} />
-          ) : (
-            <div
-              className="relative rounded-2xl overflow-hidden"
-              style={{
-                background: catalog.cover_url
-                  ? undefined
-                  : `linear-gradient(120deg, ${catalog.primary_color} 0%, ${catalog.primary_color}bb 100%)`,
-              }}
-            >
-              {catalog.cover_url && (
-                <>
-                  <img src={catalog.cover_url} alt={`Capa de ${catalog.name}`} className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute inset-0" style={{ backgroundColor: `${catalog.primary_color}aa` }} />
-                </>
-              )}
-              <div className="relative z-10 px-6 sm:px-12 py-12 sm:py-20 text-white max-w-2xl">
-                <span className="inline-block text-[11px] font-bold uppercase tracking-wider rounded-full px-3 py-1 bg-white/20 mb-3">
-                  Catálogo online
-                </span>
-                <h1 className="text-2xl sm:text-4xl font-extrabold mb-2">{catalog.name}</h1>
-                {catalog.description && <p className="text-sm sm:text-lg opacity-90">{catalog.description}</p>}
-                {catalog.whatsapp_number && (
-                  <Button onClick={() => handleWhatsAppContact()} className="mt-6" size="lg" variant="secondary">
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Falar no WhatsApp
-                  </Button>
+        {layout.hero.enabled && (
+          <div className="container mx-auto px-3 sm:px-4 pt-5">
+            {banners.length > 0 ? (
+              <BannerCarousel banners={banners} primaryColor={catalog.primary_color} textColor={textColor} />
+            ) : (
+              <div
+                className="relative rounded-2xl overflow-hidden"
+                style={{
+                  background: catalog.cover_url
+                    ? undefined
+                    : `linear-gradient(120deg, ${catalog.primary_color} 0%, ${catalog.primary_color}bb 100%)`,
+                }}
+              >
+                {catalog.cover_url && (
+                  <>
+                    <img src={catalog.cover_url} alt={`Capa de ${catalog.name}`} className="absolute inset-0 w-full h-full object-cover" />
+                    <div className="absolute inset-0" style={{ backgroundColor: `${catalog.primary_color}aa` }} />
+                  </>
                 )}
+                <div className="relative z-10 px-6 sm:px-12 py-12 sm:py-20 text-white max-w-2xl">
+                  {layout.hero.badge && (
+                    <span className="inline-block text-[11px] font-bold uppercase tracking-wider rounded-full px-3 py-1 bg-white/20 mb-3">
+                      {layout.hero.badge}
+                    </span>
+                  )}
+                  <h1 className="text-2xl sm:text-4xl font-extrabold mb-2">{layout.hero.title || catalog.name}</h1>
+                  {(layout.hero.subtitle || catalog.description) && (
+                    <p className="text-sm sm:text-lg opacity-90">{layout.hero.subtitle || catalog.description}</p>
+                  )}
+                  {catalog.whatsapp_number && layout.hero.ctaLabel && (
+                    <Button onClick={() => handleWhatsAppContact()} className="mt-6" size="lg" variant="secondary">
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      {layout.hero.ctaLabel}
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
+
 
         {/* Content */}
         <main className="container mx-auto px-3 sm:px-4 py-8">
-          {activeCategory === "all" && !search && (
-            <StoreCategoryStrip palette={palette} categories={categories} onSelect={setActiveCategory} />
+          {activeCategory === "all" && !search && layout.categories.showStrip && (
+            <StoreCategoryStrip
+              palette={palette}
+              categories={categories}
+              onSelect={setActiveCategory}
+              title={layout.categories.title}
+            />
           )}
 
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList
-              className="inline-flex h-auto rounded-full p-1"
-              style={{ backgroundColor: `${textColor}10` }}
-            >
-              <TabsTrigger value="all" className="rounded-full text-xs sm:text-sm px-4">Todos ({allItems.length})</TabsTrigger>
-              <TabsTrigger value="products" className="rounded-full text-xs sm:text-sm px-4">
-                <Package className="w-3.5 h-3.5 mr-1" />
-                Produtos ({products.length})
-              </TabsTrigger>
-              <TabsTrigger value="services" className="rounded-full text-xs sm:text-sm px-4">
-                <Wrench className="w-3.5 h-3.5 mr-1" />
-                Serviços ({services.length})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
 
           {/* Items */}
           {visibleItems.length === 0 ? (
@@ -1065,7 +1063,7 @@ export default function CatalogPublicPage() {
 
                 return (
                   <div key={categoryId}>
-                    {idx === 2 && <StoreBenefits palette={palette} />}
+                    {idx === 2 && <StoreBenefits palette={palette} config={layout.benefits} />}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         {category.image_url ? (
@@ -1119,7 +1117,8 @@ export default function CatalogPublicPage() {
                 </div>
               )}
 
-              <StoreBenefits palette={palette} />
+              <StoreBenefits palette={palette} config={layout.benefits} />
+
             </div>
           )}
         </main>
@@ -1132,7 +1131,9 @@ export default function CatalogPublicPage() {
           categories={categories}
           onSelect={setActiveCategory}
           onWhatsApp={catalog.whatsapp_number ? () => handleWhatsAppContact() : undefined}
+          config={layout.footer}
         />
+
 
 
         {/* Shopping Cart */}
