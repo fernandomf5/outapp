@@ -57,6 +57,7 @@ interface MembersArea {
   password: string;
   slug: string;
   sections: Section[];
+  banners?: AreaBanner[];
   is_active: boolean;
   primary_color?: string;
   secondary_color?: string;
