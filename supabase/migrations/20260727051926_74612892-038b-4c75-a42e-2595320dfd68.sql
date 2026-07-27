@@ -1,0 +1,1 @@
+UPDATE public.site_settings SET value = '/__l5e/assets-v1/04f1a3da-7b6a-4292-9b27-139cbc8107e4/logo-outapp-v2.png' WHERE key IN ('site_logo_url','site_logo_light_url','site_logo_dark_url');
