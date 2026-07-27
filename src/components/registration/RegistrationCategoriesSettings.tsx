@@ -28,6 +28,7 @@ interface Category {
   entity_kind?: string | null;
   custom_schema?: any;
   item_groups?: string[] | null;
+  item_group_images?: Record<string, string> | null;
   sort_order?: number | null;
   logo_url?: string | null;
 }
@@ -144,6 +145,7 @@ export function RegistrationCategoriesSettings() {
     entity_kind: "people",
     custom_schema: [] as KindField[],
     item_groups: [] as string[],
+    item_group_images: {} as Record<string, string>,
   });
 
 
@@ -186,6 +188,7 @@ export function RegistrationCategoriesSettings() {
     entity_kind: "people",
     custom_schema: [] as KindField[],
     item_groups: [] as string[],
+    item_group_images: {} as Record<string, string>,
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,6 +204,7 @@ export function RegistrationCategoriesSettings() {
         entity_kind: formData.entity_kind,
         custom_schema: formData.custom_schema as any,
         item_groups: formData.item_groups as any,
+        item_group_images: formData.item_group_images as any,
       };
       if (editingId) {
         const { error } = await supabase
@@ -244,6 +248,9 @@ export function RegistrationCategoriesSettings() {
       entity_kind: (category as any).entity_kind || "people",
       custom_schema: Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : [],
       item_groups: Array.isArray((category as any).item_groups) ? (category as any).item_groups : [],
+      item_group_images: ((category as any).item_group_images && typeof (category as any).item_group_images === "object")
+        ? (category as any).item_group_images
+        : {},
     });
     setIsDialogOpen(true);
   };
@@ -499,7 +506,9 @@ export function RegistrationCategoriesSettings() {
               <div className="rounded-lg border p-3">
                 <ItemGroupsEditor
                   groups={formData.item_groups}
+                  images={formData.item_group_images}
                   onChange={(item_groups) => setFormData({ ...formData, item_groups })}
+                  onChangeImages={(item_group_images) => setFormData({ ...formData, item_group_images })}
                 />
               </div>
             )}
