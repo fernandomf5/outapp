@@ -38,9 +38,16 @@ interface Section {
   id: string;
   title: string;
   description?: string;
+  cover_image?: string;
   order_index: number;
   blocks_layout: ('full' | 'half' | 'third')[]; // Define quantos blocos e suas larguras
   blocks: ContentBlock[];
+}
+
+interface AreaBanner {
+  id: string;
+  image_url: string;
+  link?: string;
 }
 
 interface MembersArea {
