@@ -1174,7 +1174,12 @@ export default function MembersAreaPublic() {
                     : 'Bem-vindo à sua área de membros'}
                 </p>
               </div>
-              <div className="p-4 md:p-6 space-y-4">
+              <div className="p-4 md:p-6 space-y-6">
+                {/* Banners */}
+                {(area.banners?.length ?? 0) > 0 && (
+                  <AreaBannerCarousel banners={area.banners!.filter(b => b.image_url)} accentColor={accentColor} />
+                )}
+
                 {/* Welcome Card */}
                 <Card style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
                   <div 
