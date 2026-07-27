@@ -265,8 +265,12 @@ export function SimpleMembersArea() {
   const [sectionFormData, setSectionFormData] = useState({
     title: '',
     description: '',
+    cover_image: '',
     blocks_layout: ['full'] as ('full' | 'half' | 'third')[],
   });
+
+  const [isBannersDialogOpen, setIsBannersDialogOpen] = useState(false);
+  const [bannersDraft, setBannersDraft] = useState<AreaBanner[]>([]);
 
   const [blockFormData, setBlockFormData] = useState({
     type: 'text' as ContentBlock['type'],
