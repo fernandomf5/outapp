@@ -20,6 +20,8 @@ import { useTheme } from "next-themes";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { VideoCover } from "@/components/VideoCover";
+import { NeonImageFrame } from "@/components/NeonImageFrame";
+import showcaseAsset from "@/assets/out-app-showcase.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIcon from "@/assets/hero-icon.png";
 import logoLion from "@/assets/logo-lion.png";
