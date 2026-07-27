@@ -133,6 +133,7 @@ const AppContent = () => {
               <Route path="/campanha/:campaignId" element={<CampaignPublicView />} />
               <Route path="/cliente-campanhas/:clientId" element={<ClientCampaignsPublicView />} />
               <Route path="/catalogo/:slug" element={<CatalogPublicPage />} />
+              <Route path="/catalogo/:slug/p/:pageSlug" element={<CatalogContentPage />} />
               <Route path="/checkout/:checkoutId" element={<CheckoutPage />} />
               <Route path="/checkout/:checkoutId/:slug" element={<CheckoutPage />} />
               <Route path="/checkout/:checkoutId/obrigado" element={<CheckoutThankYouPage />} />
