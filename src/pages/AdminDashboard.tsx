@@ -73,6 +73,8 @@ import {
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { RichFeaturesEditor } from "@/components/admin/RichFeaturesEditor";
+import { TUTORIAL_FEATURES, TUTORIAL_FEATURE_GROUPS, getTutorialFeatureLabel } from "@/lib/tutorialFeatures";
+
 
 interface Plan {
   id: string;
