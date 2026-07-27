@@ -152,7 +152,9 @@ export default function CatalogCreatorPanel() {
         group_by_category: (editingCatalog as any).group_by_category ?? false,
         head_code: editingCatalog.head_code || "",
         footer_code: editingCatalog.footer_code || "",
+        layout_settings: mergeCatalogLayout((editingCatalog as any).layout_settings),
       });
+
     } else {
       setFormData(defaultCatalogForm);
     }
