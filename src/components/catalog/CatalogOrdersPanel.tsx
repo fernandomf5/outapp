@@ -48,6 +48,9 @@ interface Order {
   items: OrderItem[];
   total_amount: number;
   status: string;
+  payment_status?: string | null;
+  payment_method?: string | null;
+  paid_at?: string | null;
   notes: string | null;
   created_at: string;
 }
