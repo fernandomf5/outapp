@@ -1323,6 +1323,7 @@ const Dashboard = () => {
           <TabsContent value="tabelas-organizacao" className="m-0 p-0 border-none outline-none">
             <FeatureGate featureKey="financial_management">
               <div className="py-0">
+                <FeatureTutorialVideo featureKey="tabelas-organizacao" />
                 <OrganizationTablesPanel />
               </div>
             </FeatureGate>
@@ -1330,9 +1331,11 @@ const Dashboard = () => {
 
           <TabsContent value="checkout-creator">
             <FeatureGate featureKey="checkout_creator">
+              <FeatureTutorialVideo featureKey="checkout-creator" />
               <CheckoutCreatorPanel />
             </FeatureGate>
           </TabsContent>
+
 
           <TabsContent value="equipe">
             <FeatureGate featureKey="team_management">
