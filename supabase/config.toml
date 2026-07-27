@@ -100,3 +100,6 @@ verify_jwt = false
 
 [functions.catalog-mercadopago-webhook]
 verify_jwt = false
+
+[functions.translate-texts]
+verify_jwt = false

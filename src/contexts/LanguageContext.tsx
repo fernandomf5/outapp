@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations, Language, TranslationKey } from '@/i18n/translations';
+import { setAutoTranslateLanguage } from '@/lib/autoTranslate';
 
 interface LanguageContextType {
   language: Language;
@@ -25,10 +26,14 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch {
       // Ignore localStorage errors
     }
+    setAutoTranslateLanguage(language);
   }, [language]);
 
   const setLanguage = (lang: Language) => {
+    if (lang === language) return;
     setLanguageState(lang);
+    // Full remount of translated content is unnecessary — the auto-translator
+    // reacts to the language change and re-sweeps the DOM.
   };
 
   const t = (key: TranslationKey): string => {
