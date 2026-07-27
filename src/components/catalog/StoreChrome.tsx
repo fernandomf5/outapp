@@ -346,7 +346,7 @@ export const StoreFooter = ({
 
   return (
     <footer className="mt-12" style={{ backgroundColor: `${palette.text}0d` }}>
-      <div className="container mx-auto px-4 py-10 grid gap-8 md:grid-cols-4">
+      <div className={`container mx-auto px-4 py-10 grid gap-8 ${footerPages.length > 0 ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
         <div>
           <div className="flex items-center gap-2.5 mb-3">
             {logoUrl ? (
