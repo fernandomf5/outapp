@@ -1016,6 +1016,7 @@ export function SimpleMembersArea() {
                                     setSectionFormData({
                                       title: section.title,
                                       description: section.description || '',
+                                      cover_image: section.cover_image || '',
                                       blocks_layout: section.blocks_layout || ['full'],
                                     });
                                     setIsEditSectionDialogOpen(true);
