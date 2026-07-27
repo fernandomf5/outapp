@@ -27,6 +27,7 @@ import outAppLogo from "@/assets/out-app-logo.png";
 import heroIconAsset from "@/assets/lion-3d-white.png.asset.json";
 const heroIcon = heroIconAsset.url;
 import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
+import klicLogoAsset from "@/assets/klic-smart-logo-v3.png.asset.json";
 const logoLion = logoAsset.url;
 import { AIAgentFloatingChat } from "@/components/AIAgentFloatingChat";
 
@@ -941,7 +942,7 @@ const Index = () => {
             >
               <span>Criado com carinho pela agência</span>
               <img 
-                src="/klic-smart-logo.png" 
+                src={klicLogoAsset.url} 
                 alt="Klic Smart AI" 
                 className="h-3.5 xs:h-4 sm:h-5 w-3.5 xs:w-4 sm:w-5 object-contain"
               />
