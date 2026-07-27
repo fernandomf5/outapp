@@ -1031,3 +1031,72 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .neon-frame, .neon-frame::before { animation: none; }
 }
+
+/* ===== 3D Feature Cards (seção "Tudo que Você Precisa em Uma Plataforma") ===== */
+.features-3d {
+  perspective: 1400px;
+}
+.feature-card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 400ms ease, border-color 400ms ease;
+  background:
+    linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+    linear-gradient(140deg, hsl(var(--primary) / 0.45), transparent 45%, hsl(var(--primary) / 0.25)) border-box;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.06), 0 10px 24px -18px hsl(var(--foreground) / 0.4);
+  will-change: transform;
+}
+.feature-card-3d:hover {
+  box-shadow:
+    0 0 0 1px hsl(var(--primary) / 0.35),
+    0 24px 50px -24px hsl(var(--primary) / 0.55),
+    0 40px 90px -50px hsl(var(--primary) / 0.6);
+}
+/* brilho que segue o cursor */
+.feature-card-3d::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 0%),
+    hsl(var(--primary) / 0.18),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.feature-card-3d:hover::before { opacity: 1; }
+/* reflexo diagonal */
+.feature-card-3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 35%, hsl(var(--primary-foreground) / 0.10) 48%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.feature-card-3d:hover::after { transform: translateX(120%); }
+/* camadas com profundidade */
+.feature-card-3d .card-3d-layer {
+  transform: translateZ(35px);
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.feature-card-3d .card-3d-icon {
+  transform: translateZ(60px);
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 400ms ease;
+  box-shadow: 0 8px 20px -10px hsl(var(--primary) / 0.7), inset 0 1px 0 hsl(var(--primary) / 0.25);
+}
+.feature-card-3d:hover .card-3d-icon {
+  box-shadow: 0 16px 32px -12px hsl(var(--primary) / 0.9), inset 0 1px 0 hsl(var(--primary) / 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-card-3d,
+  .feature-card-3d .card-3d-layer,
+  .feature-card-3d .card-3d-icon { transition: none; transform: none; }
+}
