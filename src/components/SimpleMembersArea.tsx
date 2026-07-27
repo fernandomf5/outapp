@@ -1259,6 +1259,12 @@ export function SimpleMembersArea() {
                   placeholder="Descreva esta seção..."
                 />
               </div>
+              <ImageUpload
+                label="Imagem de Capa do Módulo"
+                bucketName="members-content"
+                currentImage={sectionFormData.cover_image}
+                onImageSelect={(url) => setSectionFormData({ ...sectionFormData, cover_image: url })}
+              />
               <div>
                 <Label>Layout dos Blocos</Label>
                 <Select 
