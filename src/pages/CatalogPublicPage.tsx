@@ -598,21 +598,19 @@ export default function CatalogPublicPage() {
   const backgroundColor = catalog.background_color || "#ffffff";
   const textColor = catalog.text_color || "#1f2937";
 
+  const layout = mergeCatalogLayout((catalog as any).layout_settings);
+
   const allItems = [
     ...products.map((p) => ({ ...p, type: "product" as const })),
     ...services.map((s) => ({ ...s, type: "service" as const })),
   ];
 
-  const filteredItems =
-    activeTab === "all"
-      ? allItems
-      : activeTab === "products"
-        ? products.map((p) => ({ ...p, type: "product" as const }))
-        : services.map((s) => ({ ...s, type: "service" as const }));
+  const filteredItems = allItems;
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
   const palette = { primary: catalog.primary_color, text: textColor, background: backgroundColor };
+
 
   const isFiltering = activeCategory !== "all" || search.trim().length > 0;
   const term = search.trim().toLowerCase();
