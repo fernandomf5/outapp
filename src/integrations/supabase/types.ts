@@ -8594,6 +8594,7 @@ export type Database = {
           access_type: string
           area_type: string
           background_color: string | null
+          banners: Json
           business_id: string | null
           card_background_color: string | null
           card_text_color: string | null
@@ -8624,6 +8625,7 @@ export type Database = {
           access_type?: string
           area_type?: string
           background_color?: string | null
+          banners?: Json
           business_id?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
@@ -8654,6 +8656,7 @@ export type Database = {
           access_type?: string
           area_type?: string
           background_color?: string | null
+          banners?: Json
           business_id?: string | null
           card_background_color?: string | null
           card_text_color?: string | null

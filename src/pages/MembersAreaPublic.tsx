@@ -96,9 +96,16 @@ interface Section {
   id: string;
   title: string;
   description?: string;
+  cover_image?: string;
   order_index: number;
   blocks_layout: ('full' | 'half' | 'third')[];
   blocks: ContentBlock[];
+}
+
+interface AreaBanner {
+  id: string;
+  image_url: string;
+  link?: string;
 }
 
 interface MembersArea {
@@ -108,6 +115,7 @@ interface MembersArea {
   password: string;
   slug: string;
   sections: Section[];
+  banners?: AreaBanner[];
   is_active: boolean;
   primary_color?: string;
   secondary_color?: string;
@@ -125,6 +133,55 @@ interface MembersArea {
   enable_questions?: boolean;
   user_id?: string;
   manager_whatsapp?: string;
+}
+
+function AreaBannerCarousel({ banners, accentColor }: { banners: AreaBanner[]; accentColor: string }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (banners.length < 2) return;
+    const t = setInterval(() => setIndex(i => (i + 1) % banners.length), 5000);
+    return () => clearInterval(t);
+  }, [banners.length]);
+
+  if (banners.length === 0) return null;
+
+  return (
+    <div className="relative w-full overflow-hidden rounded-2xl shadow-lg">
+      <div
+        className="flex transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${index * 100}%)` }}
+      >
+        {banners.map((banner) => (
+          <div key={banner.id} className="min-w-full aspect-[21/9] md:aspect-[3/1] bg-black/20">
+            {banner.link ? (
+              <a href={banner.link} target="_blank" rel="noopener noreferrer">
+                <img src={banner.image_url} alt="Banner" className="w-full h-full object-cover" />
+              </a>
+            ) : (
+              <img src={banner.image_url} alt="Banner" className="w-full h-full object-cover" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {banners.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+          {banners.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              className="h-2 rounded-full transition-all"
+              style={{
+                width: i === index ? 24 : 8,
+                backgroundColor: i === index ? accentColor : 'rgba(255,255,255,0.6)',
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 
@@ -988,12 +1045,20 @@ export default function MembersAreaPublic() {
                     borderWidth: '2px'
                   }}
                 >
-                  <div 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0"
-                    style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
-                  >
-                    {index + 1}
-                  </div>
+                  {section.cover_image ? (
+                    <img
+                      src={section.cover_image}
+                      alt={section.title}
+                      className="w-14 h-10 rounded-lg object-cover shrink-0"
+                    />
+                  ) : (
+                    <div 
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0"
+                      style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
+                    >
+                      {index + 1}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
                     {section.description && (
@@ -1076,12 +1141,20 @@ export default function MembersAreaPublic() {
                     borderWidth: '2px'
                   }}
                 >
-                  <div 
-                    className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
-                  >
-                    {index + 1}
-                  </div>
+                  {section.cover_image ? (
+                    <img
+                      src={section.cover_image}
+                      alt={section.title}
+                      className="w-14 h-9 rounded-lg object-cover shrink-0"
+                    />
+                  ) : (
+                    <div 
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                      style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
+                    >
+                      {index + 1}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
                     {section.description && (
@@ -1117,7 +1190,12 @@ export default function MembersAreaPublic() {
                     : 'Bem-vindo à sua área de membros'}
                 </p>
               </div>
-              <div className="p-4 md:p-6 space-y-4">
+              <div className="p-4 md:p-6 space-y-6">
+                {/* Banners */}
+                {(area.banners?.length ?? 0) > 0 && (
+                  <AreaBannerCarousel banners={area.banners!.filter(b => b.image_url)} accentColor={accentColor} />
+                )}
+
                 {/* Welcome Card */}
                 <Card style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
                   <div 
@@ -1167,34 +1245,59 @@ export default function MembersAreaPublic() {
                   )}
                 </div>
 
-                {/* Quick Access */}
-                <Card style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
-                  <CardContent className="p-4">
-                    <h4 className="font-semibold mb-3" style={{ color: cardTextColor }}>Acesso Rápido</h4>
-                    <div className="space-y-2">
-                      {area.sections.slice(0, 3).map((section, index) => (
+                {/* Modules Grid */}
+                {area.sections.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-lg" style={{ color: textColor }}>Módulos</h4>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {area.sections.map((section, index) => (
                         <button
                           key={section.id}
                           onClick={() => {
                             setActiveSection(section.id);
                             setActiveView('content');
                           }}
-                          className="w-full p-3 rounded-lg flex items-center gap-3 transition-all text-left hover:opacity-80"
-                          style={{ backgroundColor: `${accentColor}10` }}
+                          className="group text-left rounded-2xl overflow-hidden border transition-all hover:-translate-y-1 hover:shadow-xl"
+                          style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}
                         >
-                          <div 
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
-                            style={{ backgroundColor: accentColor }}
+                          <div
+                            className="relative aspect-video overflow-hidden"
+                            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
                           >
-                            {index + 1}
+                            {section.cover_image ? (
+                              <img
+                                src={section.cover_image}
+                                alt={section.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold opacity-80">
+                                {index + 1}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                            <span className="absolute bottom-2 left-3 text-white text-xs font-semibold uppercase tracking-wide">
+                              Módulo {index + 1}
+                            </span>
                           </div>
-                          <span className="font-medium" style={{ color: cardTextColor }}>{section.title}</span>
-                          <ChevronRight className="w-4 h-4 ml-auto" style={{ color: cardTextColor }} />
+                          <div className="p-4">
+                            <p className="font-semibold line-clamp-1" style={{ color: cardTextColor }}>{section.title}</p>
+                            {section.description && (
+                              <p className="text-sm mt-1 opacity-70 line-clamp-2" style={{ color: cardTextColor }}>
+                                {section.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-1 mt-3 text-sm font-medium" style={{ color: accentColor }}>
+                              Acessar
+                              <ChevronRight className="w-4 h-4" />
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                )}
               </div>
             </>
           )}

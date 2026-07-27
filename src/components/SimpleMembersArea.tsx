@@ -38,9 +38,16 @@ interface Section {
   id: string;
   title: string;
   description?: string;
+  cover_image?: string;
   order_index: number;
   blocks_layout: ('full' | 'half' | 'third')[]; // Define quantos blocos e suas larguras
   blocks: ContentBlock[];
+}
+
+interface AreaBanner {
+  id: string;
+  image_url: string;
+  link?: string;
 }
 
 interface MembersArea {
@@ -50,6 +57,7 @@ interface MembersArea {
   password: string;
   slug: string;
   sections: Section[];
+  banners?: AreaBanner[];
   is_active: boolean;
   primary_color?: string;
   secondary_color?: string;
@@ -257,8 +265,12 @@ export function SimpleMembersArea() {
   const [sectionFormData, setSectionFormData] = useState({
     title: '',
     description: '',
+    cover_image: '',
     blocks_layout: ['full'] as ('full' | 'half' | 'third')[],
   });
+
+  const [isBannersDialogOpen, setIsBannersDialogOpen] = useState(false);
+  const [bannersDraft, setBannersDraft] = useState<AreaBanner[]>([]);
 
   const [blockFormData, setBlockFormData] = useState({
     type: 'text' as ContentBlock['type'],
@@ -407,6 +419,25 @@ export function SimpleMembersArea() {
     }
   };
 
+  const handleSaveBanners = async (banners: AreaBanner[]) => {
+    if (!selectedArea) return;
+    try {
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .update({ banners: banners as any })
+        .eq('id', selectedArea.id);
+      if (error) throw error;
+
+      const updatedArea = { ...selectedArea, banners };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
+      toast.success('Banners salvos!');
+      setIsBannersDialogOpen(false);
+    } catch (error: any) {
+      toast.error('Erro ao salvar banners: ' + error.message);
+    }
+  };
+
   const handleAddSection = async () => {
     if (!selectedArea) return;
 
@@ -415,6 +446,7 @@ export function SimpleMembersArea() {
         id: crypto.randomUUID(),
         title: sectionFormData.title,
         description: sectionFormData.description,
+        cover_image: sectionFormData.cover_image || undefined,
         order_index: selectedArea.sections.length,
         blocks_layout: sectionFormData.blocks_layout,
         blocks: [],
@@ -433,7 +465,7 @@ export function SimpleMembersArea() {
       setSelectedArea(updatedArea);
       setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setIsAddSectionDialogOpen(false);
-      setSectionFormData({ title: '', description: '', blocks_layout: ['full'] });
+      setSectionFormData({ title: '', description: '', cover_image: '', blocks_layout: ['full'] });
       toast.success('Seção adicionada!');
     } catch (error: any) {
       toast.error('Erro ao adicionar seção: ' + error.message);
@@ -450,6 +482,7 @@ export function SimpleMembersArea() {
               ...section,
               title: sectionFormData.title,
               description: sectionFormData.description,
+              cover_image: sectionFormData.cover_image || undefined,
               blocks_layout: sectionFormData.blocks_layout,
             }
           : section
@@ -467,7 +500,7 @@ export function SimpleMembersArea() {
       setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setIsEditSectionDialogOpen(false);
       setEditingSection(null);
-      setSectionFormData({ title: '', description: '', blocks_layout: ['full'] });
+      setSectionFormData({ title: '', description: '', cover_image: '', blocks_layout: ['full'] });
       toast.success('Seção atualizada!');
     } catch (error: any) {
       toast.error('Erro ao atualizar seção: ' + error.message);
@@ -872,6 +905,16 @@ export function SimpleMembersArea() {
             <p className="text-muted-foreground">{selectedArea.description}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setBannersDraft(selectedArea.banners || []);
+                setIsBannersDialogOpen(true);
+              }}
+            >
+              <Images className="w-4 h-4 mr-2" />
+              Banners
+            </Button>
             <Button variant="outline" onClick={() => handleCopyLink(selectedArea)}>
               <LinkIcon className="w-4 h-4 mr-2" />
               Copiar Link
@@ -983,6 +1026,7 @@ export function SimpleMembersArea() {
                                     setSectionFormData({
                                       title: section.title,
                                       description: section.description || '',
+                                      cover_image: section.cover_image || '',
                                       blocks_layout: section.blocks_layout || ['full'],
                                     });
                                     setIsEditSectionDialogOpen(true);
@@ -1170,6 +1214,13 @@ export function SimpleMembersArea() {
                   placeholder="Descreva esta seção..."
                 />
               </div>
+              <ImageUpload
+                label="Imagem de Capa do Módulo"
+                bucketName="members-content"
+                currentImage={sectionFormData.cover_image}
+                onImageSelect={(url) => setSectionFormData({ ...sectionFormData, cover_image: url })}
+              />
+
               <div>
                 <Label>Layout dos Blocos</Label>
                 <Select 
@@ -1218,6 +1269,12 @@ export function SimpleMembersArea() {
                   placeholder="Descreva esta seção..."
                 />
               </div>
+              <ImageUpload
+                label="Imagem de Capa do Módulo"
+                bucketName="members-content"
+                currentImage={sectionFormData.cover_image}
+                onImageSelect={(url) => setSectionFormData({ ...sectionFormData, cover_image: url })}
+              />
               <div>
                 <Label>Layout dos Blocos</Label>
                 <Select 
@@ -1243,6 +1300,77 @@ export function SimpleMembersArea() {
             </div>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isBannersDialogOpen} onOpenChange={setIsBannersDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Banners da Página Inicial</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Os banners aparecem em destaque na tela de Início da área de membros.
+              </p>
+
+              {bannersDraft.length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground text-sm">
+                  Nenhum banner adicionado ainda
+                </div>
+              )}
+
+              {bannersDraft.map((banner, index) => (
+                <Card key={banner.id}>
+                  <CardContent className="pt-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Banner {index + 1}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setBannersDraft(prev => prev.filter(b => b.id !== banner.id))}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <ImageUpload
+                      label="Imagem do Banner"
+                      bucketName="members-content"
+                      currentImage={banner.image_url}
+                      onImageSelect={(url) =>
+                        setBannersDraft(prev => prev.map(b => b.id === banner.id ? { ...b, image_url: url } : b))
+                      }
+                    />
+                    <div>
+                      <Label>Link (opcional)</Label>
+                      <Input
+                        value={banner.link || ''}
+                        placeholder="https://..."
+                        onChange={(e) =>
+                          setBannersDraft(prev => prev.map(b => b.id === banner.id ? { ...b, link: e.target.value } : b))
+                        }
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setBannersDraft(prev => [...prev, { id: crypto.randomUUID(), image_url: '', link: '' }])}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Banner
+              </Button>
+
+              <Button
+                className="w-full"
+                onClick={() => handleSaveBanners(bannersDraft.filter(b => b.image_url))}
+              >
+                Salvar Banners
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
 
         <DeleteConfirmDialog
           open={isDeleteSectionDialogOpen}
