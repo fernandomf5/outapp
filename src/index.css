@@ -583,11 +583,13 @@ All colors MUST be HSL.
     min-height: 44px;
     min-width: 44px;
   }
-  
-  button, a, [role="button"] {
-    min-height: 44px;
+
+  button:not(.h-4):not(.h-5):not(.h-6):not(.h-7):not(.h-8):not(.h-9):not([data-slot="icon"]),
+  [role="button"]:not(.h-4):not(.h-5):not(.h-6):not(.h-7):not(.h-8):not(.h-9) {
+    min-height: 40px;
   }
 }
+
 
 /* Safe area insets for mobile devices */
 .safe-area-inset {
