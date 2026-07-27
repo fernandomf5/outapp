@@ -7687,6 +7687,7 @@ export type Database = {
           entity_kind: string
           icon: string | null
           id: string
+          item_group_images: Json
           item_groups: string[]
           logo_url: string | null
           name: string
@@ -7702,6 +7703,7 @@ export type Database = {
           entity_kind?: string
           icon?: string | null
           id?: string
+          item_group_images?: Json
           item_groups?: string[]
           logo_url?: string | null
           name: string
@@ -7717,6 +7719,7 @@ export type Database = {
           entity_kind?: string
           icon?: string | null
           id?: string
+          item_group_images?: Json
           item_groups?: string[]
           logo_url?: string | null
           name?: string
