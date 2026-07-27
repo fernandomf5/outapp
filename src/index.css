@@ -1325,3 +1325,48 @@ html, body {
   }
   [role="tablist"]::-webkit-scrollbar { display: none; }
 }
+
+/* App-like resource grid on phones: 2 compact tiles per row */
+@media (max-width: 639px) {
+  .resource-grid-3d {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.625rem !important;
+  }
+
+  .resource-grid-3d > * {
+    padding: 0.75rem !important;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .resource-grid-3d h3 {
+    font-size: 0.8125rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .resource-grid-3d p {
+    display: none !important;
+  }
+
+  .resource-grid-3d .rounded-2xl {
+    padding: 0.5rem !important;
+    margin-left: 0.375rem !important;
+  }
+
+  .resource-grid-3d svg {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+  }
+
+  .resource-grid-3d button {
+    font-size: 0.75rem !important;
+    height: 2.25rem !important;
+    min-height: 2.25rem !important;
+    margin-top: 0.5rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+}
