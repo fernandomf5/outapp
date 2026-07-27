@@ -96,9 +96,16 @@ interface Section {
   id: string;
   title: string;
   description?: string;
+  cover_image?: string;
   order_index: number;
   blocks_layout: ('full' | 'half' | 'third')[];
   blocks: ContentBlock[];
+}
+
+interface AreaBanner {
+  id: string;
+  image_url: string;
+  link?: string;
 }
 
 interface MembersArea {
@@ -108,6 +115,7 @@ interface MembersArea {
   password: string;
   slug: string;
   sections: Section[];
+  banners?: AreaBanner[];
   is_active: boolean;
   primary_color?: string;
   secondary_color?: string;
