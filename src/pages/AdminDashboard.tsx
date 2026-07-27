@@ -883,6 +883,55 @@ const AdminDashboard = () => {
             </Button>
           </div>
 
+          {/* Cobertura de vídeos por recurso */}
+          <Card className="p-4 mb-6 bg-background/60 border-primary/20">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <h3 className="font-semibold">Vídeo por Recurso</h3>
+              <span className="text-xs text-muted-foreground">
+                {TUTORIAL_FEATURES.filter(f => tutorials.some(t => t.featureKey === f.key)).length} de {TUTORIAL_FEATURES.length} recursos com vídeo
+              </span>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {TUTORIAL_FEATURES.map((f) => {
+                const existing = tutorials.find(t => t.featureKey === f.key);
+                return (
+                  <div key={f.key} className="flex items-center justify-between gap-2 rounded-md border border-border/60 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{f.label}</p>
+                      <p className={`text-xs ${existing ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {existing ? '✅ Com vídeo' : 'Sem vídeo'}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={existing ? 'outline' : 'default'}
+                      onClick={() => {
+                        if (existing) {
+                          setEditingVideo(existing);
+                        } else {
+                          setEditingVideo({
+                            id: 'new',
+                            title: `Como usar: ${f.label}`,
+                            description: '',
+                            videoUrl: '',
+                            duration: '',
+                            category: 'Iniciante',
+                            featureKey: f.key,
+                          });
+                        }
+                        setIsVideoDialogOpen(true);
+                      }}
+                    >
+                      {existing ? 'Editar' : 'Adicionar'}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+
+
           <div className="grid md:grid-cols-2 gap-6">
             {tutorials.map((tutorial) => (
               <Card key={tutorial.id} className="p-5 hover:shadow-lg transition-smooth bg-gradient-to-br from-background to-warning/5 border-warning/10">
