@@ -1119,7 +1119,8 @@ export default function CatalogPublicPage() {
                 </div>
               )}
 
-              <StoreBenefits palette={palette} />
+              <StoreBenefits palette={palette} config={layout.benefits} />
+
             </div>
           )}
         </main>
