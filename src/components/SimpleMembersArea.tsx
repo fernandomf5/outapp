@@ -1291,6 +1291,77 @@ export function SimpleMembersArea() {
           </DialogContent>
         </Dialog>
 
+        <Dialog open={isBannersDialogOpen} onOpenChange={setIsBannersDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Banners da Página Inicial</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Os banners aparecem em destaque na tela de Início da área de membros.
+              </p>
+
+              {bannersDraft.length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground text-sm">
+                  Nenhum banner adicionado ainda
+                </div>
+              )}
+
+              {bannersDraft.map((banner, index) => (
+                <Card key={banner.id}>
+                  <CardContent className="pt-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Banner {index + 1}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setBannersDraft(prev => prev.filter(b => b.id !== banner.id))}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <ImageUpload
+                      label="Imagem do Banner"
+                      bucketName="members-content"
+                      currentImage={banner.image_url}
+                      onImageSelect={(url) =>
+                        setBannersDraft(prev => prev.map(b => b.id === banner.id ? { ...b, image_url: url } : b))
+                      }
+                    />
+                    <div>
+                      <Label>Link (opcional)</Label>
+                      <Input
+                        value={banner.link || ''}
+                        placeholder="https://..."
+                        onChange={(e) =>
+                          setBannersDraft(prev => prev.map(b => b.id === banner.id ? { ...b, link: e.target.value } : b))
+                        }
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setBannersDraft(prev => [...prev, { id: crypto.randomUUID(), image_url: '', link: '' }])}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Banner
+              </Button>
+
+              <Button
+                className="w-full"
+                onClick={() => handleSaveBanners(bannersDraft.filter(b => b.image_url))}
+              >
+                Salvar Banners
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+
         <DeleteConfirmDialog
           open={isDeleteSectionDialogOpen}
           onOpenChange={setIsDeleteSectionDialogOpen}
