@@ -344,6 +344,8 @@ export const StoreFooter = ({
     { url: config.youtube, Icon: Youtube, label: "YouTube" },
   ].filter((s) => !!s.url);
 
+  const footerPages = config.showPages === false ? [] : pages;
+
   return (
     <footer className="mt-12" style={{ backgroundColor: `${palette.text}0d` }}>
       <div className={`container mx-auto px-4 py-10 grid gap-8 ${footerPages.length > 0 ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
