@@ -1065,7 +1065,7 @@ export default function CatalogPublicPage() {
 
                 return (
                   <div key={categoryId}>
-                    {idx === 2 && <StoreBenefits palette={palette} />}
+                    {idx === 2 && <StoreBenefits palette={palette} config={layout.benefits} />}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         {category.image_url ? (
