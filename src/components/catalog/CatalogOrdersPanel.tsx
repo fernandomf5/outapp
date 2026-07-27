@@ -77,6 +77,28 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-500",
 };
 
+const paymentLabels: Record<string, string> = {
+  pending: "Não pago",
+  processing: "Processando",
+  awaiting_confirmation: "Aguardando confirmação",
+  paid: "Pago",
+  failed: "Falhou",
+};
+
+const paymentColors: Record<string, string> = {
+  pending: "bg-slate-500",
+  processing: "bg-blue-500",
+  awaiting_confirmation: "bg-amber-500",
+  paid: "bg-green-600",
+  failed: "bg-red-500",
+};
+
+const methodLabels: Record<string, string> = {
+  pix_manual: "PIX manual",
+  mercadopago: "Mercado Pago",
+  whatsapp: "WhatsApp",
+};
+
 export default function CatalogOrdersPanel({ catalogId }: CatalogOrdersPanelProps) {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
