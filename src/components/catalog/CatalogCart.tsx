@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import CatalogCheckoutPayment, { CatalogPaymentConfig } from "./CatalogCheckoutPayment";
 
 export interface CartItem {
   id: string;
@@ -50,6 +51,7 @@ interface CatalogCartProps {
   textColor: string;
   backgroundColor: string;
   showPrices: boolean;
+  paymentConfig?: CatalogPaymentConfig | null;
 }
 
 export function CatalogCart({
@@ -64,6 +66,7 @@ export function CatalogCart({
   textColor,
   backgroundColor,
   showPrices,
+  paymentConfig,
 }: CatalogCartProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -73,6 +76,13 @@ export function CatalogCart({
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; number: string; amount: number } | null>(null);
+
+  const paymentsEnabled = !!(
+    paymentConfig &&
+    ((paymentConfig.enable_pix && paymentConfig.pix_key) || paymentConfig.enable_mp)
+  );
+
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce(
@@ -173,24 +183,55 @@ export function CatalogCart({
 
     // Save the order
     try {
-      await supabase.from("catalog_orders" as any).insert({
-        catalog_id: catalogId,
-        customer_id: customerId,
-        order_number: orderNumber,
-        customer_name: customerName || "Cliente Anônimo",
-        customer_phone: customerPhone || null,
-        customer_email: customerEmail || null,
-        customer_address: customerAddress || null,
-        items: orderItems,
-        total_amount: totalPrice,
-        status: "pending",
-        notes: customerNotes || null,
-      });
+      const { data: created } = await supabase
+        .from("catalog_orders" as any)
+        .insert({
+          catalog_id: catalogId,
+          customer_id: customerId,
+          order_number: orderNumber,
+          customer_name: customerName || "Cliente Anônimo",
+          customer_phone: customerPhone || null,
+          customer_email: customerEmail || null,
+          customer_address: customerAddress || null,
+          items: orderItems,
+          total_amount: totalPrice,
+          status: "pending",
+          notes: customerNotes || null,
+        })
+        .select("id")
+        .single();
 
-      return orderNumber;
+      return { orderNumber, orderId: (created as any)?.id as string | undefined };
     } catch (error) {
       console.error("Error saving order:", error);
-      return orderNumber;
+      return { orderNumber, orderId: undefined };
+    }
+  };
+
+  const handlePayCheckout = async () => {
+    if (items.length === 0) return;
+    if (!customerName) {
+      toast({
+        title: "Informe seu nome",
+        description: "Precisamos do seu nome para registrar o pedido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { orderNumber, orderId } = await saveOrderToDatabase();
+      if (!orderId) throw new Error("Pedido não registrado");
+      setPendingOrder({ id: orderId, number: orderNumber, amount: totalPrice });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível iniciar o pagamento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -201,7 +242,7 @@ export function CatalogCart({
 
     try {
       // Save order to database first
-      const orderNumber = await saveOrderToDatabase();
+      const { orderNumber } = await saveOrderToDatabase();
 
       // Build WhatsApp message
       let message = `🛒 *Novo Pedido - ${catalogName}*\n`;
@@ -287,7 +328,7 @@ export function CatalogCart({
     }
   };
 
-  if (!whatsappNumber) return null;
+  if (!whatsappNumber && !paymentsEnabled) return null;
 
   return (
     <>
@@ -323,7 +364,25 @@ export function CatalogCart({
             </SheetTitle>
           </SheetHeader>
 
-          {items.length === 0 ? (
+          {pendingOrder ? (
+            <div className="flex-1 overflow-y-auto -mx-6 px-6 py-4">
+              <CatalogCheckoutPayment
+                orderId={pendingOrder.id}
+                orderNumber={pendingOrder.number}
+                amount={pendingOrder.amount}
+                catalogName={catalogName}
+                config={paymentConfig || {}}
+                primaryColor={primaryColor}
+                textColor={textColor}
+                onBack={() => setPendingOrder(null)}
+                onPaid={() => {
+                  onClearCart();
+                  setPendingOrder(null);
+                  setIsOpen(false);
+                }}
+              />
+            </div>
+          ) : items.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
               <ShoppingCart
                 className="w-16 h-16 mb-4"
@@ -496,25 +555,49 @@ export function CatalogCart({
                     *Alguns itens precisam de orçamento
                   </p>
                 )}
-                <Button
-                  onClick={handleWhatsAppCheckout}
-                  className="w-full text-white"
-                  size="lg"
-                  disabled={isSubmitting}
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      Enviar Pedido via WhatsApp
-                    </>
-                  )}
-                </Button>
+                {paymentsEnabled && !hasQuoteItems && (
+                  <Button
+                    onClick={handlePayCheckout}
+                    className="w-full text-white"
+                    size="lg"
+                    disabled={isSubmitting}
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-5 h-5 mr-2" />
+                        Finalizar e Pagar
+                      </>
+                    )}
+                  </Button>
+                )}
+                {whatsappNumber && (
+                  <Button
+                    onClick={handleWhatsAppCheckout}
+                    className={paymentsEnabled ? "w-full" : "w-full text-white"}
+                    size="lg"
+                    variant={paymentsEnabled ? "outline" : "default"}
+                    disabled={isSubmitting}
+                    style={paymentsEnabled ? { borderColor: primaryColor, color: primaryColor } : { backgroundColor: primaryColor }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        Enviar Pedido via WhatsApp
+                      </>
+                    )}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   onClick={onClearCart}

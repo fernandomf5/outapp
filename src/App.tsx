@@ -54,6 +54,7 @@ import InstallApp from "./pages/InstallApp";
 import CampaignPublicView from "./pages/CampaignPublicView";
 import ClientCampaignsPublicView from "./pages/ClientCampaignsPublicView";
 import CatalogPublicPage from "./pages/CatalogPublicPage";
+import CatalogContentPage from "./pages/CatalogContentPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutThankYouPage from "./pages/CheckoutThankYouPage";
 import TeamMemberAuth from "./pages/TeamMemberAuth";
@@ -132,6 +133,7 @@ const AppContent = () => {
               <Route path="/campanha/:campaignId" element={<CampaignPublicView />} />
               <Route path="/cliente-campanhas/:clientId" element={<ClientCampaignsPublicView />} />
               <Route path="/catalogo/:slug" element={<CatalogPublicPage />} />
+              <Route path="/catalogo/:slug/p/:pageSlug" element={<CatalogContentPage />} />
               <Route path="/checkout/:checkoutId" element={<CheckoutPage />} />
               <Route path="/checkout/:checkoutId/:slug" element={<CheckoutPage />} />
               <Route path="/checkout/:checkoutId/obrigado" element={<CheckoutThankYouPage />} />

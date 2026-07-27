@@ -1118,6 +1118,7 @@ export default function CatalogPublicPage() {
           textColor={textColor}
           backgroundColor={backgroundColor}
           showPrices={catalog.show_prices}
+          paymentConfig={(catalog as any).payment_settings || null}
         />
 
         {/* View All Category Dialog */}

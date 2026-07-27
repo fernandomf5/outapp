@@ -48,6 +48,9 @@ interface Order {
   items: OrderItem[];
   total_amount: number;
   status: string;
+  payment_status?: string | null;
+  payment_method?: string | null;
+  paid_at?: string | null;
   notes: string | null;
   created_at: string;
 }
@@ -72,6 +75,28 @@ const statusColors: Record<string, string> = {
   shipped: "bg-cyan-500",
   delivered: "bg-green-500",
   cancelled: "bg-red-500",
+};
+
+const paymentLabels: Record<string, string> = {
+  pending: "Não pago",
+  processing: "Processando",
+  awaiting_confirmation: "Aguardando confirmação",
+  paid: "Pago",
+  failed: "Falhou",
+};
+
+const paymentColors: Record<string, string> = {
+  pending: "bg-slate-500",
+  processing: "bg-blue-500",
+  awaiting_confirmation: "bg-amber-500",
+  paid: "bg-green-600",
+  failed: "bg-red-500",
+};
+
+const methodLabels: Record<string, string> = {
+  pix_manual: "PIX manual",
+  mercadopago: "Mercado Pago",
+  whatsapp: "WhatsApp",
 };
 
 export default function CatalogOrdersPanel({ catalogId }: CatalogOrdersPanelProps) {
@@ -130,6 +155,38 @@ export default function CatalogOrdersPanel({ catalogId }: CatalogOrdersPanelProp
     } catch (error: any) {
       toast({
         title: "Erro ao atualizar status",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const updatePaymentStatus = async (orderId: string, newPaymentStatus: string) => {
+    setUpdating(true);
+    try {
+      const patch: Record<string, any> = {
+        payment_status: newPaymentStatus,
+        paid_at: newPaymentStatus === "paid" ? new Date().toISOString() : null,
+      };
+      const { error } = await supabase
+        .from("catalog_orders" as any)
+        .update(patch)
+        .eq("id", orderId);
+
+      if (error) throw error;
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o))
+      );
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, ...patch } as Order);
+      }
+      toast({ title: "Pagamento atualizado!" });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar pagamento",
         description: error.message,
         variant: "destructive",
       });
@@ -206,13 +263,23 @@ export default function CatalogOrdersPanel({ catalogId }: CatalogOrdersPanelProp
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-mono text-sm font-medium">
                         #{order.order_number}
                       </span>
                       <Badge className={`${statusColors[order.status]} text-white`}>
                         {statusLabels[order.status] || order.status}
                       </Badge>
+                      <Badge
+                        className={`${paymentColors[order.payment_status || "pending"] || "bg-slate-500"} text-white`}
+                      >
+                        {paymentLabels[order.payment_status || "pending"] || order.payment_status}
+                      </Badge>
+                      {order.payment_method && (
+                        <Badge variant="outline">
+                          {methodLabels[order.payment_method] || order.payment_method}
+                        </Badge>
+                      )}
                     </div>
                     <p className="font-medium truncate">{order.customer_name}</p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
@@ -313,6 +380,43 @@ export default function CatalogOrdersPanel({ catalogId }: CatalogOrdersPanelProp
                     </p>
                   </div>
                 )}
+
+                {/* Payment */}
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Pagamento</h4>
+                  <div className="flex items-center gap-2 flex-wrap text-sm text-muted-foreground">
+                    <Badge
+                      className={`${paymentColors[selectedOrder.payment_status || "pending"] || "bg-slate-500"} text-white`}
+                    >
+                      {paymentLabels[selectedOrder.payment_status || "pending"] ||
+                        selectedOrder.payment_status}
+                    </Badge>
+                    {selectedOrder.payment_method && (
+                      <span>
+                        via {methodLabels[selectedOrder.payment_method] || selectedOrder.payment_method}
+                      </span>
+                    )}
+                    {selectedOrder.paid_at && (
+                      <span>
+                        em {format(new Date(selectedOrder.paid_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      </span>
+                    )}
+                  </div>
+                  <Select
+                    value={selectedOrder.payment_status || "pending"}
+                    onValueChange={(v) => updatePaymentStatus(selectedOrder.id, v)}
+                    disabled={updating}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(paymentLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {/* Update Status */}
                 <div className="space-y-2">
