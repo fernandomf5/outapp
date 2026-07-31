@@ -5,10 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Upload, X, ChevronLeft, ChevronRight, Plus, Presentation } from "lucide-react";
-import { parseSlidesContent, stringifySlidesContent, Slide, SlidesData } from "./MembersSlides";
+import { Loader2, Upload, X, ChevronLeft, ChevronRight, Plus, Presentation, Copy } from "lucide-react";
+import { parseSlidesContent, stringifySlidesContent, Slide, SlidesData, SlideLayout } from "./MembersSlides";
 
 interface Props {
   content: string;
@@ -16,11 +17,21 @@ interface Props {
   bucketName?: string;
 }
 
-const LAYOUT_OPTIONS: { value: Slide["layout"]; label: string }[] = [
+const LAYOUT_OPTIONS: { value: SlideLayout; label: string }[] = [
   { value: "center", label: "Centralizado" },
   { value: "left", label: "Alinhado à esquerda" },
   { value: "right", label: "Alinhado à direita" },
-  { value: "image-bg", label: "Imagem de fundo" },
+  { value: "image-bg", label: "Imagem de fundo (capa)" },
+  { value: "split-left", label: "Imagem à esquerda + texto" },
+  { value: "split-right", label: "Texto + imagem à direita" },
+  { value: "image-top", label: "Imagem em cima + texto" },
+  { value: "text-only", label: "Somente texto" },
+];
+
+const COLOR_FIELDS: { key: "title_color" | "subtitle_color" | "body_color"; label: string; fallback: string }[] = [
+  { key: "title_color", label: "Cor do título", fallback: "#ffffff" },
+  { key: "subtitle_color", label: "Cor do subtítulo", fallback: "#22c55e" },
+  { key: "body_color", label: "Cor da descrição", fallback: "#e2e8f0" },
 ];
 
 export function SlidesBlockEditor({ content, onChange, bucketName = "members-content" }: Props) {
@@ -37,8 +48,23 @@ export function SlidesBlockEditor({ content, onChange, bucketName = "members-con
       title: "Novo Slide",
       body: "Conteúdo do slide...",
       layout: "center",
+      title_color: "#ffffff",
+      subtitle_color: "#22c55e",
+      body_color: "#e2e8f0",
+      image_fit: "contain",
+      overlay: 55,
     };
     update({ ...data, slides: [...data.slides, newSlide] });
+  };
+
+  const duplicateSlide = (idx: number) => {
+    const copy: Slide = {
+      ...data.slides[idx],
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    };
+    const next = [...data.slides];
+    next.splice(idx + 1, 0, copy);
+    update({ ...data, slides: next });
   };
 
   const removeSlide = (idx: number) => {
@@ -58,6 +84,19 @@ export function SlidesBlockEditor({ content, onChange, bucketName = "members-con
     const next = [...data.slides];
     next[idx] = { ...next[idx], ...patch };
     update({ ...data, slides: next });
+  };
+
+  const applyColorsToAll = (idx: number) => {
+    const src = data.slides[idx];
+    const next = data.slides.map((s) => ({
+      ...s,
+      title_color: src.title_color,
+      subtitle_color: src.subtitle_color,
+      body_color: src.body_color,
+      bg_color: src.bg_color,
+    }));
+    update({ ...data, slides: next });
+    toast.success("Cores aplicadas a todos os slides");
   };
 
   const handleImageUpload = async (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +164,7 @@ export function SlidesBlockEditor({ content, onChange, bucketName = "members-con
       </div>
 
       {/* Slides list */}
-      <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+      <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
         {data.slides.length === 0 && (
           <div className="text-center p-6 border border-dashed rounded-lg text-muted-foreground">
             <Presentation className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -143,6 +182,9 @@ export function SlidesBlockEditor({ content, onChange, bucketName = "members-con
                 </Button>
                 <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => moveSlide(idx, 1)} disabled={idx === data.slides.length - 1}>
                   <ChevronRight className="w-4 h-4" />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => duplicateSlide(idx)} title="Duplicar slide">
+                  <Copy className="w-4 h-4" />
                 </Button>
                 <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeSlide(idx)}>
                   <X className="w-4 h-4" />
@@ -184,7 +226,7 @@ export function SlidesBlockEditor({ content, onChange, bucketName = "members-con
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-xs">Layout</Label>
-                <Select value={slide.layout || "center"} onValueChange={(v) => updateSlide(idx, { layout: v as Slide["layout"] })}>
+                <Select value={slide.layout || "center"} onValueChange={(v) => updateSlide(idx, { layout: v as SlideLayout })}>
                   <SelectTrigger className="h-9">
                     <SelectValue />
                   </SelectTrigger>
@@ -196,21 +238,77 @@ export function SlidesBlockEditor({ content, onChange, bucketName = "members-con
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">Cor de fundo (opcional)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="color"
-                    value={slide.bg_color || "#0f172a"}
-                    onChange={(e) => updateSlide(idx, { bg_color: e.target.value })}
-                    className="w-12 h-9 p-1"
-                  />
-                  <Input
-                    value={slide.bg_color || ""}
-                    onChange={(e) => updateSlide(idx, { bg_color: e.target.value })}
-                    placeholder="#0f172a"
-                    className="h-9 flex-1"
-                  />
+                <Label className="text-xs">Ajuste da imagem</Label>
+                <Select value={slide.image_fit || "contain"} onValueChange={(v) => updateSlide(idx, { image_fit: v as "cover" | "contain" })}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[300]">
+                    <SelectItem value="contain">Mostrar inteira (contain)</SelectItem>
+                    <SelectItem value="cover">Preencher (cover)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {slide.layout === "image-bg" && (
+              <div className="space-y-2">
+                <Label className="text-xs">Escurecer fundo ({slide.overlay ?? 55}%)</Label>
+                <Slider
+                  value={[slide.overlay ?? 55]}
+                  min={0}
+                  max={90}
+                  step={5}
+                  onValueChange={([v]) => updateSlide(idx, { overlay: v })}
+                />
+              </div>
+            )}
+
+            {/* Colors */}
+            <div className="space-y-2 p-2 rounded-md border bg-background/40">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold">Cores</Label>
+                <Button type="button" variant="ghost" size="sm" className="h-6 text-[11px]" onClick={() => applyColorsToAll(idx)}>
+                  Aplicar a todos
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Cor de fundo</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="color"
+                      value={slide.bg_color || "#0f172a"}
+                      onChange={(e) => updateSlide(idx, { bg_color: e.target.value })}
+                      className="w-12 h-9 p-1"
+                    />
+                    <Input
+                      value={slide.bg_color || ""}
+                      onChange={(e) => updateSlide(idx, { bg_color: e.target.value })}
+                      placeholder="#0f172a"
+                      className="h-9 flex-1"
+                    />
+                  </div>
                 </div>
+                {COLOR_FIELDS.map((f) => (
+                  <div key={f.key} className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">{f.label}</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="color"
+                        value={slide[f.key] || f.fallback}
+                        onChange={(e) => updateSlide(idx, { [f.key]: e.target.value } as Partial<Slide>)}
+                        className="w-12 h-9 p-1"
+                      />
+                      <Input
+                        value={slide[f.key] || ""}
+                        onChange={(e) => updateSlide(idx, { [f.key]: e.target.value } as Partial<Slide>)}
+                        placeholder={f.fallback}
+                        className="h-9 flex-1"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
