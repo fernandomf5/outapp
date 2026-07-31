@@ -227,6 +227,10 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
         </Button>
       </div>
 
+      <GestaoLivreRecordCard contactId={contactId} />
+
+
+
       {loading ? (
         <div className="flex items-center justify-center h-40">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
