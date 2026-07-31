@@ -6145,6 +6145,59 @@ export type Database = {
           },
         ]
       }
+      members_area_users: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          last_login_at: string | null
+          members_area_id: string
+          password_hash: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+          members_area_id: string
+          password_hash: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+          members_area_id?: string
+          password_hash?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_users_members_area_id_fkey"
+            columns: ["members_area_id"]
+            isOneToOne: false
+            referencedRelation: "simple_members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members_area_video_questions: {
         Row: {
           access_code_id: string | null
