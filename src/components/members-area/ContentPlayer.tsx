@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Play, FileText } from "lucide-react";
 import { BlockRichText } from "@/components/members-area/BlockRichText";
+import { getVideoEmbedUrl } from "@/lib/videoEmbed";
 
 interface ModuleData {
   id: string;
@@ -40,12 +41,20 @@ export function ContentPlayer({ open, onOpenChange, module }: ContentPlayerProps
         <div className="space-y-4">
           {module.content_type === 'video' && module.video_url && (
             <div className="aspect-video bg-black rounded-lg overflow-hidden">
-              <iframe
-                src={module.video_url}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {getVideoEmbedUrl(module.video_url) ? (
+                <iframe
+                  src={getVideoEmbedUrl(module.video_url) as string}
+                  title={module.title}
+                  className="w-full h-full"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                  allowFullScreen
+                />
+              ) : (
+                <video controls playsInline className="w-full h-full">
+                  <source src={module.video_url} />
+                </video>
+              )}
             </div>
           )}
 

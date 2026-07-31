@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { linkifyText } from "@/utils/linkify";
+import { getVideoEmbedUrl } from "@/lib/videoEmbed";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,22 +57,17 @@ function VideoGalleryItem({ video, accentColor, cardTextColor }: { video: { url:
     <div className="space-y-1.5">
       {video.title && <h4 className="text-sm font-medium truncate" style={{ color: cardTextColor }}>{video.title}</h4>}
       <div className="relative w-full aspect-video">
-        {video.url.includes('youtube.com') || video.url.includes('youtu.be') ? (
+        {getVideoEmbedUrl(video.url) ? (
           <iframe
             className="w-full h-full rounded-lg"
-            src={video.url.replace('watch?v=', 'embed/')}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : video.url.includes('vimeo.com') ? (
-          <iframe
-            className="w-full h-full rounded-lg"
-            src={video.url.replace('vimeo.com/', 'player.vimeo.com/video/')}
-            allow="autoplay; fullscreen; picture-in-picture"
+            src={getVideoEmbedUrl(video.url) as string}
+            title={video.title || 'Vídeo'}
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
           />
         ) : (
-          <video controls className="w-full h-full rounded-lg">
+          <video controls playsInline className="w-full h-full rounded-lg bg-black">
             <source src={video.url} />
           </video>
         )}
@@ -404,25 +400,21 @@ export default function MembersAreaPublic() {
           const parsed = JSON.parse(block.content);
           if (parsed?.url) { videoUrl = parsed.url; videoDesc = parsed.description || ''; }
         } catch { /* legacy plain URL */ }
+        const embedUrl = getVideoEmbedUrl(videoUrl);
         return (
           <div className="space-y-2">
             <div className="relative w-full aspect-video">
-              {videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ? (
+              {embedUrl ? (
                 <iframe
                   className="w-full h-full rounded-lg"
-                  src={videoUrl.replace('watch?v=', 'embed/')}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : videoUrl.includes('vimeo.com') ? (
-                <iframe
-                  className="w-full h-full rounded-lg"
-                  src={videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/')}
-                  allow="autoplay; fullscreen; picture-in-picture"
+                  src={embedUrl}
+                  title={block.title || 'Vídeo'}
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                   allowFullScreen
                 />
               ) : (
-                <video controls className="w-full h-full rounded-lg">
+                <video controls playsInline className="w-full h-full rounded-lg bg-black">
                   <source src={videoUrl} />
                 </video>
               )}
