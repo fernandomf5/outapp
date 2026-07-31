@@ -596,7 +596,7 @@ export default function MembersAreaPublic() {
       
       case 'download':
         return (
-          <a href={block.content} download>
+          <a href={block.content} download target="_blank" rel="noopener noreferrer">
             <Button 
               className="w-full gap-2" 
               size="lg" 
