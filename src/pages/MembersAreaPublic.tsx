@@ -629,14 +629,6 @@ export default function MembersAreaPublic() {
           </div>
         );
 
-      case 'embed':
-        return (
-          <div 
-            className="w-full rounded-lg overflow-hidden"
-            dangerouslySetInnerHTML={{ __html: block.content }} 
-          />
-        );
-
       case 'secret':
         return (
           <SecretContentBlock
