@@ -1600,6 +1600,13 @@ export function SimpleMembersArea() {
                     onChange={(content) => setBlockFormData({ ...blockFormData, content })}
                   />
 
+                ) : blockFormData.type === 'slides' ? (
+                  <SlidesBlockEditor
+                    content={blockFormData.content}
+                    onChange={(content) => setBlockFormData({ ...blockFormData, content })}
+                    bucketName="members-content"
+                  />
+
                 ) : blockFormData.type === 'document' ? (
                   <DocumentUpload
                     currentDocument={blockFormData.content}
