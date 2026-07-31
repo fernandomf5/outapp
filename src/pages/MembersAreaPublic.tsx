@@ -230,9 +230,14 @@ export default function MembersAreaPublic() {
 
       if (error) throw error;
       setArea(data as any);
+      const at = (data as any).access_type;
+      if (at === 'user_password') setLoginMode('user');
+      else if (at === 'email_code') setLoginMode('code');
+      else if (at === 'password') setLoginMode('password');
       if ((data as any).sections?.length > 0) {
         setActiveSection((data as any).sections[0].id);
       }
+
     } catch (error: any) {
       toast.error('Área de membros não encontrada');
     } finally {
