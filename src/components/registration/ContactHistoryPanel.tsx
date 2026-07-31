@@ -47,6 +47,8 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { GestaoLivreRecordCard } from "./GestaoLivreRecordCard";
+
 
 interface ContactHistoryPanelProps {
   contactId: string;
