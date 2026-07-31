@@ -1479,7 +1479,7 @@ export function SimpleMembersArea() {
                     <SelectItem value="gallery">🖼️ Galeria de Imagens</SelectItem>
                     <SelectItem value="video">🎬 Vídeo (URL)</SelectItem>
                     <SelectItem value="video_gallery">🎬 Múltiplos Vídeos</SelectItem>
-                    <SelectItem value="audio">🎧 Áudio/Podcast</SelectItem>
+                    <SelectItem value="audio">🎵 Áudio (MP3)</SelectItem>
                     <SelectItem value="document">📄 Documento (PDF)</SelectItem>
                     <SelectItem value="download">⬇️ Arquivo para Download</SelectItem>
                     <SelectItem value="slides">📊 Apresentação/Slides</SelectItem>
@@ -1605,6 +1605,21 @@ export function SimpleMembersArea() {
                     onDocumentSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
                     bucketName="members-content"
                   />
+                ) : blockFormData.type === 'audio' ? (
+                  <>
+                    <DocumentUpload
+                      currentDocument={blockFormData.content}
+                      onDocumentSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
+                      bucketName="members-content"
+                      acceptedFileTypes=".mp3,.wav,.ogg,.m4a,audio/*"
+                    />
+                    <Input
+                      value={blockFormData.content}
+                      onChange={(e) => setBlockFormData({ ...blockFormData, content: e.target.value })}
+                      placeholder="Ou cole a URL do áudio (.mp3)"
+                      className="mt-2"
+                    />
+                  </>
                 ) : blockFormData.type === 'download' ? (
                   <>
                     <Input
