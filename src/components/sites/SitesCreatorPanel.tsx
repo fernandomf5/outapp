@@ -308,37 +308,71 @@ function SiteWizard({ open, onOpenChange, onCreated }: any) {
         {step === 1 && (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">Escolha o nicho para aplicar o modelo e as cores ideais.</p>
-            <Input placeholder="Buscar nicho..." value={search} onChange={(e) => setSearch(e.target.value)} />
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              <Button size="sm" variant={groupId === "" ? "default" : "outline"} onClick={() => setGroupId("")}>Todos</Button>
-              {NICHE_GROUPS.map((g) => (
-                <Button key={g.id} size="sm" variant={groupId === g.id ? "default" : "outline"} className="whitespace-nowrap"
-                  onClick={() => setGroupId(g.id)}>{g.label}</Button>
-              ))}
-            </div>
-            <ScrollArea className="h-64 rounded-lg border p-2">
-              <div className="grid gap-2 sm:grid-cols-3">
-                {niches.map((n) => (
-                  <button key={n} onClick={() => {
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Categoria</Label>
+                <Select value={groupId || "all"} onValueChange={(v) => setGroupId(v === "all" ? "" : v)}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Todas" /></SelectTrigger>
+                  <SelectContent className="z-[300] max-h-64">
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    {NICHE_GROUPS.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>{g.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Nicho</Label>
+                <Select
+                  value={niche}
+                  onValueChange={(n) => {
                     setNiche(n);
                     if (!groupId) {
                       const g = NICHE_GROUPS.find((x) => x.niches.includes(n));
                       if (g) setGroupId(g.id);
                     }
-                    setStep(2);
                   }}
-                    className={`p-2.5 rounded-lg border text-xs text-left hover:border-primary hover:bg-primary/5 ${niche === n ? "border-primary" : ""}`}>
-                    {n}
-                  </button>
-                ))}
+                >
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecione o nicho" /></SelectTrigger>
+                  <SelectContent className="z-[300] max-h-64">
+                    <div className="p-1.5">
+                      <Input
+                        placeholder="Buscar nicho..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    {niches.length === 0 ? (
+                      <div className="px-3 py-4 text-xs text-muted-foreground">Nenhum nicho encontrado</div>
+                    ) : (
+                      niches.map((n) => (
+                        <SelectItem key={n} value={n} className="text-sm">{n}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
-            </ScrollArea>
-            <div className="flex justify-between">
-              <Button variant="ghost" onClick={() => setStep(0)}>Voltar</Button>
-              <Button variant="outline" onClick={() => setStep(2)}>Pular</Button>
+            </div>
+
+            {niche && (
+              <p className="text-xs text-muted-foreground">
+                Selecionado: <span className="font-medium text-foreground">{niche}</span>
+              </p>
+            )}
+
+            <div className="flex justify-between gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setStep(0)}>Voltar</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setStep(2)}>Pular</Button>
+                <Button size="sm" disabled={!niche} onClick={() => setStep(2)}>Continuar</Button>
+              </div>
             </div>
           </div>
         )}
+
 
         {step === 2 && (
           <div className="space-y-4">
