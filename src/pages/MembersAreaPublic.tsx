@@ -626,7 +626,7 @@ export default function MembersAreaPublic() {
               </div>
               <span className="font-medium" style={{ color: cardTextColor }}>{block.title || block.type}</span>
             </div>
-            <div className="prose prose-sm max-w-none" style={{ color: cardTextColor }} dangerouslySetInnerHTML={{ __html: block.content }} />
+            <BlockRichText content={block.content} className="prose prose-sm max-w-none" style={{ color: cardTextColor }} />
           </div>
         );
       }
