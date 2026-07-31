@@ -47,6 +47,8 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { GestaoLivreRecordCard } from "./GestaoLivreRecordCard";
+
 
 interface ContactHistoryPanelProps {
   contactId: string;
@@ -226,6 +228,10 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
           <PlusCircle className="h-4 w-4" /> Novo registro
         </Button>
       </div>
+
+      <GestaoLivreRecordCard contactId={contactId} />
+
+
 
       {loading ? (
         <div className="flex items-center justify-center h-40">
