@@ -96,7 +96,7 @@ serve(async (req) => {
           .single();
 
         // Handle catalog integration
-        if (checkout.integration_type === 'catalog' && checkout.integration_id && orderData) {
+        if (checkout.integration_type === '__disabled_catalog__' && checkout.integration_id && orderData) {
           console.log('Processing catalog integration for catalog:', checkout.integration_id);
           await handleCatalogIntegration(supabase, checkout, orderData, checkoutId);
         }

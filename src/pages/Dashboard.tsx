@@ -50,8 +50,7 @@ import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
 import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
-import { CapturePageCreatorPanel } from "@/components/CapturePageCreatorPanel";
-import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
+import { SitesCreatorPanel } from "@/components/sites/SitesCreatorPanel";
 
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
@@ -79,7 +78,6 @@ import SalesFunnelPanel from "@/components/SalesFunnelPanel";
 import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
 import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
 import ProductsServicesPanel from "@/components/ProductsServicesPanel";
-import CatalogCreatorPanel from "@/components/CatalogCreatorPanel";
 import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
 import { ReceiptGeneratorPanel } from "@/components/ReceiptGeneratorPanel";
 import { InvoiceGeneratorPanel } from "@/components/InvoiceGeneratorPanel";
@@ -901,59 +899,24 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {/* 17. Criador de Página de Captura */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('pagina-captura')}>
+          {/* 17. Criador de Sites */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('sites')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Página de Captura</h3>
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Sites</h3>
                 <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie páginas de captura para converter visitantes em leads
+                  Crie sites completos, páginas de captura, portfólios e catálogos com blocos
                 </p>
               </div>
               <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Target className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                <Globe className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
             </div>
             <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Criar Página
+              Criar Site
             </Button>
           </Card>
 
-          {/* 18. Criador de Portfólio */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('portfolio')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Portfólio</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Monte portfólios profissionais para apresentar seus trabalhos
-                </p>
-              </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Briefcase className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Criar Portfólio
-            </Button>
-          </Card>
-
-          {/* 19. Criador de Catálogo */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('catalogo')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Catálogo</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie catálogos digitais para seus produtos e serviços
-                </p>
-              </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <ShoppingBag className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Criar Catálogo
-            </Button>
-          </Card>
 
           {/* 20. Clonador de Páginas */}
           {hasFeature('page_cloner') && (
@@ -1533,25 +1496,10 @@ const Dashboard = () => {
             </ErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="catalogo">
+          <TabsContent value="sites">
             <ErrorBoundary>
-              <FeatureTutorialVideo featureKey="catalogo" />
-              <CatalogCreatorPanel />
-            </ErrorBoundary>
-          </TabsContent>
-
-
-          <TabsContent value="pagina-captura">
-            <ErrorBoundary>
-              <FeatureTutorialVideo featureKey="pagina-captura" />
-              <CapturePageCreatorPanel />
-            </ErrorBoundary>
-          </TabsContent>
-
-          <TabsContent value="portfolio">
-            <ErrorBoundary>
-              <FeatureTutorialVideo featureKey="portfolio" />
-              <PortfolioCreatorPanel />
+              <FeatureTutorialVideo featureKey="sites" />
+              <SitesCreatorPanel />
             </ErrorBoundary>
           </TabsContent>
 

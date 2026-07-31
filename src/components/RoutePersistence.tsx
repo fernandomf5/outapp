@@ -34,9 +34,7 @@ const EXCLUDED_PREFIXES = [
   "/contrato/",
   "/proposta/",
   "/fatura/",
-  "/captura/",
-  "/portfolio/",
-  "/catalogo/",
+  "/site/",
 ];
 
 // Entry paths where we should try to restore the previous route.

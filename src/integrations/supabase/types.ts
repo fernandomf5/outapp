@@ -2011,481 +2011,6 @@ export type Database = {
           },
         ]
       }
-      capture_leads: {
-        Row: {
-          created_at: string
-          data: Json
-          email: string | null
-          id: string
-          name: string | null
-          page_id: string
-          phone: string | null
-          referrer: string | null
-          source: string | null
-          status: string
-          updated_at: string
-          user_agent: string | null
-          user_id: string
-          utm: Json
-        }
-        Insert: {
-          created_at?: string
-          data?: Json
-          email?: string | null
-          id?: string
-          name?: string | null
-          page_id: string
-          phone?: string | null
-          referrer?: string | null
-          source?: string | null
-          status?: string
-          updated_at?: string
-          user_agent?: string | null
-          user_id: string
-          utm?: Json
-        }
-        Update: {
-          created_at?: string
-          data?: Json
-          email?: string | null
-          id?: string
-          name?: string | null
-          page_id?: string
-          phone?: string | null
-          referrer?: string | null
-          source?: string | null
-          status?: string
-          updated_at?: string
-          user_agent?: string | null
-          user_id?: string
-          utm?: Json
-        }
-        Relationships: [
-          {
-            foreignKeyName: "capture_leads_page_id_fkey"
-            columns: ["page_id"]
-            isOneToOne: false
-            referencedRelation: "capture_pages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      capture_pages: {
-        Row: {
-          blocks: Json
-          conversions: number
-          created_at: string
-          form_fields: Json
-          id: string
-          internal_note: string | null
-          is_published: boolean
-          order_index: number
-          settings: Json
-          slug: string
-          theme: Json
-          title: string
-          updated_at: string
-          user_id: string
-          views: number
-        }
-        Insert: {
-          blocks?: Json
-          conversions?: number
-          created_at?: string
-          form_fields?: Json
-          id?: string
-          internal_note?: string | null
-          is_published?: boolean
-          order_index?: number
-          settings?: Json
-          slug: string
-          theme?: Json
-          title?: string
-          updated_at?: string
-          user_id: string
-          views?: number
-        }
-        Update: {
-          blocks?: Json
-          conversions?: number
-          created_at?: string
-          form_fields?: Json
-          id?: string
-          internal_note?: string | null
-          is_published?: boolean
-          order_index?: number
-          settings?: Json
-          slug?: string
-          theme?: Json
-          title?: string
-          updated_at?: string
-          user_id?: string
-          views?: number
-        }
-        Relationships: []
-      }
-      catalog_banners: {
-        Row: {
-          catalog_id: string
-          created_at: string
-          id: string
-          image_url: string
-          is_active: boolean | null
-          link_url: string | null
-          order_index: number | null
-          subtitle: string | null
-          title: string | null
-          updated_at: string
-        }
-        Insert: {
-          catalog_id: string
-          created_at?: string
-          id?: string
-          image_url: string
-          is_active?: boolean | null
-          link_url?: string | null
-          order_index?: number | null
-          subtitle?: string | null
-          title?: string | null
-          updated_at?: string
-        }
-        Update: {
-          catalog_id?: string
-          created_at?: string
-          id?: string
-          image_url?: string
-          is_active?: boolean | null
-          link_url?: string | null
-          order_index?: number | null
-          subtitle?: string | null
-          title?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "catalog_banners_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "catalogs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      catalog_customers: {
-        Row: {
-          address: string | null
-          catalog_id: string
-          created_at: string
-          email: string | null
-          id: string
-          name: string
-          notes: string | null
-          orders_count: number | null
-          phone: string | null
-          total_spent: number | null
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          catalog_id: string
-          created_at?: string
-          email?: string | null
-          id?: string
-          name: string
-          notes?: string | null
-          orders_count?: number | null
-          phone?: string | null
-          total_spent?: number | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          catalog_id?: string
-          created_at?: string
-          email?: string | null
-          id?: string
-          name?: string
-          notes?: string | null
-          orders_count?: number | null
-          phone?: string | null
-          total_spent?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "catalog_customers_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "catalogs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      catalog_orders: {
-        Row: {
-          catalog_id: string
-          created_at: string
-          customer_address: string | null
-          customer_email: string | null
-          customer_id: string | null
-          customer_name: string
-          customer_phone: string | null
-          id: string
-          items: Json
-          notes: string | null
-          order_number: string
-          paid_at: string | null
-          payment_id: string | null
-          payment_method: string | null
-          payment_status: string
-          pix_payload: string | null
-          status: string
-          total_amount: number
-          updated_at: string
-        }
-        Insert: {
-          catalog_id: string
-          created_at?: string
-          customer_address?: string | null
-          customer_email?: string | null
-          customer_id?: string | null
-          customer_name: string
-          customer_phone?: string | null
-          id?: string
-          items?: Json
-          notes?: string | null
-          order_number: string
-          paid_at?: string | null
-          payment_id?: string | null
-          payment_method?: string | null
-          payment_status?: string
-          pix_payload?: string | null
-          status?: string
-          total_amount?: number
-          updated_at?: string
-        }
-        Update: {
-          catalog_id?: string
-          created_at?: string
-          customer_address?: string | null
-          customer_email?: string | null
-          customer_id?: string | null
-          customer_name?: string
-          customer_phone?: string | null
-          id?: string
-          items?: Json
-          notes?: string | null
-          order_number?: string
-          paid_at?: string | null
-          payment_id?: string | null
-          payment_method?: string | null
-          payment_status?: string
-          pix_payload?: string | null
-          status?: string
-          total_amount?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "catalog_orders_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "catalogs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "catalog_orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "catalog_customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      catalog_pages: {
-        Row: {
-          catalog_id: string
-          content: string
-          created_at: string
-          id: string
-          is_published: boolean
-          show_in_menu: boolean
-          slug: string
-          sort_order: number
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          catalog_id: string
-          content?: string
-          created_at?: string
-          id?: string
-          is_published?: boolean
-          show_in_menu?: boolean
-          slug: string
-          sort_order?: number
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          catalog_id?: string
-          content?: string
-          created_at?: string
-          id?: string
-          is_published?: boolean
-          show_in_menu?: boolean
-          slug?: string
-          sort_order?: number
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "catalog_pages_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "catalogs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      catalog_payment_credentials: {
-        Row: {
-          catalog_id: string
-          created_at: string
-          mp_access_token: string | null
-          mp_public_key: string | null
-          updated_at: string
-        }
-        Insert: {
-          catalog_id: string
-          created_at?: string
-          mp_access_token?: string | null
-          mp_public_key?: string | null
-          updated_at?: string
-        }
-        Update: {
-          catalog_id?: string
-          created_at?: string
-          mp_access_token?: string | null
-          mp_public_key?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "catalog_payment_credentials_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: true
-            referencedRelation: "catalogs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      catalogs: {
-        Row: {
-          background_color: string | null
-          category_order: string[] | null
-          cover_url: string | null
-          created_at: string | null
-          description: string | null
-          footer_code: string | null
-          group_by_category: boolean | null
-          head_code: string | null
-          id: string
-          is_active: boolean | null
-          layout_settings: Json
-          layout_style: string | null
-          linked_registration_category_ids: string[]
-          logo_url: string | null
-          name: string
-          payment_settings: Json
-          primary_color: string | null
-          selected_product_ids: string[] | null
-          selected_service_ids: string[] | null
-          show_all_items: boolean | null
-          show_description: boolean | null
-          show_prices: boolean | null
-          show_stock: boolean | null
-          slug: string
-          store_closed_message: string | null
-          store_open: boolean | null
-          text_color: string | null
-          updated_at: string | null
-          user_id: string
-          views_count: number | null
-          whatsapp_number: string | null
-        }
-        Insert: {
-          background_color?: string | null
-          category_order?: string[] | null
-          cover_url?: string | null
-          created_at?: string | null
-          description?: string | null
-          footer_code?: string | null
-          group_by_category?: boolean | null
-          head_code?: string | null
-          id?: string
-          is_active?: boolean | null
-          layout_settings?: Json
-          layout_style?: string | null
-          linked_registration_category_ids?: string[]
-          logo_url?: string | null
-          name: string
-          payment_settings?: Json
-          primary_color?: string | null
-          selected_product_ids?: string[] | null
-          selected_service_ids?: string[] | null
-          show_all_items?: boolean | null
-          show_description?: boolean | null
-          show_prices?: boolean | null
-          show_stock?: boolean | null
-          slug: string
-          store_closed_message?: string | null
-          store_open?: boolean | null
-          text_color?: string | null
-          updated_at?: string | null
-          user_id: string
-          views_count?: number | null
-          whatsapp_number?: string | null
-        }
-        Update: {
-          background_color?: string | null
-          category_order?: string[] | null
-          cover_url?: string | null
-          created_at?: string | null
-          description?: string | null
-          footer_code?: string | null
-          group_by_category?: boolean | null
-          head_code?: string | null
-          id?: string
-          is_active?: boolean | null
-          layout_settings?: Json
-          layout_style?: string | null
-          linked_registration_category_ids?: string[]
-          logo_url?: string | null
-          name?: string
-          payment_settings?: Json
-          primary_color?: string | null
-          selected_product_ids?: string[] | null
-          selected_service_ids?: string[] | null
-          show_all_items?: boolean | null
-          show_description?: boolean | null
-          show_prices?: boolean | null
-          show_stock?: boolean | null
-          slug?: string
-          store_closed_message?: string | null
-          store_open?: boolean | null
-          text_color?: string | null
-          updated_at?: string | null
-          user_id?: string
-          views_count?: number | null
-          whatsapp_number?: string | null
-        }
-        Relationships: []
-      }
       chatbot_access_requests: {
         Row: {
           chatbot_id: string
@@ -7182,277 +6707,6 @@ export type Database = {
         }
         Relationships: []
       }
-      portfolio_items: {
-        Row: {
-          category: string
-          client_name: string | null
-          created_at: string | null
-          custom_data: Json
-          description: string | null
-          display_order: number | null
-          files: Json
-          id: string
-          image_url: string | null
-          images: string[] | null
-          is_featured: boolean | null
-          is_published: boolean
-          is_scrollable_screenshot: boolean | null
-          links: Json
-          portfolio_id: string | null
-          project_date: string | null
-          project_url: string | null
-          scroll_image_url: string | null
-          tags: string[]
-          title: string
-          updated_at: string | null
-          video_url: string | null
-        }
-        Insert: {
-          category: string
-          client_name?: string | null
-          created_at?: string | null
-          custom_data?: Json
-          description?: string | null
-          display_order?: number | null
-          files?: Json
-          id?: string
-          image_url?: string | null
-          images?: string[] | null
-          is_featured?: boolean | null
-          is_published?: boolean
-          is_scrollable_screenshot?: boolean | null
-          links?: Json
-          portfolio_id?: string | null
-          project_date?: string | null
-          project_url?: string | null
-          scroll_image_url?: string | null
-          tags?: string[]
-          title: string
-          updated_at?: string | null
-          video_url?: string | null
-        }
-        Update: {
-          category?: string
-          client_name?: string | null
-          created_at?: string | null
-          custom_data?: Json
-          description?: string | null
-          display_order?: number | null
-          files?: Json
-          id?: string
-          image_url?: string | null
-          images?: string[] | null
-          is_featured?: boolean | null
-          is_published?: boolean
-          is_scrollable_screenshot?: boolean | null
-          links?: Json
-          portfolio_id?: string | null
-          project_date?: string | null
-          project_url?: string | null
-          scroll_image_url?: string | null
-          tags?: string[]
-          title?: string
-          updated_at?: string | null
-          video_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_items_portfolio_id_fkey"
-            columns: ["portfolio_id"]
-            isOneToOne: false
-            referencedRelation: "portfolios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portfolio_messages: {
-        Row: {
-          created_at: string
-          email: string | null
-          id: string
-          is_read: boolean
-          message: string
-          name: string
-          phone: string | null
-          portfolio_id: string
-          subject: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_read?: boolean
-          message: string
-          name: string
-          phone?: string | null
-          portfolio_id: string
-          subject?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_read?: boolean
-          message?: string
-          name?: string
-          phone?: string | null
-          portfolio_id?: string
-          subject?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portfolio_messages_portfolio_id_fkey"
-            columns: ["portfolio_id"]
-            isOneToOne: false
-            referencedRelation: "portfolios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portfolios: {
-        Row: {
-          background_color: string | null
-          button_bg_color: string | null
-          button_text_color: string | null
-          button1_bg_color: string | null
-          button1_enabled: boolean | null
-          button1_label: string | null
-          button1_shadow: boolean | null
-          button1_text_color: string | null
-          button1_url: string | null
-          button2_bg_color: string | null
-          button2_enabled: boolean | null
-          button2_label: string | null
-          button2_shadow: boolean | null
-          button2_text_color: string | null
-          button2_url: string | null
-          card_background_color: string | null
-          card_text_color: string | null
-          category: string
-          contact: Json
-          cover_url: string | null
-          created_at: string
-          custom_fields: Json
-          description: string | null
-          description_color: string | null
-          id: string
-          is_active: boolean | null
-          is_public: boolean | null
-          layout: string
-          logo_url: string | null
-          name: string
-          niche: string
-          overlay_color: string | null
-          overlay_opacity: number | null
-          primary_color: string | null
-          secondary_color: string | null
-          sections: Json
-          settings: Json
-          slug: string | null
-          template: string
-          theme: Json
-          title_color: string | null
-          updated_at: string
-          user_id: string
-          views: number
-        }
-        Insert: {
-          background_color?: string | null
-          button_bg_color?: string | null
-          button_text_color?: string | null
-          button1_bg_color?: string | null
-          button1_enabled?: boolean | null
-          button1_label?: string | null
-          button1_shadow?: boolean | null
-          button1_text_color?: string | null
-          button1_url?: string | null
-          button2_bg_color?: string | null
-          button2_enabled?: boolean | null
-          button2_label?: string | null
-          button2_shadow?: boolean | null
-          button2_text_color?: string | null
-          button2_url?: string | null
-          card_background_color?: string | null
-          card_text_color?: string | null
-          category?: string
-          contact?: Json
-          cover_url?: string | null
-          created_at?: string
-          custom_fields?: Json
-          description?: string | null
-          description_color?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_public?: boolean | null
-          layout?: string
-          logo_url?: string | null
-          name: string
-          niche?: string
-          overlay_color?: string | null
-          overlay_opacity?: number | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          sections?: Json
-          settings?: Json
-          slug?: string | null
-          template?: string
-          theme?: Json
-          title_color?: string | null
-          updated_at?: string
-          user_id: string
-          views?: number
-        }
-        Update: {
-          background_color?: string | null
-          button_bg_color?: string | null
-          button_text_color?: string | null
-          button1_bg_color?: string | null
-          button1_enabled?: boolean | null
-          button1_label?: string | null
-          button1_shadow?: boolean | null
-          button1_text_color?: string | null
-          button1_url?: string | null
-          button2_bg_color?: string | null
-          button2_enabled?: boolean | null
-          button2_label?: string | null
-          button2_shadow?: boolean | null
-          button2_text_color?: string | null
-          button2_url?: string | null
-          card_background_color?: string | null
-          card_text_color?: string | null
-          category?: string
-          contact?: Json
-          cover_url?: string | null
-          created_at?: string
-          custom_fields?: Json
-          description?: string | null
-          description_color?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_public?: boolean | null
-          layout?: string
-          logo_url?: string | null
-          name?: string
-          niche?: string
-          overlay_color?: string | null
-          overlay_opacity?: number | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          sections?: Json
-          settings?: Json
-          slug?: string | null
-          template?: string
-          theme?: Json
-          title_color?: string | null
-          updated_at?: string
-          user_id?: string
-          views?: number
-        }
-        Relationships: []
-      }
       product_categories: {
         Row: {
           color: string | null
@@ -8699,6 +7953,53 @@ export type Database = {
           },
         ]
       }
+      site_pages: {
+        Row: {
+          blocks: Json
+          created_at: string
+          id: string
+          is_home: boolean
+          path: string
+          seo: Json
+          site_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          blocks?: Json
+          created_at?: string
+          id?: string
+          is_home?: boolean
+          path?: string
+          seo?: Json
+          site_id: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          id?: string
+          is_home?: boolean
+          path?: string
+          seo?: Json
+          site_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_pages_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           created_at: string
@@ -8723,6 +8024,63 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string | null
+        }
+        Relationships: []
+      }
+      sites: {
+        Row: {
+          created_at: string
+          custom_domain: string | null
+          id: string
+          integrations: Json
+          is_published: boolean
+          name: string
+          niche: string | null
+          niche_group: string | null
+          seo: Json
+          site_type: string
+          slug: string
+          sort_order: number
+          theme: Json
+          updated_at: string
+          user_id: string
+          views: number
+        }
+        Insert: {
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          integrations?: Json
+          is_published?: boolean
+          name: string
+          niche?: string | null
+          niche_group?: string | null
+          seo?: Json
+          site_type?: string
+          slug: string
+          sort_order?: number
+          theme?: Json
+          updated_at?: string
+          user_id: string
+          views?: number
+        }
+        Update: {
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          integrations?: Json
+          is_published?: boolean
+          name?: string
+          niche?: string | null
+          niche_group?: string | null
+          seo?: Json
+          site_type?: string
+          slug?: string
+          sort_order?: number
+          theme?: Json
+          updated_at?: string
+          user_id?: string
+          views?: number
         }
         Relationships: []
       }
@@ -10163,14 +9521,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_capture_page_view: {
-        Args: { _page_id: string }
-        Returns: undefined
-      }
-      increment_portfolio_view: {
-        Args: { _portfolio_id: string }
-        Returns: undefined
-      }
+      increment_site_view: { Args: { _site_id: string }; Returns: undefined }
       team_member_can: {
         Args: {
           p_admin_user_id: string
