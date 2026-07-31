@@ -810,7 +810,8 @@ export default function MembersAreaPublic() {
 
             {/* Login Form */}
             <div className="space-y-4">
-              {/* Toggle between password, access code and username+password */}
+              {/* Toggle shown only when the area has no fixed access type */}
+              {!area?.access_type && (
               <div className="grid grid-cols-3 gap-2 p-1 rounded-lg" style={{ backgroundColor: `${loginTextColor}10` }}>
                 <button
                   onClick={() => { setLoginMode('password'); setPasswordInput(''); }}
@@ -843,6 +844,8 @@ export default function MembersAreaPublic() {
                   👤 Usuário
                 </button>
               </div>
+              )}
+
 
               {loginMode === 'user' && (
                 <div>
