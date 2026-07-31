@@ -16,6 +16,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SITE_TYPES, NICHE_GROUPS, findNicheGroup } from "@/data/siteNiches";
 import { SiteBlock, SiteTheme, DEFAULT_THEME } from "./siteTypes";
 import { SiteEditor } from "./SiteEditor";
