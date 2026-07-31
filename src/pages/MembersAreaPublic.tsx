@@ -195,7 +195,9 @@ export default function MembersAreaPublic() {
   const [studentName, setStudentName] = useState<string>('Aluno');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loginMode, setLoginMode] = useState<'password' | 'code'>('password');
+  const [loginMode, setLoginMode] = useState<'password' | 'code' | 'user'>('password');
+  const [usernameInput, setUsernameInput] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -241,6 +243,37 @@ export default function MembersAreaPublic() {
   const handlePasswordSubmit = async () => {
     if (!area) return;
     
+    if (loginMode === 'user') {
+      if (!usernameInput.trim() || !passwordInput.trim()) {
+        toast.error('Informe usuário e senha');
+        return;
+      }
+      setLoggingIn(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('members-area-user-auth', {
+          body: {
+            action: 'login',
+            slug: area.slug,
+            username: usernameInput.trim().toLowerCase(),
+            password: passwordInput,
+          },
+        });
+        const resErr = (data as any)?.error;
+        if (error || resErr || !(data as any)?.success) {
+          toast.error(resErr || 'Usuário ou senha inválidos');
+          return;
+        }
+        setStudentName((data as any).user?.name || usernameInput.trim());
+        setIsAuthenticated(true);
+        toast.success('Acesso liberado!');
+      } catch {
+        toast.error('Erro ao entrar');
+      } finally {
+        setLoggingIn(false);
+      }
+      return;
+    }
+
     if (loginMode === 'code') {
       // Verify access code
       try {
@@ -770,11 +803,11 @@ export default function MembersAreaPublic() {
 
             {/* Login Form */}
             <div className="space-y-4">
-              {/* Toggle between password and access code */}
-              <div className="flex gap-2 p-1 rounded-lg" style={{ backgroundColor: `${loginTextColor}10` }}>
+              {/* Toggle between password, access code and username+password */}
+              <div className="grid grid-cols-3 gap-2 p-1 rounded-lg" style={{ backgroundColor: `${loginTextColor}10` }}>
                 <button
                   onClick={() => { setLoginMode('password'); setPasswordInput(''); }}
-                  className="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all"
+                  className="py-2 px-2 rounded-md text-xs sm:text-sm font-medium transition-all"
                   style={{
                     backgroundColor: loginMode === 'password' ? primaryColor : 'transparent',
                     color: loginMode === 'password' ? '#fff' : `${loginTextColor}80`,
@@ -784,19 +817,54 @@ export default function MembersAreaPublic() {
                 </button>
                 <button
                   onClick={() => { setLoginMode('code'); setPasswordInput(''); }}
-                  className="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all"
+                  className="py-2 px-2 rounded-md text-xs sm:text-sm font-medium transition-all"
                   style={{
                     backgroundColor: loginMode === 'code' ? primaryColor : 'transparent',
                     color: loginMode === 'code' ? '#fff' : `${loginTextColor}80`,
                   }}
                 >
-                  🔑 Código de Acesso
+                  🔑 Código
+                </button>
+                <button
+                  onClick={() => { setLoginMode('user'); setPasswordInput(''); setUsernameInput(''); }}
+                  className="py-2 px-2 rounded-md text-xs sm:text-sm font-medium transition-all"
+                  style={{
+                    backgroundColor: loginMode === 'user' ? primaryColor : 'transparent',
+                    color: loginMode === 'user' ? '#fff' : `${loginTextColor}80`,
+                  }}
+                >
+                  👤 Usuário
                 </button>
               </div>
 
+              {loginMode === 'user' && (
+                <div>
+                  <Label htmlFor="ma-username" style={{ color: loginTextColor }}>
+                    Nome de usuário
+                  </Label>
+                  <Input
+                    id="ma-username"
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                    onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                    placeholder="seu usuário"
+                    className="mt-2 border"
+                    style={{
+                      backgroundColor: `${loginTextColor}08`,
+                      borderColor: `${loginTextColor}20`,
+                      color: loginTextColor,
+                    }}
+                  />
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="password" style={{ color: loginTextColor }}>
-                  {loginMode === 'code' ? 'Digite seu código de acesso' : 'Digite a senha para acessar'}
+                  {loginMode === 'code'
+                    ? 'Digite seu código de acesso'
+                    : loginMode === 'user'
+                      ? 'Digite sua senha'
+                      : 'Digite a senha para acessar'}
                 </Label>
                 <div className="relative mt-2">
                   <Input
@@ -814,7 +882,7 @@ export default function MembersAreaPublic() {
                       ...(loginMode === 'code' ? { letterSpacing: '0.2em', fontFamily: 'monospace', textAlign: 'center' as const } : {}),
                     }}
                   />
-                  {loginMode === 'password' && (
+                  {loginMode !== 'code' && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -833,6 +901,7 @@ export default function MembersAreaPublic() {
               </div>
               <Button 
                 onClick={handlePasswordSubmit} 
+                disabled={loggingIn}
                 className="w-full text-white"
                 size="lg"
                 style={{ 
