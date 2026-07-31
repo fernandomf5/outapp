@@ -1479,7 +1479,7 @@ export function SimpleMembersArea() {
                     <SelectItem value="gallery">🖼️ Galeria de Imagens</SelectItem>
                     <SelectItem value="video">🎬 Vídeo (URL)</SelectItem>
                     <SelectItem value="video_gallery">🎬 Múltiplos Vídeos</SelectItem>
-                    <SelectItem value="audio">🎧 Áudio/Podcast</SelectItem>
+                    <SelectItem value="audio">🎵 Áudio (MP3)</SelectItem>
                     <SelectItem value="document">📄 Documento (PDF)</SelectItem>
                     <SelectItem value="download">⬇️ Arquivo para Download</SelectItem>
                     <SelectItem value="slides">📊 Apresentação/Slides</SelectItem>
