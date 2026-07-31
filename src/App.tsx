@@ -53,8 +53,6 @@ import AprovaJobClient from "./pages/AprovaJobClient";
 import InstallApp from "./pages/InstallApp";
 import CampaignPublicView from "./pages/CampaignPublicView";
 import ClientCampaignsPublicView from "./pages/ClientCampaignsPublicView";
-import CatalogPublicPage from "./pages/CatalogPublicPage";
-import CatalogContentPage from "./pages/CatalogContentPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutThankYouPage from "./pages/CheckoutThankYouPage";
 import TeamMemberAuth from "./pages/TeamMemberAuth";
@@ -62,8 +60,7 @@ import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
 import InvoicePublicPage from "./pages/InvoicePublicPage";
-import CapturePagePublic from "./pages/CapturePagePublic";
-import PortfolioPublic from "./pages/PortfolioPublic";
+import SitePublic from "./pages/SitePublic";
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { RoutePersistence } from "@/components/RoutePersistence";
@@ -132,16 +129,14 @@ const AppContent = () => {
               <Route path="/instalar" element={<InstallApp />} />
               <Route path="/campanha/:campaignId" element={<CampaignPublicView />} />
               <Route path="/cliente-campanhas/:clientId" element={<ClientCampaignsPublicView />} />
-              <Route path="/catalogo/:slug" element={<CatalogPublicPage />} />
-              <Route path="/catalogo/:slug/p/:pageSlug" element={<CatalogContentPage />} />
               <Route path="/checkout/:checkoutId" element={<CheckoutPage />} />
               <Route path="/checkout/:checkoutId/:slug" element={<CheckoutPage />} />
               <Route path="/checkout/:checkoutId/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/checkout/:checkoutId/:slug/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
               <Route path="/fatura/:token" element={<InvoicePublicPage />} />
-              <Route path="/captura/:slug" element={<CapturePagePublic />} />
-              <Route path="/portfolio/:slug" element={<PortfolioPublic />} />
+              <Route path="/site/:slug" element={<SitePublic />} />
+              <Route path="/site/:slug/:pageSlug" element={<SitePublic />} />
 
               <Route path="/checkout-editor/:id" element={
                 <ProtectedRoute>
