@@ -134,6 +134,8 @@ interface MembersArea {
   enable_questions?: boolean;
   user_id?: string;
   manager_whatsapp?: string;
+  access_type?: string;
+
 }
 
 function AreaBannerCarousel({ banners, accentColor }: { banners: AreaBanner[]; accentColor: string }) {
