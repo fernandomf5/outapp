@@ -24,6 +24,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 import { GalleryBlockEditor } from "@/components/members-area/GalleryBlockEditor";
+import { VideoGalleryBlockEditor } from "@/components/members-area/VideoGalleryBlockEditor";
+
 
 interface ContentBlock {
   id: string;
