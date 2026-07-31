@@ -5,8 +5,7 @@ import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditC
 import { Input } from "@/components/ui/input";
 
 import { useTheme } from "next-themes";
-import logoLight from "@/assets/logo-light.png";
-import logoDark from "@/assets/logo-dark.png";
+import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,7 +127,7 @@ const Dashboard = () => {
   // Track user presence for online status
   useUserPresence();
   
-  const currentLogo = resolvedTheme === 'dark' ? logoDark : logoLight;
+  const currentLogo = logoAsset.url;
   const [stats, setStats] = useState({
     totalAgents: 0,
     activeConnections: 0,

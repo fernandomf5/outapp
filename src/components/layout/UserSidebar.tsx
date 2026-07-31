@@ -3,8 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2, Package, CalendarCheck, BookOpen, Search, X, ChevronDown, PlusCircle, Handshake, Settings, HardHat, HeartPulse, GraduationCap, Gavel, Briefcase, Settings2, Table } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import logoLight from "@/assets/logo-light.png";
-import logoDark from "@/assets/logo-dark.png";
+import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
@@ -60,7 +59,7 @@ export function UserSidebar() {
   const { theme, resolvedTheme } = useTheme();
   const { isTeamMember, canAccessModule } = useTeamMember();
   
-  const currentLogo = resolvedTheme === 'dark' ? logoDark : logoLight;
+  const currentLogo = logoAsset.url;
   const currentPath = location.pathname;
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
