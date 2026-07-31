@@ -344,7 +344,7 @@ export default function MembersAreaPublic() {
   const renderBlock = (block: ContentBlock, accentColor: string, cardTextColor: string, cardBackgroundColor?: string) => {
     switch (block.type) {
       case 'text':
-        return <div className="prose prose-sm max-w-none" style={{ color: cardTextColor }} dangerouslySetInnerHTML={{ __html: block.content }} />;
+        return <BlockRichText content={block.content} className="prose prose-sm max-w-none" style={{ color: cardTextColor }} />;
       
       case 'image':
         return (
