@@ -205,11 +205,89 @@ export default function MembersAreaPublic() {
   const [recoverOpen, setRecoverOpen] = useState(false);
   const [recoverEmail, setRecoverEmail] = useState('');
   const [recoverLoading, setRecoverLoading] = useState(false);
+  const [keepLogged, setKeepLogged] = useState(true);
 
+  const sessionKey = `ma-session-${slug}`;
+  const INACTIVITY_MS = 60 * 60 * 1000; // 1 hora
+
+  const saveSession = (payload: { name: string; accessCodeId: string | null; keep: boolean }) => {
+    const data = JSON.stringify({ ...payload, lastActive: Date.now() });
+    try {
+      sessionStorage.setItem(sessionKey, data);
+      if (payload.keep) localStorage.setItem(sessionKey, data);
+      else localStorage.removeItem(sessionKey);
+    } catch {}
+  };
+
+  const clearSession = () => {
+    try {
+      sessionStorage.removeItem(sessionKey);
+      localStorage.removeItem(sessionKey);
+    } catch {}
+  };
 
   useEffect(() => {
     loadArea();
   }, [slug]);
+
+  // Restaura sessão salva (expira após 1h de inatividade)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(sessionKey) || sessionStorage.getItem(sessionKey);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (!s?.lastActive || Date.now() - s.lastActive > INACTIVITY_MS) {
+        clearSession();
+        return;
+      }
+      setStudentName(s.name || 'Aluno');
+      setAccessCodeId(s.accessCodeId || null);
+      setKeepLogged(!!s.keep);
+      setIsAuthenticated(true);
+    } catch {}
+  }, [slug]);
+
+  // Renova o carimbo de atividade enquanto o aluno usa a área
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const touch = () => {
+      try {
+        const raw = sessionStorage.getItem(sessionKey) || localStorage.getItem(sessionKey);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        saveSession({ name: s.name, accessCodeId: s.accessCodeId ?? null, keep: !!s.keep });
+      } catch {}
+    };
+
+    const events = ['click', 'keydown', 'scroll', 'mousemove', 'touchstart'];
+    let last = 0;
+    const handler = () => {
+      const now = Date.now();
+      if (now - last < 30000) return; // throttle
+      last = now;
+      touch();
+    };
+    events.forEach((e) => window.addEventListener(e, handler, { passive: true }));
+
+    const checker = setInterval(() => {
+      try {
+        const raw = sessionStorage.getItem(sessionKey) || localStorage.getItem(sessionKey);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        if (Date.now() - (s.lastActive || 0) > INACTIVITY_MS) {
+          clearSession();
+          setIsAuthenticated(false);
+          toast.info('Sessão encerrada por inatividade');
+        }
+      } catch {}
+    }, 60000);
+
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, handler));
+      clearInterval(checker);
+    };
+  }, [isAuthenticated, slug]);
 
   useEffect(() => {
     const code = searchParams.get('code');
@@ -218,6 +296,7 @@ export default function MembersAreaPublic() {
       setPasswordInput(code.toUpperCase());
     }
   }, [searchParams]);
+
 
   const loadArea = async () => {
     try {
