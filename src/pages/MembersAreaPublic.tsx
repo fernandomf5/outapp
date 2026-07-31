@@ -205,11 +205,89 @@ export default function MembersAreaPublic() {
   const [recoverOpen, setRecoverOpen] = useState(false);
   const [recoverEmail, setRecoverEmail] = useState('');
   const [recoverLoading, setRecoverLoading] = useState(false);
+  const [keepLogged, setKeepLogged] = useState(true);
 
+  const sessionKey = `ma-session-${slug}`;
+  const INACTIVITY_MS = 60 * 60 * 1000; // 1 hora
+
+  const saveSession = (payload: { name: string; accessCodeId: string | null; keep: boolean }) => {
+    const data = JSON.stringify({ ...payload, lastActive: Date.now() });
+    try {
+      sessionStorage.setItem(sessionKey, data);
+      if (payload.keep) localStorage.setItem(sessionKey, data);
+      else localStorage.removeItem(sessionKey);
+    } catch {}
+  };
+
+  const clearSession = () => {
+    try {
+      sessionStorage.removeItem(sessionKey);
+      localStorage.removeItem(sessionKey);
+    } catch {}
+  };
 
   useEffect(() => {
     loadArea();
   }, [slug]);
+
+  // Restaura sessão salva (expira após 1h de inatividade)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(sessionKey) || sessionStorage.getItem(sessionKey);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (!s?.lastActive || Date.now() - s.lastActive > INACTIVITY_MS) {
+        clearSession();
+        return;
+      }
+      setStudentName(s.name || 'Aluno');
+      setAccessCodeId(s.accessCodeId || null);
+      setKeepLogged(!!s.keep);
+      setIsAuthenticated(true);
+    } catch {}
+  }, [slug]);
+
+  // Renova o carimbo de atividade enquanto o aluno usa a área
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const touch = () => {
+      try {
+        const raw = sessionStorage.getItem(sessionKey) || localStorage.getItem(sessionKey);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        saveSession({ name: s.name, accessCodeId: s.accessCodeId ?? null, keep: !!s.keep });
+      } catch {}
+    };
+
+    const events = ['click', 'keydown', 'scroll', 'mousemove', 'touchstart'];
+    let last = 0;
+    const handler = () => {
+      const now = Date.now();
+      if (now - last < 30000) return; // throttle
+      last = now;
+      touch();
+    };
+    events.forEach((e) => window.addEventListener(e, handler, { passive: true }));
+
+    const checker = setInterval(() => {
+      try {
+        const raw = sessionStorage.getItem(sessionKey) || localStorage.getItem(sessionKey);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        if (Date.now() - (s.lastActive || 0) > INACTIVITY_MS) {
+          clearSession();
+          setIsAuthenticated(false);
+          toast.info('Sessão encerrada por inatividade');
+        }
+      } catch {}
+    }, 60000);
+
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, handler));
+      clearInterval(checker);
+    };
+  }, [isAuthenticated, slug]);
 
   useEffect(() => {
     const code = searchParams.get('code');
@@ -218,6 +296,7 @@ export default function MembersAreaPublic() {
       setPasswordInput(code.toUpperCase());
     }
   }, [searchParams]);
+
 
   const loadArea = async () => {
     try {
@@ -269,9 +348,12 @@ export default function MembersAreaPublic() {
           toast.error(resErr || 'Usuário ou senha inválidos');
           return;
         }
-        setStudentName((data as any).user?.name || usernameInput.trim());
+        const uname = (data as any).user?.name || usernameInput.trim();
+        setStudentName(uname);
         setIsAuthenticated(true);
+        saveSession({ name: uname, accessCodeId: null, keep: keepLogged });
         toast.success('Acesso liberado!');
+
       } catch {
         toast.error('Erro ao entrar');
       } finally {
@@ -301,8 +383,10 @@ export default function MembersAreaPublic() {
           return;
         }
         setAccessCodeId((codeData as any).id);
-        setStudentName((codeData as any).customer_name || 'Aluno');
+        const cname = (codeData as any).customer_name || 'Aluno';
+        setStudentName(cname);
         setIsAuthenticated(true);
+        saveSession({ name: cname, accessCodeId: (codeData as any).id, keep: keepLogged });
         toast.success('Acesso liberado!');
       } catch {
         toast.error('Erro ao verificar código');
@@ -310,7 +394,9 @@ export default function MembersAreaPublic() {
     } else {
       if (passwordInput === area.password) {
         setIsAuthenticated(true);
+        saveSession({ name: 'Aluno', accessCodeId: null, keep: keepLogged });
         toast.success('Acesso liberado!');
+
       } else {
         toast.error('Senha incorreta');
       }
@@ -350,10 +436,12 @@ export default function MembersAreaPublic() {
 
 
   const handleLogout = () => {
+    clearSession();
     setIsAuthenticated(false);
     setPasswordInput('');
     toast.success('Você saiu da área de membros');
   };
+
 
   const getBlockIcon = (type: string) => {
     const icons: Record<string, React.ReactNode> = {
@@ -894,7 +982,20 @@ export default function MembersAreaPublic() {
                   )}
                 </div>
               </div>
+
+              <label className="flex items-center gap-2 cursor-pointer select-none" style={{ color: `${loginTextColor}CC` }}>
+                <input
+                  type="checkbox"
+                  checked={keepLogged}
+                  onChange={(e) => setKeepLogged(e.target.checked)}
+                  className="h-4 w-4 rounded cursor-pointer"
+                  style={{ accentColor: primaryColor }}
+                />
+                <span className="text-xs">Manter-me conectado neste dispositivo</span>
+              </label>
+
               <Button 
+
                 onClick={handlePasswordSubmit} 
                 disabled={loggingIn}
                 className="w-full text-white"
