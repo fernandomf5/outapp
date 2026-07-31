@@ -195,7 +195,9 @@ export default function MembersAreaPublic() {
   const [studentName, setStudentName] = useState<string>('Aluno');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loginMode, setLoginMode] = useState<'password' | 'code'>('password');
+  const [loginMode, setLoginMode] = useState<'password' | 'code' | 'user'>('password');
+  const [usernameInput, setUsernameInput] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
