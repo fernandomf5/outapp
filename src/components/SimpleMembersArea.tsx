@@ -23,6 +23,8 @@ import { PendingOrdersDialog } from "@/components/members-area/PendingOrdersDial
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import { GalleryBlockEditor } from "@/components/members-area/GalleryBlockEditor";
+
 interface ContentBlock {
   id: string;
   type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
@@ -1583,38 +1585,12 @@ export function SimpleMembersArea() {
                     bucketName="members-content"
                   />
                 ) : blockFormData.type === 'gallery' ? (
-                  <div className="space-y-3">
-                    <p className="text-xs text-muted-foreground">
-                      Adicione várias imagens à galeria. Cada upload adiciona uma imagem.
-                    </p>
-                    {blockFormData.content && blockFormData.content.split('|||').filter(Boolean).map((url, idx) => (
-                      <div key={idx} className="flex items-center gap-2 p-2 border rounded-md">
-                        <img src={url} alt={`Imagem ${idx + 1}`} className="w-16 h-16 object-cover rounded" />
-                        <span className="text-xs text-muted-foreground flex-1 truncate">{url}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const urls = blockFormData.content.split('|||').filter(Boolean);
-                            urls.splice(idx, 1);
-                            setBlockFormData({ ...blockFormData, content: urls.join('|||') });
-                          }}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                    <ImageUpload
-                      currentImage=""
-                      onImageSelect={(url) => {
-                        const existing = blockFormData.content ? blockFormData.content.split('|||').filter(Boolean) : [];
-                        existing.push(url);
-                        setBlockFormData({ ...blockFormData, content: existing.join('|||') });
-                      }}
-                      bucketName="members-content"
-                    />
-                  </div>
+                  <GalleryBlockEditor
+                    content={blockFormData.content}
+                    onChange={(content) => setBlockFormData({ ...blockFormData, content })}
+                    bucketName="members-content"
+                  />
+
                 ) : blockFormData.type === 'video_gallery' ? (
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground">
