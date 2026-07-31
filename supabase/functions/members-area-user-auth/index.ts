@@ -1,11 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import * as bcrypt from "https://esm.sh/bcryptjs@2.4.3";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import bcrypt from "npm:bcryptjs@2.4.3";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -17,12 +13,16 @@ const normalizeUsername = (u: string) =>
   String(u || '').trim().toLowerCase().replace(/\s+/g, '');
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const admin = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  );
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error('Missing required Supabase environment variables');
+    return json({ error: 'Configuração interna indisponível' }, 500);
+  }
+
+  const admin = createClient(supabaseUrl, serviceRoleKey);
 
   try {
     const body = await req.json();
@@ -142,6 +142,8 @@ serve(async (req) => {
 
     return json({ error: 'Ação inválida' }, 400);
   } catch (e) {
-    return json({ error: (e as Error).message || 'Erro inesperado' }, 500);
+    const message = e instanceof Error ? e.message : String(e);
+    console.error('members-area-user-auth failed:', message);
+    return json({ error: message || 'Erro inesperado' }, 500);
   }
 });
