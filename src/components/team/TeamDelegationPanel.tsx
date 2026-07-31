@@ -110,14 +110,15 @@ const MODULES = [
     resourceLabel: 'briefings'
   },
   { 
-    key: 'portfolio', 
-    label: 'Portfólio', 
+    key: 'sites', 
+    label: 'Criador de Sites', 
     icon: Image,
-    description: 'Portfólio de trabalhos',
+    description: 'Sites criados na plataforma',
     hasResourceSelection: true,
-    resourceType: 'portfolios',
-    resourceLabel: 'portfólios'
+    resourceType: 'sites',
+    resourceLabel: 'sites'
   },
+
   { 
     key: 'websites', 
     label: 'Sites', 
@@ -258,12 +259,13 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       }));
     }
     
-    // Load Portfolios
-    const { data: portfolios } = await supabase
-      .from('portfolios')
+    // Load Sites (Criador de Sites)
+    const { data: sitesList } = await supabase
+      .from('sites')
       .select('id, name')
       .eq('user_id', user.id);
-    if (portfolios) resources.portfolios = portfolios as Resource[];
+    if (sitesList) resources.sites = sitesList as Resource[];
+
     
     // Load Websites
     const { data: websites } = await supabase
