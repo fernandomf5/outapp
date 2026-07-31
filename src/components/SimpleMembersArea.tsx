@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key, User } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key, User } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,7 +30,7 @@ import { SlidesBlockEditor } from "@/components/members-area/SlidesBlockEditor";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -116,14 +116,12 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       button: <MousePointer className="w-4 h-4" />,
       download: <Download className="w-4 h-4" />,
       audio: <Music className="w-4 h-4" />,
-      embed: <Code className="w-4 h-4" />,
       quiz: <HelpCircle className="w-4 h-4" />,
       timeline: <GitBranch className="w-4 h-4" />,
       customer_history: <History className="w-4 h-4" />,
       checklist: <CheckSquare className="w-4 h-4" />,
       certificate: <Award className="w-4 h-4" />,
       webinar: <Radio className="w-4 h-4" />,
-      notes: <StickyNote className="w-4 h-4" />,
       faq: <MessageSquare className="w-4 h-4" />,
       mindmap: <Brain className="w-4 h-4" />,
       slides: <Presentation className="w-4 h-4" />,

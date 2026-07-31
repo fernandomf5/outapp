@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X, ChevronDown, Megaphone, DollarSign } from "lucide-react";
+import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X, ChevronDown, Megaphone, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerHistoryTimeline } from "@/components/members-area/CustomerHistoryTimeline";
 import { AdsDashboardBlock } from "@/components/members-area/AdsDashboardBlock";
@@ -45,7 +45,7 @@ const SecretContentBlock = ({ content, title, accentColor, textColor }: { conten
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -455,14 +455,12 @@ export default function MembersAreaPublic() {
       button: <MousePointer className="w-4 h-4" />,
       download: <Download className="w-4 h-4" />,
       audio: <Music className="w-4 h-4" />,
-      embed: <Code className="w-4 h-4" />,
       quiz: <HelpCircle className="w-4 h-4" />,
       timeline: <GitBranch className="w-4 h-4" />,
       customer_history: <History className="w-4 h-4" />,
       checklist: <CheckSquare className="w-4 h-4" />,
       certificate: <Award className="w-4 h-4" />,
       webinar: <Radio className="w-4 h-4" />,
-      notes: <StickyNote className="w-4 h-4" />,
       faq: <MessageSquare className="w-4 h-4" />,
       mindmap: <Brain className="w-4 h-4" />,
       slides: <Presentation className="w-4 h-4" />,
@@ -631,14 +629,6 @@ export default function MembersAreaPublic() {
           </div>
         );
 
-      case 'embed':
-        return (
-          <div 
-            className="w-full rounded-lg overflow-hidden"
-            dangerouslySetInnerHTML={{ __html: block.content }} 
-          />
-        );
-
       case 'secret':
         return (
           <SecretContentBlock
@@ -728,7 +718,6 @@ export default function MembersAreaPublic() {
           </div>
         );
 
-      case 'notes':
       case 'faq':
       case 'checklist':
       case 'quiz':
@@ -736,7 +725,7 @@ export default function MembersAreaPublic() {
       case 'certificate':
       case 'webinar':
       case 'mindmap': {
-        const iconMap2: Record<string, any> = { notes: StickyNote, faq: MessageSquare, checklist: CheckSquare, quiz: HelpCircle, timeline: GitBranch, certificate: Award, webinar: Radio, mindmap: Brain };
+        const iconMap2: Record<string, any> = { faq: MessageSquare, checklist: CheckSquare, quiz: HelpCircle, timeline: GitBranch, certificate: Award, webinar: Radio, mindmap: Brain };
         const Icon2 = iconMap2[block.type] || FileText;
         return (
           <div 
@@ -1673,7 +1662,7 @@ export default function MembersAreaPublic() {
                                     <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
                                       {blockContents.map((block, contentIndex) => {
                                         // Block types that already render their own title internally — avoid duplicate label.
-                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'customer_history', 'payment_history', 'notes', 'faq', 'checklist', 'quiz', 'timeline', 'certificate', 'webinar', 'mindmap', 'slides'];
+                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'customer_history', 'payment_history', 'faq', 'checklist', 'quiz', 'timeline', 'certificate', 'webinar', 'mindmap', 'slides'];
                                         const showWrapperTitle = block.title && !selfTitledTypes.includes(block.type);
                                         return (
                                           <div key={block.id}>
