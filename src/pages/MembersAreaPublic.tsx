@@ -348,9 +348,12 @@ export default function MembersAreaPublic() {
           toast.error(resErr || 'Usuário ou senha inválidos');
           return;
         }
-        setStudentName((data as any).user?.name || usernameInput.trim());
+        const uname = (data as any).user?.name || usernameInput.trim();
+        setStudentName(uname);
         setIsAuthenticated(true);
+        saveSession({ name: uname, accessCodeId: null, keep: keepLogged });
         toast.success('Acesso liberado!');
+
       } catch {
         toast.error('Erro ao entrar');
       } finally {
