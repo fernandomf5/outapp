@@ -66,7 +66,7 @@ interface MembersArea {
   customer_name?: string;
   business_id?: string;
   area_type?: string; // 'course' or 'exclusive'
-  access_type?: string; // 'password' or 'email_code'
+  access_type?: string; // 'password', 'email_code' or 'user_password'
   // Design da área interna
   background_color?: string;
   text_color?: string;
@@ -217,7 +217,7 @@ export function SimpleMembersArea() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [areaToDelete, setAreaToDelete] = useState<MembersArea | null>(null);
   const [questionsAreaId, setQuestionsAreaId] = useState<{ id: string; name: string } | null>(null);
-  const [codesArea, setCodesArea] = useState<{ id: string; slug: string; name: string } | null>(null);
+  const [codesArea, setCodesArea] = useState<{ id: string; slug: string; name: string; initialTab: 'codes' | 'users' } | null>(null);
   const [pendingOrdersArea, setPendingOrdersArea] = useState<{ id: string; name: string } | null>(null);
   const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
@@ -237,6 +237,9 @@ export function SimpleMembersArea() {
     slug: '',
     description: '',
     password: '',
+    member_name: '',
+    member_username: '',
+    member_password: '',
     access_type: 'password' as string,
     primary_color: '#8B5CF6',
     secondary_color: '#EC4899',
@@ -407,6 +410,21 @@ export function SimpleMembersArea() {
         .single();
 
       if (error) throw error;
+
+      if (areaFormData.access_type === 'user_password') {
+        const { data: loginData, error: loginError } = await supabase.functions.invoke('members-area-user-auth', {
+          body: {
+            action: 'create',
+            areaId: (data as any).id,
+            name: areaFormData.member_name,
+            username: areaFormData.member_username,
+            password: areaFormData.member_password,
+          },
+        });
+        if (loginError || (loginData as any)?.error) {
+          throw new Error((loginData as any)?.error || loginError?.message || 'Não foi possível criar o login');
+        }
+      }
 
       toast.success('Área de membros criada com sucesso!');
       setIsCreateDialogOpen(false);
@@ -675,6 +693,9 @@ export function SimpleMembersArea() {
 
       description: area.description,
       password: area.password,
+      member_name: '',
+      member_username: '',
+      member_password: '',
       access_type: area.access_type || 'password',
       primary_color: area.primary_color || '#8B5CF6',
       secondary_color: area.secondary_color || '#EC4899',
@@ -740,6 +761,21 @@ export function SimpleMembersArea() {
         .eq('id', editingArea.id);
 
       if (error) throw error;
+
+      if (areaFormData.access_type === 'user_password' && areaFormData.member_username && areaFormData.member_password) {
+        const { data: loginData, error: loginError } = await supabase.functions.invoke('members-area-user-auth', {
+          body: {
+            action: 'create',
+            areaId: editingArea.id,
+            name: areaFormData.member_name,
+            username: areaFormData.member_username,
+            password: areaFormData.member_password,
+          },
+        });
+        if (loginError || (loginData as any)?.error) {
+          throw new Error((loginData as any)?.error || loginError?.message || 'Não foi possível criar o login');
+        }
+      }
 
       toast.success('Área atualizada com sucesso!');
       setIsEditDialogOpen(false);
@@ -1897,10 +1933,10 @@ export function SimpleMembersArea() {
                     variant="secondary"
                     size="default"
                     className="w-full h-11 sm:h-9 text-base sm:text-sm"
-                    onClick={(e) => { e.stopPropagation(); setCodesArea({ id: area.id, slug: area.slug, name: area.name }); }}
+                    onClick={(e) => { e.stopPropagation(); setCodesArea({ id: area.id, slug: area.slug, name: area.name, initialTab: area.access_type === 'user_password' ? 'users' : 'codes' }); }}
                   >
                     <Key className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                    Códigos de Acesso
+                    {area.access_type === 'user_password' ? 'Gerenciar Login e Senha' : 'Códigos de Acesso'}
                   </Button>
                   {(area as any).enable_questions && (
                     <Button
@@ -1971,6 +2007,7 @@ export function SimpleMembersArea() {
           areaId={codesArea.id}
           areaSlug={codesArea.slug}
           areaName={codesArea.name}
+          initialTab={codesArea.initialTab}
         />
       )}
 
@@ -2069,14 +2106,26 @@ export function SimpleMembersArea() {
                   </div>
                 </div>
                 {areaFormData.access_type === 'user_password' ? (
-                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-primary" />
                       <p className="font-medium text-sm">Acesso por login e senha</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Cada aluno entra com um <strong>nome de usuário</strong> e uma <strong>senha</strong> criados por você na aba <strong>Acessos → Usuário e Senha</strong> da área.
-                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <Label>Nome do aluno (opcional)</Label>
+                        <Input value={areaFormData.member_name} onChange={(e) => setAreaFormData({ ...areaFormData, member_name: e.target.value })} placeholder="Ex: João Silva" />
+                      </div>
+                      <div>
+                        <Label>Nome de usuário *</Label>
+                        <Input value={areaFormData.member_username} onChange={(e) => setAreaFormData({ ...areaFormData, member_username: e.target.value.toLowerCase().replace(/\s+/g, '') })} placeholder="joaosilva" />
+                      </div>
+                      <div>
+                        <Label>Senha *</Label>
+                        <Input type="text" value={areaFormData.member_password} onChange={(e) => setAreaFormData({ ...areaFormData, member_password: e.target.value })} placeholder="Mínimo 6 caracteres" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Este será o primeiro acesso. Depois você poderá criar outros em <strong>Gerenciar Login e Senha</strong>.</p>
                   </div>
                 ) : areaFormData.access_type === 'password' ? (
                   <div>
@@ -2383,14 +2432,26 @@ export function SimpleMembersArea() {
                   </div>
                 </div>
                 {areaFormData.access_type === 'user_password' ? (
-                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-primary" />
                       <p className="font-medium text-sm">Acesso por login e senha</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Cada aluno entra com um <strong>nome de usuário</strong> e uma <strong>senha</strong> criados por você na aba <strong>Acessos → Usuário e Senha</strong> da área.
-                    </p>
+                    <p className="text-xs text-muted-foreground">Crie um novo acesso abaixo ou deixe vazio para apenas alterar o tipo de acesso.</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <Label>Nome do aluno (opcional)</Label>
+                        <Input value={areaFormData.member_name} onChange={(e) => setAreaFormData({ ...areaFormData, member_name: e.target.value })} placeholder="Ex: João Silva" />
+                      </div>
+                      <div>
+                        <Label>Novo nome de usuário</Label>
+                        <Input value={areaFormData.member_username} onChange={(e) => setAreaFormData({ ...areaFormData, member_username: e.target.value.toLowerCase().replace(/\s+/g, '') })} placeholder="joaosilva" />
+                      </div>
+                      <div>
+                        <Label>Nova senha</Label>
+                        <Input type="text" value={areaFormData.member_password} onChange={(e) => setAreaFormData({ ...areaFormData, member_password: e.target.value })} placeholder="Mínimo 6 caracteres" />
+                      </div>
+                    </div>
                   </div>
                 ) : areaFormData.access_type === 'password' ? (
                   <div>

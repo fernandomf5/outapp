@@ -37,6 +37,7 @@ interface Props {
   areaId: string;
   areaSlug: string;
   areaName: string;
+  initialTab?: "codes" | "users";
 }
 
 const DURATION_OPTIONS: Record<string, number | null> = {
@@ -71,7 +72,7 @@ const DurationSelect = ({ value, onChange }: { value: string; onChange: (v: stri
   </Select>
 );
 
-export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaName }: Props) {
+export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaName, initialTab = "codes" }: Props) {
   const [codes, setCodes] = useState<AccessCode[]>([]);
   const [loading, setLoading] = useState(false);
   const [studentName, setStudentName] = useState("");
@@ -258,7 +259,7 @@ export function AccessCodesDialog({ open, onOpenChange, areaId, areaSlug, areaNa
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="codes" className="flex-1 min-h-0 flex flex-col">
+        <Tabs defaultValue={initialTab} className="flex-1 min-h-0 flex flex-col">
           <TabsList className="shrink-0 grid grid-cols-2">
             <TabsTrigger value="codes" className="gap-2">
               <Key className="w-4 h-4" /> Códigos
