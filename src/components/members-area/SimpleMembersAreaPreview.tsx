@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, Play, FileText, Image, Video, Link as LinkIcon, MousePointer, Download, Eye, EyeOff, LogIn, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Monitor, Tablet, Smartphone, Home, BookOpen, User, ChevronRight, Images, Film, DollarSign } from "lucide-react";
+import { Lock, Play, FileText, Image, Video, Link as LinkIcon, MousePointer, Download, Eye, EyeOff, LogIn, Music, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, MessageSquare, Presentation, Monitor, Tablet, Smartphone, Home, BookOpen, User, ChevronRight, Images, Film, DollarSign } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
