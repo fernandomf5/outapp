@@ -18,6 +18,7 @@ import { VideoQuestions } from "@/components/members-area/VideoQuestions";
 import { BlockRichText } from "@/components/members-area/BlockRichText";
 import { MembersGallery } from "@/components/members-area/MembersGallery";
 import { MembersVideoGallery } from "@/components/members-area/MembersVideoGallery";
+import { MembersSlides } from "@/components/members-area/MembersSlides";
 
 
 
@@ -734,9 +735,8 @@ export default function MembersAreaPublic() {
       case 'timeline':
       case 'certificate':
       case 'webinar':
-      case 'mindmap':
-      case 'slides': {
-        const iconMap2: Record<string, any> = { notes: StickyNote, faq: MessageSquare, checklist: CheckSquare, quiz: HelpCircle, timeline: GitBranch, certificate: Award, webinar: Radio, mindmap: Brain, slides: Presentation };
+      case 'mindmap': {
+        const iconMap2: Record<string, any> = { notes: StickyNote, faq: MessageSquare, checklist: CheckSquare, quiz: HelpCircle, timeline: GitBranch, certificate: Award, webinar: Radio, mindmap: Brain };
         const Icon2 = iconMap2[block.type] || FileText;
         return (
           <div 
@@ -754,6 +754,17 @@ export default function MembersAreaPublic() {
             </div>
             <BlockRichText content={block.content} className="prose prose-sm max-w-none" style={{ color: cardTextColor }} />
           </div>
+        );
+      }
+
+      case 'slides': {
+        return (
+          <MembersSlides
+            content={block.content}
+            accentColor={accentColor}
+            textColor={cardTextColor}
+            cardBackgroundColor={cardBackgroundColor}
+          />
         );
       }
       

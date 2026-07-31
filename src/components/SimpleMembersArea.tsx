@@ -25,6 +25,7 @@ import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 import { GalleryBlockEditor } from "@/components/members-area/GalleryBlockEditor";
 import { VideoGalleryBlockEditor } from "@/components/members-area/VideoGalleryBlockEditor";
+import { SlidesBlockEditor } from "@/components/members-area/SlidesBlockEditor";
 
 
 interface ContentBlock {
@@ -1597,6 +1598,13 @@ export function SimpleMembersArea() {
                   <VideoGalleryBlockEditor
                     content={blockFormData.content}
                     onChange={(content) => setBlockFormData({ ...blockFormData, content })}
+                  />
+
+                ) : blockFormData.type === 'slides' ? (
+                  <SlidesBlockEditor
+                    content={blockFormData.content}
+                    onChange={(content) => setBlockFormData({ ...blockFormData, content })}
+                    bucketName="members-content"
                   />
 
                 ) : blockFormData.type === 'document' ? (
