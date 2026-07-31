@@ -29,7 +29,6 @@ export const TUTORIAL_FEATURES: TutorialFeature[] = [
   { key: "shortlinks", label: "Encurtador de Links", group: "Recursos Básicos" },
   { key: "qrcode", label: "Gerador de QR Code", group: "Recursos Básicos" },
   { key: "scripts", label: "Scripts de Atendimento", group: "Recursos Básicos" },
-  { key: "produtos-servicos", label: "Produtos e Serviços", group: "Recursos Básicos" },
 
   // Recursos Avançados
   { key: "area-membros", label: "Criador de Área de Membros", group: "Recursos Avançados" },
