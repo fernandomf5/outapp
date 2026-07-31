@@ -18,6 +18,7 @@ import { VideoQuestions } from "@/components/members-area/VideoQuestions";
 import { BlockRichText } from "@/components/members-area/BlockRichText";
 import { MembersGallery } from "@/components/members-area/MembersGallery";
 import { MembersVideoGallery } from "@/components/members-area/MembersVideoGallery";
+import { MembersSlides } from "@/components/members-area/MembersSlides";
 
 
 
