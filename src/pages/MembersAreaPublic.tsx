@@ -767,37 +767,32 @@ export default function MembersAreaPublic() {
 
 
       case 'video_gallery': {
-        let videos: { url: string; title?: string; description?: string }[] = [];
-        try {
-          videos = JSON.parse(block.content);
-        } catch {
-          if (block.content) {
-            videos = block.content.split('|||').filter(Boolean).map(u => ({ url: u }));
-          }
-        }
         const qaEnabled = !!area?.enable_questions && !!accessCodeId && !!area?.user_id;
         return (
-          <div className="flex flex-col gap-6">
-            {videos.map((video, idx) => (
-              <div key={idx} className="flex flex-col">
-                <VideoGalleryItem video={video} accentColor={accentColor} cardTextColor={cardTextColor} />
-                {qaEnabled && (
-                  <VideoQuestions
-                    areaId={area!.id}
-                    ownerUserId={area!.user_id!}
-                    blockId={block.id}
-                    videoIndex={idx}
-                    accessCodeId={accessCodeId!}
-                    studentName={studentName}
-                    accentColor={accentColor}
-                    cardTextColor={cardTextColor}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+          <MembersVideoGallery
+            content={block.content}
+            accentColor={accentColor}
+            textColor={cardTextColor}
+            renderExtra={
+              qaEnabled
+                ? (idx) => (
+                    <VideoQuestions
+                      areaId={area!.id}
+                      ownerUserId={area!.user_id!}
+                      blockId={block.id}
+                      videoIndex={idx}
+                      accessCodeId={accessCodeId!}
+                      studentName={studentName}
+                      accentColor={accentColor}
+                      cardTextColor={cardTextColor}
+                    />
+                  )
+                : undefined
+            }
+          />
         );
       }
+
 
       default:
         return null;
