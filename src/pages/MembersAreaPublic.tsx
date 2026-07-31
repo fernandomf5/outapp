@@ -404,25 +404,21 @@ export default function MembersAreaPublic() {
           const parsed = JSON.parse(block.content);
           if (parsed?.url) { videoUrl = parsed.url; videoDesc = parsed.description || ''; }
         } catch { /* legacy plain URL */ }
+        const embedUrl = getVideoEmbedUrl(videoUrl);
         return (
           <div className="space-y-2">
             <div className="relative w-full aspect-video">
-              {videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ? (
+              {embedUrl ? (
                 <iframe
                   className="w-full h-full rounded-lg"
-                  src={videoUrl.replace('watch?v=', 'embed/')}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : videoUrl.includes('vimeo.com') ? (
-                <iframe
-                  className="w-full h-full rounded-lg"
-                  src={videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/')}
-                  allow="autoplay; fullscreen; picture-in-picture"
+                  src={embedUrl}
+                  title={block.title || 'Vídeo'}
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                   allowFullScreen
                 />
               ) : (
-                <video controls className="w-full h-full rounded-lg">
+                <video controls playsInline className="w-full h-full rounded-lg bg-black">
                   <source src={videoUrl} />
                 </video>
               )}
