@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { VideoQuestions } from "@/components/members-area/VideoQuestions";
 import { BlockRichText } from "@/components/members-area/BlockRichText";
 import { MembersGallery } from "@/components/members-area/MembersGallery";
+import { MembersVideoGallery } from "@/components/members-area/MembersVideoGallery";
+
 
 
 const SecretContentBlock = ({ content, title, accentColor, textColor }: { content: string; title?: string; accentColor: string; textColor: string }) => {
