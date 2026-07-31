@@ -364,6 +364,10 @@ export function SimpleMembersArea() {
   };
 
   const handleCreateArea = async () => {
+    if (areaFormData.access_type === 'user_password' && (!areaFormData.member_username.trim() || areaFormData.member_password.length < 6)) {
+      toast.error('Informe um nome de usuário e uma senha com pelo menos 6 caracteres');
+      return;
+    }
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -721,6 +725,14 @@ export function SimpleMembersArea() {
 
   const handleUpdateArea = async () => {
     if (!editingArea) return;
+    if (areaFormData.access_type === 'user_password') {
+      const hasUsername = Boolean(areaFormData.member_username.trim());
+      const hasPassword = Boolean(areaFormData.member_password);
+      if (hasUsername !== hasPassword || (hasPassword && areaFormData.member_password.length < 6)) {
+        toast.error('Para criar um novo acesso, informe usuário e senha com pelo menos 6 caracteres');
+        return;
+      }
+    }
     
     try {
       setLoading(true);
