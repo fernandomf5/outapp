@@ -15,6 +15,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { VideoQuestions } from "@/components/members-area/VideoQuestions";
 import { BlockRichText } from "@/components/members-area/BlockRichText";
+import { MembersGallery } from "@/components/members-area/MembersGallery";
+
 
 const SecretContentBlock = ({ content, title, accentColor, textColor }: { content: string; title?: string; accentColor: string; textColor: string }) => {
   const [visible, setVisible] = useState(false);

@@ -23,6 +23,8 @@ import { PendingOrdersDialog } from "@/components/members-area/PendingOrdersDial
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import { GalleryBlockEditor } from "@/components/members-area/GalleryBlockEditor";
+
 interface ContentBlock {
   id: string;
   type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
