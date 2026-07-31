@@ -115,6 +115,58 @@ export function BriefingResponsesPanel() {
   };
 
   const [deleteResponseId, setDeleteResponseId] = useState<string | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const handleDownloadPdf = (response: BriefingResponse) => {
+    try {
+      downloadBriefingPdf(response as any);
+      toast.success("PDF gerado!");
+    } catch {
+      toast.error("Erro ao gerar PDF");
+    }
+  };
+
+  const handleSendWhatsApp = async (response: BriefingResponse) => {
+    setSendingId(response.id);
+    try {
+      const url = await uploadBriefingPdf(response as any);
+      const phone = (response.visitor_phone || "").replace(/\D/g, "");
+      const text = encodeURIComponent(
+        `Respostas do briefing "${response.briefing_title || ""}"${response.visitor_name ? ` - ${response.visitor_name}` : ""}\nPDF: ${url}`
+      );
+      window.open(phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`, "_blank");
+    } catch {
+      toast.error("Erro ao preparar PDF para WhatsApp");
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  const handleSendEmail = async (response: BriefingResponse) => {
+    const destination = window.prompt("Enviar PDF para qual email?", response.visitor_email || "");
+    if (!destination) return;
+    setSendingId(response.id);
+    try {
+      const { error } = await supabase.functions.invoke("send-briefing-response", {
+        body: {
+          briefingTitle: response.briefing_title || "Briefing",
+          visitorName: response.visitor_name || "",
+          destinationEmail: destination,
+          responses: response.responses,
+          fields: (response.briefing_fields || []).map((f) => ({ label: f.label, type: f.type })),
+          pdfBase64: briefingPdfBase64(response as any),
+          pdfFilename: briefingPdfFilename(response as any),
+        },
+      });
+      if (error) throw error;
+      toast.success("PDF enviado por email!");
+    } catch {
+      toast.error("Erro ao enviar email");
+    } finally {
+      setSendingId(null);
+    }
+  };
+
 
   const handleDeleteResponse = async () => {
     if (!deleteResponseId) return;
