@@ -674,25 +674,15 @@ export default function MembersAreaPublic() {
       }
       
       case 'gallery': {
-        let images: { url: string; title?: string; description?: string }[] = [];
-        try {
-          images = JSON.parse(block.content);
-        } catch {
-          if (block.content) {
-            images = block.content.split('|||').filter(Boolean).map(u => ({ url: u }));
-          }
-        }
         return (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {images.map((img, idx) => (
-              <div key={idx} className="space-y-1">
-                <img src={img.url} alt={img.title || `Imagem ${idx + 1}`} className="w-full rounded-lg object-cover aspect-square" />
-                {img.title && <p className="text-sm font-medium" style={{ color: cardTextColor }}>{img.title}</p>}
-              </div>
-            ))}
-          </div>
+          <MembersGallery
+            content={block.content}
+            accentColor={accentColor}
+            textColor={cardTextColor}
+          />
         );
       }
+
 
       case 'video_gallery': {
         let videos: { url: string; title?: string; description?: string }[] = [];
