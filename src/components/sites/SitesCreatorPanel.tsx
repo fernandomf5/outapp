@@ -488,9 +488,16 @@ function SiteWorkspace({ site, onBack }: { site: SiteRow; onBack: () => void }) 
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => window.open(`/site/${site.slug}`, "_blank")}>
+          <Button variant="outline" size="sm" onClick={() => {
+            if (!site.is_published) {
+              toast.warning("Este site ainda é um rascunho. Ative o botão 'Publicar' na lista de sites para visualizá-lo online.");
+              return;
+            }
+            window.open(`/site/${site.slug}`, "_blank");
+          }}>
             <Icons.Eye className="h-4 w-4 mr-1" /> Ver
           </Button>
+
           <Button size="sm" onClick={save} disabled={saving}>
             <Icons.Save className="h-4 w-4 mr-1" /> {saving ? "Salvando..." : dirty ? "Salvar*" : "Salvar"}
           </Button>
