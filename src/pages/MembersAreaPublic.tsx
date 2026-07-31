@@ -243,6 +243,37 @@ export default function MembersAreaPublic() {
   const handlePasswordSubmit = async () => {
     if (!area) return;
     
+    if (loginMode === 'user') {
+      if (!usernameInput.trim() || !passwordInput.trim()) {
+        toast.error('Informe usuário e senha');
+        return;
+      }
+      setLoggingIn(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('members-area-user-auth', {
+          body: {
+            action: 'login',
+            slug: area.slug,
+            username: usernameInput.trim().toLowerCase(),
+            password: passwordInput,
+          },
+        });
+        const resErr = (data as any)?.error;
+        if (error || resErr || !(data as any)?.success) {
+          toast.error(resErr || 'Usuário ou senha inválidos');
+          return;
+        }
+        setStudentName((data as any).user?.name || usernameInput.trim());
+        setIsAuthenticated(true);
+        toast.success('Acesso liberado!');
+      } catch {
+        toast.error('Erro ao entrar');
+      } finally {
+        setLoggingIn(false);
+      }
+      return;
+    }
+
     if (loginMode === 'code') {
       // Verify access code
       try {
