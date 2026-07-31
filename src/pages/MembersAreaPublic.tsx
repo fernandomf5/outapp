@@ -803,11 +803,11 @@ export default function MembersAreaPublic() {
 
             {/* Login Form */}
             <div className="space-y-4">
-              {/* Toggle between password and access code */}
-              <div className="flex gap-2 p-1 rounded-lg" style={{ backgroundColor: `${loginTextColor}10` }}>
+              {/* Toggle between password, access code and username+password */}
+              <div className="grid grid-cols-3 gap-2 p-1 rounded-lg" style={{ backgroundColor: `${loginTextColor}10` }}>
                 <button
                   onClick={() => { setLoginMode('password'); setPasswordInput(''); }}
-                  className="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all"
+                  className="py-2 px-2 rounded-md text-xs sm:text-sm font-medium transition-all"
                   style={{
                     backgroundColor: loginMode === 'password' ? primaryColor : 'transparent',
                     color: loginMode === 'password' ? '#fff' : `${loginTextColor}80`,
@@ -817,19 +817,54 @@ export default function MembersAreaPublic() {
                 </button>
                 <button
                   onClick={() => { setLoginMode('code'); setPasswordInput(''); }}
-                  className="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all"
+                  className="py-2 px-2 rounded-md text-xs sm:text-sm font-medium transition-all"
                   style={{
                     backgroundColor: loginMode === 'code' ? primaryColor : 'transparent',
                     color: loginMode === 'code' ? '#fff' : `${loginTextColor}80`,
                   }}
                 >
-                  🔑 Código de Acesso
+                  🔑 Código
+                </button>
+                <button
+                  onClick={() => { setLoginMode('user'); setPasswordInput(''); setUsernameInput(''); }}
+                  className="py-2 px-2 rounded-md text-xs sm:text-sm font-medium transition-all"
+                  style={{
+                    backgroundColor: loginMode === 'user' ? primaryColor : 'transparent',
+                    color: loginMode === 'user' ? '#fff' : `${loginTextColor}80`,
+                  }}
+                >
+                  👤 Usuário
                 </button>
               </div>
 
+              {loginMode === 'user' && (
+                <div>
+                  <Label htmlFor="ma-username" style={{ color: loginTextColor }}>
+                    Nome de usuário
+                  </Label>
+                  <Input
+                    id="ma-username"
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                    onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                    placeholder="seu usuário"
+                    className="mt-2 border"
+                    style={{
+                      backgroundColor: `${loginTextColor}08`,
+                      borderColor: `${loginTextColor}20`,
+                      color: loginTextColor,
+                    }}
+                  />
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="password" style={{ color: loginTextColor }}>
-                  {loginMode === 'code' ? 'Digite seu código de acesso' : 'Digite a senha para acessar'}
+                  {loginMode === 'code'
+                    ? 'Digite seu código de acesso'
+                    : loginMode === 'user'
+                      ? 'Digite sua senha'
+                      : 'Digite a senha para acessar'}
                 </Label>
                 <div className="relative mt-2">
                   <Input
@@ -847,7 +882,7 @@ export default function MembersAreaPublic() {
                       ...(loginMode === 'code' ? { letterSpacing: '0.2em', fontFamily: 'monospace', textAlign: 'center' as const } : {}),
                     }}
                   />
-                  {loginMode === 'password' && (
+                  {loginMode !== 'code' && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -862,6 +897,7 @@ export default function MembersAreaPublic() {
                       )}
                     </Button>
                   )}
+                </div>
                 </div>
               </div>
               <Button 
