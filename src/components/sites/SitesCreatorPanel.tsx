@@ -246,7 +246,9 @@ function SiteWizard({ open, onOpenChange, onCreated }: any) {
   const group = findNicheGroup(groupId);
   const niches = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const list = group ? group.niches : NICHE_GROUPS.flatMap((g) => g.niches);
+    const list = Array.from(
+      new Set(group ? group.niches : NICHE_GROUPS.flatMap((g) => g.niches))
+    ).sort((a, b) => a.localeCompare(b, "pt-BR"));
     return q ? list.filter((n) => n.toLowerCase().includes(q)) : list;
   }, [group, search]);
 
