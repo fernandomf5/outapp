@@ -982,7 +982,20 @@ export default function MembersAreaPublic() {
                   )}
                 </div>
               </div>
+
+              <label className="flex items-center gap-2 cursor-pointer select-none" style={{ color: `${loginTextColor}CC` }}>
+                <input
+                  type="checkbox"
+                  checked={keepLogged}
+                  onChange={(e) => setKeepLogged(e.target.checked)}
+                  className="h-4 w-4 rounded cursor-pointer"
+                  style={{ accentColor: primaryColor }}
+                />
+                <span className="text-xs">Manter-me conectado neste dispositivo</span>
+              </label>
+
               <Button 
+
                 onClick={handlePasswordSubmit} 
                 disabled={loggingIn}
                 className="w-full text-white"
