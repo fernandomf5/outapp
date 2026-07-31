@@ -718,7 +718,6 @@ export default function MembersAreaPublic() {
           </div>
         );
 
-      case 'notes':
       case 'faq':
       case 'checklist':
       case 'quiz':
@@ -726,7 +725,7 @@ export default function MembersAreaPublic() {
       case 'certificate':
       case 'webinar':
       case 'mindmap': {
-        const iconMap2: Record<string, any> = { notes: StickyNote, faq: MessageSquare, checklist: CheckSquare, quiz: HelpCircle, timeline: GitBranch, certificate: Award, webinar: Radio, mindmap: Brain };
+        const iconMap2: Record<string, any> = { faq: MessageSquare, checklist: CheckSquare, quiz: HelpCircle, timeline: GitBranch, certificate: Award, webinar: Radio, mindmap: Brain };
         const Icon2 = iconMap2[block.type] || FileText;
         return (
           <div 
