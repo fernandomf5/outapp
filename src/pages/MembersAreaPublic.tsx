@@ -383,8 +383,10 @@ export default function MembersAreaPublic() {
           return;
         }
         setAccessCodeId((codeData as any).id);
-        setStudentName((codeData as any).customer_name || 'Aluno');
+        const cname = (codeData as any).customer_name || 'Aluno';
+        setStudentName(cname);
         setIsAuthenticated(true);
+        saveSession({ name: cname, accessCodeId: (codeData as any).id, keep: keepLogged });
         toast.success('Acesso liberado!');
       } catch {
         toast.error('Erro ao verificar código');
@@ -392,7 +394,9 @@ export default function MembersAreaPublic() {
     } else {
       if (passwordInput === area.password) {
         setIsAuthenticated(true);
+        saveSession({ name: 'Aluno', accessCodeId: null, keep: keepLogged });
         toast.success('Acesso liberado!');
+
       } else {
         toast.error('Senha incorreta');
       }
