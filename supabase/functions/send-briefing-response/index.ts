@@ -14,6 +14,8 @@ interface BriefingResponseRequest {
   destinationEmail: string;
   responses: Record<string, any>;
   fields: Array<{ label: string; type: string }>;
+  pdfBase64?: string;
+  pdfFilename?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -22,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { briefingTitle, visitorName, destinationEmail, responses, fields }: BriefingResponseRequest = await req.json();
+    const { briefingTitle, visitorName, destinationEmail, responses, fields, pdfBase64, pdfFilename }: BriefingResponseRequest = await req.json();
 
     console.log("Sending briefing response to:", destinationEmail);
     console.log("Briefing:", briefingTitle);
@@ -140,6 +142,16 @@ const handler = async (req: Request): Promise<Response> => {
       to: [destinationEmail],
       subject: `Nova resposta de briefing: ${briefingTitle}`,
       html: emailHtml,
+      ...(pdfBase64
+        ? {
+            attachments: [
+              {
+                filename: pdfFilename || "briefing.pdf",
+                content: pdfBase64,
+              },
+            ],
+          }
+        : {}),
     });
 
     console.log("Email sent successfully:", emailResponse);
