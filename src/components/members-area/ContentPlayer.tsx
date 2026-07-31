@@ -50,7 +50,7 @@ export function ContentPlayer({ open, onOpenChange, module }: ContentPlayerProps
 
           {module.content_type === 'text' && module.content_data && (
             <div className="prose dark:prose-invert max-w-none p-6 bg-muted/30 rounded-lg">
-              <div dangerouslySetInnerHTML={{ __html: module.content_data }} />
+              <BlockRichText content={module.content_data} />
             </div>
           )}
 
