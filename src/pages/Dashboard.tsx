@@ -50,8 +50,7 @@ import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
 import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
-import { CapturePageCreatorPanel } from "@/components/CapturePageCreatorPanel";
-import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
+import { SitesCreatorPanel } from "@/components/sites/SitesCreatorPanel";
 
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
@@ -79,7 +78,6 @@ import SalesFunnelPanel from "@/components/SalesFunnelPanel";
 import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
 import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
 import ProductsServicesPanel from "@/components/ProductsServicesPanel";
-import CatalogCreatorPanel from "@/components/CatalogCreatorPanel";
 import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
 import { ReceiptGeneratorPanel } from "@/components/ReceiptGeneratorPanel";
 import { InvoiceGeneratorPanel } from "@/components/InvoiceGeneratorPanel";
@@ -1533,25 +1531,10 @@ const Dashboard = () => {
             </ErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="catalogo">
+          <TabsContent value="sites">
             <ErrorBoundary>
-              <FeatureTutorialVideo featureKey="catalogo" />
-              <CatalogCreatorPanel />
-            </ErrorBoundary>
-          </TabsContent>
-
-
-          <TabsContent value="pagina-captura">
-            <ErrorBoundary>
-              <FeatureTutorialVideo featureKey="pagina-captura" />
-              <CapturePageCreatorPanel />
-            </ErrorBoundary>
-          </TabsContent>
-
-          <TabsContent value="portfolio">
-            <ErrorBoundary>
-              <FeatureTutorialVideo featureKey="portfolio" />
-              <PortfolioCreatorPanel />
+              <FeatureTutorialVideo featureKey="sites" />
+              <SitesCreatorPanel />
             </ErrorBoundary>
           </TabsContent>
 
