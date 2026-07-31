@@ -1486,8 +1486,6 @@ export function SimpleMembersArea() {
                     <SelectItem value="slides">📊 Apresentação/Slides</SelectItem>
                     <SelectItem value="link">🔗 Link Externo</SelectItem>
                     <SelectItem value="button">👆 Botão</SelectItem>
-                    <SelectItem value="embed">💻 Embed (HTML/Iframe)</SelectItem>
-                    <SelectItem value="notes">📒 Anotações/Resumo</SelectItem>
                     <SelectItem value="faq">❓ Perguntas Frequentes</SelectItem>
                     <SelectItem value="checklist">✅ Checklist/Tarefas</SelectItem>
                     <SelectItem value="quiz">🧩 Quiz/Questionário</SelectItem>
