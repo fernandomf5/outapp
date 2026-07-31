@@ -1605,6 +1605,21 @@ export function SimpleMembersArea() {
                     onDocumentSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
                     bucketName="members-content"
                   />
+                ) : blockFormData.type === 'audio' ? (
+                  <>
+                    <DocumentUpload
+                      currentDocument={blockFormData.content}
+                      onDocumentSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
+                      bucketName="members-content"
+                      acceptedFileTypes=".mp3,.wav,.ogg,.m4a,audio/*"
+                    />
+                    <Input
+                      value={blockFormData.content}
+                      onChange={(e) => setBlockFormData({ ...blockFormData, content: e.target.value })}
+                      placeholder="Ou cole a URL do áudio (.mp3)"
+                      className="mt-2"
+                    />
+                  </>
                 ) : blockFormData.type === 'download' ? (
                   <>
                     <Input
