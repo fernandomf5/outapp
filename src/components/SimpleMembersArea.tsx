@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key, User } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key, User } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
