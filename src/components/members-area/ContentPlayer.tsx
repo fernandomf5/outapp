@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Play, FileText } from "lucide-react";
 import { BlockRichText } from "@/components/members-area/BlockRichText";
+import { getVideoEmbedUrl } from "@/lib/videoEmbed";
 
 interface ModuleData {
   id: string;
