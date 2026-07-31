@@ -14,6 +14,7 @@ import { PaymentHistoryBlock } from "@/components/members-area/PaymentHistoryBlo
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { VideoQuestions } from "@/components/members-area/VideoQuestions";
+import { BlockRichText } from "@/components/members-area/BlockRichText";
 
 const SecretContentBlock = ({ content, title, accentColor, textColor }: { content: string; title?: string; accentColor: string; textColor: string }) => {
   const [visible, setVisible] = useState(false);
@@ -344,7 +345,7 @@ export default function MembersAreaPublic() {
   const renderBlock = (block: ContentBlock, accentColor: string, cardTextColor: string, cardBackgroundColor?: string) => {
     switch (block.type) {
       case 'text':
-        return <div className="prose prose-sm max-w-none" style={{ color: cardTextColor }} dangerouslySetInnerHTML={{ __html: block.content }} />;
+        return <BlockRichText content={block.content} className="prose prose-sm max-w-none" style={{ color: cardTextColor }} />;
       
       case 'image':
         return (
@@ -626,7 +627,7 @@ export default function MembersAreaPublic() {
               </div>
               <span className="font-medium" style={{ color: cardTextColor }}>{block.title || block.type}</span>
             </div>
-            <div className="prose prose-sm max-w-none" style={{ color: cardTextColor }} dangerouslySetInnerHTML={{ __html: block.content }} />
+            <BlockRichText content={block.content} className="prose prose-sm max-w-none" style={{ color: cardTextColor }} />
           </div>
         );
       }

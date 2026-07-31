@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Play, FileText } from "lucide-react";
+import { BlockRichText } from "@/components/members-area/BlockRichText";
 
 interface ModuleData {
   id: string;
@@ -50,7 +51,7 @@ export function ContentPlayer({ open, onOpenChange, module }: ContentPlayerProps
 
           {module.content_type === 'text' && module.content_data && (
             <div className="prose dark:prose-invert max-w-none p-6 bg-muted/30 rounded-lg">
-              <div dangerouslySetInnerHTML={{ __html: module.content_data }} />
+              <BlockRichText content={module.content_data} />
             </div>
           )}
 
