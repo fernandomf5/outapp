@@ -134,6 +134,8 @@ interface MembersArea {
   enable_questions?: boolean;
   user_id?: string;
   manager_whatsapp?: string;
+  access_type?: string;
+
 }
 
 function AreaBannerCarousel({ banners, accentColor }: { banners: AreaBanner[]; accentColor: string }) {
@@ -230,9 +232,14 @@ export default function MembersAreaPublic() {
 
       if (error) throw error;
       setArea(data as any);
+      const at = (data as any).access_type;
+      if (at === 'user_password') setLoginMode('user');
+      else if (at === 'email_code') setLoginMode('code');
+      else if (at === 'password') setLoginMode('password');
       if ((data as any).sections?.length > 0) {
         setActiveSection((data as any).sections[0].id);
       }
+
     } catch (error: any) {
       toast.error('Área de membros não encontrada');
     } finally {
@@ -803,7 +810,8 @@ export default function MembersAreaPublic() {
 
             {/* Login Form */}
             <div className="space-y-4">
-              {/* Toggle between password, access code and username+password */}
+              {/* Toggle shown only when the area has no fixed access type */}
+              {!area?.access_type && (
               <div className="grid grid-cols-3 gap-2 p-1 rounded-lg" style={{ backgroundColor: `${loginTextColor}10` }}>
                 <button
                   onClick={() => { setLoginMode('password'); setPasswordInput(''); }}
@@ -836,6 +844,8 @@ export default function MembersAreaPublic() {
                   👤 Usuário
                 </button>
               </div>
+              )}
+
 
               {loginMode === 'user' && (
                 <div>

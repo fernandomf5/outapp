@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key, User } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -379,7 +379,7 @@ export function SimpleMembersArea() {
           user_id: user.id,
           name: areaFormData.name,
           description: areaFormData.description,
-          password: areaFormData.access_type === 'email_code' ? 'email_code_access' : areaFormData.password,
+          password: areaFormData.access_type === 'email_code' ? 'email_code_access' : areaFormData.access_type === 'user_password' ? 'user_password_access' : areaFormData.password,
           slug,
           sections: [],
           is_active: true,
@@ -715,7 +715,7 @@ export function SimpleMembersArea() {
           name: areaFormData.name,
           slug: (areaFormData.slug || areaFormData.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
           description: areaFormData.description,
-          password: areaFormData.access_type === 'email_code' ? 'email_code_access' : areaFormData.password,
+          password: areaFormData.access_type === 'email_code' ? 'email_code_access' : areaFormData.access_type === 'user_password' ? 'user_password_access' : areaFormData.password,
 
           primary_color: areaFormData.primary_color,
           secondary_color: areaFormData.secondary_color,
@@ -943,10 +943,10 @@ export function SimpleMembersArea() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    {selectedArea.access_type === 'email_code' ? 'Acesso por Código (Venda)' : 'Senha de Acesso'}
+                    {selectedArea.access_type === 'email_code' ? 'Acesso por Código (Venda)' : selectedArea.access_type === 'user_password' ? 'Login e Senha' : 'Senha de Acesso'}
                   </p>
                   <p className="font-mono font-medium">
-                    {selectedArea.access_type === 'email_code' ? 'Código automático via Checkout' : selectedArea.password}
+                    {selectedArea.access_type === 'email_code' ? 'Código automático via Checkout' : selectedArea.access_type === 'user_password' ? 'Usuário e senha (aba Acessos)' : selectedArea.password}
                   </p>
                 </div>
               </div>
@@ -2020,7 +2020,7 @@ export function SimpleMembersArea() {
                 </div>
                 <div>
                   <Label>Tipo de Acesso</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
                     <button
                       type="button"
                       onClick={() => setAreaFormData({ ...areaFormData, access_type: 'password' })}
@@ -2051,9 +2051,34 @@ export function SimpleMembersArea() {
                         <p className="text-xs text-muted-foreground">Código por email após compra</p>
                       </div>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setAreaFormData({ ...areaFormData, access_type: 'user_password' })}
+                      className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all text-left ${
+                        areaFormData.access_type === 'user_password'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      <User className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm">Login e Senha</p>
+                        <p className="text-xs text-muted-foreground">Usuário e senha por aluno</p>
+                      </div>
+                    </button>
                   </div>
                 </div>
-                {areaFormData.access_type === 'password' ? (
+                {areaFormData.access_type === 'user_password' ? (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-primary" />
+                      <p className="font-medium text-sm">Acesso por login e senha</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cada aluno entra com um <strong>nome de usuário</strong> e uma <strong>senha</strong> criados por você na aba <strong>Acessos → Usuário e Senha</strong> da área.
+                    </p>
+                  </div>
+                ) : areaFormData.access_type === 'password' ? (
                   <div>
                     <Label>Senha de Acesso</Label>
                     <Input
@@ -2309,7 +2334,7 @@ export function SimpleMembersArea() {
                 </div>
                 <div>
                   <Label>Tipo de Acesso</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
                     <button
                       type="button"
                       onClick={() => setAreaFormData({ ...areaFormData, access_type: 'password' })}
@@ -2340,9 +2365,34 @@ export function SimpleMembersArea() {
                         <p className="text-xs text-muted-foreground">Código por email após compra</p>
                       </div>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setAreaFormData({ ...areaFormData, access_type: 'user_password' })}
+                      className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all text-left ${
+                        areaFormData.access_type === 'user_password'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      <User className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm">Login e Senha</p>
+                        <p className="text-xs text-muted-foreground">Usuário e senha por aluno</p>
+                      </div>
+                    </button>
                   </div>
                 </div>
-                {areaFormData.access_type === 'password' ? (
+                {areaFormData.access_type === 'user_password' ? (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-primary" />
+                      <p className="font-medium text-sm">Acesso por login e senha</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cada aluno entra com um <strong>nome de usuário</strong> e uma <strong>senha</strong> criados por você na aba <strong>Acessos → Usuário e Senha</strong> da área.
+                    </p>
+                  </div>
+                ) : areaFormData.access_type === 'password' ? (
                   <div>
                     <Label>Senha de Acesso</Label>
                     <Input
