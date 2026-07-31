@@ -436,10 +436,12 @@ export default function MembersAreaPublic() {
 
 
   const handleLogout = () => {
+    clearSession();
     setIsAuthenticated(false);
     setPasswordInput('');
     toast.success('Você saiu da área de membros');
   };
+
 
   const getBlockIcon = (type: string) => {
     const icons: Record<string, React.ReactNode> = {
