@@ -14,8 +14,11 @@ import {
   Building2,
   ExternalLink,
   Image as ImageIcon,
-  Filter
+  Filter,
+  MessageCircle,
+  Send
 } from "lucide-react";
+
 import {
   Select,
   SelectContent,
