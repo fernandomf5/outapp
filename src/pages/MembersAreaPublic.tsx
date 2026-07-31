@@ -898,10 +898,10 @@ export default function MembersAreaPublic() {
                     </Button>
                   )}
                 </div>
-                </div>
               </div>
               <Button 
                 onClick={handlePasswordSubmit} 
+                disabled={loggingIn}
                 className="w-full text-white"
                 size="lg"
                 style={{ 
