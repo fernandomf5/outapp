@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -106,14 +106,12 @@ export function SimpleMembersAreaPreview({
       button: <MousePointer className="w-3 h-3" />,
       download: <Download className="w-3 h-3" />,
       audio: <Music className="w-3 h-3" />,
-      embed: <Code className="w-3 h-3" />,
       quiz: <HelpCircle className="w-3 h-3" />,
       timeline: <GitBranch className="w-3 h-3" />,
       customer_history: <History className="w-3 h-3" />,
       checklist: <CheckSquare className="w-3 h-3" />,
       certificate: <Award className="w-3 h-3" />,
       webinar: <Radio className="w-3 h-3" />,
-      notes: <StickyNote className="w-3 h-3" />,
       faq: <MessageSquare className="w-3 h-3" />,
       mindmap: <Brain className="w-3 h-3" />,
       slides: <Presentation className="w-3 h-3" />,
