@@ -1622,16 +1622,23 @@ export function SimpleMembersArea() {
                   </>
                 ) : blockFormData.type === 'download' ? (
                   <>
+                    <DocumentUpload
+                      currentDocument={blockFormData.content}
+                      onDocumentSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
+                      bucketName="members-content"
+                      acceptedFileTypes="*"
+                    />
                     <Input
                       value={blockFormData.content}
                       onChange={(e) => setBlockFormData({ ...blockFormData, content: e.target.value })}
-                      placeholder="URL do arquivo para download"
-                      className="mb-2"
+                      placeholder="Ou cole a URL do arquivo para download"
+                      className="mt-2"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Cole a URL do arquivo que deseja disponibilizar para download
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Envie o arquivo do seu computador ou cole uma URL
                     </p>
                   </>
+
                 ) : blockFormData.type === 'button' || blockFormData.type === 'link' ? (
                   <div className="space-y-3">
                     {(() => {
