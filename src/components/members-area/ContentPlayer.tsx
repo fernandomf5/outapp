@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Play, FileText } from "lucide-react";
+import { BlockRichText } from "@/components/members-area/BlockRichText";
 
 interface ModuleData {
   id: string;
