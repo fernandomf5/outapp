@@ -2,14 +2,31 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, Maximize, Minimize, Play, Pause, Presentation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+export type SlideLayout =
+  | "center"
+  | "left"
+  | "right"
+  | "image-bg"
+  | "split-left"
+  | "split-right"
+  | "image-top"
+  | "text-only";
+
+export type SlideImageFit = "cover" | "contain";
+
 export interface Slide {
   id: string;
   title?: string;
   subtitle?: string;
   body?: string;
   image_url?: string;
-  layout?: "center" | "left" | "right" | "image-bg";
+  layout?: SlideLayout;
   bg_color?: string;
+  title_color?: string;
+  subtitle_color?: string;
+  body_color?: string;
+  image_fit?: SlideImageFit;
+  overlay?: number; // 0-100, only for image-bg
 }
 
 export interface SlidesData {
@@ -56,13 +73,14 @@ interface Props {
 export function MembersSlides({
   content,
   accentColor = "#22c55e",
-  textColor = "inherit",
+  textColor = "#ffffff",
   cardBackgroundColor = "#0f172a",
 }: Props) {
   const { slides, autoPlay, interval } = parseSlidesContent(content);
   const [index, setIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [animKey, setAnimKey] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const total = slides.length;
@@ -75,6 +93,10 @@ export function MembersSlides({
   const prev = useCallback(() => {
     setIndex((i) => (total > 0 ? (i - 1 + total) % total : 0));
   }, [total]);
+
+  useEffect(() => {
+    setAnimKey((k) => k + 1);
+  }, [index]);
 
   // autoplay
   useEffect(() => {
@@ -131,91 +153,157 @@ export function MembersSlides({
     );
   }
 
-  const getLayoutClasses = (layout?: string) => {
-    switch (layout) {
-      case "left":
-        return "text-left items-start";
-      case "right":
-        return "text-right items-end";
-      case "image-bg":
-        return "text-center items-center";
-      case "center":
-      default:
-        return "text-center items-center";
-    }
-  };
+  const layout: SlideLayout = (current?.layout as SlideLayout) || "center";
+  const isSplit = layout === "split-left" || layout === "split-right";
+  const hasImage = !!current?.image_url;
+  const hasImageBg = layout === "image-bg" && hasImage;
+  const fit = current?.image_fit || (layout === "image-top" ? "cover" : "contain");
 
-  const hasImageBg = current?.layout === "image-bg" && current?.image_url;
+  const titleColor = current?.title_color || textColor;
+  const subtitleColor = current?.subtitle_color || accentColor;
+  const bodyColor = current?.body_color || textColor;
+
+  const alignClasses =
+    layout === "left" || layout === "split-right"
+      ? "text-left items-start"
+      : layout === "right"
+      ? "text-right items-end"
+      : isSplit
+      ? "text-left items-start"
+      : "text-center items-center";
+
+  const overlay = typeof current?.overlay === "number" ? current!.overlay! / 100 : 0.55;
+
+  const TextBlock = (
+    <div
+      key={animKey}
+      className={`flex flex-col justify-center gap-2 md:gap-3 animate-fade-in ${alignClasses}`}
+    >
+      {current?.subtitle && (
+        <p
+          className="text-[10px] md:text-xs lg:text-sm font-semibold uppercase tracking-[0.18em]"
+          style={{ color: subtitleColor }}
+        >
+          {current.subtitle}
+        </p>
+      )}
+      {current?.title && (
+        <h3
+          className="text-lg md:text-3xl lg:text-4xl font-bold leading-[1.15] tracking-tight"
+          style={{ color: titleColor }}
+        >
+          {current.title}
+        </h3>
+      )}
+      {current?.title && (
+        <span
+          className="block h-[3px] w-10 md:w-14 rounded-full"
+          style={{ backgroundColor: subtitleColor, opacity: 0.8 }}
+        />
+      )}
+      {current?.body && (
+        <div
+          className="text-xs md:text-base lg:text-lg leading-relaxed max-w-2xl whitespace-pre-line opacity-95"
+          style={{ color: bodyColor }}
+        >
+          {current.body}
+        </div>
+      )}
+    </div>
+  );
+
+  const ImageBlock = hasImage ? (
+    <div
+      key={`img-${animKey}`}
+      className="relative h-full w-full overflow-hidden rounded-xl animate-scale-in"
+    >
+      <img
+        src={current!.image_url}
+        alt={current?.title || "Slide"}
+        className={`w-full h-full ${fit === "cover" ? "object-cover" : "object-contain"}`}
+        loading="lazy"
+      />
+    </div>
+  ) : null;
 
   return (
     <div
       ref={containerRef}
-      className={`relative w-full rounded-xl overflow-hidden border bg-black ${
+      className={`relative w-full rounded-2xl overflow-hidden border shadow-lg ${
         isFullscreen ? "fixed inset-0 z-50 rounded-none border-0" : ""
       }`}
-      style={{ backgroundColor: cardBackgroundColor }}
+      style={{ backgroundColor: current?.bg_color || cardBackgroundColor }}
     >
       {/* Slide viewport 16:9 */}
       <div className="relative w-full aspect-video">
-        {/* Background image for image-bg layout */}
+        {/* Background image */}
         {hasImageBg && (
           <div className="absolute inset-0">
             <img
-              src={current.image_url}
+              src={current!.image_url}
               alt=""
-              className="w-full h-full object-cover"
+              className={`w-full h-full ${fit === "contain" ? "object-contain" : "object-cover"}`}
             />
-            <div className="absolute inset-0 bg-black/60" />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(to top, rgba(0,0,0,${Math.min(overlay + 0.2, 1)}), rgba(0,0,0,${overlay}))`,
+              }}
+            />
           </div>
         )}
 
-        {/* Solid background color */}
-        {!hasImageBg && current?.bg_color && (
-          <div className="absolute inset-0" style={{ backgroundColor: current.bg_color }} />
+        {/* Subtle vignette for non image-bg slides */}
+        {!hasImageBg && (
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/[0.04] to-black/20" />
         )}
 
         {/* Content */}
-        <div
-          className={`absolute inset-0 flex flex-col justify-center p-6 md:p-10 transition-opacity duration-500 ${getLayoutClasses(
-            current?.layout
-          )}`}
-        >
-          {current?.image_url && current?.layout !== "image-bg" && (
-            <div className="mb-4 max-h-[35%]">
-              <img
-                src={current.image_url}
-                alt={current.title || "Slide"}
-                className="max-h-full max-w-full object-contain rounded-lg shadow-lg"
-              />
+        {isSplit && hasImage ? (
+          <div
+            className={`absolute inset-0 grid grid-cols-2 gap-4 md:gap-8 p-4 md:p-8 pb-12 md:pb-16 ${
+              layout === "split-right" ? "" : ""
+            }`}
+          >
+            <div className={`min-h-0 ${layout === "split-right" ? "order-2" : "order-1"}`}>
+              {ImageBlock}
             </div>
-          )}
-
-          {current?.subtitle && (
-            <p
-              className="text-xs md:text-sm uppercase tracking-widest mb-2 opacity-80"
-              style={{ color: accentColor }}
-            >
-              {current.subtitle}
-            </p>
-          )}
-
-          {current?.title && (
-            <h3
-              className="text-xl md:text-3xl lg:text-4xl font-bold leading-tight mb-3"
-              style={{ color: textColor }}
-            >
-              {current.title}
-            </h3>
-          )}
-
-          {current?.body && (
             <div
-              className="text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl whitespace-pre-line"
-              style={{ color: `${textColor}e6` }}
+              className={`min-h-0 overflow-hidden flex ${
+                layout === "split-right" ? "order-1" : "order-2"
+              }`}
             >
-              {current.body}
+              {TextBlock}
             </div>
-          )}
+          </div>
+        ) : layout === "image-top" && hasImage ? (
+          <div className="absolute inset-0 flex flex-col p-4 md:p-8 pb-12 md:pb-16 gap-3 md:gap-5">
+            <div className="h-[45%] min-h-0">{ImageBlock}</div>
+            <div className="flex-1 min-h-0 overflow-hidden flex">{TextBlock}</div>
+          </div>
+        ) : (
+          <div
+            className={`absolute inset-0 flex flex-col justify-center p-5 md:p-12 pb-12 md:pb-16 gap-3 ${alignClasses}`}
+          >
+            {hasImage && layout !== "image-bg" && layout !== "text-only" && (
+              <div className="max-h-[38%] w-full flex justify-center mb-1">
+                <img
+                  src={current!.image_url}
+                  alt={current?.title || "Slide"}
+                  className="max-h-full max-w-full object-contain rounded-xl shadow-2xl"
+                />
+              </div>
+            )}
+            {TextBlock}
+          </div>
+        )}
+
+        {/* Progress bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-white/10">
+          <div
+            className="h-full transition-all duration-500"
+            style={{ width: `${((index + 1) / total) * 100}%`, backgroundColor: accentColor }}
+          />
         </div>
       </div>
 
@@ -225,7 +313,7 @@ export function MembersSlides({
           <button
             type="button"
             onClick={prev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+            className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-black/70 transition-colors"
             aria-label="Slide anterior"
           >
             <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
@@ -234,7 +322,7 @@ export function MembersSlides({
           <button
             type="button"
             onClick={next}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+            className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-black/70 transition-colors"
             aria-label="Próximo slide"
           >
             <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -243,25 +331,25 @@ export function MembersSlides({
       )}
 
       {/* Bottom toolbar */}
-      <div className="absolute bottom-0 inset-x-0 p-3 flex items-center justify-between bg-gradient-to-t from-black/70 to-transparent">
-        <div className="flex items-center gap-1.5">
+      <div className="absolute bottom-0 inset-x-0 p-2 md:p-3 flex items-center justify-between bg-gradient-to-t from-black/80 to-transparent">
+        <div className="flex items-center gap-1.5 overflow-x-auto max-w-[55%] no-scrollbar">
           {slides.map((_, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setIndex(i)}
-              className="h-1.5 rounded-full transition-all"
+              className="h-1.5 rounded-full transition-all shrink-0"
               style={{
                 width: i === index ? 24 : 8,
-                backgroundColor: i === index ? accentColor : "rgba(255,255,255,0.5)",
+                backgroundColor: i === index ? accentColor : "rgba(255,255,255,0.45)",
               }}
               aria-label={`Ir para slide ${i + 1}`}
             />
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-white/80">
+        <div className="flex items-center gap-1 md:gap-2">
+          <span className="text-[11px] text-white/80 tabular-nums">
             {index + 1} / {total}
           </span>
 
