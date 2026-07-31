@@ -290,7 +290,33 @@ export function BriefingResponsesPanel() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Baixar PDF"
+                          onClick={() => handleDownloadPdf(response)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Enviar PDF no WhatsApp"
+                          disabled={sendingId === response.id}
+                          onClick={() => handleSendWhatsApp(response)}
+                        >
+                          <MessageCircle className="h-4 w-4 text-green-600" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Enviar PDF por email"
+                          disabled={sendingId === response.id}
+                          onClick={() => handleSendEmail(response)}
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="icon"
@@ -306,6 +332,7 @@ export function BriefingResponsesPanel() {
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
+
                     </div>
                   </CardContent>
                 </Card>
