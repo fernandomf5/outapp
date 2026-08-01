@@ -797,9 +797,6 @@ export function ReceiptGeneratorPanel() {
           <Button variant="outline" size="sm" onClick={() => { setTemplatesOpen(true); fetchTemplates(); }}>
             <LayoutTemplate className="h-4 w-4 mr-1" /> Modelos
           </Button>
-          <Button variant="outline" size="sm" onClick={() => { setQuickTemplateName(receipt.company_name ? `Modelo ${receipt.company_name}` : ''); setSaveTemplateOpen(true); }}>
-            <LayoutTemplate className="h-4 w-4 mr-1" /> Salvar Modelo
-          </Button>
           <Button variant="outline" size="sm" onClick={() => { setSearchOpen(true); fetchSavedReceipts(); }}>
             <Search className="h-4 w-4 mr-1" /> Recibos Salvos
           </Button>
@@ -1098,6 +1095,9 @@ export function ReceiptGeneratorPanel() {
         <Button onClick={handleSaveReceipt} disabled={saving} variant="default">
           {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
           {editingReceiptId ? 'Atualizar Recibo' : 'Salvar Recibo'}
+        </Button>
+        <Button onClick={() => { setQuickTemplateName(receipt.company_name ? `Modelo ${receipt.company_name}` : ''); setSaveTemplateOpen(true); }} variant="outline">
+          <LayoutTemplate className="h-4 w-4 mr-2" /> Salvar Modelo
         </Button>
         <Button onClick={() => setPreviewOpen(true)} variant="outline">
           <Eye className="h-4 w-4 mr-2" /> Visualizar
