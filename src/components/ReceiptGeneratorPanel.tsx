@@ -1462,37 +1462,10 @@ export function ReceiptGeneratorPanel() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <LayoutTemplate className="w-5 h-5" /> Modelos de Recibo
+              <LayoutTemplate className="w-5 h-5" /> Modelos Salvos
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Save current as template */}
-            <Card>
-              <CardContent className="pt-4 space-y-3">
-                <p className="text-sm font-medium">{editingTemplateId ? 'Atualizar Modelo' : 'Salvar Configuração Atual como Modelo'}</p>
-                <p className="text-xs text-muted-foreground">
-                  Salva os dados da empresa, logo, cor, título, garantia e termos como modelo reutilizável.
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Ex: Recibo da Klic Smart"
-                    value={templateName}
-                    onChange={e => setTemplateName(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleSaveTemplate} disabled={savingTemplate} size="sm">
-                    {savingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                    {editingTemplateId ? 'Atualizar' : 'Salvar'}
-                  </Button>
-                  {editingTemplateId && (
-                    <Button variant="ghost" size="sm" onClick={() => { setEditingTemplateId(null); setTemplateName(''); }}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Template list */}
             {templates.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
