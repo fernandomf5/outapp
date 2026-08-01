@@ -91,5 +91,7 @@ export const buildResourceTitle = (key: string, row: Record<string, any>) => {
   const parts = def.titleColumns
     .map((c) => row?.[c])
     .filter((v) => typeof v === "string" && v.trim().length > 0);
-  return parts[0] ? String(parts[0]).slice(0, 120) : "Sem título";
+  if (parts.length === 0) return "Sem título";
+  const title = parts.join(" • ").slice(0, 120);
+  return title || "Sem título";
 };
