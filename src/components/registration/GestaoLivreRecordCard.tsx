@@ -284,6 +284,31 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+
+      <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover atribuição?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O recurso "{toDelete?.resource_title || resourceLabel(toDelete?.resource_type || "")}" deixará de
+              estar atribuído a este cadastro. O recurso em si não será excluído.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                removeLink();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Removendo..." : "Remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
