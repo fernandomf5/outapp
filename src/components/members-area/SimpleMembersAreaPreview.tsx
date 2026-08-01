@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -106,8 +106,14 @@ export function SimpleMembersAreaPreview({
       button: <MousePointer className="w-3 h-3" />,
       download: <Download className="w-3 h-3" />,
       audio: <Music className="w-3 h-3" />,
-      quiz: <HelpCircle className="w-3 h-3" />,
-      timeline: <GitBranch className="w-3 h-3" />,
+      client_profile: <User className="w-3 h-3" />,
+      client_tasks: <CheckSquare className="w-3 h-3" />,
+      client_routines: <History className="w-3 h-3" />,
+      client_agenda: <History className="w-3 h-3" />,
+      client_table: <FileText className="w-3 h-3" />,
+      client_financial: <DollarSign className="w-3 h-3" />,
+      client_receipts: <DollarSign className="w-3 h-3" />,
+      client_mindmap: <Brain className="w-3 h-3" />,
       customer_history: <History className="w-3 h-3" />,
       checklist: <CheckSquare className="w-3 h-3" />,
       certificate: <Award className="w-3 h-3" />,

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key, User } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key, User, DollarSign } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -42,7 +42,7 @@ import { ChecklistBlockEditor } from "@/components/members-area/ChecklistBlockEd
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -128,8 +128,14 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       button: <MousePointer className="w-4 h-4" />,
       download: <Download className="w-4 h-4" />,
       audio: <Music className="w-4 h-4" />,
-      quiz: <HelpCircle className="w-4 h-4" />,
-      timeline: <GitBranch className="w-4 h-4" />,
+      client_profile: <User className="w-4 h-4" />,
+      client_tasks: <CheckSquare className="w-4 h-4" />,
+      client_routines: <History className="w-4 h-4" />,
+      client_agenda: <History className="w-4 h-4" />,
+      client_table: <FileText className="w-4 h-4" />,
+      client_financial: <DollarSign className="w-4 h-4" />,
+      client_receipts: <DollarSign className="w-4 h-4" />,
+      client_mindmap: <Brain className="w-4 h-4" />,
       customer_history: <History className="w-4 h-4" />,
       checklist: <CheckSquare className="w-4 h-4" />,
       certificate: <Award className="w-4 h-4" />,
@@ -155,7 +161,7 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="font-medium text-sm truncate">{block.title || (block.type === 'secret' ? 'Conteúdo Oculto' : block.type)}</div>
         <div className="text-xs text-muted-foreground truncate max-w-full">
-          {(block.type === 'customer_history' || block.type === 'payment_history') && block.customer_name 
+          {['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(block.type) && block.customer_name 
             ? `Cliente: ${block.customer_name}` 
             : block.type === 'secret'
             ? '•'.repeat(Math.min((block.content || '').length || 10, 30))
@@ -575,7 +581,7 @@ export function SimpleMembersArea() {
 
     try {
       // Pegar nome do cliente se for histórico
-      const selectedCustomer = (blockFormData.type === 'customer_history' || blockFormData.type === 'payment_history')
+      const selectedCustomer = ['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type)
         ? customers.find(c => c.id === blockFormData.customer_id)
         : null;
 
@@ -621,7 +627,7 @@ export function SimpleMembersArea() {
 
     try {
       // Pegar nome do cliente se for histórico
-      const selectedCustomer = (blockFormData.type === 'customer_history' || blockFormData.type === 'payment_history')
+      const selectedCustomer = ['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type)
         ? customers.find(c => c.id === blockFormData.customer_id)
         : null;
 
@@ -1497,12 +1503,17 @@ export function SimpleMembersArea() {
                     <SelectItem value="link">🔗 Link Externo</SelectItem>
                     <SelectItem value="button">👆 Botão</SelectItem>
                     <SelectItem value="checklist">✅ Checklist/Tarefas</SelectItem>
-                    <SelectItem value="quiz">🧩 Quiz/Questionário</SelectItem>
-                    <SelectItem value="timeline">📅 Linha do Tempo</SelectItem>
-                    <SelectItem value="mindmap">🧠 Mapa Mental</SelectItem>
-                    <SelectItem value="customer_history">📜 Histórico do Cliente</SelectItem>
-                    <SelectItem value="ads_dashboard">📊 Anúncios (Dashboard)</SelectItem>
+                    <SelectItem value="customer_history">📜 Histórico do Cliente (Linha do Tempo)</SelectItem>
                     <SelectItem value="payment_history">💰 Histórico de Pagamentos</SelectItem>
+                    <SelectItem value="ads_dashboard">📢 Anúncios (Dashboard)</SelectItem>
+                    <SelectItem value="client_profile">🪪 Dados do Cliente</SelectItem>
+                    <SelectItem value="client_tasks">🗂️ Tarefas do Cliente</SelectItem>
+                    <SelectItem value="client_routines">🔁 Rotinas do Cliente</SelectItem>
+                    <SelectItem value="client_agenda">📅 Agenda do Cliente</SelectItem>
+                    <SelectItem value="client_table">📋 Tabela de Organização</SelectItem>
+                    <SelectItem value="client_financial">💼 Gestão Financeira</SelectItem>
+                    <SelectItem value="client_receipts">🧾 Recibos do Cliente</SelectItem>
+                    <SelectItem value="client_mindmap">🧠 Mapa Mental do Cliente</SelectItem>
                     <SelectItem value="secret">🔒 Conteúdo Oculto (Senha)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1517,7 +1528,7 @@ export function SimpleMembersArea() {
               </div>
 
               {/* Seleção de Cliente para Histórico */}
-              {(blockFormData.type === 'customer_history' || blockFormData.type === 'payment_history') && (
+              {['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type) && (
                 <div>
                   <Label>Selecionar Cliente</Label>
                   <Select 
@@ -1583,7 +1594,7 @@ export function SimpleMembersArea() {
                 </div>
               )}
 
-              {blockFormData.type !== 'customer_history' && blockFormData.type !== 'payment_history' && blockFormData.type !== 'ads_dashboard' && (
+              {!['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type) && blockFormData.type !== 'ads_dashboard' && (
               <div>
                 <Label>Conteúdo</Label>
                 {blockFormData.type === 'image' ? (
