@@ -500,15 +500,14 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               </div>
             </div>
           )}
-          <ScrollArea
-            className="h-[280px] sm:h-[340px] md:h-[400px] rounded-lg border p-2 scrollbar-accent"
+          <div
+            className="h-[280px] sm:h-[340px] md:h-[400px] rounded-lg border p-2 overflow-y-auto scrollbar-accent"
             style={{
               borderColor: `${accentColor}30`,
               '--scrollbar-thumb': `${accentColor}99`,
               '--scrollbar-track': `${accentColor}15`,
             } as React.CSSProperties}
           >
-            <ScrollBar className="w-3 bg-transparent" />
             <div className="space-y-2 pr-1">
               {history.slice(0, historyLimit).map((h) => {
                 const attachments: any[] = Array.isArray(h.attachments) ? h.attachments : [];
