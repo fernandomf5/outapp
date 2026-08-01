@@ -400,6 +400,7 @@ export function ReceiptGeneratorPanel() {
         client_name: receipt.client_name,
       };
 
+      let receiptId = editingReceiptId;
       if (editingReceiptId) {
         const { error } = await supabase
           .from('saved_receipts')
@@ -408,12 +409,37 @@ export function ReceiptGeneratorPanel() {
         if (error) throw error;
         toast({ title: "Recibo atualizado!", description: `Recibo ${receipt.receipt_number} atualizado com sucesso.` });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('saved_receipts')
-          .insert([payload]);
+          .insert([payload])
+          .select('id')
+          .maybeSingle();
         if (error) throw error;
+        receiptId = (data as any)?.id || null;
+        setEditingReceiptId(receiptId);
         toast({ title: "Recibo salvo!", description: `Recibo ${receipt.receipt_number} salvo com sucesso.` });
       }
+
+      // Attach the receipt to the selected Gestão Livre cadastro
+      if (receiptId && selectedCustomerId) {
+        const contact = customers.find(c => c.id === selectedCustomerId);
+        await supabase
+          .from('contact_resource_links' as any)
+          .delete()
+          .eq('user_id', user.id)
+          .eq('resource_type', 'receipt')
+          .eq('resource_id', receiptId);
+        await supabase.from('contact_resource_links' as any).insert({
+          user_id: user.id,
+          contact_id: selectedCustomerId,
+          category_id: contact?.registration_category_id ?? null,
+          resource_type: 'receipt',
+          resource_id: receiptId,
+          resource_title: `${receipt.receipt_number} — ${receipt.client_name}`,
+          resource_url: buildResourceUrl('receipt', receiptId),
+        } as any);
+      }
+
       await fetchSavedReceipts();
     } catch (error: any) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
