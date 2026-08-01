@@ -293,8 +293,12 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       category_id: (contact as any)?.registration_category_id ?? null,
       resource_type: "receipt",
       resource_id: receiptId,
-      resource_title:
-        receipt?.receipt_number || receipt?.client_name || "Recibo",
+      resource_title: (() => {
+        const number = receipt?.receipt_number?.trim();
+        const name = receipt?.client_name?.trim() || receipt?.receipt_data?.client_name?.trim();
+        if (number && name) return `${number} — ${name}`;
+        return number || name || "Recibo";
+      })(),
       resource_url: buildResourceUrl("receipt", receiptId),
     } as any);
   };
@@ -748,13 +752,17 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum recibo</SelectItem>
-                    {receipts.map((r) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {(r.receipt_number || "Recibo")}
-                        {r.client_name ? ` • ${r.client_name}` : ""}
-                        {r.total_amount != null ? ` • ${formatCurrency(r.total_amount)}` : ""}
-                      </SelectItem>
-                    ))}
+                    {receipts.map((r) => {
+                      const clientName =
+                        r.client_name?.trim() || r.receipt_data?.client_name?.trim() || "";
+                      return (
+                        <SelectItem key={r.id} value={r.id}>
+                          {(r.receipt_number || "Recibo")}
+                          {clientName ? ` • ${clientName}` : ""}
+                          {r.total_amount != null ? ` • ${formatCurrency(r.total_amount)}` : ""}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 {receipts.length === 0 && (
