@@ -64,9 +64,9 @@ interface CustomerOption {
   email: string | null;
   phone: string | null;
   address: string | null;
-  city: string | null;
-  state: string | null;
+  document: string | null;
   company: string | null;
+  registration_category_id: string | null;
 }
 
 interface SavedReceipt {
@@ -159,10 +159,10 @@ export function ReceiptGeneratorPanel() {
     const fetchData = async () => {
       const [bizRes, custRes] = await Promise.all([
         supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
-        supabase.from('customers').select('id, name, email, phone, address, city, state, company').eq('user_id', user.id).order('name'),
+        supabase.from('contacts').select('id, name, email, phone, address, document, company, registration_category_id').eq('user_id', user.id).order('name').limit(1000),
       ]);
       if (bizRes.data) setBusinesses(bizRes.data);
-      if (custRes.data) setCustomers(custRes.data);
+      if (custRes.data) setCustomers(custRes.data as any);
     };
     fetchData();
   }, [user]);
@@ -304,9 +304,9 @@ export function ReceiptGeneratorPanel() {
     }
   };
 
-  const handleSelectCustomer = (custId: string) => {
-    setSelectedCustomerId(custId);
-    if (custId === '_none') {
+  const handleSelectCustomer = (custId: string | null) => {
+    setSelectedCustomerId(custId || '');
+    if (!custId) {
       updateField('client_name', '');
       updateField('client_document', '');
       updateField('client_address', '');
@@ -316,12 +316,11 @@ export function ReceiptGeneratorPanel() {
     }
     const cust = customers.find(c => c.id === custId);
     if (!cust) return;
-    const addr = [cust.address, cust.city, cust.state].filter(Boolean).join(', ');
     updateField('client_name', cust.name || '');
     updateField('client_email', cust.email || '');
     updateField('client_phone', cust.phone || '');
-    updateField('client_address', addr);
-    updateField('client_document', '');
+    updateField('client_address', cust.address || '');
+    updateField('client_document', cust.document || '');
   };
 
   const updateField = (field: keyof ReceiptData, value: any) => {
@@ -814,21 +813,19 @@ export function ReceiptGeneratorPanel() {
             <CardTitle className="text-base">Dados do Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Customer selector */}
-            {customers.length > 0 && (
-              <div>
-                <Label className="text-xs flex items-center gap-1"><Users className="w-3 h-3" /> Selecionar Cliente Cadastrado</Label>
-                <Select value={selectedCustomerId} onValueChange={handleSelectCustomer}>
-                  <SelectTrigger><SelectValue placeholder="Preencher com cliente existente..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none">— Preencher manualmente —</SelectItem>
-                    {customers.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}{c.email ? ` (${c.email})` : ''}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* Gestão Livre contact selector */}
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <Users className="w-3 h-3" /> Selecionar cadastro (Gestão Livre)
+              </Label>
+              <ContactCategoryPicker
+                value={selectedCustomerId || null}
+                onChange={handleSelectCustomer}
+                contacts={customers as any}
+                placeholder="Preencher manualmente"
+              />
+            </div>
+
 
             <div>
               <Label className="text-xs">Nome do Cliente *</Label>
