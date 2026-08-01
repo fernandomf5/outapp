@@ -164,7 +164,7 @@ export default function QuestionnairePage() {
             const f = CAPTURE_FIELD_OPTIONS.find((x) => x.key === k);
             return `${f?.label || k}: ${v}`;
           }).join("\n");
-          (supabase as any).from("customers").insert({
+          (supabase as any).from("contacts").insert({
             user_id: q.user_id,
             name: lead.name || lead.email || "Lead Questionário",
             email: lead.email || null,

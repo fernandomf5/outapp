@@ -58,14 +58,6 @@ serve(async (req) => {
     if (contactRow) {
       customer = contactRow;
       categoryName = (contactRow as any).registration_categories?.name ?? null;
-    } else {
-      const { data: legacy } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('id', customerId)
-        .eq('user_id', area.user_id)
-        .maybeSingle();
-      customer = legacy;
     }
 
     if (!customer) return json({ error: 'customer_not_found' }, 404);

@@ -70,12 +70,12 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
 
       if (paymentsError) throw paymentsError;
 
-      // Buscar recibos vinculados ao cliente
+      // Buscar recibos vinculados ao cadastro (Gestão Livre)
       const { data: customer } = await supabase
-        .from('customers')
+        .from('contacts')
         .select('name, user_id')
         .eq('id', customerId)
-        .single();
+        .maybeSingle();
 
       let receiptsData: any[] = [];
       if (customer) {

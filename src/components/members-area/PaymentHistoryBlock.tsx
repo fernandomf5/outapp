@@ -35,12 +35,12 @@ export function PaymentHistoryBlock({ customerId, accentColor, cardTextColor, ca
     const fetchReceipts = async () => {
       if (!customerId) return;
 
-      // Get client name from customers table
+      // Get contact name from Gestão Livre (contacts)
       const { data: customer } = await supabase
-        .from('customers')
+        .from('contacts')
         .select('name, user_id')
         .eq('id', customerId)
-        .single();
+        .maybeSingle();
 
       if (!customer) { setLoading(false); return; }
 

@@ -12,6 +12,9 @@ import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader
 import { PaymentHistoryPanel } from "./PaymentHistoryPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
+import { ContactCategoryPicker } from "@/components/registration/ContactCategoryPicker";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import { buildResourceUrl } from "@/lib/resourceLinks";
 
 interface ReceiptItem {
   id: string;
@@ -64,9 +67,9 @@ interface CustomerOption {
   email: string | null;
   phone: string | null;
   address: string | null;
-  city: string | null;
-  state: string | null;
+  document: string | null;
   company: string | null;
+  registration_category_id: string | null;
 }
 
 interface SavedReceipt {
@@ -159,10 +162,10 @@ export function ReceiptGeneratorPanel() {
     const fetchData = async () => {
       const [bizRes, custRes] = await Promise.all([
         supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
-        supabase.from('customers').select('id, name, email, phone, address, city, state, company').eq('user_id', user.id).order('name'),
+        supabase.from('contacts').select('id, name, email, phone, address, document, company, registration_category_id').eq('user_id', user.id).order('name').limit(1000),
       ]);
       if (bizRes.data) setBusinesses(bizRes.data);
-      if (custRes.data) setCustomers(custRes.data);
+      if (custRes.data) setCustomers(custRes.data as any);
     };
     fetchData();
   }, [user]);
@@ -304,9 +307,9 @@ export function ReceiptGeneratorPanel() {
     }
   };
 
-  const handleSelectCustomer = (custId: string) => {
-    setSelectedCustomerId(custId);
-    if (custId === '_none') {
+  const handleSelectCustomer = (custId: string | null) => {
+    setSelectedCustomerId(custId || '');
+    if (!custId) {
       updateField('client_name', '');
       updateField('client_document', '');
       updateField('client_address', '');
@@ -316,12 +319,11 @@ export function ReceiptGeneratorPanel() {
     }
     const cust = customers.find(c => c.id === custId);
     if (!cust) return;
-    const addr = [cust.address, cust.city, cust.state].filter(Boolean).join(', ');
     updateField('client_name', cust.name || '');
     updateField('client_email', cust.email || '');
     updateField('client_phone', cust.phone || '');
-    updateField('client_address', addr);
-    updateField('client_document', '');
+    updateField('client_address', cust.address || '');
+    updateField('client_document', cust.document || '');
   };
 
   const updateField = (field: keyof ReceiptData, value: any) => {
@@ -398,6 +400,7 @@ export function ReceiptGeneratorPanel() {
         client_name: receipt.client_name,
       };
 
+      let receiptId = editingReceiptId;
       if (editingReceiptId) {
         const { error } = await supabase
           .from('saved_receipts')
@@ -406,12 +409,37 @@ export function ReceiptGeneratorPanel() {
         if (error) throw error;
         toast({ title: "Recibo atualizado!", description: `Recibo ${receipt.receipt_number} atualizado com sucesso.` });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('saved_receipts')
-          .insert([payload]);
+          .insert([payload])
+          .select('id')
+          .maybeSingle();
         if (error) throw error;
+        receiptId = (data as any)?.id || null;
+        setEditingReceiptId(receiptId);
         toast({ title: "Recibo salvo!", description: `Recibo ${receipt.receipt_number} salvo com sucesso.` });
       }
+
+      // Attach the receipt to the selected Gestão Livre cadastro
+      if (receiptId && selectedCustomerId) {
+        const contact = customers.find(c => c.id === selectedCustomerId);
+        await supabase
+          .from('contact_resource_links' as any)
+          .delete()
+          .eq('user_id', user.id)
+          .eq('resource_type', 'receipt')
+          .eq('resource_id', receiptId);
+        await supabase.from('contact_resource_links' as any).insert({
+          user_id: user.id,
+          contact_id: selectedCustomerId,
+          category_id: contact?.registration_category_id ?? null,
+          resource_type: 'receipt',
+          resource_id: receiptId,
+          resource_title: `${receipt.receipt_number} — ${receipt.client_name}`,
+          resource_url: buildResourceUrl('receipt', receiptId),
+        } as any);
+      }
+
       await fetchSavedReceipts();
     } catch (error: any) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
@@ -728,6 +756,7 @@ export function ReceiptGeneratorPanel() {
           <Button variant="outline" size="sm" onClick={() => { setSearchOpen(true); fetchSavedReceipts(); }}>
             <Search className="h-4 w-4 mr-1" /> Buscar Recibos
           </Button>
+          <ResourceAssignmentsButton resourceType="receipt" label="Atribuir à Gestão Livre" />
           <Button variant="outline" size="sm" onClick={handleNewReceipt}>Novo Recibo</Button>
         </div>
       </div>
@@ -814,21 +843,19 @@ export function ReceiptGeneratorPanel() {
             <CardTitle className="text-base">Dados do Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Customer selector */}
-            {customers.length > 0 && (
-              <div>
-                <Label className="text-xs flex items-center gap-1"><Users className="w-3 h-3" /> Selecionar Cliente Cadastrado</Label>
-                <Select value={selectedCustomerId} onValueChange={handleSelectCustomer}>
-                  <SelectTrigger><SelectValue placeholder="Preencher com cliente existente..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none">— Preencher manualmente —</SelectItem>
-                    {customers.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}{c.email ? ` (${c.email})` : ''}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* Gestão Livre contact selector */}
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <Users className="w-3 h-3" /> Selecionar cadastro (Gestão Livre)
+              </Label>
+              <ContactCategoryPicker
+                value={selectedCustomerId || null}
+                onChange={handleSelectCustomer}
+                contacts={customers as any}
+                placeholder="Preencher manualmente"
+              />
+            </div>
+
 
             <div>
               <Label className="text-xs">Nome do Cliente *</Label>
