@@ -4,9 +4,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Database, Loader2, ExternalLink } from "lucide-react";
+import { ChevronDown, Database, Loader2, ExternalLink, Trash2 } from "lucide-react";
 import { buildResourceUrl, resourceIcon, resourceLabel } from "@/lib/resourceLinks";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface GestaoLivreRecordCardProps {
   contactId: string;
@@ -48,6 +59,25 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
   const [category, setCategory] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [open, setOpen] = useState(true);
+  const [toDelete, setToDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const removeLink = async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    const { error } = await supabase
+      .from("contact_resource_links")
+      .delete()
+      .eq("id", toDelete.id);
+    setDeleting(false);
+    if (error) {
+      toast.error("Erro ao remover atribuição: " + error.message);
+      return;
+    }
+    setLinks((prev) => prev.filter((l) => l.id !== toDelete.id));
+    setToDelete(null);
+    toast.success("Atribuição removida");
+  };
 
   useEffect(() => {
     let active = true;
@@ -226,11 +256,25 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
                             </p>
                           </div>
                         </div>
-                        <Button asChild size="sm" variant="ghost" className="gap-1 shrink-0">
-                          <Link to={link.resource_url || buildResourceUrl(link.resource_type, link.resource_id)}>
-                            <ExternalLink className="h-3.5 w-3.5" /> Abrir
-                          </Link>
-                        </Button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button asChild size="sm" variant="ghost" className="gap-1">
+                            <Link to={link.resource_url || buildResourceUrl(link.resource_type, link.resource_id)}>
+                              <ExternalLink className="h-3.5 w-3.5" /> Abrir
+                            </Link>
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setToDelete(link);
+                            }}
+                            title="Remover atribuição"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -240,6 +284,31 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+
+      <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover atribuição?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O recurso "{toDelete?.resource_title || resourceLabel(toDelete?.resource_type || "")}" deixará de
+              estar atribuído a este cadastro. O recurso em si não será excluído.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                removeLink();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Removendo..." : "Remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
