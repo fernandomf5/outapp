@@ -222,7 +222,10 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       quantity: "",
       reference_number: "",
       internal_notes: "",
+      receipt_id: "",
+      link_receipt_to_contact: true,
     });
+
     setDialogOpen(true);
   };
 
