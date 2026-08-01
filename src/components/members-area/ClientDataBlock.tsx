@@ -60,6 +60,7 @@ const WEEK = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sáb
 
 export function ClientDataBlock({ areaId, blockId, source, accentColor, cardTextColor }: Props) {
   const [data, setData] = useState<any>(null);
+  const [historyLimit, setHistoryLimit] = useState(10);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -499,9 +500,9 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               </div>
             </div>
           )}
-          <ScrollArea className="max-h-[460px]">
+          <ScrollArea className="h-[460px] pr-3">
             <div className="space-y-2">
-              {history.map((h) => {
+              {history.slice(0, historyLimit).map((h) => {
                 const attachments: any[] = Array.isArray(h.attachments) ? h.attachments : [];
                 const pending = Number(h.amount || 0) - Number(h.amount_paid || 0);
                 return box(
@@ -566,6 +567,26 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                   h.id
                 );
               })}
+              {history.length > historyLimit && (
+                <button
+                  type="button"
+                  onClick={() => setHistoryLimit((n) => n + 20)}
+                  className="w-full rounded-lg py-2 text-xs font-medium"
+                  style={{ backgroundColor: `${accentColor}18`, color: accentColor }}
+                >
+                  Ver mais ({history.length - historyLimit} restantes)
+                </button>
+              )}
+              {historyLimit > 10 && history.length <= historyLimit && (
+                <button
+                  type="button"
+                  onClick={() => setHistoryLimit(10)}
+                  className="w-full rounded-lg py-2 text-xs font-medium opacity-70"
+                  style={{ backgroundColor: `${accentColor}12`, color: accentColor }}
+                >
+                  Ver menos
+                </button>
+              )}
             </div>
           </ScrollArea>
         </>
