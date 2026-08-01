@@ -651,7 +651,7 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                 </button>
               )}
             </div>
-          </ScrollArea>
+          </div>
         </>
       );
     }
