@@ -447,7 +447,24 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
             <span className="text-[11px] font-medium">{value}</span>
           </div>
         );
+      const paymentStatusLabels: Record<string, string> = {
+        paid: 'Pago', pago: 'Pago', partial: 'Parcial', parcial: 'Parcial',
+        pending: 'Pendente', pendente: 'Pendente', unpaid: 'Não pago',
+        overdue: 'Atrasado', atrasado: 'Atrasado', cancelled: 'Cancelado',
+        canceled: 'Cancelado', refunded: 'Reembolsado',
+      };
+      const paymentMethodLabels: Record<string, string> = {
+        pix: 'PIX', cash: 'Dinheiro', money: 'Dinheiro', credit_card: 'Cartão de Crédito',
+        debit_card: 'Cartão de Débito', bank_transfer: 'Transferência', boleto: 'Boleto', other: 'Outro',
+      };
+      const statusLabels: Record<string, string> = {
+        completed: 'Concluído', concluido: 'Concluído', in_progress: 'Em andamento',
+        pending: 'Pendente', cancelled: 'Cancelado', canceled: 'Cancelado', scheduled: 'Agendado',
+      };
+      const label = (map: Record<string, string>, v: any) =>
+        v ? map[String(v).toLowerCase()] || v : v;
       const cust = data?.customer;
+
       return shell(
         <>
           {cust && (
