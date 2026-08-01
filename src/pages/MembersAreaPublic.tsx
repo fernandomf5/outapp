@@ -19,6 +19,7 @@ import { BlockRichText } from "@/components/members-area/BlockRichText";
 import { MembersGallery } from "@/components/members-area/MembersGallery";
 import { MembersVideoGallery } from "@/components/members-area/MembersVideoGallery";
 import { MembersSlides } from "@/components/members-area/MembersSlides";
+import { MembersChecklist } from "@/components/members-area/MembersChecklist";
 import { MembersButtons } from "@/components/members-area/MembersButtons";
 
 
