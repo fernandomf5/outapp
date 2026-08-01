@@ -1497,6 +1497,7 @@ export function ReceiptGeneratorPanel() {
           </DialogHeader>
           <PaymentHistoryPanel
             receipts={savedReceipts}
+            contacts={customers.map(c => ({ id: c.id, name: c.name, company: (c as any).company }))}
             onLoadReceipt={(r) => {
               handleLoadReceipt(r);
               setHistoryOpen(false);
