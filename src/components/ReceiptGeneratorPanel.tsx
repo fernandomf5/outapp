@@ -147,8 +147,7 @@ export function ReceiptGeneratorPanel() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [editingReceiptId, setEditingReceiptId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [filterBusiness, setFilterBusiness] = useState<string>('all');
-  const [filterClient, setFilterClient] = useState<string>('all');
+  const [filterContact, setFilterContact] = useState<string>('all');
 
   // Templates state
   const [templates, setTemplates] = useState<ReceiptTemplate[]>([]);
