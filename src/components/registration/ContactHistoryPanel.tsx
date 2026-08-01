@@ -158,6 +158,7 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
   const [saving, setSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<HistoryItem | null>(null);
+  const [receipts, setReceipts] = useState<SavedReceiptRow[]>([]);
 
   const [form, setForm] = useState({
     service_type: "website",
@@ -176,7 +177,10 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
     quantity: "",
     reference_number: "",
     internal_notes: "",
+    receipt_id: "",
+    link_receipt_to_contact: true,
   });
+
 
   const fetchItems = async () => {
     setLoading(true);
