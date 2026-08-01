@@ -1503,12 +1503,17 @@ export function SimpleMembersArea() {
                     <SelectItem value="link">🔗 Link Externo</SelectItem>
                     <SelectItem value="button">👆 Botão</SelectItem>
                     <SelectItem value="checklist">✅ Checklist/Tarefas</SelectItem>
-                    <SelectItem value="quiz">🧩 Quiz/Questionário</SelectItem>
-                    <SelectItem value="timeline">📅 Linha do Tempo</SelectItem>
-                    <SelectItem value="mindmap">🧠 Mapa Mental</SelectItem>
-                    <SelectItem value="customer_history">📜 Histórico do Cliente</SelectItem>
-                    <SelectItem value="ads_dashboard">📊 Anúncios (Dashboard)</SelectItem>
+                    <SelectItem value="customer_history">📜 Histórico do Cliente (Linha do Tempo)</SelectItem>
                     <SelectItem value="payment_history">💰 Histórico de Pagamentos</SelectItem>
+                    <SelectItem value="ads_dashboard">📢 Anúncios (Dashboard)</SelectItem>
+                    <SelectItem value="client_profile">🪪 Dados do Cliente</SelectItem>
+                    <SelectItem value="client_tasks">🗂️ Tarefas do Cliente</SelectItem>
+                    <SelectItem value="client_routines">🔁 Rotinas do Cliente</SelectItem>
+                    <SelectItem value="client_agenda">📅 Agenda do Cliente</SelectItem>
+                    <SelectItem value="client_table">📋 Tabela de Organização</SelectItem>
+                    <SelectItem value="client_financial">💼 Gestão Financeira</SelectItem>
+                    <SelectItem value="client_receipts">🧾 Recibos do Cliente</SelectItem>
+                    <SelectItem value="client_mindmap">🧠 Mapa Mental do Cliente</SelectItem>
                     <SelectItem value="secret">🔒 Conteúdo Oculto (Senha)</SelectItem>
                   </SelectContent>
                 </Select>
