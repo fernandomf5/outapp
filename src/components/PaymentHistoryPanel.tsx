@@ -25,14 +25,22 @@ interface SavedReceipt {
   updated_at: string;
 }
 
+interface ContactOption {
+  id: string;
+  name: string;
+  company?: string | null;
+}
+
 interface PaymentHistoryPanelProps {
   receipts: SavedReceipt[];
+  contacts?: ContactOption[];
   onLoadReceipt: (receipt: SavedReceipt) => void;
   onEditReceipt?: (receipt: SavedReceipt) => void;
   onDeleteReceipt?: (id: string) => void;
 }
 
 interface ClientGroup {
+  key: string;
   clientName: string;
   businessName: string;
   receipts: SavedReceipt[];
@@ -42,11 +50,10 @@ interface ClientGroup {
   lastDate: string;
 }
 
-export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, onDeleteReceipt }: PaymentHistoryPanelProps) {
+export function PaymentHistoryPanel({ receipts, contacts = [], onLoadReceipt, onEditReceipt, onDeleteReceipt }: PaymentHistoryPanelProps) {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterClient, setFilterClient] = useState('all');
-  const [filterBusiness, setFilterBusiness] = useState('all');
+  const [filterContact, setFilterContact] = useState('all');
   const [filterMonth, setFilterMonth] = useState('all');
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
   const { toast } = useToast();
@@ -63,15 +70,19 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  // Extract unique values
-  const uniqueClients = useMemo(() => 
-    [...new Set(receipts.map(r => r.client_name).filter(Boolean))] as string[],
-    [receipts]
-  );
+  const contactMap = useMemo(() => {
+    const m = new Map<string, ContactOption>();
+    contacts.forEach(c => m.set(c.id, c));
+    return m;
+  }, [contacts]);
 
-  const uniqueBusinesses = useMemo(() => 
-    [...new Set(receipts.map(r => r.receipt_data?.company_name).filter(Boolean))] as string[],
-    [receipts]
+  const contactLabel = (r: SavedReceipt) =>
+    (r.contact_id && contactMap.get(r.contact_id)?.name) || r.client_name || 'Sem cadastro';
+
+  // Cadastros (Gestão Livre) que possuem recibos
+  const uniqueContacts = useMemo(
+    () => contacts.filter(c => receipts.some(r => r.contact_id === c.id)),
+    [contacts, receipts]
   );
 
   const availableMonths = useMemo(() => {
@@ -96,8 +107,7 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
   // Group receipts by client
   const clientGroups = useMemo(() => {
     const filtered = receipts.filter(r => {
-      if (filterClient !== 'all' && r.client_name !== filterClient) return false;
-      if (filterBusiness !== 'all' && r.receipt_data?.company_name !== filterBusiness) return false;
+      if (filterContact !== 'all' && r.contact_id !== filterContact) return false;
       if (filterMonth !== 'all') {
         const date = r.receipt_data?.date || r.created_at;
         if (date) {
@@ -109,9 +119,8 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         return (
-          (r.client_name || '').toLowerCase().includes(q) ||
-          r.receipt_number.toLowerCase().includes(q) ||
-          (r.receipt_data?.company_name || '').toLowerCase().includes(q)
+          contactLabel(r).toLowerCase().includes(q) ||
+          r.receipt_number.toLowerCase().includes(q)
         );
       }
       return true;
@@ -120,11 +129,13 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
     const groups: Record<string, ClientGroup> = {};
 
     filtered.forEach(r => {
-      const key = r.client_name || 'Sem Cliente';
+      const key = r.contact_id || 'sem-cadastro';
+      const contact = r.contact_id ? contactMap.get(r.contact_id) : undefined;
       if (!groups[key]) {
         groups[key] = {
-          clientName: key,
-          businessName: r.receipt_data?.company_name || '',
+          key,
+          clientName: contact?.name || r.client_name || 'Sem cadastro',
+          businessName: contact?.company || '',
           receipts: [],
           totalPaid: 0,
           receiptCount: 0,
@@ -151,12 +162,12 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
     });
 
     return Object.values(groups).sort((a, b) => b.totalPaid - a.totalPaid);
-  }, [receipts, filterClient, filterBusiness, filterMonth, searchQuery]);
+  }, [receipts, contactMap, filterContact, filterMonth, searchQuery]);
 
   const totalGeral = clientGroups.reduce((sum, g) => sum + g.totalPaid, 0);
   const totalRecibos = clientGroups.reduce((sum, g) => sum + g.receiptCount, 0);
 
-  const hasFilters = filterClient !== 'all' || filterBusiness !== 'all' || filterMonth !== 'all' || searchQuery;
+  const hasFilters = filterContact !== 'all' || filterMonth !== 'all' || searchQuery;
 
   if (receipts.length === 0) {
     return (
@@ -191,7 +202,7 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
         <Card>
           <CardContent className="pt-3 pb-3 px-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-              <Users className="w-3 h-3" /> Clientes
+              <Users className="w-3 h-3" /> Cadastros
             </div>
             <p className="text-lg font-bold">{clientGroups.length}</p>
           </CardContent>
@@ -211,33 +222,23 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por cliente, número ou empresa..."
+            placeholder="Buscar por cadastro ou número..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {uniqueClients.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {uniqueContacts.length > 0 && (
             <div>
-              <Label className="text-xs flex items-center gap-1 mb-1"><Users className="w-3 h-3" /> Cliente</Label>
-              <Select value={filterClient} onValueChange={setFilterClient}>
+              <Label className="text-xs flex items-center gap-1 mb-1"><Users className="w-3 h-3" /> Cadastro (Gestão Livre)</Label>
+              <Select value={filterContact} onValueChange={setFilterContact}>
                 <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  {uniqueClients.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {uniqueBusinesses.length > 0 && (
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1"><Building2 className="w-3 h-3" /> Negócio</Label>
-              <Select value={filterBusiness} onValueChange={setFilterBusiness}>
-                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {uniqueBusinesses.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  {uniqueContacts.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}{c.company ? ` — ${c.company}` : ''}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -256,7 +257,7 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
           )}
         </div>
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setFilterClient('all'); setFilterBusiness('all'); setFilterMonth('all'); setSearchQuery(''); }}>
+          <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setFilterContact('all'); setFilterMonth('all'); setSearchQuery(''); }}>
             <X className="w-3 h-3 mr-1" /> Limpar filtros
           </Button>
         )}
@@ -272,12 +273,12 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
             </div>
           ) : (
             clientGroups.map(group => {
-              const isExpanded = expandedClient === group.clientName;
+              const isExpanded = expandedClient === group.key;
               return (
-                <Card key={group.clientName} className="overflow-hidden">
+                <Card key={group.key} className="overflow-hidden">
                   <button
                     className="w-full text-left p-4 hover:bg-muted/30 transition-colors"
-                    onClick={() => setExpandedClient(isExpanded ? null : group.clientName)}
+                    onClick={() => setExpandedClient(isExpanded ? null : group.key)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 min-w-0">
