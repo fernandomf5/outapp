@@ -108,7 +108,7 @@ serve(async (req) => {
       case 'customer_history': {
         const { data: history } = await supabase
           .from('contact_history')
-          .select('id, service_type, title, description, start_date, end_date, status, attachments, created_at')
+          .select('id, service_type, title, description, start_date, end_date, status, attachments, created_at, amount, amount_paid, payment_method, payment_status, payment_date, responsible, quantity, reference_number')
           .eq('user_id', area.user_id)
           .eq('contact_id', customerId)
           .order('start_date', { ascending: false, nullsFirst: false })
