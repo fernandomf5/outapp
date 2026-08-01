@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 import {
   Loader2, ListTodo, Repeat, CalendarDays, Table2, Wallet, Receipt,
-  User, Brain, Download, CheckCircle2, Circle, TrendingUp, TrendingDown,
+  User, Brain, Download, CheckCircle2, Circle, TrendingUp, TrendingDown, History,
 } from "lucide-react";
 
 export type ClientDataSource =
@@ -124,10 +124,12 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       if (!c) return empty('Sem dados do cliente');
       const fields: [string, any][] = [
         ['Nome', c.name], ['E-mail', c.email], ['Telefone', c.phone], ['Documento', c.document],
-        ['Empresa', c.company], ['Cargo', c.position], ['Status', c.status], ['Website', c.website],
+        ['Empresa', c.company], ['Cargo', c.position], ['Categoria', c.category], ['Website', c.website],
+        ['Responsável', c.contact_person], ['Área de atuação', c.market_area],
         ['Endereço', [c.address, c.city, c.state, c.postal_code, c.country].filter(Boolean).join(', ')],
         ['Cliente desde', c.created_at ? dateBR(c.created_at) : null],
       ].filter(([, v]) => v) as [string, any][];
+      const custom = c.custom_fields && typeof c.custom_fields === 'object' ? Object.entries(c.custom_fields as Record<string, any>).filter(([, v]) => v !== null && v !== '' && typeof v !== 'object') : [];
       return shell(
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -138,6 +140,16 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               </div>
             ))}
           </div>
+          {custom.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {custom.map(([label, value]) => (
+                <div key={label} className="rounded-lg p-3" style={{ backgroundColor: `${accentColor}12` }}>
+                  <p className="text-[10px] uppercase tracking-wide opacity-60">{label}</p>
+                  <p className="text-sm font-medium break-words">{String(value)}</p>
+                </div>
+              ))}
+            </div>
+          )}
           {c.notes && box(<p className="text-sm whitespace-pre-wrap opacity-90">{c.notes}</p>)}
         </>
       );
@@ -416,6 +428,74 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
             );
           })}
         </div>
+      );
+    }
+
+    case 'timeline':
+    case 'customer_history': {
+      const history: any[] = data?.history || [];
+      if (!history.length) return empty('Nenhum histórico registrado');
+      return shell(
+        <ScrollArea className="max-h-[460px]">
+          <div className="space-y-2">
+            {history.map((h) =>
+              box(
+                <div className="flex items-start gap-3">
+                  <History className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accentColor }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{h.title}</p>
+                    {h.description && <p className="text-xs opacity-70 mt-0.5 whitespace-pre-wrap">{h.description}</p>}
+                    <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] opacity-70">
+                      {h.service_type && <span>{h.service_type}</span>}
+                      {h.start_date && <span>• {dateBR(h.start_date)}</span>}
+                      {h.end_date && <span>→ {dateBR(h.end_date)}</span>}
+                      {h.status && <span>• {h.status}</span>}
+                    </div>
+                  </div>
+                </div>,
+                h.id
+              )
+            )}
+          </div>
+        </ScrollArea>
+      );
+    }
+
+    case 'payment_history': {
+      const payments: any[] = data?.payments || [];
+      if (!payments.length) return empty('Nenhum pagamento registrado');
+      const total = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+      return shell(
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+              <p className="text-[10px] opacity-70">Total pago</p>
+              <p className="text-sm font-bold" style={{ color: accentColor }}>{currency(total)}</p>
+            </div>
+            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+              <p className="text-[10px] opacity-70">Pagamentos</p>
+              <p className="text-sm font-bold" style={{ color: accentColor }}>{payments.length}</p>
+            </div>
+          </div>
+          <ScrollArea className="max-h-[400px]">
+            <div className="space-y-2">
+              {payments.map((p) =>
+                box(
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{p.description || 'Pagamento'}</p>
+                      <p className="text-[11px] opacity-70">
+                        {dateBR(p.payment_date || p.created_at)}{p.payment_method ? ` • ${p.payment_method}` : ''}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(p.amount)}</p>
+                  </div>,
+                  p.id
+                )
+              )}
+            </div>
+          </ScrollArea>
+        </>
       );
     }
 
