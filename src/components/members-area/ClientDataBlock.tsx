@@ -60,6 +60,7 @@ const WEEK = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sáb
 
 export function ClientDataBlock({ areaId, blockId, source, accentColor, cardTextColor }: Props) {
   const [data, setData] = useState<any>(null);
+  const [historyLimit, setHistoryLimit] = useState(10);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
