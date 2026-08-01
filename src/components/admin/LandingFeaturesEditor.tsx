@@ -75,6 +75,7 @@ export const LandingFeaturesEditor = () => {
             )
           );
         }
+      } catch (e) {
         console.error('Error parsing features:', e);
       }
     }
