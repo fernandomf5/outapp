@@ -59,6 +59,25 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
   const [category, setCategory] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [open, setOpen] = useState(true);
+  const [toDelete, setToDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const removeLink = async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    const { error } = await supabase
+      .from("contact_resource_links")
+      .delete()
+      .eq("id", toDelete.id);
+    setDeleting(false);
+    if (error) {
+      toast.error("Erro ao remover atribuição: " + error.message);
+      return;
+    }
+    setLinks((prev) => prev.filter((l) => l.id !== toDelete.id));
+    setToDelete(null);
+    toast.success("Atribuição removida");
+  };
 
   useEffect(() => {
     let active = true;
