@@ -108,14 +108,37 @@ serve(async (req) => {
       case 'customer_history': {
         const { data: history } = await supabase
           .from('contact_history')
-          .select('id, service_type, title, description, start_date, end_date, status, attachments, created_at, amount, amount_paid, payment_method, payment_status, payment_date, responsible, quantity, reference_number')
+          .select('id, service_type, title, description, start_date, end_date, status, attachments, created_at, updated_at, amount, amount_paid, payment_method, payment_status, payment_date, responsible, quantity, reference_number, receipt_id')
           .eq('user_id', area.user_id)
           .eq('contact_id', customerId)
           .order('start_date', { ascending: false, nullsFirst: false })
           .limit(300);
-        payload = { history: history || [] };
+
+        const rows = history || [];
+        const receiptIds = rows.map((h: any) => h.receipt_id).filter(Boolean);
+        let receiptsById: Record<string, any> = {};
+        if (receiptIds.length) {
+          const { data: receipts } = await supabase
+            .from('saved_receipts')
+            .select('id, receipt_number, client_name, total_amount, created_at')
+            .in('id', receiptIds);
+          (receipts || []).forEach((r: any) => { receiptsById[r.id] = r; });
+        }
+
+        payload = {
+          history: rows.map((h: any) => ({ ...h, receipt: h.receipt_id ? receiptsById[h.receipt_id] || null : null })),
+          customer: {
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            company: customer.company,
+            document: customer.document,
+            category: categoryName,
+          },
+        };
         break;
       }
+
 
       case 'payment_history': {
         const { data: payments } = await supabase
