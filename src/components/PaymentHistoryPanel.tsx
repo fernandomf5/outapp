@@ -264,8 +264,9 @@ export function PaymentHistoryPanel({ receipts, contacts = [], onLoadReceipt, on
       </div>
 
       {/* Client groups */}
-      <ScrollArea className="max-h-[50vh]">
-        <div className="space-y-3 pr-2">
+      <ScrollArea className="h-[60vh] max-h-[60vh] w-full overscroll-contain">
+        <div className="space-y-3 pr-3 pb-6">
+
           {clientGroups.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
