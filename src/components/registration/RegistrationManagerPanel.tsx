@@ -66,7 +66,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<RegisteredItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>(initialSession?.activeTab || "form");
+  const [activeTab, setActiveTab] = useState<string>(initialSession?.activeTab || "list");
   const [selectedItem, setSelectedItem] = useState<any>(initialSession?.selectedItem || null);
   const [isViewOnly, setIsViewOnly] = useState<boolean>(initialSession?.isViewOnly || false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
