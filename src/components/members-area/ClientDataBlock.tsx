@@ -500,9 +500,9 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               </div>
             </div>
           )}
-          <ScrollArea className="max-h-[460px]">
+          <ScrollArea className="h-[460px] pr-3">
             <div className="space-y-2">
-              {history.map((h) => {
+              {history.slice(0, historyLimit).map((h) => {
                 const attachments: any[] = Array.isArray(h.attachments) ? h.attachments : [];
                 const pending = Number(h.amount || 0) - Number(h.amount_paid || 0);
                 return box(
