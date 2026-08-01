@@ -4,9 +4,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Database, Loader2, ExternalLink } from "lucide-react";
+import { ChevronDown, Database, Loader2, ExternalLink, Trash2 } from "lucide-react";
 import { buildResourceUrl, resourceIcon, resourceLabel } from "@/lib/resourceLinks";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface GestaoLivreRecordCardProps {
   contactId: string;
