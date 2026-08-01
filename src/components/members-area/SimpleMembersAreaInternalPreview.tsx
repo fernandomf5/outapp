@@ -31,7 +31,7 @@ import {
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'receipt_history' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
