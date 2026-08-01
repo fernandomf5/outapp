@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Plus, Edit, Trash2, Save, X } from "lucide-react";
+import { Sparkles, Plus, Edit, Trash2, Save, X, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,17 @@ export const LandingFeaturesEditor = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
   const [loading, setLoading] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const moveFeature = async (from: number, to: number) => {
+    if (from === to || to < 0 || to >= features.length) return;
+    const reordered = [...features];
+    const [item] = reordered.splice(from, 1);
+    reordered.splice(to, 0, item);
+    const withOrder = reordered.map((f, i) => ({ ...f, order_index: i }));
+    setFeatures(withOrder);
+    await saveFeatures(withOrder);
+  };
 
   const iconOptions = [
     "Workflow", "Brain", "Users", "UserPlus", "BarChart3", "Link2",
@@ -57,7 +68,13 @@ export const LandingFeaturesEditor = () => {
     if (!error && data && data.value) {
       try {
         const parsedFeatures = JSON.parse(data.value);
-        setFeatures(parsedFeatures);
+        if (Array.isArray(parsedFeatures)) {
+          setFeatures(
+            [...parsedFeatures].sort(
+              (a: Feature, b: Feature) => (a.order_index ?? 0) - (b.order_index ?? 0)
+            )
+          );
+        }
       } catch (e) {
         console.error('Error parsing features:', e);
       }
@@ -197,14 +214,32 @@ export const LandingFeaturesEditor = () => {
         </div>
       </CardHeader>
       <CardContent>
+        {features.length > 0 && (
+          <p className="text-xs text-muted-foreground mb-3">
+            Arraste os cards (ou use as setas) para definir a ordem em que os recursos aparecem no site.
+          </p>
+        )}
         <div className="grid md:grid-cols-2 gap-4">
-          {features.map((feature) => (
+          {features.map((feature, index) => (
             <div
               key={feature.id}
-              className="bg-muted/50 p-4 rounded-lg border border-border"
+              draggable
+              onDragStart={() => setDragIndex(index)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragIndex !== null) moveFeature(dragIndex, index);
+                setDragIndex(null);
+              }}
+              onDragEnd={() => setDragIndex(null)}
+              className={`bg-muted/50 p-4 rounded-lg border border-border cursor-move transition-opacity ${dragIndex === index ? "opacity-50" : ""}`}
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-start gap-3 flex-1">
+                  <div className="flex flex-col items-center gap-1 pt-1">
+                    <GripVertical className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground font-mono">{index + 1}</span>
+                  </div>
                   <div className="bg-primary/10 p-2 rounded-lg">
                     {getIcon(feature.icon)}
                   </div>
@@ -213,7 +248,27 @@ export const LandingFeaturesEditor = () => {
                     <p className="text-xs text-muted-foreground">{feature.description}</p>
                   </div>
                 </div>
-                <div className="flex gap-2 ml-4">
+                <div className="flex gap-1 ml-2 items-center">
+                  <div className="flex flex-col">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      disabled={index === 0}
+                      onClick={() => moveFeature(index, index - 1)}
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      disabled={index === features.length - 1}
+                      onClick={() => moveFeature(index, index + 1)}
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
