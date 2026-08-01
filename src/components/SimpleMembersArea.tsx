@@ -37,6 +37,7 @@ import {
 import { GalleryBlockEditor } from "@/components/members-area/GalleryBlockEditor";
 import { VideoGalleryBlockEditor } from "@/components/members-area/VideoGalleryBlockEditor";
 import { SlidesBlockEditor } from "@/components/members-area/SlidesBlockEditor";
+import { ChecklistBlockEditor } from "@/components/members-area/ChecklistBlockEditor";
 
 
 interface ContentBlock {
@@ -1610,6 +1611,13 @@ export function SimpleMembersArea() {
                     onChange={(content) => setBlockFormData({ ...blockFormData, content })}
                     bucketName="members-content"
                   />
+
+                ) : blockFormData.type === 'checklist' ? (
+                  <ChecklistBlockEditor
+                    content={blockFormData.content}
+                    onChange={(content) => setBlockFormData({ ...blockFormData, content })}
+                  />
+
 
                 ) : blockFormData.type === 'document' ? (
                   <DocumentUpload

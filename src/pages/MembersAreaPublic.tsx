@@ -19,6 +19,7 @@ import { BlockRichText } from "@/components/members-area/BlockRichText";
 import { MembersGallery } from "@/components/members-area/MembersGallery";
 import { MembersVideoGallery } from "@/components/members-area/MembersVideoGallery";
 import { MembersSlides } from "@/components/members-area/MembersSlides";
+import { MembersChecklist } from "@/components/members-area/MembersChecklist";
 import { MembersButtons } from "@/components/members-area/MembersButtons";
 
 
@@ -756,8 +757,19 @@ export default function MembersAreaPublic() {
           </div>
         );
 
-      case 'faq':
       case 'checklist':
+        return (
+          <MembersChecklist
+            blockId={block.id}
+            title={block.title}
+            content={block.content}
+            accentColor={accentColor}
+            cardTextColor={cardTextColor}
+            storageScope={accessCodeId || 'anon'}
+          />
+        );
+
+      case 'faq':
       case 'quiz':
       case 'timeline':
       case 'certificate':
