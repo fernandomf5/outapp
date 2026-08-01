@@ -229,7 +229,13 @@ const Index = () => {
     if (data?.value) {
       try {
         const parsedFeatures = JSON.parse(data.value);
-        setFeatures(parsedFeatures);
+        setFeatures(
+          Array.isArray(parsedFeatures)
+            ? [...parsedFeatures].sort(
+                (a: any, b: any) => (a?.order_index ?? 0) - (b?.order_index ?? 0)
+              )
+            : parsedFeatures
+        );
       } catch (e) {
         console.error('Error parsing features:', e);
         // Fallback to default features if parsing fails
