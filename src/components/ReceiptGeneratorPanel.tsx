@@ -516,29 +516,26 @@ export function ReceiptGeneratorPanel() {
   };
 
   const filteredReceipts = savedReceipts.filter(r => {
-    const data = r.receipt_data;
-    if (filterBusiness !== 'all') {
-      const bizName = data?.company_name || '';
-      if (bizName !== filterBusiness) return false;
-    }
-    if (filterClient !== 'all') {
-      const clientName = r.client_name || '';
-      if (clientName !== filterClient) return false;
+    if (filterContact !== 'all') {
+      if (r.contact_id !== filterContact) return false;
     }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
+      const contact = customers.find(c => c.id === r.contact_id);
       return (
         r.receipt_number.toLowerCase().includes(q) ||
         (r.client_name || '').toLowerCase().includes(q) ||
-        (data?.company_name || '').toLowerCase().includes(q)
+        (r.receipt_data?.company_name || '').toLowerCase().includes(q) ||
+        (contact?.name || '').toLowerCase().includes(q)
       );
     }
     return true;
   });
 
-  // Extract unique business/client names from saved receipts for filters
-  const uniqueBusinesses = [...new Set(savedReceipts.map(r => r.receipt_data?.company_name).filter(Boolean))] as string[];
-  const uniqueClients = [...new Set(savedReceipts.map(r => r.client_name).filter(Boolean))] as string[];
+  // Extract unique Gestão Livre contacts linked to saved receipts
+  const uniqueContacts = customers.filter(c =>
+    savedReceipts.some(r => r.contact_id === c.id)
+  );
 
   const generatePDF = (): jsPDF => {
     const doc = new jsPDF();
