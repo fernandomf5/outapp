@@ -752,13 +752,17 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum recibo</SelectItem>
-                    {receipts.map((r) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {(r.receipt_number || "Recibo")}
-                        {r.client_name ? ` • ${r.client_name}` : ""}
-                        {r.total_amount != null ? ` • ${formatCurrency(r.total_amount)}` : ""}
-                      </SelectItem>
-                    ))}
+                    {receipts.map((r) => {
+                      const clientName =
+                        r.client_name?.trim() || r.receipt_data?.client_name?.trim() || "";
+                      return (
+                        <SelectItem key={r.id} value={r.id}>
+                          {(r.receipt_number || "Recibo")}
+                          {clientName ? ` • ${clientName}` : ""}
+                          {r.total_amount != null ? ` • ${formatCurrency(r.total_amount)}` : ""}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 {receipts.length === 0 && (
