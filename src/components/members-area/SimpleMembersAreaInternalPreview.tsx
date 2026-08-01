@@ -97,6 +97,7 @@ export function SimpleMembersAreaInternalPreview({
       gallery: <Images className="w-3 h-3" />,
       video_gallery: <Film className="w-3 h-3" />,
       payment_history: <DollarSign className="w-3 h-3" />,
+      receipt_history: <DollarSign className="w-3 h-3" />,
       secret: <EyeOff className="w-3 h-3" />,
     };
     return icons[type] || <FileText className="w-3 h-3" />;
@@ -131,6 +132,7 @@ export function SimpleMembersAreaInternalPreview({
       video_gallery: 'Vídeos',
       secret: 'Oculto',
       payment_history: 'Pagamentos',
+      receipt_history: 'Histórico de Recibos',
     };
     return labels[type] || type;
   };

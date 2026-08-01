@@ -516,6 +516,7 @@ export default function MembersAreaPublic() {
       client_table: <FileText className="w-4 h-4" />,
       client_financial: <DollarSign className="w-4 h-4" />,
       client_receipts: <DollarSign className="w-4 h-4" />,
+      receipt_history: <DollarSign className="w-4 h-4" />,
       client_mindmap: <Brain className="w-4 h-4" />,
       customer_history: <History className="w-4 h-4" />,
       checklist: <CheckSquare className="w-4 h-4" />,
@@ -752,6 +753,7 @@ export default function MembersAreaPublic() {
       case 'client_table':
       case 'client_financial':
       case 'client_receipts':
+      case 'receipt_history':
       case 'client_mindmap': {
         if (!block.customer_id) {
           return (

@@ -17,6 +17,7 @@ export type ClientDataSource =
   | 'client_table'
   | 'client_financial'
   | 'client_receipts'
+  | 'receipt_history'
   | 'client_mindmap'
   | 'customer_history'
   | 'timeline'
@@ -39,6 +40,7 @@ const SOURCE_META: Record<string, { label: string; icon: any }> = {
   client_table: { label: 'Tabelas de Organização', icon: Table2 },
   client_financial: { label: 'Gestão Financeira', icon: Wallet },
   client_receipts: { label: 'Recibos', icon: Receipt },
+  receipt_history: { label: 'Histórico de Recibos', icon: Receipt },
   client_mindmap: { label: 'Mapas Mentais', icon: Brain },
   customer_history: { label: 'Histórico do Cliente', icon: History },
   timeline: { label: 'Histórico do Cliente', icon: History },
@@ -354,6 +356,7 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       );
     }
 
+    case 'receipt_history':
     case 'client_receipts': {
       const receipts: any[] = data?.receipts || [];
       if (!receipts.length) return empty('Nenhum recibo encontrado');

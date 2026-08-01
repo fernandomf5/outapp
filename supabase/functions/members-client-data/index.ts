@@ -243,14 +243,18 @@ serve(async (req) => {
         break;
       }
 
+      case 'receipt_history':
       case 'client_receipts': {
         const ids = idsFor('receipt');
-        const { data: byName } = await supabase
-          .from('saved_receipts')
-          .select('id, receipt_number, receipt_data, total_amount, client_name, created_at')
-          .eq('user_id', area.user_id)
-          .eq('client_name', customer.name)
-          .order('created_at', { ascending: false });
+        const names = [customer.name, (customer as any).company].filter(Boolean);
+        const { data: byName } = names.length
+          ? await supabase
+              .from('saved_receipts')
+              .select('id, receipt_number, receipt_data, total_amount, client_name, created_at')
+              .eq('user_id', area.user_id)
+              .in('client_name', names)
+              .order('created_at', { ascending: false })
+          : { data: [] as any[] };
         let byLink: any[] = [];
         if (ids.length) {
           const { data } = await supabase

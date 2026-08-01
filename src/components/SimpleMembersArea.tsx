@@ -151,6 +151,7 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       video_gallery: <Film className="w-4 h-4" />,
       secret: <EyeOff className="w-4 h-4" />,
       payment_history: <History className="w-4 h-4" />,
+      receipt_history: <History className="w-4 h-4" />,
     };
     return icons[block.type] || <FileText className="w-4 h-4" />;
   };
@@ -1519,6 +1520,7 @@ export function SimpleMembersArea() {
                     <SelectItem value="client_table">📋 Tabela de Organização</SelectItem>
                     <SelectItem value="client_financial">💼 Gestão Financeira</SelectItem>
                     <SelectItem value="client_receipts">🧾 Recibos do Cliente</SelectItem>
+                    <SelectItem value="receipt_history">🧾 Histórico de Recibos</SelectItem>
                     <SelectItem value="client_mindmap">🧠 Mapa Mental do Cliente</SelectItem>
                     <SelectItem value="secret">🔒 Conteúdo Oculto (Senha)</SelectItem>
                   </SelectContent>
