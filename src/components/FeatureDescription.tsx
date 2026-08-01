@@ -21,9 +21,11 @@ export const FeatureDescription = ({ text, limit = 160, className = "" }: Featur
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="card-3d-layer mt-1.5 text-[10px] xs:text-xs sm:text-sm font-semibold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+          onPointerDown={(e) => e.stopPropagation()}
+          className="relative z-20 mt-1.5 inline-block text-[10px] xs:text-xs sm:text-sm font-semibold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded cursor-pointer"
           aria-expanded={expanded}
         >
+
           {expanded ? "Ver menos" : "Ver mais"}
         </button>
       )}
