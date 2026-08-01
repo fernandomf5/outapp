@@ -7532,6 +7532,7 @@ export type Database = {
       saved_receipts: {
         Row: {
           client_name: string | null
+          contact_id: string | null
           created_at: string
           id: string
           receipt_data: Json
@@ -7542,6 +7543,7 @@ export type Database = {
         }
         Insert: {
           client_name?: string | null
+          contact_id?: string | null
           created_at?: string
           id?: string
           receipt_data: Json
@@ -7552,6 +7554,7 @@ export type Database = {
         }
         Update: {
           client_name?: string | null
+          contact_id?: string | null
           created_at?: string
           id?: string
           receipt_data?: Json
@@ -7560,7 +7563,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "saved_receipts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_scripts: {
         Row: {

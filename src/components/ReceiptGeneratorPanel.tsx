@@ -77,6 +77,7 @@ interface SavedReceipt {
   receipt_data: ReceiptData;
   total_amount: number;
   client_name: string | null;
+  contact_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -146,8 +147,7 @@ export function ReceiptGeneratorPanel() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [editingReceiptId, setEditingReceiptId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [filterBusiness, setFilterBusiness] = useState<string>('all');
-  const [filterClient, setFilterClient] = useState<string>('all');
+  const [filterContact, setFilterContact] = useState<string>('all');
 
   // Templates state
   const [templates, setTemplates] = useState<ReceiptTemplate[]>([]);
@@ -442,6 +442,7 @@ export function ReceiptGeneratorPanel() {
         receipt_data: JSON.parse(JSON.stringify(receipt)),
         total_amount: total,
         client_name: receipt.client_name,
+        contact_id: selectedCustomerId || null,
       };
 
       let receiptId = editingReceiptId;
@@ -515,29 +516,26 @@ export function ReceiptGeneratorPanel() {
   };
 
   const filteredReceipts = savedReceipts.filter(r => {
-    const data = r.receipt_data;
-    if (filterBusiness !== 'all') {
-      const bizName = data?.company_name || '';
-      if (bizName !== filterBusiness) return false;
-    }
-    if (filterClient !== 'all') {
-      const clientName = r.client_name || '';
-      if (clientName !== filterClient) return false;
+    if (filterContact !== 'all') {
+      if (r.contact_id !== filterContact) return false;
     }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
+      const contact = customers.find(c => c.id === r.contact_id);
       return (
         r.receipt_number.toLowerCase().includes(q) ||
         (r.client_name || '').toLowerCase().includes(q) ||
-        (data?.company_name || '').toLowerCase().includes(q)
+        (r.receipt_data?.company_name || '').toLowerCase().includes(q) ||
+        (contact?.name || '').toLowerCase().includes(q)
       );
     }
     return true;
   });
 
-  // Extract unique business/client names from saved receipts for filters
-  const uniqueBusinesses = [...new Set(savedReceipts.map(r => r.receipt_data?.company_name).filter(Boolean))] as string[];
-  const uniqueClients = [...new Set(savedReceipts.map(r => r.client_name).filter(Boolean))] as string[];
+  // Extract unique Gestão Livre contacts linked to saved receipts
+  const uniqueContacts = customers.filter(c =>
+    savedReceipts.some(r => r.contact_id === c.id)
+  );
 
   const generatePDF = (): jsPDF => {
     const doc = new jsPDF();
@@ -1236,7 +1234,7 @@ export function ReceiptGeneratorPanel() {
       </div>{/* END grid */}
 
       {/* Search Receipts Dialog */}
-      <Dialog open={searchOpen} onOpenChange={(open) => { setSearchOpen(open); if (!open) { setFilterBusiness('all'); setFilterClient('all'); setSearchQuery(''); } }}>
+      <Dialog open={searchOpen} onOpenChange={(open) => { setSearchOpen(open); if (!open) { setFilterContact('all'); setSearchQuery(''); } }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1255,57 +1253,31 @@ export function ReceiptGeneratorPanel() {
             </div>
 
             {/* Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {uniqueBusinesses.length > 0 && (
-                <div>
-                  <Label className="text-xs flex items-center gap-1 mb-1"><Building2 className="w-3 h-3" /> Filtrar por Negócio</Label>
-                  <Select value={filterBusiness} onValueChange={setFilterBusiness}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Todos os negócios" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os negócios</SelectItem>
-                      {uniqueBusinesses.map(name => (
-                        <SelectItem key={name} value={name}>{name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              {uniqueClients.length > 0 && (
-                <div>
-                  <Label className="text-xs flex items-center gap-1 mb-1"><Users className="w-3 h-3" /> Filtrar por Cliente</Label>
-                  <Select value={filterClient} onValueChange={setFilterClient}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Todos os clientes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os clientes</SelectItem>
-                      {uniqueClients.map(name => (
-                        <SelectItem key={name} value={name}>{name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
+            {uniqueContacts.length > 0 && (
+              <div>
+                <Label className="text-xs flex items-center gap-1 mb-1"><Users className="w-3 h-3" /> Filtrar por Cadastro (Gestão Livre)</Label>
+                <Select value={filterContact} onValueChange={setFilterContact}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Todos os cadastros" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os cadastros</SelectItem>
+                    {uniqueContacts.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}{c.company ? ` • ${c.company}` : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Active filters indicator */}
-            {(filterBusiness !== 'all' || filterClient !== 'all') && (
+            {filterContact !== 'all' && (
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-muted-foreground">Filtros ativos:</span>
-                {filterBusiness !== 'all' && (
-                  <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                    <Building2 className="w-3 h-3" /> {filterBusiness}
-                    <button onClick={() => setFilterBusiness('all')} className="hover:text-destructive"><X className="w-3 h-3" /></button>
-                  </span>
-                )}
-                {filterClient !== 'all' && (
-                  <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                    <Users className="w-3 h-3" /> {filterClient}
-                    <button onClick={() => setFilterClient('all')} className="hover:text-destructive"><X className="w-3 h-3" /></button>
-                  </span>
-                )}
+                <span className="text-xs text-muted-foreground">Filtro ativo:</span>
+                <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                  <Users className="w-3 h-3" /> {customers.find(c => c.id === filterContact)?.name || filterContact}
+                  <button onClick={() => setFilterContact('all')} className="hover:text-destructive"><X className="w-3 h-3" /></button>
+                </span>
               </div>
             )}
 
@@ -1317,38 +1289,41 @@ export function ReceiptGeneratorPanel() {
             {filteredReceipts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p>{searchQuery || filterBusiness !== 'all' || filterClient !== 'all' ? 'Nenhum recibo encontrado com esses filtros.' : 'Nenhum recibo salvo ainda.'}</p>
+                <p>{searchQuery || filterContact !== 'all' ? 'Nenhum recibo encontrado com esses filtros.' : 'Nenhum recibo salvo ainda.'}</p>
               </div>
             ) : (
               <div className="space-y-2">
-                {filteredReceipts.map(r => (
-                  <div key={r.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{r.receipt_number}</p>
-                      <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                        {r.receipt_data?.company_name && (
+                {filteredReceipts.map(r => {
+                  const contact = customers.find(c => c.id === r.contact_id);
+                  return (
+                    <div key={r.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{r.receipt_number}</p>
+                        <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                          {r.receipt_data?.company_name && (
+                            <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                              <Building2 className="w-2.5 h-2.5" /> {r.receipt_data.company_name}
+                            </span>
+                          )}
                           <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                            <Building2 className="w-2.5 h-2.5" /> {r.receipt_data.company_name}
+                            <Users className="w-2.5 h-2.5" /> {contact?.name || r.client_name || 'Sem cliente'}
                           </span>
-                        )}
-                        <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                          <Users className="w-2.5 h-2.5" /> {r.client_name || 'Sem cliente'}
-                        </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {formatCurrency(r.total_amount)} • {new Date(r.created_at).toLocaleDateString('pt-BR')}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {formatCurrency(r.total_amount)} • {new Date(r.created_at).toLocaleDateString('pt-BR')}
-                      </p>
+                      <div className="flex items-center gap-1 ml-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleLoadReceipt(r)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeleteReceipt(r.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 ml-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleLoadReceipt(r)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeleteReceipt(r.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

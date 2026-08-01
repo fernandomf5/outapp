@@ -20,6 +20,7 @@ interface SavedReceipt {
   receipt_data: any;
   total_amount: number;
   client_name: string | null;
+  contact_id: string | null;
   created_at: string;
   updated_at: string;
 }
