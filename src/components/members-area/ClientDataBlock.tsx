@@ -567,6 +567,26 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                   h.id
                 );
               })}
+              {history.length > historyLimit && (
+                <button
+                  type="button"
+                  onClick={() => setHistoryLimit((n) => n + 20)}
+                  className="w-full rounded-lg py-2 text-xs font-medium"
+                  style={{ backgroundColor: `${accentColor}18`, color: accentColor }}
+                >
+                  Ver mais ({history.length - historyLimit} restantes)
+                </button>
+              )}
+              {historyLimit > 10 && history.length <= historyLimit && (
+                <button
+                  type="button"
+                  onClick={() => setHistoryLimit(10)}
+                  className="w-full rounded-lg py-2 text-xs font-medium opacity-70"
+                  style={{ backgroundColor: `${accentColor}12`, color: accentColor }}
+                >
+                  Ver menos
+                </button>
+              )}
             </div>
           </ScrollArea>
         </>
