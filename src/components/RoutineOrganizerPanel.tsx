@@ -45,6 +45,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -1170,6 +1171,14 @@ export default function RoutineOrganizerPanel() {
             </div>
 
             <div className="h-6 w-px bg-border hidden sm:block" />
+
+            <ResourceAssignmentsButton
+              resourceType="routine"
+              label="Atribuir à Gestão Livre"
+              className="whitespace-nowrap"
+            />
+
+
 
             <Dialog open={isNewRoutineOpen} onOpenChange={setIsNewRoutineOpen}>
               <DialogTrigger asChild>

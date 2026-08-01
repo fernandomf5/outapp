@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 type ColumnType = 'text' | 'number' | 'date' | 'select' | 'status' | 'currency' | 'email';
 
@@ -1369,9 +1370,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           <h1 className="text-3xl font-bold tracking-tight">Tabela de Organização</h1>
           <p className="text-muted-foreground">Crie e gerencie suas tabelas de dados de forma personalizada.</p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="shadow-lg hover:shadow-xl transition-all">
-          <Plus className="mr-2 h-5 w-5" /> Nova Tabela
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ResourceAssignmentsButton resourceType="organization_table" label="Atribuir à Gestão Livre" />
+          <Button onClick={() => setIsCreateModalOpen(true)} className="shadow-lg hover:shadow-xl transition-all">
+            <Plus className="mr-2 h-5 w-5" /> Nova Tabela
+          </Button>
+        </div>
       </div>
 
       {loading ? (
