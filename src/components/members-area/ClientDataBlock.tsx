@@ -438,31 +438,101 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
     case 'customer_history': {
       const history: any[] = data?.history || [];
       if (!history.length) return empty('Nenhum histórico registrado');
-      return shell(
-        <ScrollArea className="max-h-[460px]">
-          <div className="space-y-2">
-            {history.map((h) =>
-              box(
-                <div className="flex items-start gap-3">
-                  <History className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accentColor }} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{h.title}</p>
-                    {h.description && <p className="text-xs opacity-70 mt-0.5 whitespace-pre-wrap">{h.description}</p>}
-                    <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] opacity-70">
-                      {h.service_type && <span>{h.service_type}</span>}
-                      {h.start_date && <span>• {dateBR(h.start_date)}</span>}
-                      {h.end_date && <span>→ {dateBR(h.end_date)}</span>}
-                      {h.status && <span>• {h.status}</span>}
-                    </div>
-                  </div>
-                </div>,
-                h.id
-              )
-            )}
+      const totalAmount = history.reduce((s, h) => s + Number(h.amount || 0), 0);
+      const totalPaid = history.reduce((s, h) => s + Number(h.amount_paid || 0), 0);
+      const chip = (label: string, value: any) =>
+        value === null || value === undefined || value === '' ? null : (
+          <div key={label} className="rounded-md px-2 py-1" style={{ backgroundColor: `${accentColor}12` }}>
+            <span className="text-[10px] opacity-70">{label}: </span>
+            <span className="text-[11px] font-medium">{value}</span>
           </div>
-        </ScrollArea>
+        );
+      return shell(
+        <>
+          {(totalAmount > 0 || totalPaid > 0) && (
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+                <p className="text-[10px] opacity-70">Registros</p>
+                <p className="text-sm font-bold" style={{ color: accentColor }}>{history.length}</p>
+              </div>
+              <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+                <p className="text-[10px] opacity-70">Valor total</p>
+                <p className="text-sm font-bold" style={{ color: accentColor }}>{currency(totalAmount)}</p>
+              </div>
+              <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+                <p className="text-[10px] opacity-70">Total pago</p>
+                <p className="text-sm font-bold" style={{ color: accentColor }}>{currency(totalPaid)}</p>
+              </div>
+            </div>
+          )}
+          <ScrollArea className="max-h-[460px]">
+            <div className="space-y-2">
+              {history.map((h) => {
+                const attachments: any[] = Array.isArray(h.attachments) ? h.attachments : [];
+                const pending = Number(h.amount || 0) - Number(h.amount_paid || 0);
+                return box(
+                  <div className="flex items-start gap-3">
+                    <History className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accentColor }} />
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium">{h.title}</p>
+                        {h.amount != null && h.amount !== '' && (
+                          <p className="text-sm font-bold flex-shrink-0" style={{ color: accentColor }}>
+                            {currency(h.amount)}
+                          </p>
+                        )}
+                      </div>
+                      {h.description && (
+                        <p className="text-xs opacity-80 whitespace-pre-wrap break-words">{h.description}</p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] opacity-70">
+                        {h.service_type && <span>{h.service_type}</span>}
+                        {h.start_date && <span>• {dateBR(h.start_date)}</span>}
+                        {h.end_date && <span>→ {dateBR(h.end_date)}</span>}
+                        {h.status && <span>• {h.status}</span>}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {chip('Nº', h.reference_number)}
+                        {chip('Qtd', h.quantity)}
+                        {chip('Responsável', h.responsible)}
+                        {chip('Valor pago', h.amount_paid != null && h.amount_paid !== '' ? currency(h.amount_paid) : null)}
+                        {chip('Pendente', h.amount != null && pending > 0 ? currency(pending) : null)}
+                        {chip('Forma de pagamento', h.payment_method)}
+                        {chip('Status pagamento', h.payment_status)}
+                        {chip('Data pagamento', h.payment_date ? dateBR(h.payment_date) : null)}
+                        {chip('Registrado em', h.created_at ? dateBR(h.created_at) : null)}
+                      </div>
+                      {attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {attachments.map((a: any, i: number) => {
+                            const href = typeof a === 'string' ? a : a?.url;
+                            if (!href) return null;
+                            return (
+                              <a
+                                key={i}
+                                href={href}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[11px] underline break-all"
+                                style={{ color: accentColor }}
+                              >
+                                {(typeof a === 'string' ? null : a?.name) || `Anexo ${i + 1}`}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>,
+                  h.id
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </>
       );
     }
+
 
     case 'payment_history': {
       const payments: any[] = data?.payments || [];
