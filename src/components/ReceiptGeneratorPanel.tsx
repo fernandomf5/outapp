@@ -138,6 +138,8 @@ export function ReceiptGeneratorPanel() {
   // Business & Customer data
   const [businesses, setBusinesses] = useState<BusinessOption[]>([]);
   const [customers, setCustomers] = useState<CustomerOption[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
 
@@ -161,12 +163,14 @@ export function ReceiptGeneratorPanel() {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [bizRes, custRes] = await Promise.all([
+      const [bizRes, custRes, catRes] = await Promise.all([
         supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
         supabase.from('contacts').select('id, name, email, phone, address, document, company, registration_category_id').eq('user_id', user.id).order('name').limit(1000),
+        supabase.from('registration_categories').select('id, name').eq('user_id', user.id).order('name'),
       ]);
       if (bizRes.data) setBusinesses(bizRes.data);
       if (custRes.data) setCustomers(custRes.data as any);
+      if (catRes.data) setCategories(catRes.data as any);
     };
     fetchData();
   }, [user]);
@@ -914,9 +918,52 @@ export function ReceiptGeneratorPanel() {
             <CardTitle className="text-base">Dados do Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-
-
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg bg-muted/40 border">
+              <div>
+                <Label className="text-xs">Categoria (Gestão Livre)</Label>
+                <Select value={selectedCategoryId} onValueChange={v => { setSelectedCategoryId(v); setSelectedCustomerId(''); }}>
+                  <SelectTrigger><SelectValue placeholder="Todas as categorias" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    {categories.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Cadastro</Label>
+                <Select
+                  value={selectedCustomerId || '_none'}
+                  onValueChange={v => {
+                    if (v === '_none') { setSelectedCustomerId(''); return; }
+                    setSelectedCustomerId(v);
+                    const c = customers.find(x => x.id === v);
+                    if (c) {
+                      setReceipt(prev => ({
+                        ...prev,
+                        client_name: c.name || c.company || '',
+                        client_document: c.document || '',
+                        client_address: c.address || '',
+                        client_email: c.email || '',
+                        client_phone: c.phone || '',
+                      }));
+                      toast({ title: 'Dados preenchidos', description: `Cadastro "${c.name}" carregado.` });
+                    }
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecionar cadastro" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Preenchimento manual</SelectItem>
+                    {customers
+                      .filter(c => selectedCategoryId === 'all' || c.registration_category_id === selectedCategoryId)
+                      .map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}{c.company ? ` • ${c.company}` : ''}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             <div>
               <Label className="text-xs">Nome do Cliente *</Label>
