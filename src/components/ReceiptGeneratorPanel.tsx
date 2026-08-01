@@ -155,6 +155,8 @@ export function ReceiptGeneratorPanel() {
   const [templateName, setTemplateName] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [quickTemplateName, setQuickTemplateName] = useState('');
   const [historyOpen, setHistoryOpen] = useState(false);
   useEffect(() => {
     if (!user) return;
@@ -219,6 +221,49 @@ export function ReceiptGeneratorPanel() {
       setTemplateName('');
       setEditingTemplateId(null);
       await fetchTemplates();
+      return true;
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar modelo", description: error.message, variant: "destructive" });
+      return false;
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  // Salvar o recibo atual como modelo e ir direto para "Modelos"
+  const handleQuickSaveTemplate = async () => {
+    if (!quickTemplateName.trim()) {
+      toast({ title: "Erro", description: "Informe um nome para o modelo.", variant: "destructive" });
+      return;
+    }
+    setTemplateName(quickTemplateName.trim());
+    setEditingTemplateId(null);
+    setSavingTemplate(true);
+    try {
+      const payload = {
+        user_id: user!.id,
+        name: quickTemplateName.trim(),
+        business_id: selectedBusinessId && selectedBusinessId !== '_none' ? selectedBusinessId : null,
+        company_name: receipt.company_name,
+        company_document: receipt.company_document,
+        company_address: receipt.company_address,
+        company_phone: receipt.company_phone,
+        logo_url: receipt.logo_url,
+        primary_color: receipt.primary_color,
+        receipt_title: receipt.receipt_title,
+        issuer_signer_name: receipt.issuer_signer_name,
+        warranty_text: receipt.warranty_text,
+        terms_text: receipt.terms_text,
+        notes_template: receipt.notes,
+      };
+      const { error } = await supabase.from('receipt_templates').insert([payload]);
+      if (error) throw error;
+      toast({ title: "Modelo salvo! ✅", description: `Modelo "${quickTemplateName.trim()}" criado com sucesso.` });
+      setTemplateName('');
+      setQuickTemplateName('');
+      setSaveTemplateOpen(false);
+      await fetchTemplates();
+      setTemplatesOpen(true);
     } catch (error: any) {
       toast({ title: "Erro ao salvar modelo", description: error.message, variant: "destructive" });
     } finally {
@@ -752,13 +797,45 @@ export function ReceiptGeneratorPanel() {
           <Button variant="outline" size="sm" onClick={() => { setTemplatesOpen(true); fetchTemplates(); }}>
             <LayoutTemplate className="h-4 w-4 mr-1" /> Modelos
           </Button>
+          <Button variant="outline" size="sm" onClick={() => { setQuickTemplateName(receipt.company_name ? `Modelo ${receipt.company_name}` : ''); setSaveTemplateOpen(true); }}>
+            <LayoutTemplate className="h-4 w-4 mr-1" /> Salvar Modelo
+          </Button>
           <Button variant="outline" size="sm" onClick={() => { setSearchOpen(true); fetchSavedReceipts(); }}>
-            <Search className="h-4 w-4 mr-1" /> Buscar Recibos
+            <Search className="h-4 w-4 mr-1" /> Recibos Salvos
           </Button>
           <ResourceAssignmentsButton resourceType="receipt" label="Atribuir à Gestão Livre" />
           <Button variant="outline" size="sm" onClick={handleNewReceipt}>Novo Recibo</Button>
         </div>
       </div>
+
+      {/* Salvar modelo rápido */}
+      <Dialog open={saveTemplateOpen} onOpenChange={setSaveTemplateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Salvar como Modelo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Salva os dados da empresa, logo, cor, título, garantia e termos deste recibo como modelo reutilizável.
+            </p>
+            <div>
+              <Label className="text-xs">Nome do modelo</Label>
+              <Input
+                value={quickTemplateName}
+                onChange={(e) => setQuickTemplateName(e.target.value)}
+                placeholder="Ex: Modelo Padrão da Empresa"
+                onKeyDown={(e) => { if (e.key === 'Enter') handleQuickSaveTemplate(); }}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setSaveTemplateOpen(false)}>Cancelar</Button>
+              <Button onClick={handleQuickSaveTemplate} disabled={savingTemplate || !quickTemplateName.trim()}>
+                {savingTemplate ? 'Salvando...' : 'Salvar Modelo'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Editing indicator */}
       {editingReceiptId && (
