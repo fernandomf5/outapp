@@ -46,6 +46,7 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Receipt,
 } from "lucide-react";
 import { GestaoLivreRecordCard } from "./GestaoLivreRecordCard";
 import { buildResourceUrl } from "@/lib/resourceLinks";
