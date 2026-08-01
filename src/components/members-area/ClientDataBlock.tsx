@@ -515,6 +515,10 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                         {chip('Status pagamento', h.payment_status)}
                         {chip('Data pagamento', h.payment_date ? dateBR(h.payment_date) : null)}
                         {chip('Registrado em', h.created_at ? dateBR(h.created_at) : null)}
+                        {chip('Atualizado em', h.updated_at ? dateBR(h.updated_at) : null)}
+                        {chip('Recibo', h.receipt ? `${h.receipt.receipt_number}${h.receipt.client_name ? ` • ${h.receipt.client_name}` : ''}` : null)}
+                        {chip('Valor do recibo', h.receipt?.total_amount != null ? currency(h.receipt.total_amount) : null)}
+
                       </div>
                       {attachments.length > 0 && (
                         <div className="flex flex-wrap gap-2">
