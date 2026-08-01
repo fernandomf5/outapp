@@ -525,6 +525,38 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                         </div>
                       )}
 
+                      {item.receipt_id && (() => {
+                        const rec = receipts.find((r) => r.id === item.receipt_id);
+                        if (!rec) return null;
+                        return (
+                          <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 p-2">
+                            <Receipt className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">
+                              {rec.receipt_number || "Recibo"}
+                            </span>
+                            {rec.total_amount != null && (
+                              <Badge variant="outline" className="text-xs">
+                                {formatCurrency(rec.total_amount)}
+                              </Badge>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs ml-auto"
+                              onClick={() => {
+                                try {
+                                  downloadReceiptPDF(rec.receipt_data, rec.receipt_data?.logo_url);
+                                } catch {
+                                  toast.error("Não foi possível gerar o PDF");
+                                }
+                              }}
+                            >
+                              Baixar PDF
+                            </Button>
+                          </div>
+                        );
+                      })()}
+
                       {item.internal_notes && (
                         <p className="text-xs text-muted-foreground italic border-l-2 pl-2">
                           Nota interna: {item.internal_notes}
