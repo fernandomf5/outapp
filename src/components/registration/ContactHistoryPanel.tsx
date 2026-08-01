@@ -402,6 +402,119 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
               </Select>
             </div>
 
+            <div className="rounded-md border p-3 space-y-3">
+              <Label className="text-sm font-semibold">Financeiro</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">Valor do serviço (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={form.amount}
+                    onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                    placeholder="0,00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Valor pago (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={form.amount_paid}
+                    onChange={(e) => setForm({ ...form, amount_paid: e.target.value })}
+                    placeholder="0,00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Forma de pagamento</Label>
+                  <Select
+                    value={form.payment_method || "none"}
+                    onValueChange={(v) => setForm({ ...form, payment_method: v === "none" ? "" : v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Não informado</SelectItem>
+                      {PAYMENT_METHODS.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Situação do pagamento</Label>
+                  <Select
+                    value={form.payment_status}
+                    onValueChange={(v) => setForm({ ...form, payment_status: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_STATUS.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Data do pagamento</Label>
+                  <Input
+                    type="date"
+                    value={form.payment_date}
+                    onChange={(e) => setForm({ ...form, payment_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Nº de referência / NF</Label>
+                  <Input
+                    value={form.reference_number}
+                    onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
+                    placeholder="Ex: NF-1024"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Responsável</Label>
+                <Input
+                  value={form.responsible}
+                  onChange={(e) => setForm({ ...form, responsible: e.target.value })}
+                  placeholder="Quem executou"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Quantidade / Horas</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.quantity}
+                  onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                  placeholder="Ex: 8"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Observações internas (privadas)</Label>
+              <Textarea
+                rows={2}
+                value={form.internal_notes}
+                onChange={(e) => setForm({ ...form, internal_notes: e.target.value })}
+                placeholder="Notas que o cliente nunca verá"
+              />
+            </div>
+
             <div className="flex items-center justify-between rounded-md border p-3">
               <div>
                 <Label>Visível ao cliente</Label>
@@ -414,6 +527,7 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                 onCheckedChange={(v) => setForm({ ...form, is_public: v })}
               />
             </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
