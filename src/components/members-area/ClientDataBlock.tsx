@@ -152,27 +152,19 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       ].filter(([, v]) => v) as [string, any][];
       const custom = c.custom_fields && typeof c.custom_fields === 'object' ? Object.entries(c.custom_fields as Record<string, any>).filter(([, v]) => v !== null && v !== '' && typeof v !== 'object') : [];
       return shell(
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {fields.map(([label, value]) => (
-              <div key={label} className="rounded-lg p-3" style={{ backgroundColor: `${accentColor}12` }}>
-                <p className="text-[10px] uppercase tracking-wide opacity-60">{label}</p>
-                <p className="text-sm font-medium break-words">{String(value)}</p>
-              </div>
-            ))}
-          </div>
-          {custom.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {custom.map(([label, value]) => (
-                <div key={label} className="rounded-lg p-3" style={{ backgroundColor: `${accentColor}12` }}>
-                  <p className="text-[10px] uppercase tracking-wide opacity-60">{label}</p>
-                  <p className="text-sm font-medium break-words">{String(value)}</p>
+        scroller(
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {[...fields, ...custom].map(([label, value]) => (
+                <div key={label} className="rounded-md px-2 py-1.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                  <p className="text-[10px] uppercase tracking-wide opacity-60 truncate">{label}</p>
+                  <p className="text-xs font-medium break-words">{String(value)}</p>
                 </div>
               ))}
             </div>
-          )}
-          {c.notes && box(<p className="text-sm whitespace-pre-wrap opacity-90">{c.notes}</p>)}
-        </>
+            {c.notes && box(<p className="text-xs whitespace-pre-wrap break-words opacity-90">{c.notes}</p>)}
+          </>
+        )
       );
     }
 
@@ -187,29 +179,29 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               {done}/{tasks.length} concluídas
             </Badge>
           </div>
-          <ScrollArea className="max-h-[420px]">
-            <div className="space-y-2">
+          {scroller(
+            <>
               {tasks.map((t) => {
                 const isDone = t.status === 'completed' || t.status === 'concluida';
                 return box(
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2 min-w-0">
                     {isDone
                       ? <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accentColor }} />
                       : <Circle className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />}
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${isDone ? 'line-through opacity-60' : ''}`}>{t.title}</p>
-                      {t.description && <p className="text-xs opacity-70 mt-0.5">{t.description}</p>}
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] opacity-70">
+                      <p className={`text-xs font-medium break-words ${isDone ? 'line-through opacity-60' : ''}`}>{t.title}</p>
+                      {t.description && <p className="text-[11px] opacity-70 mt-0.5 line-clamp-2 break-words">{t.description}</p>}
+                      <div className="flex flex-wrap items-center gap-x-2 text-[10px] opacity-70 mt-0.5">
                         {t.due_date && <span>Prazo: {dateBR(t.due_date)}</span>}
-                        {t.priority && <span>• Prioridade: {t.priority}</span>}
+                        {t.priority && <span>• {t.priority}</span>}
                         {t.category && <span>• {t.category}</span>}
                       </div>
                       {Array.isArray(t.checklist) && t.checklist.length > 0 && (
-                        <ul className="mt-2 space-y-1">
+                        <ul className="mt-1 space-y-0.5">
                           {t.checklist.map((item: any, i: number) => (
-                            <li key={i} className="text-xs flex items-center gap-1.5 opacity-80">
-                              {item?.done ? <CheckCircle2 className="w-3 h-3" style={{ color: accentColor }} /> : <Circle className="w-3 h-3" />}
-                              <span className={item?.done ? 'line-through' : ''}>{item?.text || item?.title}</span>
+                            <li key={i} className="text-[11px] flex items-start gap-1.5 opacity-80 min-w-0">
+                              {item?.done ? <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0" style={{ color: accentColor }} /> : <Circle className="w-3 h-3 mt-0.5 shrink-0" />}
+                              <span className={`break-words ${item?.done ? 'line-through' : ''}`}>{item?.text || item?.title}</span>
                             </li>
                           ))}
                         </ul>
@@ -219,8 +211,8 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                   t.id
                 );
               })}
-            </div>
-          </ScrollArea>
+            </>
+          )}
         </>
       );
     }
