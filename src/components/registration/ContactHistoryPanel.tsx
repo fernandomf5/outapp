@@ -248,8 +248,51 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       quantity: item.quantity != null ? String(item.quantity) : "",
       reference_number: item.reference_number || "",
       internal_notes: item.internal_notes || "",
+      receipt_id: item.receipt_id || "",
+      link_receipt_to_contact: true,
     });
     setDialogOpen(true);
+  };
+
+  const fetchReceipts = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("saved_receipts")
+      .select("id, receipt_number, client_name, total_amount, receipt_data, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    setReceipts(((data as any) || []) as SavedReceiptRow[]);
+  };
+
+  useEffect(() => {
+    fetchReceipts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const linkReceiptToContact = async (receiptId: string) => {
+    if (!user) return;
+    const receipt = receipts.find((r) => r.id === receiptId);
+    const { data: contact } = await supabase
+      .from("contacts")
+      .select("registration_category_id")
+      .eq("id", contactId)
+      .maybeSingle();
+    await supabase
+      .from("contact_resource_links" as any)
+      .delete()
+      .eq("resource_type", "receipt")
+      .eq("resource_id", receiptId);
+    await supabase.from("contact_resource_links" as any).insert({
+      user_id: user.id,
+      contact_id: contactId,
+      category_id: (contact as any)?.registration_category_id ?? null,
+      resource_type: "receipt",
+      resource_id: receiptId,
+      resource_title:
+        receipt?.receipt_number || receipt?.client_name || "Recibo",
+      resource_url: buildResourceUrl("receipt", receiptId),
+    } as any);
   };
 
   const save = async () => {
@@ -278,19 +321,29 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       quantity: form.quantity !== "" ? Number(form.quantity) : null,
       reference_number: form.reference_number.trim() || null,
       internal_notes: form.internal_notes.trim() || null,
+      receipt_id: form.receipt_id || null,
     };
     const { error } = editing
-      ? await supabase.from("contact_history").update(payload).eq("id", editing.id)
-      : await supabase.from("contact_history").insert(payload);
-    setSaving(false);
+      ? await supabase.from("contact_history").update(payload as any).eq("id", editing.id)
+      : await supabase.from("contact_history").insert(payload as any);
     if (error) {
+      setSaving(false);
       toast.error("Erro ao salvar: " + error.message);
       return;
     }
+    if (form.receipt_id && form.link_receipt_to_contact) {
+      try {
+        await linkReceiptToContact(form.receipt_id);
+      } catch {
+        /* ignore link errors */
+      }
+    }
+    setSaving(false);
     toast.success(editing ? "Histórico atualizado" : "Histórico adicionado");
     setDialogOpen(false);
     fetchItems();
   };
+
 
   const remove = async () => {
     if (!toDelete) return;
