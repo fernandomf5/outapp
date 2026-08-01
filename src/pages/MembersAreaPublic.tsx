@@ -620,30 +620,16 @@ export default function MembersAreaPublic() {
       }
       
       case 'button': {
-        let btnData: { items: { label: string; url: string }[]; layout: string } = { items: [], layout: 'vertical' };
-        try {
-          const parsed = JSON.parse(block.content);
-          if (parsed?.items) btnData = parsed;
-          else btnData = { items: [{ label: block.title || 'Clique aqui', url: block.content }], layout: 'vertical' };
-        } catch {
-          btnData = { items: [{ label: block.title || 'Clique aqui', url: block.content }], layout: 'vertical' };
-        }
         return (
-          <div className={`flex gap-3 ${btnData.layout === 'horizontal' ? 'flex-row flex-wrap' : 'flex-col'}`}>
-            {btnData.items.map((item, idx) => (
-              <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="flex-1">
-                <Button 
-                  className="w-full text-white"
-                  size="lg"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  {item.label || 'Clique aqui'}
-                </Button>
-              </a>
-            ))}
-          </div>
+          <MembersButtons
+            content={block.content}
+            fallbackLabel={block.title || 'Clique aqui'}
+            accentColor={accentColor}
+            textColor={cardTextColor}
+          />
         );
       }
+
       
       case 'download':
         return (
