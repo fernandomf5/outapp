@@ -3526,13 +3526,22 @@ export type Database = {
       }
       contact_history: {
         Row: {
+          amount: number | null
+          amount_paid: number | null
           attachments: Json | null
           contact_id: string
           created_at: string
           description: string | null
           end_date: string | null
           id: string
+          internal_notes: string | null
           is_public: boolean
+          payment_date: string | null
+          payment_method: string | null
+          payment_status: string
+          quantity: number | null
+          reference_number: string | null
+          responsible: string | null
           service_type: string
           start_date: string | null
           status: string
@@ -3541,13 +3550,22 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          amount?: number | null
+          amount_paid?: number | null
           attachments?: Json | null
           contact_id: string
           created_at?: string
           description?: string | null
           end_date?: string | null
           id?: string
+          internal_notes?: string | null
           is_public?: boolean
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          quantity?: number | null
+          reference_number?: string | null
+          responsible?: string | null
           service_type: string
           start_date?: string | null
           status?: string
@@ -3556,13 +3574,22 @@ export type Database = {
           user_id: string
         }
         Update: {
+          amount?: number | null
+          amount_paid?: number | null
           attachments?: Json | null
           contact_id?: string
           created_at?: string
           description?: string | null
           end_date?: string | null
           id?: string
+          internal_notes?: string | null
           is_public?: boolean
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          quantity?: number | null
+          reference_number?: string | null
+          responsible?: string | null
           service_type?: string
           start_date?: string | null
           status?: string

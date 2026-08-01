@@ -1,0 +1,10 @@
+ALTER TABLE public.contact_history
+  ADD COLUMN IF NOT EXISTS amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS amount_paid NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS payment_method TEXT,
+  ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS payment_date DATE,
+  ADD COLUMN IF NOT EXISTS responsible TEXT,
+  ADD COLUMN IF NOT EXISTS quantity NUMERIC(12,2),
+  ADD COLUMN IF NOT EXISTS reference_number TEXT,
+  ADD COLUMN IF NOT EXISTS internal_notes TEXT;

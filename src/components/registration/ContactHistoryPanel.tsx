@@ -65,6 +65,15 @@ interface HistoryItem {
   status: string;
   is_public: boolean;
   created_at: string;
+  amount: number | null;
+  amount_paid: number | null;
+  payment_method: string | null;
+  payment_status: string;
+  payment_date: string | null;
+  responsible: string | null;
+  quantity: number | null;
+  reference_number: string | null;
+  internal_notes: string | null;
 }
 
 const SERVICE_TYPES = [
@@ -88,6 +97,33 @@ const STATUS_OPTIONS = [
   { value: "paused", label: "Pausado", icon: Clock, color: "bg-amber-500/15 text-amber-500" },
   { value: "cancelled", label: "Cancelado", icon: Clock, color: "bg-red-500/15 text-red-500" },
 ];
+
+const PAYMENT_METHODS = [
+  { value: "pix", label: "PIX" },
+  { value: "cash", label: "Dinheiro" },
+  { value: "credit_card", label: "Cartão de Crédito" },
+  { value: "debit_card", label: "Cartão de Débito" },
+  { value: "bank_transfer", label: "Transferência" },
+  { value: "boleto", label: "Boleto" },
+  { value: "other", label: "Outro" },
+];
+
+const PAYMENT_STATUS = [
+  { value: "pending", label: "Pendente", color: "bg-amber-500/15 text-amber-500" },
+  { value: "partial", label: "Parcial", color: "bg-blue-500/15 text-blue-500" },
+  { value: "paid", label: "Pago", color: "bg-green-500/15 text-green-500" },
+  { value: "refunded", label: "Reembolsado", color: "bg-purple-500/15 text-purple-500" },
+  { value: "cancelled", label: "Cancelado", color: "bg-red-500/15 text-red-500" },
+];
+
+function getPaymentStatusMeta(v: string) {
+  return PAYMENT_STATUS.find((s) => s.value === v) || PAYMENT_STATUS[0];
+}
+
+function formatCurrency(v: number | null | undefined) {
+  if (v === null || v === undefined) return null;
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v));
+}
 
 function getServiceMeta(type: string) {
   return SERVICE_TYPES.find((s) => s.value === type) || SERVICE_TYPES[SERVICE_TYPES.length - 1];
@@ -120,6 +156,15 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
     end_date: "",
     status: "in_progress",
     is_public: true,
+    amount: "",
+    amount_paid: "",
+    payment_method: "",
+    payment_status: "pending",
+    payment_date: "",
+    responsible: "",
+    quantity: "",
+    reference_number: "",
+    internal_notes: "",
   });
 
   const fetchItems = async () => {
@@ -153,6 +198,15 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       end_date: "",
       status: "in_progress",
       is_public: true,
+      amount: "",
+      amount_paid: "",
+      payment_method: "",
+      payment_status: "pending",
+      payment_date: "",
+      responsible: "",
+      quantity: "",
+      reference_number: "",
+      internal_notes: "",
     });
     setDialogOpen(true);
   };
@@ -167,6 +221,15 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       end_date: item.end_date || "",
       status: item.status,
       is_public: item.is_public,
+      amount: item.amount != null ? String(item.amount) : "",
+      amount_paid: item.amount_paid != null ? String(item.amount_paid) : "",
+      payment_method: item.payment_method || "",
+      payment_status: item.payment_status || "pending",
+      payment_date: item.payment_date || "",
+      responsible: item.responsible || "",
+      quantity: item.quantity != null ? String(item.quantity) : "",
+      reference_number: item.reference_number || "",
+      internal_notes: item.internal_notes || "",
     });
     setDialogOpen(true);
   };
@@ -188,6 +251,15 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       end_date: form.end_date || null,
       status: form.status,
       is_public: form.is_public,
+      amount: form.amount !== "" ? Number(form.amount) : null,
+      amount_paid: form.amount_paid !== "" ? Number(form.amount_paid) : null,
+      payment_method: form.payment_method || null,
+      payment_status: form.payment_status,
+      payment_date: form.payment_date || null,
+      responsible: form.responsible.trim() || null,
+      quantity: form.quantity !== "" ? Number(form.quantity) : null,
+      reference_number: form.reference_number.trim() || null,
+      internal_notes: form.internal_notes.trim() || null,
     };
     const { error } = editing
       ? await supabase.from("contact_history").update(payload).eq("id", editing.id)
@@ -270,6 +342,11 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                               <StatusIcon className="h-3 w-3" />
                               {status.label}
                             </Badge>
+                            <Badge
+                              className={`text-xs border-0 ${getPaymentStatusMeta(item.payment_status).color}`}
+                            >
+                              {getPaymentStatusMeta(item.payment_status).label}
+                            </Badge>
                             {item.is_public ? (
                               <Badge variant="outline" className="text-xs gap-1">
                                 <Eye className="h-3 w-3" /> Visível ao cliente
@@ -308,6 +385,77 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                           {item.description}
                         </p>
                       )}
+
+                      {(item.amount != null ||
+                        item.amount_paid != null ||
+                        item.payment_method ||
+                        item.reference_number ||
+                        item.responsible ||
+                        item.quantity != null) && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 rounded-md border bg-muted/30 p-3">
+                          {item.amount != null && (
+                            <div>
+                              <p className="text-[10px] uppercase text-muted-foreground">Valor</p>
+                              <p className="text-sm font-semibold">{formatCurrency(item.amount)}</p>
+                            </div>
+                          )}
+                          {item.amount_paid != null && (
+                            <div>
+                              <p className="text-[10px] uppercase text-muted-foreground">Pago</p>
+                              <p className="text-sm font-semibold text-green-500">
+                                {formatCurrency(item.amount_paid)}
+                              </p>
+                            </div>
+                          )}
+                          {item.amount != null && item.amount_paid != null && (
+                            <div>
+                              <p className="text-[10px] uppercase text-muted-foreground">Saldo</p>
+                              <p className="text-sm font-semibold">
+                                {formatCurrency(Number(item.amount) - Number(item.amount_paid))}
+                              </p>
+                            </div>
+                          )}
+                          {item.payment_method && (
+                            <div>
+                              <p className="text-[10px] uppercase text-muted-foreground">Forma</p>
+                              <p className="text-sm">
+                                {PAYMENT_METHODS.find((m) => m.value === item.payment_method)?.label ||
+                                  item.payment_method}
+                              </p>
+                            </div>
+                          )}
+                          {item.payment_date && (
+                            <div>
+                              <p className="text-[10px] uppercase text-muted-foreground">Pagamento</p>
+                              <p className="text-sm">{formatDate(item.payment_date)}</p>
+                            </div>
+                          )}
+                          {item.reference_number && (
+                            <div>
+                              <p className="text-[10px] uppercase text-muted-foreground">Referência</p>
+                              <p className="text-sm">{item.reference_number}</p>
+                            </div>
+                          )}
+                          {item.responsible && (
+                            <div>
+                              <p className="text-[10px] uppercase text-muted-foreground">Responsável</p>
+                              <p className="text-sm">{item.responsible}</p>
+                            </div>
+                          )}
+                          {item.quantity != null && (
+                            <div>
+                              <p className="text-[10px] uppercase text-muted-foreground">Qtd/Horas</p>
+                              <p className="text-sm">{item.quantity}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {item.internal_notes && (
+                        <p className="text-xs text-muted-foreground italic border-l-2 pl-2">
+                          Nota interna: {item.internal_notes}
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -318,7 +466,7 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Editar registro" : "Novo registro"}</DialogTitle>
           </DialogHeader>
@@ -402,6 +550,119 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
               </Select>
             </div>
 
+            <div className="rounded-md border p-3 space-y-3">
+              <Label className="text-sm font-semibold">Financeiro</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">Valor do serviço (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={form.amount}
+                    onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                    placeholder="0,00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Valor pago (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={form.amount_paid}
+                    onChange={(e) => setForm({ ...form, amount_paid: e.target.value })}
+                    placeholder="0,00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Forma de pagamento</Label>
+                  <Select
+                    value={form.payment_method || "none"}
+                    onValueChange={(v) => setForm({ ...form, payment_method: v === "none" ? "" : v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Não informado</SelectItem>
+                      {PAYMENT_METHODS.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Situação do pagamento</Label>
+                  <Select
+                    value={form.payment_status}
+                    onValueChange={(v) => setForm({ ...form, payment_status: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_STATUS.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Data do pagamento</Label>
+                  <Input
+                    type="date"
+                    value={form.payment_date}
+                    onChange={(e) => setForm({ ...form, payment_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Nº de referência / NF</Label>
+                  <Input
+                    value={form.reference_number}
+                    onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
+                    placeholder="Ex: NF-1024"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Responsável</Label>
+                <Input
+                  value={form.responsible}
+                  onChange={(e) => setForm({ ...form, responsible: e.target.value })}
+                  placeholder="Quem executou"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Quantidade / Horas</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.quantity}
+                  onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                  placeholder="Ex: 8"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Observações internas (privadas)</Label>
+              <Textarea
+                rows={2}
+                value={form.internal_notes}
+                onChange={(e) => setForm({ ...form, internal_notes: e.target.value })}
+                placeholder="Notas que o cliente nunca verá"
+              />
+            </div>
+
             <div className="flex items-center justify-between rounded-md border p-3">
               <div>
                 <Label>Visível ao cliente</Label>
@@ -414,6 +675,7 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                 onCheckedChange={(v) => setForm({ ...form, is_public: v })}
               />
             </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
