@@ -233,6 +233,57 @@ export default function MembersAreaPublic() {
     loadArea();
   }, [slug]);
 
+  // Atualiza o conteúdo em tempo real (sem precisar recarregar a página)
+  const refreshAreaSilently = async () => {
+    if (!slug) return;
+    const { data } = await supabase
+      .from('simple_members_areas' as any)
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (!data) return;
+    setArea((prev) => {
+      const at =
+        (data as any).access_type ||
+        ((data as any).password === 'user_password_access'
+          ? 'user_password'
+          : (data as any).password === 'email_code_access'
+          ? 'email_code'
+          : 'password');
+      return { ...(data as any), access_type: at } as any;
+    });
+  };
+
+  useEffect(() => {
+    const areaId = (area as any)?.id;
+    if (!areaId) return;
+
+    const channel = supabase
+      .channel(`members-area-live-${areaId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'simple_members_areas', filter: `id=eq.${areaId}` },
+        () => refreshAreaSilently()
+      )
+      .subscribe();
+
+    // Fallback: revalida ao voltar para a aba
+    const onFocus = () => refreshAreaSilently();
+    window.addEventListener('focus', onFocus);
+    const poll = setInterval(() => {
+      if (document.visibilityState === 'visible') refreshAreaSilently();
+    }, 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener('focus', onFocus);
+      clearInterval(poll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [(area as any)?.id, slug]);
+
+
   // Restaura sessão salva (expira após 1h de inatividade)
   useEffect(() => {
     try {
