@@ -293,8 +293,12 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       category_id: (contact as any)?.registration_category_id ?? null,
       resource_type: "receipt",
       resource_id: receiptId,
-      resource_title:
-        receipt?.receipt_number || receipt?.client_name || "Recibo",
+      resource_title: (() => {
+        const number = receipt?.receipt_number?.trim();
+        const name = receipt?.client_name?.trim() || receipt?.receipt_data?.client_name?.trim();
+        if (number && name) return `${number} — ${name}`;
+        return number || name || "Recibo";
+      })(),
       resource_url: buildResourceUrl("receipt", receiptId),
     } as any);
   };
