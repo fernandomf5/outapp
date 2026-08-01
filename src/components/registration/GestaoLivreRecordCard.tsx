@@ -260,6 +260,7 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
                 <div className="space-y-2">
                   {links.map((link) => {
                     const Icon = resourceIcon(link.resource_type);
+                    const receiptTitle = link.resource_type === "receipt" ? receiptTitles[link.resource_id] : null;
                     return (
                       <div
                         key={link.id}
@@ -271,6 +272,11 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
                             <p className="text-sm font-medium truncate">
                               {link.resource_title || resourceLabel(link.resource_type)}
                             </p>
+                            {receiptTitle && (
+                              <p className="text-[11px] text-primary truncate">
+                                Título: {receiptTitle}
+                              </p>
+                            )}
                             <p className="text-[11px] text-muted-foreground">
                               {resourceLabel(link.resource_type)} • {formatDateTime(link.created_at)}
                             </p>
