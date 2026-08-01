@@ -1489,7 +1489,7 @@ export function ReceiptGeneratorPanel() {
 
       {/* Payment History Dialog */}
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-auto">
+        <DialogContent className="max-w-3xl h-[85vh] max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <History className="w-5 h-5" /> Histórico de Pagamentos

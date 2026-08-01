@@ -180,7 +180,7 @@ export function PaymentHistoryPanel({ receipts, contacts = [], onLoadReceipt, on
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 flex flex-col flex-1 min-h-0">
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card>
@@ -264,8 +264,9 @@ export function PaymentHistoryPanel({ receipts, contacts = [], onLoadReceipt, on
       </div>
 
       {/* Client groups */}
-      <ScrollArea className="max-h-[50vh]">
-        <div className="space-y-3 pr-2">
+      <ScrollArea className="flex-1 min-h-0 w-full overscroll-contain">
+        <div className="space-y-3 pr-3 pb-6">
+
           {clientGroups.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
