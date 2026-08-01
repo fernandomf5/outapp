@@ -138,6 +138,8 @@ export function ReceiptGeneratorPanel() {
   // Business & Customer data
   const [businesses, setBusinesses] = useState<BusinessOption[]>([]);
   const [customers, setCustomers] = useState<CustomerOption[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
 
