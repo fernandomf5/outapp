@@ -103,3 +103,6 @@ verify_jwt = false
 
 [functions.members-area-user-auth]
 verify_jwt = false
+
+[functions.members-client-data]
+verify_jwt = false
