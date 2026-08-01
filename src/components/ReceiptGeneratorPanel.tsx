@@ -12,7 +12,6 @@ import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader
 import { PaymentHistoryPanel } from "./PaymentHistoryPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
-import { ContactCategoryPicker } from "@/components/registration/ContactCategoryPicker";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 import { buildResourceUrl } from "@/lib/resourceLinks";
 
@@ -843,18 +842,8 @@ export function ReceiptGeneratorPanel() {
             <CardTitle className="text-base">Dados do Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Gestão Livre contact selector */}
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Users className="w-3 h-3" /> Selecionar cadastro (Gestão Livre)
-              </Label>
-              <ContactCategoryPicker
-                value={selectedCustomerId || null}
-                onChange={handleSelectCustomer}
-                contacts={customers as any}
-                placeholder="Preencher manualmente"
-              />
-            </div>
+
+
 
 
             <div>
