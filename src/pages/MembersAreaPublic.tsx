@@ -1727,7 +1727,7 @@ export default function MembersAreaPublic() {
                                     <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
                                       {blockContents.map((block, contentIndex) => {
                                         // Block types that already render their own title internally — avoid duplicate label.
-                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'customer_history', 'payment_history', 'faq', 'checklist', 'certificate', 'webinar', 'mindmap', 'slides', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'receipt_history', 'client_mindmap'];
+                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'faq', 'checklist', 'certificate', 'webinar', 'mindmap', 'slides'];
                                         const showWrapperTitle = block.title && !selfTitledTypes.includes(block.type);
                                         return (
                                           <div key={block.id}>
