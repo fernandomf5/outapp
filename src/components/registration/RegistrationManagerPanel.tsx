@@ -55,20 +55,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const { user } = useAuth();
 
   const sessionKey = categoryId ? `registration-panel-state:${user?.id || 'anon'}:${categoryId}` : null;
-  const initialSession = (() => {
-    if (!sessionKey) return null;
-    try {
-      const raw = localStorage.getItem(sessionKey) || sessionStorage.getItem(sessionKey);
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  })();
 
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<RegisteredItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>(initialSession?.activeTab || "list");
-  const [selectedItem, setSelectedItem] = useState<any>(initialSession?.selectedItem || null);
-  const [isViewOnly, setIsViewOnly] = useState<boolean>(initialSession?.isViewOnly || false);
+  // Sempre abre na lista ao entrar na gestão (não restaura aba anterior)
+  const [activeTab, setActiveTab] = useState<string>("list");
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isViewOnly, setIsViewOnly] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,14 +82,15 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   });
   useEffect(() => { if (sortKey) { try { localStorage.setItem(sortKey, sortMode); } catch {} } }, [sortKey, sortMode]);
 
+  // Limpa qualquer estado de aba salvo anteriormente
   useEffect(() => {
     if (!sessionKey) return;
     try {
-      const state = JSON.stringify({ activeTab, selectedItem, isViewOnly });
-      localStorage.setItem(sessionKey, state);
-      sessionStorage.setItem(sessionKey, state);
+      localStorage.removeItem(sessionKey);
+      sessionStorage.removeItem(sessionKey);
     } catch {}
-  }, [sessionKey, activeTab, selectedItem, isViewOnly]);
+  }, [sessionKey]);
+
 
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) => {
