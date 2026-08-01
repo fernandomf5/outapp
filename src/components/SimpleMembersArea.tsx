@@ -1495,13 +1495,10 @@ export function SimpleMembersArea() {
                     <SelectItem value="slides">📊 Apresentação/Slides</SelectItem>
                     <SelectItem value="link">🔗 Link Externo</SelectItem>
                     <SelectItem value="button">👆 Botão</SelectItem>
-                    <SelectItem value="faq">❓ Perguntas Frequentes</SelectItem>
                     <SelectItem value="checklist">✅ Checklist/Tarefas</SelectItem>
                     <SelectItem value="quiz">🧩 Quiz/Questionário</SelectItem>
                     <SelectItem value="timeline">📅 Linha do Tempo</SelectItem>
                     <SelectItem value="mindmap">🧠 Mapa Mental</SelectItem>
-                    <SelectItem value="webinar">📡 Webinar/Live</SelectItem>
-                    <SelectItem value="certificate">🏆 Certificado</SelectItem>
                     <SelectItem value="customer_history">📜 Histórico do Cliente</SelectItem>
                     <SelectItem value="ads_dashboard">📊 Anúncios (Dashboard)</SelectItem>
                     <SelectItem value="payment_history">💰 Histórico de Pagamentos</SelectItem>
