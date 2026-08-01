@@ -843,18 +843,8 @@ export function ReceiptGeneratorPanel() {
             <CardTitle className="text-base">Dados do Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Gestão Livre contact selector */}
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Users className="w-3 h-3" /> Selecionar cadastro (Gestão Livre)
-              </Label>
-              <ContactCategoryPicker
-                value={selectedCustomerId || null}
-                onChange={handleSelectCustomer}
-                contacts={customers as any}
-                placeholder="Preencher manualmente"
-              />
-            </div>
+
+
 
 
             <div>
