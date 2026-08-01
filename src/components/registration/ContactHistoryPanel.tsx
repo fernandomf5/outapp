@@ -46,8 +46,12 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Receipt,
 } from "lucide-react";
 import { GestaoLivreRecordCard } from "./GestaoLivreRecordCard";
+import { buildResourceUrl } from "@/lib/resourceLinks";
+import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
+
 
 
 interface ContactHistoryPanelProps {
@@ -74,7 +78,18 @@ interface HistoryItem {
   quantity: number | null;
   reference_number: string | null;
   internal_notes: string | null;
+  receipt_id: string | null;
 }
+
+interface SavedReceiptRow {
+  id: string;
+  receipt_number: string | null;
+  client_name: string | null;
+  total_amount: number | null;
+  receipt_data: any;
+  created_at: string;
+}
+
 
 const SERVICE_TYPES = [
   { value: "website", label: "Criação de Site", icon: Globe, color: "text-blue-500" },
@@ -147,6 +162,7 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
   const [saving, setSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<HistoryItem | null>(null);
+  const [receipts, setReceipts] = useState<SavedReceiptRow[]>([]);
 
   const [form, setForm] = useState({
     service_type: "website",
@@ -165,7 +181,10 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
     quantity: "",
     reference_number: "",
     internal_notes: "",
+    receipt_id: "",
+    link_receipt_to_contact: true,
   });
+
 
   const fetchItems = async () => {
     setLoading(true);
@@ -207,7 +226,10 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       quantity: "",
       reference_number: "",
       internal_notes: "",
+      receipt_id: "",
+      link_receipt_to_contact: true,
     });
+
     setDialogOpen(true);
   };
 
@@ -230,8 +252,51 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       quantity: item.quantity != null ? String(item.quantity) : "",
       reference_number: item.reference_number || "",
       internal_notes: item.internal_notes || "",
+      receipt_id: item.receipt_id || "",
+      link_receipt_to_contact: true,
     });
     setDialogOpen(true);
+  };
+
+  const fetchReceipts = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("saved_receipts")
+      .select("id, receipt_number, client_name, total_amount, receipt_data, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    setReceipts(((data as any) || []) as SavedReceiptRow[]);
+  };
+
+  useEffect(() => {
+    fetchReceipts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const linkReceiptToContact = async (receiptId: string) => {
+    if (!user) return;
+    const receipt = receipts.find((r) => r.id === receiptId);
+    const { data: contact } = await supabase
+      .from("contacts")
+      .select("registration_category_id")
+      .eq("id", contactId)
+      .maybeSingle();
+    await supabase
+      .from("contact_resource_links" as any)
+      .delete()
+      .eq("resource_type", "receipt")
+      .eq("resource_id", receiptId);
+    await supabase.from("contact_resource_links" as any).insert({
+      user_id: user.id,
+      contact_id: contactId,
+      category_id: (contact as any)?.registration_category_id ?? null,
+      resource_type: "receipt",
+      resource_id: receiptId,
+      resource_title:
+        receipt?.receipt_number || receipt?.client_name || "Recibo",
+      resource_url: buildResourceUrl("receipt", receiptId),
+    } as any);
   };
 
   const save = async () => {
@@ -260,19 +325,29 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
       quantity: form.quantity !== "" ? Number(form.quantity) : null,
       reference_number: form.reference_number.trim() || null,
       internal_notes: form.internal_notes.trim() || null,
+      receipt_id: form.receipt_id || null,
     };
     const { error } = editing
-      ? await supabase.from("contact_history").update(payload).eq("id", editing.id)
-      : await supabase.from("contact_history").insert(payload);
-    setSaving(false);
+      ? await supabase.from("contact_history").update(payload as any).eq("id", editing.id)
+      : await supabase.from("contact_history").insert(payload as any);
     if (error) {
+      setSaving(false);
       toast.error("Erro ao salvar: " + error.message);
       return;
     }
+    if (form.receipt_id && form.link_receipt_to_contact) {
+      try {
+        await linkReceiptToContact(form.receipt_id);
+      } catch {
+        /* ignore link errors */
+      }
+    }
+    setSaving(false);
     toast.success(editing ? "Histórico atualizado" : "Histórico adicionado");
     setDialogOpen(false);
     fetchItems();
   };
+
 
   const remove = async () => {
     if (!toDelete) return;
@@ -450,6 +525,38 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                           )}
                         </div>
                       )}
+
+                      {item.receipt_id && (() => {
+                        const rec = receipts.find((r) => r.id === item.receipt_id);
+                        if (!rec) return null;
+                        return (
+                          <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 p-2">
+                            <Receipt className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">
+                              {rec.receipt_number || "Recibo"}
+                            </span>
+                            {rec.total_amount != null && (
+                              <Badge variant="outline" className="text-xs">
+                                {formatCurrency(rec.total_amount)}
+                              </Badge>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs ml-auto"
+                              onClick={() => {
+                                try {
+                                  downloadReceiptPDF(rec.receipt_data, rec.receipt_data?.logo_url);
+                                } catch {
+                                  toast.error("Não foi possível gerar o PDF");
+                                }
+                              }}
+                            >
+                              Baixar PDF
+                            </Button>
+                          </div>
+                        );
+                      })()}
 
                       {item.internal_notes && (
                         <p className="text-xs text-muted-foreground italic border-l-2 pl-2">
@@ -629,7 +736,49 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                   />
                 </div>
               </div>
+
+              <div className="space-y-2 pt-1">
+                <Label className="text-xs">Recibo (do gerador de recibos)</Label>
+                <Select
+                  value={form.receipt_id || "none"}
+                  onValueChange={(v) => setForm({ ...form, receipt_id: v === "none" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um recibo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum recibo</SelectItem>
+                    {receipts.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {(r.receipt_number || "Recibo")}
+                        {r.client_name ? ` • ${r.client_name}` : ""}
+                        {r.total_amount != null ? ` • ${formatCurrency(r.total_amount)}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {receipts.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Nenhum recibo salvo ainda. Crie um em Gerador de Recibos.
+                  </p>
+                )}
+                {form.receipt_id && (
+                  <div className="flex items-center justify-between rounded-md border p-2">
+                    <div>
+                      <Label className="text-xs">Atribuir recibo ao cadastro</Label>
+                      <p className="text-[11px] text-muted-foreground">
+                        Também aparecerá na aba Atribuições deste cadastro.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.link_receipt_to_contact}
+                      onCheckedChange={(v) => setForm({ ...form, link_receipt_to_contact: v })}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
+
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

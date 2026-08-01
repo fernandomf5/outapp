@@ -1,0 +1,1 @@
+ALTER TABLE public.contact_history ADD COLUMN IF NOT EXISTS receipt_id uuid REFERENCES public.saved_receipts(id) ON DELETE SET NULL;

@@ -3540,6 +3540,7 @@ export type Database = {
           payment_method: string | null
           payment_status: string
           quantity: number | null
+          receipt_id: string | null
           reference_number: string | null
           responsible: string | null
           service_type: string
@@ -3564,6 +3565,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string
           quantity?: number | null
+          receipt_id?: string | null
           reference_number?: string | null
           responsible?: string | null
           service_type: string
@@ -3588,6 +3590,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string
           quantity?: number | null
+          receipt_id?: string | null
           reference_number?: string | null
           responsible?: string | null
           service_type?: string
@@ -3603,6 +3606,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_history_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "saved_receipts"
             referencedColumns: ["id"]
           },
         ]
