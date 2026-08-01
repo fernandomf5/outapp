@@ -669,33 +669,31 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       return shell(
         <>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+            <div className="rounded-lg p-2 text-center" style={{ backgroundColor: `${accentColor}12` }}>
               <p className="text-[10px] opacity-70">Total pago</p>
-              <p className="text-sm font-bold" style={{ color: accentColor }}>{currency(total)}</p>
+              <p className="text-xs font-bold" style={{ color: accentColor }}>{currency(total)}</p>
             </div>
-            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+            <div className="rounded-lg p-2 text-center" style={{ backgroundColor: `${accentColor}12` }}>
               <p className="text-[10px] opacity-70">Pagamentos</p>
-              <p className="text-sm font-bold" style={{ color: accentColor }}>{payments.length}</p>
+              <p className="text-xs font-bold" style={{ color: accentColor }}>{payments.length}</p>
             </div>
           </div>
-          <ScrollArea className="max-h-[400px]">
-            <div className="space-y-2">
-              {payments.map((p) =>
-                box(
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{p.description || 'Pagamento'}</p>
-                      <p className="text-[11px] opacity-70">
-                        {dateBR(p.payment_date || p.created_at)}{p.payment_method ? ` • ${p.payment_method}` : ''}
-                      </p>
-                    </div>
-                    <p className="text-sm font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(p.amount)}</p>
-                  </div>,
-                  p.id
-                )
-              )}
-            </div>
-          </ScrollArea>
+          {scroller(
+            payments.map((p) =>
+              box(
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{p.description || 'Pagamento'}</p>
+                    <p className="text-[10px] opacity-70 truncate">
+                      {dateBR(p.payment_date || p.created_at)}{p.payment_method ? ` • ${p.payment_method}` : ''}
+                    </p>
+                  </div>
+                  <p className="text-xs font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(p.amount)}</p>
+                </div>,
+                p.id
+              )
+            )
+          )}
         </>
       );
     }
