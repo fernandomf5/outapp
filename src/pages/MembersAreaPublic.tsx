@@ -1748,7 +1748,7 @@ export default function MembersAreaPublic() {
                                                   {block.title}
                                                 </h4>
                                               )}
-                                              <div className="min-w-0 overflow-x-auto">
+                                              <div className="min-w-0 overflow-hidden">
                                                 {renderBlock(block, accentColor, cardTextColor, cardBackgroundColor)}
                                               </div>
                                             </CardContent>
