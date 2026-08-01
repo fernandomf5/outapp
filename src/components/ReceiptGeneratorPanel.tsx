@@ -155,6 +155,8 @@ export function ReceiptGeneratorPanel() {
   const [templateName, setTemplateName] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [quickTemplateName, setQuickTemplateName] = useState('');
   const [historyOpen, setHistoryOpen] = useState(false);
   useEffect(() => {
     if (!user) return;
