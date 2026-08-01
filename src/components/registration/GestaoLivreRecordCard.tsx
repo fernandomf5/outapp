@@ -58,6 +58,7 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
   const [contact, setContact] = useState<any>(null);
   const [category, setCategory] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
+  const [receiptTitles, setReceiptTitles] = useState<Record<string, string>>({});
   const [open, setOpen] = useState(true);
   const [toDelete, setToDelete] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
@@ -106,10 +107,29 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
         .eq("contact_id", contactId)
         .order("created_at", { ascending: false });
 
+      const linksList = linksData || [];
+      const receiptIds = linksList
+        .filter((l) => l.resource_type === "receipt")
+        .map((l) => l.resource_id)
+        .filter(Boolean);
+
+      let titles: Record<string, string> = {};
+      if (receiptIds.length) {
+        const { data: receipts } = await supabase
+          .from("saved_receipts")
+          .select("id, receipt_data")
+          .in("id", receiptIds);
+        (receipts || []).forEach((r: any) => {
+          const title = r?.receipt_data?.receipt_title || r?.receipt_data?.title;
+          if (title) titles[r.id] = title;
+        });
+      }
+
       if (!active) return;
       setContact(contactData);
       setCategory(categoryData);
-      setLinks(linksData || []);
+      setLinks(linksList);
+      setReceiptTitles(titles);
       setLoading(false);
     };
 
@@ -240,6 +260,7 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
                 <div className="space-y-2">
                   {links.map((link) => {
                     const Icon = resourceIcon(link.resource_type);
+                    const receiptTitle = link.resource_type === "receipt" ? receiptTitles[link.resource_id] : null;
                     return (
                       <div
                         key={link.id}
@@ -251,6 +272,11 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
                             <p className="text-sm font-medium truncate">
                               {link.resource_title || resourceLabel(link.resource_type)}
                             </p>
+                            {receiptTitle && (
+                              <p className="text-[11px] text-primary truncate">
+                                Título: {receiptTitle}
+                              </p>
+                            )}
                             <p className="text-[11px] text-muted-foreground">
                               {resourceLabel(link.resource_type)} • {formatDateTime(link.created_at)}
                             </p>
