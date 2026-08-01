@@ -36,6 +36,17 @@ export const LandingFeaturesEditor = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
   const [loading, setLoading] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const moveFeature = async (from: number, to: number) => {
+    if (from === to || to < 0 || to >= features.length) return;
+    const reordered = [...features];
+    const [item] = reordered.splice(from, 1);
+    reordered.splice(to, 0, item);
+    const withOrder = reordered.map((f, i) => ({ ...f, order_index: i }));
+    setFeatures(withOrder);
+    await saveFeatures(withOrder);
+  };
 
   const iconOptions = [
     "Workflow", "Brain", "Users", "UserPlus", "BarChart3", "Link2",
