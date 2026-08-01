@@ -520,7 +520,7 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                         {h.service_type && <span>{h.service_type}</span>}
                         {h.start_date && <span>• {dateBR(h.start_date)}</span>}
                         {h.end_date && <span>→ {dateBR(h.end_date)}</span>}
-                        {h.status && <span>• {h.status}</span>}
+                        {h.status && <span>• {label(statusLabels, h.status)}</span>}
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {chip('Nº', h.reference_number)}
@@ -528,8 +528,9 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                         {chip('Responsável', h.responsible)}
                         {chip('Valor pago', h.amount_paid != null && h.amount_paid !== '' ? currency(h.amount_paid) : null)}
                         {chip('Pendente', h.amount != null && pending > 0 ? currency(pending) : null)}
-                        {chip('Forma de pagamento', h.payment_method)}
-                        {chip('Status pagamento', h.payment_status)}
+                        {chip('Forma de pagamento', label(paymentMethodLabels, h.payment_method))}
+                        {chip('Status pagamento', label(paymentStatusLabels, h.payment_status))}
+
                         {chip('Data pagamento', h.payment_date ? dateBR(h.payment_date) : null)}
                         {chip('Registrado em', h.created_at ? dateBR(h.created_at) : null)}
                         {chip('Atualizado em', h.updated_at ? dateBR(h.updated_at) : null)}
