@@ -17,6 +17,10 @@ export type ButtonsShape = "rounded" | "pill" | "square";
 export interface ButtonItem {
   label: string;
   url: string;
+  /** Cores individuais (sobrescrevem as globais) */
+  bgColor?: string;
+  textColor?: string;
+  gradientTo?: string;
 }
 
 export interface ButtonsData {
@@ -27,6 +31,10 @@ export interface ButtonsData {
   size: ButtonsSize;
   shape: ButtonsShape;
   showIcon?: boolean;
+  /** Cores globais dos botões */
+  bgColor?: string;
+  textColor?: string;
+  gradientTo?: string;
 }
 
 export const BUTTONS_DEFAULTS: ButtonsData = {
@@ -37,6 +45,9 @@ export const BUTTONS_DEFAULTS: ButtonsData = {
   size: "md",
   shape: "rounded",
   showIcon: false,
+  bgColor: "",
+  textColor: "",
+  gradientTo: "",
 };
 
 export const BUTTON_LAYOUT_OPTIONS: { value: ButtonsLayout; label: string }[] = [
@@ -148,21 +159,24 @@ export function MembersButtons({ content, fallbackLabel, accentColor = "#22c55e"
 
   const stretch = data.layout !== "inline";
 
-  const itemStyle = (): React.CSSProperties => {
+  const itemStyle = (item: ButtonItem): React.CSSProperties => {
+    const base = item.bgColor || data.bgColor || accentColor;
+    const label = item.textColor || data.textColor || "";
+    const to = item.gradientTo || data.gradientTo || `${base}99`;
     switch (data.style) {
       case "outline":
-        return { border: `2px solid ${accentColor}`, color: accentColor, backgroundColor: "transparent" };
+        return { border: `2px solid ${base}`, color: label || base, backgroundColor: "transparent" };
       case "soft":
-        return { backgroundColor: `${accentColor}1f`, color: accentColor };
+        return { backgroundColor: `${base}1f`, color: label || base };
       case "ghost":
-        return { backgroundColor: "transparent", color: textColor };
+        return { backgroundColor: "transparent", color: label || textColor };
       case "gradient":
         return {
-          background: `linear-gradient(135deg, ${accentColor}, ${accentColor}99)`,
-          color: "#ffffff",
+          background: `linear-gradient(135deg, ${base}, ${to})`,
+          color: label || "#ffffff",
         };
       default:
-        return { backgroundColor: accentColor, color: "#ffffff" };
+        return { backgroundColor: base, color: label || "#ffffff" };
     }
   };
 
@@ -179,7 +193,7 @@ export function MembersButtons({ content, fallbackLabel, accentColor = "#22c55e"
           } inline-flex items-center ${
             data.align === "center" ? "justify-center" : data.align === "right" ? "justify-end" : "justify-start"
           } gap-2 font-semibold transition-all hover:opacity-90 hover:shadow-md active:scale-[0.98] ${sizeClasses} ${radius} text-center`}
-          style={itemStyle()}
+          style={itemStyle(item)}
         >
           <span className="truncate">{item.label || item.url || "Clique aqui"}</span>
           {data.showIcon && <ExternalLink className="w-4 h-4 shrink-0 opacity-80" />}

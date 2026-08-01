@@ -1725,6 +1725,43 @@ export function SimpleMembersArea() {
                           </div>
 
                           {isButton && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 rounded-lg border bg-muted/10">
+                              <div className="space-y-1">
+                                <Label className="text-xs">Cor do botão</Label>
+                                <div className="flex items-center gap-2">
+                                  <input type="color" className="h-9 w-10 rounded border bg-transparent"
+                                    value={data.bgColor || '#22c55e'}
+                                    onChange={(e) => updateData({ ...data, bgColor: e.target.value })} />
+                                  <Input className="h-9" value={data.bgColor || ''} placeholder="#22c55e"
+                                    onChange={(e) => updateData({ ...data, bgColor: e.target.value })} />
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">Cor do texto</Label>
+                                <div className="flex items-center gap-2">
+                                  <input type="color" className="h-9 w-10 rounded border bg-transparent"
+                                    value={data.textColor || '#ffffff'}
+                                    onChange={(e) => updateData({ ...data, textColor: e.target.value })} />
+                                  <Input className="h-9" value={data.textColor || ''} placeholder="#ffffff"
+                                    onChange={(e) => updateData({ ...data, textColor: e.target.value })} />
+                                </div>
+                              </div>
+                              {data.style === 'gradient' && (
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Cor final (degradê)</Label>
+                                  <div className="flex items-center gap-2">
+                                    <input type="color" className="h-9 w-10 rounded border bg-transparent"
+                                      value={data.gradientTo || '#16a34a'}
+                                      onChange={(e) => updateData({ ...data, gradientTo: e.target.value })} />
+                                    <Input className="h-9" value={data.gradientTo || ''} placeholder="#16a34a"
+                                      onChange={(e) => updateData({ ...data, gradientTo: e.target.value })} />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {isButton && (
                             <div className="p-3 rounded-lg border bg-muted/20">
                               <p className="text-[11px] text-muted-foreground mb-2">Pré-visualização</p>
                               <MembersButtons content={stringifyButtonsContent(data)} accentColor="#22c55e" />
@@ -1763,6 +1800,48 @@ export function SimpleMembersArea() {
                                 }}
                                 placeholder="URL (https://...)"
                               />
+                              {isButton && (
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="space-y-1">
+                                    <Label className="text-[11px] text-muted-foreground">Cor deste botão (opcional)</Label>
+                                    <div className="flex items-center gap-2">
+                                      <input type="color" className="h-8 w-9 rounded border bg-transparent"
+                                        value={item.bgColor || data.bgColor || '#22c55e'}
+                                        onChange={(e) => {
+                                          const items = [...data.items];
+                                          items[idx] = { ...items[idx], bgColor: e.target.value };
+                                          updateData({ ...data, items });
+                                        }} />
+                                      {item.bgColor && (
+                                        <Button type="button" variant="ghost" size="sm" className="h-8 text-[11px]" onClick={() => {
+                                          const items = [...data.items];
+                                          items[idx] = { ...items[idx], bgColor: '' };
+                                          updateData({ ...data, items });
+                                        }}>Limpar</Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-[11px] text-muted-foreground">Cor do texto (opcional)</Label>
+                                    <div className="flex items-center gap-2">
+                                      <input type="color" className="h-8 w-9 rounded border bg-transparent"
+                                        value={item.textColor || data.textColor || '#ffffff'}
+                                        onChange={(e) => {
+                                          const items = [...data.items];
+                                          items[idx] = { ...items[idx], textColor: e.target.value };
+                                          updateData({ ...data, items });
+                                        }} />
+                                      {item.textColor && (
+                                        <Button type="button" variant="ghost" size="sm" className="h-8 text-[11px]" onClick={() => {
+                                          const items = [...data.items];
+                                          items[idx] = { ...items[idx], textColor: '' };
+                                          updateData({ ...data, items });
+                                        }}>Limpar</Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
                           <Button type="button" variant="outline" size="sm" onClick={() => {
