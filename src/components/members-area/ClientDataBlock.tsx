@@ -500,71 +500,135 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               </div>
             </div>
           )}
-          <ScrollArea className="h-[460px] pr-3">
-            <div className="space-y-2">
+          <ScrollArea
+            className="h-[280px] sm:h-[340px] md:h-[400px] rounded-lg border p-2 scrollbar-accent"
+            style={{
+              borderColor: `${accentColor}30`,
+              '--scrollbar-thumb': `${accentColor}99`,
+              '--scrollbar-track': `${accentColor}15`,
+            } as React.CSSProperties}
+          >
+            <ScrollBar className="w-3 bg-transparent" />
+            <div className="space-y-2 pr-1">
               {history.slice(0, historyLimit).map((h) => {
                 const attachments: any[] = Array.isArray(h.attachments) ? h.attachments : [];
                 const pending = Number(h.amount || 0) - Number(h.amount_paid || 0);
-                return box(
-                  <div className="flex items-start gap-3">
-                    <History className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accentColor }} />
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium">{h.title}</p>
-                        {h.amount != null && h.amount !== '' && (
-                          <p className="text-sm font-bold flex-shrink-0" style={{ color: accentColor }}>
-                            {currency(h.amount)}
-                          </p>
-                        )}
-                      </div>
-                      {h.description && (
-                        <p className="text-xs opacity-80 whitespace-pre-wrap break-words">{h.description}</p>
+                return (
+                  <div
+                    key={h.id}
+                    className="rounded-md border p-2"
+                    style={{ borderColor: `${accentColor}22`, backgroundColor: `${accentColor}05` }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-medium leading-tight line-clamp-2 flex-1 min-w-0">{h.title}</p>
+                      {h.amount != null && h.amount !== '' && (
+                        <p className="text-sm font-bold flex-shrink-0 leading-tight" style={{ color: accentColor }}>
+                          {currency(h.amount)}
+                        </p>
                       )}
-                      <div className="flex flex-wrap items-center gap-2 text-[11px] opacity-70">
-                        {h.service_type && <span>{h.service_type}</span>}
-                        {h.start_date && <span>• {dateBR(h.start_date)}</span>}
-                        {h.end_date && <span>→ {dateBR(h.end_date)}</span>}
-                        {h.status && <span>• {label(statusLabels, h.status)}</span>}
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {chip('Nº', h.reference_number)}
-                        {chip('Qtd', h.quantity)}
-                        {chip('Responsável', h.responsible)}
-                        {chip('Valor pago', h.amount_paid != null && h.amount_paid !== '' ? currency(h.amount_paid) : null)}
-                        {chip('Pendente', h.amount != null && pending > 0 ? currency(pending) : null)}
-                        {chip('Forma de pagamento', label(paymentMethodLabels, h.payment_method))}
-                        {chip('Status pagamento', label(paymentStatusLabels, h.payment_status))}
-
-                        {chip('Data pagamento', h.payment_date ? dateBR(h.payment_date) : null)}
-                        {chip('Registrado em', h.created_at ? dateBR(h.created_at) : null)}
-                        {chip('Atualizado em', h.updated_at ? dateBR(h.updated_at) : null)}
-                        {chip('Recibo', h.receipt ? `${h.receipt.receipt_number}${h.receipt.client_name ? ` • ${h.receipt.client_name}` : ''}` : null)}
-                        {chip('Valor do recibo', h.receipt?.total_amount != null ? currency(h.receipt.total_amount) : null)}
-
-                      </div>
-                      {attachments.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {attachments.map((a: any, i: number) => {
-                            const href = typeof a === 'string' ? a : a?.url;
-                            if (!href) return null;
-                            return (
-                              <a
-                                key={i}
-                                href={href}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[11px] underline break-all"
-                                style={{ color: accentColor }}
-                              >
-                                {(typeof a === 'string' ? null : a?.name) || `Anexo ${i + 1}`}
-                              </a>
-                            );
-                          })}
+                    </div>
+                    {h.description && (
+                      <p className="text-xs opacity-80 mt-1 line-clamp-2 break-words whitespace-pre-wrap">{h.description}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] opacity-70 mt-1">
+                      {h.service_type && <span>{h.service_type}</span>}
+                      {h.start_date && <span>{dateBR(h.start_date)}</span>}
+                      {h.end_date && <span>→ {dateBR(h.end_date)}</span>}
+                      {h.status && <span>• {label(statusLabels, h.status)}</span>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 mt-1.5">
+                      {h.amount_paid != null && h.amount_paid !== '' && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Pago: </span>
+                          <span className="text-[11px] font-medium break-words">{currency(h.amount_paid)}</span>
+                        </div>
+                      )}
+                      {pending > 0 && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Pendente: </span>
+                          <span className="text-[11px] font-medium break-words">{currency(pending)}</span>
+                        </div>
+                      )}
+                      {h.payment_method && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Forma: </span>
+                          <span className="text-[11px] font-medium break-words">{label(paymentMethodLabels, h.payment_method)}</span>
+                        </div>
+                      )}
+                      {h.payment_status && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Status: </span>
+                          <span className="text-[11px] font-medium break-words">{label(paymentStatusLabels, h.payment_status)}</span>
+                        </div>
+                      )}
+                      {h.payment_date && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Pagamento: </span>
+                          <span className="text-[11px] font-medium break-words">{dateBR(h.payment_date)}</span>
+                        </div>
+                      )}
+                      {h.reference_number && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Nº: </span>
+                          <span className="text-[11px] font-medium break-words">{h.reference_number}</span>
+                        </div>
+                      )}
+                      {h.quantity != null && h.quantity !== '' && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Qtd: </span>
+                          <span className="text-[11px] font-medium break-words">{h.quantity}</span>
+                        </div>
+                      )}
+                      {h.responsible && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Resp: </span>
+                          <span className="text-[11px] font-medium break-words">{h.responsible}</span>
+                        </div>
+                      )}
+                      {h.created_at && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Registrado: </span>
+                          <span className="text-[11px] font-medium break-words">{dateBR(h.created_at)}</span>
+                        </div>
+                      )}
+                      {h.updated_at && h.updated_at !== h.created_at && (
+                        <div className="rounded px-1.5 py-0.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Atualizado: </span>
+                          <span className="text-[11px] font-medium break-words">{dateBR(h.updated_at)}</span>
+                        </div>
+                      )}
+                      {h.receipt && (
+                        <div className="rounded px-1.5 py-0.5 col-span-2 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                          <span className="text-[10px] opacity-70">Recibo: </span>
+                          <span className="text-[11px] font-medium break-words">
+                            {h.receipt.receipt_number}
+                            {h.receipt.client_name ? ` • ${h.receipt.client_name}` : ''}
+                            {h.receipt.total_amount != null ? ` (${currency(h.receipt.total_amount)})` : ''}
+                          </span>
                         </div>
                       )}
                     </div>
-                  </div>,
-                  h.id
+                    {attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        {attachments.map((a: any, i: number) => {
+                          const href = typeof a === 'string' ? a : a?.url;
+                          if (!href) return null;
+                          return (
+                            <a
+                              key={i}
+                              href={href}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[10px] underline break-all"
+                              style={{ color: accentColor }}
+                            >
+                              {(typeof a === 'string' ? null : a?.name) || `Anexo ${i + 1}`}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
               {history.length > historyLimit && (
