@@ -756,8 +756,19 @@ export default function MembersAreaPublic() {
           </div>
         );
 
-      case 'faq':
       case 'checklist':
+        return (
+          <MembersChecklist
+            blockId={block.id}
+            title={block.title}
+            content={block.content}
+            accentColor={accentColor}
+            cardTextColor={cardTextColor}
+            storageScope={accessCodeId || 'anon'}
+          />
+        );
+
+      case 'faq':
       case 'quiz':
       case 'timeline':
       case 'certificate':
