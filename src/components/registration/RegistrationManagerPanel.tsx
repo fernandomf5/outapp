@@ -363,13 +363,13 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
             }
           }} className="w-full md:w-auto">
             <TabsList className={`grid w-full ${selectedItem ? "grid-cols-4" : "grid-cols-2"}`}>
-              <TabsTrigger value="form" className="gap-2">
-                <PlusCircle className="h-4 w-4" />
-                Cadastrar
-              </TabsTrigger>
               <TabsTrigger value="list" className="gap-2">
                 <List className="h-4 w-4" />
                 Ver Lista
+              </TabsTrigger>
+              <TabsTrigger value="form" className="gap-2">
+                <PlusCircle className="h-4 w-4" />
+                Cadastrar
               </TabsTrigger>
               {selectedItem && (
                 <TabsTrigger value="history" className="gap-2">
