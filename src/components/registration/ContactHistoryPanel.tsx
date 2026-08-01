@@ -544,20 +544,41 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                                 {formatCurrency(rec.total_amount)}
                               </Badge>
                             )}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs ml-auto"
-                              onClick={() => {
-                                try {
-                                  downloadReceiptPDF(rec.receipt_data, rec.receipt_data?.logo_url);
-                                } catch {
-                                  toast.error("Não foi possível gerar o PDF");
-                                }
-                              }}
-                            >
-                              Baixar PDF
-                            </Button>
+                            <div className="flex items-center gap-2 ml-auto">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs"
+                                onClick={() => {
+                                  try {
+                                    downloadReceiptPDF(rec.receipt_data, rec.receipt_data?.logo_url);
+                                  } catch {
+                                    toast.error("Não foi possível gerar o PDF");
+                                  }
+                                }}
+                              >
+                                Baixar PDF
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 text-xs text-destructive"
+                                onClick={async () => {
+                                  const { error } = await supabase
+                                    .from("contact_history")
+                                    .update({ receipt_id: null } as any)
+                                    .eq("id", item.id);
+                                  if (error) {
+                                    toast.error("Erro ao remover recibo: " + error.message);
+                                    return;
+                                  }
+                                  toast.success("Recibo desvinculado do registro");
+                                  fetchItems();
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-1" /> Remover
+                              </Button>
+                            </div>
                           </div>
                         );
                       })()}
