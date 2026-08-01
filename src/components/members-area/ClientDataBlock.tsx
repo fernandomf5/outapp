@@ -120,7 +120,7 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
         ['Empresa', c.company], ['Cargo', c.position], ['Status', c.status], ['Website', c.website],
         ['Endereço', [c.address, c.city, c.state, c.postal_code, c.country].filter(Boolean).join(', ')],
         ['Cliente desde', c.created_at ? dateBR(c.created_at) : null],
-      ].filter(([, v]) => v);
+      ].filter(([, v]) => v) as [string, any][];
       return shell(
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
