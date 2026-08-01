@@ -447,7 +447,24 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
             <span className="text-[11px] font-medium">{value}</span>
           </div>
         );
+      const paymentStatusLabels: Record<string, string> = {
+        paid: 'Pago', pago: 'Pago', partial: 'Parcial', parcial: 'Parcial',
+        pending: 'Pendente', pendente: 'Pendente', unpaid: 'Não pago',
+        overdue: 'Atrasado', atrasado: 'Atrasado', cancelled: 'Cancelado',
+        canceled: 'Cancelado', refunded: 'Reembolsado',
+      };
+      const paymentMethodLabels: Record<string, string> = {
+        pix: 'PIX', cash: 'Dinheiro', money: 'Dinheiro', credit_card: 'Cartão de Crédito',
+        debit_card: 'Cartão de Débito', bank_transfer: 'Transferência', boleto: 'Boleto', other: 'Outro',
+      };
+      const statusLabels: Record<string, string> = {
+        completed: 'Concluído', concluido: 'Concluído', in_progress: 'Em andamento',
+        pending: 'Pendente', cancelled: 'Cancelado', canceled: 'Cancelado', scheduled: 'Agendado',
+      };
+      const label = (map: Record<string, string>, v: any) =>
+        v ? map[String(v).toLowerCase()] || v : v;
       const cust = data?.customer;
+
       return shell(
         <>
           {cust && (
@@ -503,7 +520,7 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                         {h.service_type && <span>{h.service_type}</span>}
                         {h.start_date && <span>• {dateBR(h.start_date)}</span>}
                         {h.end_date && <span>→ {dateBR(h.end_date)}</span>}
-                        {h.status && <span>• {h.status}</span>}
+                        {h.status && <span>• {label(statusLabels, h.status)}</span>}
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {chip('Nº', h.reference_number)}
@@ -511,8 +528,9 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                         {chip('Responsável', h.responsible)}
                         {chip('Valor pago', h.amount_paid != null && h.amount_paid !== '' ? currency(h.amount_paid) : null)}
                         {chip('Pendente', h.amount != null && pending > 0 ? currency(pending) : null)}
-                        {chip('Forma de pagamento', h.payment_method)}
-                        {chip('Status pagamento', h.payment_status)}
+                        {chip('Forma de pagamento', label(paymentMethodLabels, h.payment_method))}
+                        {chip('Status pagamento', label(paymentStatusLabels, h.payment_status))}
+
                         {chip('Data pagamento', h.payment_date ? dateBR(h.payment_date) : null)}
                         {chip('Registrado em', h.created_at ? dateBR(h.created_at) : null)}
                         {chip('Atualizado em', h.updated_at ? dateBR(h.updated_at) : null)}
