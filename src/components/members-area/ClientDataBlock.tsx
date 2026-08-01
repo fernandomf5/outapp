@@ -18,6 +18,9 @@ export type ClientDataSource =
   | 'client_financial'
   | 'client_receipts'
   | 'client_mindmap'
+  | 'customer_history'
+  | 'timeline'
+  | 'payment_history'
   | 'mindmap';
 
 interface Props {
@@ -37,8 +40,12 @@ const SOURCE_META: Record<string, { label: string; icon: any }> = {
   client_financial: { label: 'Gestão Financeira', icon: Wallet },
   client_receipts: { label: 'Recibos', icon: Receipt },
   client_mindmap: { label: 'Mapas Mentais', icon: Brain },
+  customer_history: { label: 'Histórico do Cliente', icon: History },
+  timeline: { label: 'Histórico do Cliente', icon: History },
+  payment_history: { label: 'Histórico de Pagamentos', icon: Wallet },
   mindmap: { label: 'Mapas Mentais', icon: Brain },
 };
+
 
 const currency = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v || 0));
