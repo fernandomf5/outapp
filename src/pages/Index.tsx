@@ -22,6 +22,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { VideoCover } from "@/components/VideoCover";
 import { NeonImageFrame } from "@/components/NeonImageFrame";
 import { Feature3DCard } from "@/components/Feature3DCard";
+import { FeatureDescription } from "@/components/FeatureDescription";
+
 import showcaseAsset from "@/assets/out-app-showcase-2.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIconAsset from "@/assets/lion-3d-white.png.asset.json";
