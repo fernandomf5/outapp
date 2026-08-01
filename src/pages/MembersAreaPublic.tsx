@@ -716,11 +716,12 @@ export default function MembersAreaPublic() {
 
       case 'timeline':
       case 'customer_history':
+      case 'payment_history': {
         if (!block.customer_id) {
           return (
             <div className="text-center py-8" style={{ color: cardTextColor }}>
               <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Cliente não selecionado</p>
+              <p>Cadastro não selecionado</p>
             </div>
           );
         }
@@ -728,42 +729,21 @@ export default function MembersAreaPublic() {
           <div className="space-y-4">
             {block.title && (
               <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: cardTextColor }}>
-                <History className="w-5 h-5" />
+                <History className="w-5 h-5" style={{ color: accentColor }} />
                 {block.title}
               </h3>
             )}
-            <CustomerHistoryTimeline 
-              customerId={block.customer_id} 
-              primaryColor={accentColor}
-            />
-          </div>
-        );
-
-      case 'payment_history':
-        if (!block.customer_id) {
-          return (
-            <div className="text-center py-8" style={{ color: cardTextColor }}>
-              <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Cliente não selecionado</p>
-            </div>
-          );
-        }
-        return (
-          <div className="space-y-4">
-            {block.title && (
-              <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: cardTextColor }}>
-                <DollarSign className="w-5 h-5" style={{ color: accentColor }} />
-                {block.title}
-              </h3>
-            )}
-            <PaymentHistoryBlock
-              customerId={block.customer_id}
+            <ClientDataBlock
+              areaId={area.id}
+              blockId={block.id}
+              source={block.type as any}
               accentColor={accentColor}
               cardTextColor={cardTextColor}
-              cardBackgroundColor={cardBackgroundColor}
             />
           </div>
         );
+      }
+
 
       case 'client_profile':
       case 'client_tasks':
