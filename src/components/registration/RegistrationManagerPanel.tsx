@@ -82,14 +82,15 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   });
   useEffect(() => { if (sortKey) { try { localStorage.setItem(sortKey, sortMode); } catch {} } }, [sortKey, sortMode]);
 
+  // Limpa qualquer estado de aba salvo anteriormente
   useEffect(() => {
     if (!sessionKey) return;
     try {
-      const state = JSON.stringify({ activeTab, selectedItem, isViewOnly });
-      localStorage.setItem(sessionKey, state);
-      sessionStorage.setItem(sessionKey, state);
+      localStorage.removeItem(sessionKey);
+      sessionStorage.removeItem(sessionKey);
     } catch {}
-  }, [sessionKey, activeTab, selectedItem, isViewOnly]);
+  }, [sessionKey]);
+
 
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) => {
