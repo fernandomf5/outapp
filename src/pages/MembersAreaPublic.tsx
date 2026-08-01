@@ -19,6 +19,7 @@ import { BlockRichText } from "@/components/members-area/BlockRichText";
 import { MembersGallery } from "@/components/members-area/MembersGallery";
 import { MembersVideoGallery } from "@/components/members-area/MembersVideoGallery";
 import { MembersSlides } from "@/components/members-area/MembersSlides";
+import { MembersButtons } from "@/components/members-area/MembersButtons";
 
 
 
@@ -619,30 +620,16 @@ export default function MembersAreaPublic() {
       }
       
       case 'button': {
-        let btnData: { items: { label: string; url: string }[]; layout: string } = { items: [], layout: 'vertical' };
-        try {
-          const parsed = JSON.parse(block.content);
-          if (parsed?.items) btnData = parsed;
-          else btnData = { items: [{ label: block.title || 'Clique aqui', url: block.content }], layout: 'vertical' };
-        } catch {
-          btnData = { items: [{ label: block.title || 'Clique aqui', url: block.content }], layout: 'vertical' };
-        }
         return (
-          <div className={`flex gap-3 ${btnData.layout === 'horizontal' ? 'flex-row flex-wrap' : 'flex-col'}`}>
-            {btnData.items.map((item, idx) => (
-              <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="flex-1">
-                <Button 
-                  className="w-full text-white"
-                  size="lg"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  {item.label || 'Clique aqui'}
-                </Button>
-              </a>
-            ))}
-          </div>
+          <MembersButtons
+            content={block.content}
+            fallbackLabel={block.title || 'Clique aqui'}
+            accentColor={accentColor}
+            textColor={cardTextColor}
+          />
         );
       }
+
       
       case 'download':
         return (
@@ -1240,7 +1227,7 @@ export default function MembersAreaPublic() {
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 z-40 pt-16"
+          className="md:hidden fixed inset-0 z-40 pt-[68px] pb-24"
           style={{ backgroundColor: backgroundColor }}
         >
           <ScrollArea className="h-full p-4">
@@ -1301,12 +1288,12 @@ export default function MembersAreaPublic() {
         {/* Sections Sidebar (Desktop) - Only show for content view */}
         {activeView === 'content' && (
           <div 
-            className="hidden md:block w-80 flex-shrink-0 border-r overflow-y-auto"
+            className="hidden md:block w-72 lg:w-80 flex-shrink-0 border-r overflow-y-auto"
             style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}15` }}
           >
             {/* Header */}
             <div 
-              className="px-6 py-5 border-b"
+              className="px-4 md:px-6 py-4 md:py-5 border-b"
               style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
             >
               <h2 className="text-lg font-bold" style={{ color: textColor }}>{area.name}</h2>
@@ -1389,12 +1376,12 @@ export default function MembersAreaPublic() {
         )}
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pt-16 md:pt-0">
+        <div className="flex-1 overflow-y-auto pt-[68px] md:pt-0 pb-24 md:pb-0">
           {/* Home View */}
           {activeView === 'home' && (
             <>
               <div 
-                className="px-6 py-5 border-b hidden md:block"
+                className="px-4 md:px-6 py-4 md:py-5 border-b hidden md:block"
                 style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
               >
                 <h2 className="text-xl font-bold" style={{ color: textColor }}>Início</h2>
@@ -1404,7 +1391,7 @@ export default function MembersAreaPublic() {
                     : 'Bem-vindo à sua área de membros'}
                 </p>
               </div>
-              <div className="p-4 md:p-6 space-y-6">
+              <div className="p-3 sm:p-4 md:p-6 space-y-5 md:space-y-6 max-w-6xl mx-auto w-full">
                 {/* Banners */}
                 {(area.banners?.length ?? 0) > 0 && (
                   <AreaBannerCarousel banners={area.banners!.filter(b => b.image_url)} accentColor={accentColor} />
@@ -1430,7 +1417,7 @@ export default function MembersAreaPublic() {
                         {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
                       </div>
                     )}
-                    <h3 className="text-2xl font-bold mb-2" style={{ color: textColor }}>
+                    <h3 className="text-xl sm:text-2xl font-bold mb-2 break-words" style={{ color: textColor }}>
                       {area.customer_name 
                         ? `Olá, ${area.customer_name}! 👋` 
                         : area.name}
@@ -1442,19 +1429,19 @@ export default function MembersAreaPublic() {
                 {/* Stats */}
                 <div className={`grid gap-4 ${area.area_type === 'exclusive' ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`}>
                   <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
-                    <div className="text-2xl font-bold" style={{ color: accentColor }}>{area.sections.length}</div>
-                    <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Módulos</div>
+                    <div className="text-xl sm:text-2xl font-bold" style={{ color: accentColor }}>{area.sections.length}</div>
+                    <div className="text-xs sm:text-sm opacity-70" style={{ color: cardTextColor }}>Módulos</div>
                   </Card>
                   <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
-                    <div className="text-2xl font-bold" style={{ color: accentColor }}>
+                    <div className="text-xl sm:text-2xl font-bold" style={{ color: accentColor }}>
                       {area.sections.reduce((acc, s) => acc + (s.blocks?.length || 0), 0)}
                     </div>
-                    <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Conteúdos</div>
+                    <div className="text-xs sm:text-sm opacity-70" style={{ color: cardTextColor }}>Conteúdos</div>
                   </Card>
                   {area.area_type !== 'exclusive' && (
                     <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
-                      <div className="text-2xl font-bold" style={{ color: accentColor }}>35%</div>
-                      <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Progresso</div>
+                      <div className="text-xl sm:text-2xl font-bold" style={{ color: accentColor }}>35%</div>
+                      <div className="text-xs sm:text-sm opacity-70" style={{ color: cardTextColor }}>Progresso</div>
                     </Card>
                   )}
                 </div>
@@ -1463,7 +1450,7 @@ export default function MembersAreaPublic() {
                 {area.sections.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="font-semibold text-lg" style={{ color: textColor }}>Módulos</h4>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                       {area.sections.map((section, index) => (
                         <button
                           key={section.id}
@@ -1520,13 +1507,13 @@ export default function MembersAreaPublic() {
           {activeView === 'account' && (
             <>
               <div 
-                className="px-6 py-5 border-b hidden md:block"
+                className="px-4 md:px-6 py-4 md:py-5 border-b hidden md:block"
                 style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
               >
                 <h2 className="text-xl font-bold" style={{ color: textColor }}>Minha Conta</h2>
                 <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>Gerencie suas informações</p>
               </div>
-              <div className="p-4 md:p-6 space-y-4">
+              <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
                 <Card style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4 mb-6">
@@ -1612,7 +1599,7 @@ export default function MembersAreaPublic() {
             <>
               {/* Content Header */}
               <div 
-                className="px-6 py-5 border-b hidden md:block"
+                className="px-4 md:px-6 py-4 md:py-5 border-b hidden md:block"
                 style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
               >
                 <div className="flex items-center justify-between">
@@ -1640,7 +1627,7 @@ export default function MembersAreaPublic() {
               </div>
 
               {/* Content Blocks */}
-              <div className="p-4 md:p-6 space-y-4">
+              <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
                 {currentSection?.blocks && currentSection.blocks.length > 0 ? (
                   (() => {
                     // Group contents by block_position
@@ -1717,7 +1704,7 @@ export default function MembersAreaPublic() {
                                         const showWrapperTitle = block.title && !selfTitledTypes.includes(block.type);
                                         return (
                                           <div key={block.id}>
-                                            <CardContent className="p-4 space-y-2">
+                                            <CardContent className="p-3 sm:p-4 space-y-2 overflow-x-auto">
                                               {showWrapperTitle && (
                                                 <h4 className="font-semibold text-sm" style={{ color: cardTextColor }}>
                                                   {block.title}
@@ -1758,7 +1745,7 @@ export default function MembersAreaPublic() {
 
       {/* Mobile Bottom Navigation */}
       <div 
-        className="md:hidden fixed bottom-0 left-0 right-0 border-t px-4 py-2 flex items-center justify-around"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] flex items-center justify-around"
         style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20` }}
       >
         <button 

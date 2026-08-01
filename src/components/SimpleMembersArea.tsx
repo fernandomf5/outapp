@@ -23,6 +23,17 @@ import { PendingOrdersDialog } from "@/components/members-area/PendingOrdersDial
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import { Switch } from "@/components/ui/switch";
+import {
+  MembersButtons,
+  parseButtonsContent,
+  stringifyButtonsContent,
+  BUTTON_LAYOUT_OPTIONS,
+  BUTTON_ALIGN_OPTIONS,
+  BUTTON_STYLE_OPTIONS,
+  BUTTON_SIZE_OPTIONS,
+  BUTTON_SHAPE_OPTIONS,
+} from "@/components/members-area/MembersButtons";
 import { GalleryBlockEditor } from "@/components/members-area/GalleryBlockEditor";
 import { VideoGalleryBlockEditor } from "@/components/members-area/VideoGalleryBlockEditor";
 import { SlidesBlockEditor } from "@/components/members-area/SlidesBlockEditor";
@@ -1646,43 +1657,89 @@ export function SimpleMembersArea() {
                 ) : blockFormData.type === 'button' || blockFormData.type === 'link' ? (
                   <div className="space-y-3">
                     {(() => {
-                      let data: { items: { label: string; url: string }[]; layout: 'horizontal' | 'vertical' } = { items: [{ label: '', url: '' }], layout: 'horizontal' };
-                      try {
-                        const parsed = JSON.parse(blockFormData.content);
-                        if (parsed?.items) data = parsed;
-                      } catch {
-                        // Legacy single URL
-                        if (blockFormData.content) {
-                          data = { items: [{ label: blockFormData.title || '', url: blockFormData.content }], layout: 'horizontal' };
-                        }
-                      }
+                      const isButton = blockFormData.type === 'button';
+                      const data = parseButtonsContent(blockFormData.content, blockFormData.title);
+                      if (data.items.length === 0) data.items = [{ label: '', url: '' }];
                       const updateData = (newData: typeof data) => {
-                        setBlockFormData({ ...blockFormData, content: JSON.stringify(newData) });
+                        setBlockFormData({ ...blockFormData, content: stringifyButtonsContent(newData) });
                       };
                       return (
                         <>
-                          <div className="flex items-center gap-2">
-                            <Label className="text-xs">Disposição:</Label>
-                            <Select value={data.layout} onValueChange={(v: 'horizontal' | 'vertical') => updateData({ ...data, layout: v })}>
-                              <SelectTrigger className="w-[160px] h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="horizontal">Horizontal</SelectItem>
-                                <SelectItem value="vertical">Vertical</SelectItem>
-                              </SelectContent>
-                            </Select>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Disposição</Label>
+                              <Select value={data.layout} onValueChange={(v) => updateData({ ...data, layout: v as typeof data.layout })}>
+                                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {BUTTON_LAYOUT_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Alinhamento</Label>
+                              <Select value={data.align} onValueChange={(v) => updateData({ ...data, align: v as typeof data.align })}>
+                                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {BUTTON_ALIGN_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {isButton && (
+                              <>
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Estilo</Label>
+                                  <Select value={data.style} onValueChange={(v) => updateData({ ...data, style: v as typeof data.style })}>
+                                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {BUTTON_STYLE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Tamanho</Label>
+                                  <Select value={data.size} onValueChange={(v) => updateData({ ...data, size: v as typeof data.size })}>
+                                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {BUTTON_SIZE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Formato</Label>
+                                  <Select value={data.shape} onValueChange={(v) => updateData({ ...data, shape: v as typeof data.shape })}>
+                                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {BUTTON_SHAPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="flex items-center gap-2 pt-5">
+                                  <Switch
+                                    checked={!!data.showIcon}
+                                    onCheckedChange={(c) => updateData({ ...data, showIcon: c })}
+                                  />
+                                  <Label className="text-xs">Mostrar ícone de link</Label>
+                                </div>
+                              </>
+                            )}
                           </div>
+
+                          {isButton && (
+                            <div className="p-3 rounded-lg border bg-muted/20">
+                              <p className="text-[11px] text-muted-foreground mb-2">Pré-visualização</p>
+                              <MembersButtons content={stringifyButtonsContent(data)} accentColor="#22c55e" />
+                            </div>
+                          )}
+
                           {data.items.map((item, idx) => (
                             <div key={idx} className="p-3 border rounded-lg space-y-2 bg-muted/20">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-medium text-muted-foreground">
-                                  {blockFormData.type === 'button' ? 'Botão' : 'Link'} {idx + 1}
+                                  {isButton ? 'Botão' : 'Link'} {idx + 1}
                                 </span>
                                 {data.items.length > 1 && (
                                   <Button type="button" variant="ghost" size="sm" onClick={() => {
-                                    const updated = { ...data, items: data.items.filter((_, i) => i !== idx) };
-                                    updateData(updated);
+                                    updateData({ ...data, items: data.items.filter((_, i) => i !== idx) });
                                   }}>
                                     <Trash2 className="w-3 h-3" />
                                   </Button>
@@ -1695,7 +1752,7 @@ export function SimpleMembersArea() {
                                   items[idx] = { ...items[idx], label: e.target.value };
                                   updateData({ ...data, items });
                                 }}
-                                placeholder={blockFormData.type === 'button' ? 'Texto do botão' : 'Texto do link'}
+                                placeholder={isButton ? 'Texto do botão' : 'Texto do link'}
                               />
                               <Input
                                 value={item.url}
@@ -1711,12 +1768,13 @@ export function SimpleMembersArea() {
                           <Button type="button" variant="outline" size="sm" onClick={() => {
                             updateData({ ...data, items: [...data.items, { label: '', url: '' }] });
                           }}>
-                            <Plus className="w-4 h-4 mr-1" /> Adicionar {blockFormData.type === 'button' ? 'botão' : 'link'}
+                            <Plus className="w-4 h-4 mr-1" /> Adicionar {isButton ? 'botão' : 'link'}
                           </Button>
                         </>
                       );
                     })()}
                   </div>
+
                 ) : blockFormData.type === 'video' ? (
                   <div className="space-y-3">
                     {(() => {
