@@ -1724,25 +1724,39 @@ export default function MembersAreaPublic() {
                                     }}
                                   >
                                     {/* Render all contents stacked vertically inside the block */}
-                                    <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
+                                    <div className="flex flex-col">
                                       {blockContents.map((block, contentIndex) => {
                                         // Block types that already render their own title internally — avoid duplicate label.
                                         const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'faq', 'checklist', 'certificate', 'webinar', 'mindmap', 'slides'];
                                         const showWrapperTitle = block.title && !selfTitledTypes.includes(block.type);
                                         return (
-                                          <div key={block.id}>
-                                            <CardContent className="p-3 sm:p-4 space-y-2 overflow-x-auto">
+                                          <div
+                                            key={block.id}
+                                            className="relative isolate min-w-0"
+                                            style={
+                                              contentIndex > 0
+                                                ? { borderTop: `1px solid ${accentColor}20` }
+                                                : undefined
+                                            }
+                                          >
+                                            <CardContent className="p-3 sm:p-4 space-y-3 min-w-0 overflow-hidden">
                                               {showWrapperTitle && (
-                                                <h4 className="font-semibold text-sm" style={{ color: cardTextColor }}>
+                                                <h4
+                                                  className="font-semibold text-sm pb-2 mb-1 break-words"
+                                                  style={{ color: cardTextColor, borderBottom: `1px solid ${accentColor}15` }}
+                                                >
                                                   {block.title}
                                                 </h4>
                                               )}
-                                              {renderBlock(block, accentColor, cardTextColor, cardBackgroundColor)}
+                                              <div className="min-w-0 overflow-x-auto">
+                                                {renderBlock(block, accentColor, cardTextColor, cardBackgroundColor)}
+                                              </div>
                                             </CardContent>
                                           </div>
                                         );
                                       })}
                                     </div>
+
                                   </Card>
                                 );
                               })}
