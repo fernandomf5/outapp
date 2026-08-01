@@ -447,9 +447,23 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
             <span className="text-[11px] font-medium">{value}</span>
           </div>
         );
+      const cust = data?.customer;
       return shell(
         <>
+          {cust && (
+            <div className="rounded-lg p-3 space-y-1" style={{ backgroundColor: `${accentColor}10` }}>
+              <p className="text-sm font-semibold">{cust.name}</p>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-75">
+                {cust.company && <span>{cust.company}</span>}
+                {cust.email && <span>{cust.email}</span>}
+                {cust.phone && <span>{cust.phone}</span>}
+                {cust.document && <span>{cust.document}</span>}
+                {cust.category && <span>{cust.category}</span>}
+              </div>
+            </div>
+          )}
           {(totalAmount > 0 || totalPaid > 0) && (
+
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
                 <p className="text-[10px] opacity-70">Registros</p>
