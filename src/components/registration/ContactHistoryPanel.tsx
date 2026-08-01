@@ -74,7 +74,18 @@ interface HistoryItem {
   quantity: number | null;
   reference_number: string | null;
   internal_notes: string | null;
+  receipt_id: string | null;
 }
+
+interface SavedReceiptRow {
+  id: string;
+  receipt_number: string | null;
+  client_name: string | null;
+  total_amount: number | null;
+  receipt_data: any;
+  created_at: string;
+}
+
 
 const SERVICE_TYPES = [
   { value: "website", label: "Criação de Site", icon: Globe, color: "text-blue-500" },
