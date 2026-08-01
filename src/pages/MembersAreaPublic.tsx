@@ -11,6 +11,7 @@ import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePoint
 import { toast } from "sonner";
 import { CustomerHistoryTimeline } from "@/components/members-area/CustomerHistoryTimeline";
 import { AdsDashboardBlock } from "@/components/members-area/AdsDashboardBlock";
+import { ClientDataBlock } from "@/components/members-area/ClientDataBlock";
 import { PaymentHistoryBlock } from "@/components/members-area/PaymentHistoryBlock";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -530,7 +531,7 @@ export default function MembersAreaPublic() {
   };
 
   const renderBlock = (block: ContentBlock, accentColor: string, cardTextColor: string, cardBackgroundColor?: string) => {
-    switch (block.type) {
+    switch (block.type as string) {
       case 'text':
         return <BlockRichText content={block.content} className="prose prose-sm max-w-none" style={{ color: cardTextColor }} />;
       
@@ -713,6 +714,7 @@ export default function MembersAreaPublic() {
         );
       }
 
+      case 'timeline':
       case 'customer_history':
         if (!block.customer_id) {
           return (
@@ -763,6 +765,33 @@ export default function MembersAreaPublic() {
           </div>
         );
 
+      case 'client_profile':
+      case 'client_tasks':
+      case 'client_routines':
+      case 'client_agenda':
+      case 'client_table':
+      case 'client_financial':
+      case 'client_receipts':
+      case 'client_mindmap': {
+        if (!block.customer_id) {
+          return (
+            <div className="text-center py-8" style={{ color: cardTextColor }}>
+              <User className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Cliente não selecionado</p>
+            </div>
+          );
+        }
+        return (
+          <ClientDataBlock
+            areaId={area?.id || ''}
+            blockId={block.id}
+            source={block.type as any}
+            accentColor={accentColor}
+            cardTextColor={cardTextColor}
+          />
+        );
+      }
+
       case 'checklist':
         return (
           <MembersChecklist
@@ -776,12 +805,10 @@ export default function MembersAreaPublic() {
         );
 
       case 'faq':
-      case 'quiz':
-      case 'timeline':
       case 'certificate':
       case 'webinar':
       case 'mindmap': {
-        const iconMap2: Record<string, any> = { faq: MessageSquare, checklist: CheckSquare, quiz: HelpCircle, timeline: GitBranch, certificate: Award, webinar: Radio, mindmap: Brain };
+        const iconMap2: Record<string, any> = { faq: MessageSquare, checklist: CheckSquare, certificate: Award, webinar: Radio, mindmap: Brain };
         const Icon2 = iconMap2[block.type] || FileText;
         return (
           <div 
@@ -1718,7 +1745,7 @@ export default function MembersAreaPublic() {
                                     <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
                                       {blockContents.map((block, contentIndex) => {
                                         // Block types that already render their own title internally — avoid duplicate label.
-                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'customer_history', 'payment_history', 'faq', 'checklist', 'quiz', 'timeline', 'certificate', 'webinar', 'mindmap', 'slides'];
+                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'customer_history', 'payment_history', 'faq', 'checklist', 'certificate', 'webinar', 'mindmap', 'slides', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'];
                                         const showWrapperTitle = block.title && !selfTitledTypes.includes(block.type);
                                         return (
                                           <div key={block.id}>
