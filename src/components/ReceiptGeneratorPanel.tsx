@@ -756,6 +756,7 @@ export function ReceiptGeneratorPanel() {
           <Button variant="outline" size="sm" onClick={() => { setSearchOpen(true); fetchSavedReceipts(); }}>
             <Search className="h-4 w-4 mr-1" /> Buscar Recibos
           </Button>
+          <ResourceAssignmentsButton resourceType="receipt" label="Atribuir à Gestão Livre" />
           <Button variant="outline" size="sm" onClick={handleNewReceipt}>Novo Recibo</Button>
         </div>
       </div>
