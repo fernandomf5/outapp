@@ -245,10 +245,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
       const ordered = applyCustomOrder(data || []);
       setItems(ordered);
 
-      // Não troca automaticamente para a lista: mantém a tela onde o usuário estava.
-      if ((!data || data.length === 0) && activeTab === "list") {
-        setActiveTab("form");
-      }
+      // Mantém a tela onde o usuário estava (lista por padrão).
+
     } catch (error) {
       console.error('Error fetching items:', error);
     } finally {
