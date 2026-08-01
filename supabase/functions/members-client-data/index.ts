@@ -100,6 +100,10 @@ serve(async (req) => {
             country: customer.country,
             postal_code: customer.postal_code,
             website: customer.website,
+            contact_person: customer.contact_person,
+            market_area: customer.market_area,
+            category: categoryName,
+            custom_fields: customer.custom_fields || null,
             notes: customer.notes,
             tags: customer.tags,
             created_at: customer.created_at,
@@ -107,6 +111,32 @@ serve(async (req) => {
         };
         break;
       }
+
+      case 'timeline':
+      case 'customer_history': {
+        const { data: history } = await supabase
+          .from('contact_history')
+          .select('id, service_type, title, description, start_date, end_date, status, attachments, created_at')
+          .eq('user_id', area.user_id)
+          .eq('contact_id', customerId)
+          .order('start_date', { ascending: false, nullsFirst: false })
+          .limit(300);
+        payload = { history: history || [] };
+        break;
+      }
+
+      case 'payment_history': {
+        const { data: payments } = await supabase
+          .from('customer_payments_history')
+          .select('id, amount, payment_method, payment_date, description, notes, reference_type, created_at')
+          .eq('user_id', area.user_id)
+          .eq('contact_id', customerId)
+          .order('payment_date', { ascending: false, nullsFirst: false })
+          .limit(300);
+        payload = { payments: payments || [] };
+        break;
+      }
+
 
       case 'client_tasks': {
         const ids = idsFor('task');
