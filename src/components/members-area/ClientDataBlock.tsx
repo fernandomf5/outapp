@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 import {
   Loader2, ListTodo, Repeat, CalendarDays, Table2, Wallet, Receipt,
@@ -506,7 +506,7 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
             </div>
           )}
           <div
-            className="h-[280px] sm:h-[340px] md:h-[400px] rounded-lg border p-2 overflow-y-auto scrollbar-accent"
+            className="max-h-[300px] sm:max-h-[360px] md:max-h-[420px] rounded-lg border p-2 overflow-y-auto overflow-x-hidden scrollbar-accent min-w-0"
             style={{
               borderColor: `${accentColor}30`,
               '--scrollbar-thumb': `${accentColor}99`,
