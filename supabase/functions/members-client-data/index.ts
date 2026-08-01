@@ -44,14 +44,32 @@ serve(async (req) => {
     const customerId: string | null = block.customer_id || null;
     if (!customerId) return json({ error: 'customer_not_set' }, 400);
 
-    const { data: customer } = await supabase
-      .from('customers')
-      .select('*')
+    // Cadastros ("Gestão Livre") live in the contacts table; fall back to legacy customers
+    let customer: any = null;
+    let categoryName: string | null = null;
+
+    const { data: contactRow } = await supabase
+      .from('contacts')
+      .select('*, registration_categories(name)')
       .eq('id', customerId)
       .eq('user_id', area.user_id)
       .maybeSingle();
 
+    if (contactRow) {
+      customer = contactRow;
+      categoryName = (contactRow as any).registration_categories?.name ?? null;
+    } else {
+      const { data: legacy } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('id', customerId)
+        .eq('user_id', area.user_id)
+        .maybeSingle();
+      customer = legacy;
+    }
+
     if (!customer) return json({ error: 'customer_not_found' }, 404);
+
 
     // Resources attributed to this contact
     const { data: links } = await supabase
@@ -82,6 +100,10 @@ serve(async (req) => {
             country: customer.country,
             postal_code: customer.postal_code,
             website: customer.website,
+            contact_person: customer.contact_person,
+            market_area: customer.market_area,
+            category: categoryName,
+            custom_fields: customer.custom_fields || null,
             notes: customer.notes,
             tags: customer.tags,
             created_at: customer.created_at,
@@ -89,6 +111,32 @@ serve(async (req) => {
         };
         break;
       }
+
+      case 'timeline':
+      case 'customer_history': {
+        const { data: history } = await supabase
+          .from('contact_history')
+          .select('id, service_type, title, description, start_date, end_date, status, attachments, created_at')
+          .eq('user_id', area.user_id)
+          .eq('contact_id', customerId)
+          .order('start_date', { ascending: false, nullsFirst: false })
+          .limit(300);
+        payload = { history: history || [] };
+        break;
+      }
+
+      case 'payment_history': {
+        const { data: payments } = await supabase
+          .from('customer_payments_history')
+          .select('id, amount, payment_method, payment_date, description, notes, reference_type, created_at')
+          .eq('user_id', area.user_id)
+          .eq('contact_id', customerId)
+          .order('payment_date', { ascending: false, nullsFirst: false })
+          .limit(300);
+        payload = { payments: payments || [] };
+        break;
+      }
+
 
       case 'client_tasks': {
         const ids = idsFor('task');
