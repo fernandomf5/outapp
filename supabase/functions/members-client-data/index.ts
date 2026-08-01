@@ -44,14 +44,32 @@ serve(async (req) => {
     const customerId: string | null = block.customer_id || null;
     if (!customerId) return json({ error: 'customer_not_set' }, 400);
 
-    const { data: customer } = await supabase
-      .from('customers')
-      .select('*')
+    // Cadastros ("Gestão Livre") live in the contacts table; fall back to legacy customers
+    let customer: any = null;
+    let categoryName: string | null = null;
+
+    const { data: contactRow } = await supabase
+      .from('contacts')
+      .select('*, registration_categories(name)')
       .eq('id', customerId)
       .eq('user_id', area.user_id)
       .maybeSingle();
 
+    if (contactRow) {
+      customer = contactRow;
+      categoryName = (contactRow as any).registration_categories?.name ?? null;
+    } else {
+      const { data: legacy } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('id', customerId)
+        .eq('user_id', area.user_id)
+        .maybeSingle();
+      customer = legacy;
+    }
+
     if (!customer) return json({ error: 'customer_not_found' }, 404);
+
 
     // Resources attributed to this contact
     const { data: links } = await supabase
