@@ -55,20 +55,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const { user } = useAuth();
 
   const sessionKey = categoryId ? `registration-panel-state:${user?.id || 'anon'}:${categoryId}` : null;
-  const initialSession = (() => {
-    if (!sessionKey) return null;
-    try {
-      const raw = localStorage.getItem(sessionKey) || sessionStorage.getItem(sessionKey);
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  })();
 
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<RegisteredItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>(initialSession?.activeTab || "list");
-  const [selectedItem, setSelectedItem] = useState<any>(initialSession?.selectedItem || null);
-  const [isViewOnly, setIsViewOnly] = useState<boolean>(initialSession?.isViewOnly || false);
+  // Sempre abre na lista ao entrar na gestão (não restaura aba anterior)
+  const [activeTab, setActiveTab] = useState<string>("list");
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isViewOnly, setIsViewOnly] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
