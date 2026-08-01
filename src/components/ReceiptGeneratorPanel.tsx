@@ -797,13 +797,45 @@ export function ReceiptGeneratorPanel() {
           <Button variant="outline" size="sm" onClick={() => { setTemplatesOpen(true); fetchTemplates(); }}>
             <LayoutTemplate className="h-4 w-4 mr-1" /> Modelos
           </Button>
+          <Button variant="outline" size="sm" onClick={() => { setQuickTemplateName(receipt.company_name ? `Modelo ${receipt.company_name}` : ''); setSaveTemplateOpen(true); }}>
+            <LayoutTemplate className="h-4 w-4 mr-1" /> Salvar Modelo
+          </Button>
           <Button variant="outline" size="sm" onClick={() => { setSearchOpen(true); fetchSavedReceipts(); }}>
-            <Search className="h-4 w-4 mr-1" /> Buscar Recibos
+            <Search className="h-4 w-4 mr-1" /> Recibos Salvos
           </Button>
           <ResourceAssignmentsButton resourceType="receipt" label="Atribuir à Gestão Livre" />
           <Button variant="outline" size="sm" onClick={handleNewReceipt}>Novo Recibo</Button>
         </div>
       </div>
+
+      {/* Salvar modelo rápido */}
+      <Dialog open={saveTemplateOpen} onOpenChange={setSaveTemplateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Salvar como Modelo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Salva os dados da empresa, logo, cor, título, garantia e termos deste recibo como modelo reutilizável.
+            </p>
+            <div>
+              <Label className="text-xs">Nome do modelo</Label>
+              <Input
+                value={quickTemplateName}
+                onChange={(e) => setQuickTemplateName(e.target.value)}
+                placeholder="Ex: Modelo Padrão da Empresa"
+                onKeyDown={(e) => { if (e.key === 'Enter') handleQuickSaveTemplate(); }}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setSaveTemplateOpen(false)}>Cancelar</Button>
+              <Button onClick={handleQuickSaveTemplate} disabled={savingTemplate || !quickTemplateName.trim()}>
+                {savingTemplate ? 'Salvando...' : 'Salvar Modelo'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Editing indicator */}
       {editingReceiptId && (
