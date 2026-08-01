@@ -12,6 +12,9 @@ import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader
 import { PaymentHistoryPanel } from "./PaymentHistoryPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
+import { ContactCategoryPicker } from "@/components/registration/ContactCategoryPicker";
+import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import { buildResourceUrl } from "@/lib/resourceLinks";
 
 interface ReceiptItem {
   id: string;
