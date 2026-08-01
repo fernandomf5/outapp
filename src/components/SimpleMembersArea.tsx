@@ -37,6 +37,7 @@ import {
 import { GalleryBlockEditor } from "@/components/members-area/GalleryBlockEditor";
 import { VideoGalleryBlockEditor } from "@/components/members-area/VideoGalleryBlockEditor";
 import { SlidesBlockEditor } from "@/components/members-area/SlidesBlockEditor";
+import { ChecklistBlockEditor } from "@/components/members-area/ChecklistBlockEditor";
 
 
 interface ContentBlock {
