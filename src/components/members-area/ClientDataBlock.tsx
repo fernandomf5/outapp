@@ -381,6 +381,9 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                     <Receipt className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{r.receipt_number}</p>
+                      {(r.receipt_data?.receipt_title || r.receipt_data?.title) && (
+                        <p className="text-xs opacity-90 truncate">{r.receipt_data.receipt_title || r.receipt_data.title}</p>
+                      )}
                       <p className="text-[11px] opacity-70">{dateBR(r.receipt_data?.date || r.created_at)}</p>
                     </div>
                     <p className="text-sm font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(r.total_amount)}</p>
