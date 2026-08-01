@@ -163,12 +163,14 @@ export function ReceiptGeneratorPanel() {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [bizRes, custRes] = await Promise.all([
+      const [bizRes, custRes, catRes] = await Promise.all([
         supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
         supabase.from('contacts').select('id, name, email, phone, address, document, company, registration_category_id').eq('user_id', user.id).order('name').limit(1000),
+        supabase.from('registration_categories').select('id, name').eq('user_id', user.id).order('name'),
       ]);
       if (bizRes.data) setBusinesses(bizRes.data);
       if (custRes.data) setCustomers(custRes.data as any);
+      if (catRes.data) setCategories(catRes.data as any);
     };
     fetchData();
   }, [user]);
