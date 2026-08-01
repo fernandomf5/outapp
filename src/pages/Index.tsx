@@ -22,6 +22,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { VideoCover } from "@/components/VideoCover";
 import { NeonImageFrame } from "@/components/NeonImageFrame";
 import { Feature3DCard } from "@/components/Feature3DCard";
+import { FeatureDescription } from "@/components/FeatureDescription";
+
 import showcaseAsset from "@/assets/out-app-showcase-2.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIconAsset from "@/assets/lion-3d-white.png.asset.json";
@@ -739,8 +741,9 @@ const Index = () => {
                   <div className="card-3d-icon bg-primary/10 w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 3xl:w-16 3xl:h-16 rounded-md xs:rounded-lg sm:rounded-lg md:rounded-xl flex items-center justify-center mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 lg:mb-5">
                     <Icon className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 3xl:w-8 3xl:h-8 text-primary" />
                   </div>
-                  <h3 className="card-3d-layer text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl font-bold mb-1 xs:mb-1.5 sm:mb-2 md:mb-3 leading-tight line-clamp-2">{feature.title}</h3>
-                  <p className="card-3d-layer text-[10px] xs:text-xs sm:text-sm md:text-base 3xl:text-lg text-muted-foreground leading-relaxed line-clamp-3">{feature.description}</p>
+                  <h3 className="card-3d-layer text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl font-bold mb-1 xs:mb-1.5 sm:mb-2 md:mb-3 leading-tight">{feature.title}</h3>
+                  <FeatureDescription text={feature.description} />
+
                 </Feature3DCard>
               );
             })}
