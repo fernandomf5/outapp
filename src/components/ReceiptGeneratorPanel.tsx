@@ -918,9 +918,52 @@ export function ReceiptGeneratorPanel() {
             <CardTitle className="text-base">Dados do Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-
-
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg bg-muted/40 border">
+              <div>
+                <Label className="text-xs">Categoria (Gestão Livre)</Label>
+                <Select value={selectedCategoryId} onValueChange={v => { setSelectedCategoryId(v); setSelectedCustomerId(''); }}>
+                  <SelectTrigger><SelectValue placeholder="Todas as categorias" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    {categories.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Cadastro</Label>
+                <Select
+                  value={selectedCustomerId || '_none'}
+                  onValueChange={v => {
+                    if (v === '_none') { setSelectedCustomerId(''); return; }
+                    setSelectedCustomerId(v);
+                    const c = customers.find(x => x.id === v);
+                    if (c) {
+                      setReceipt(prev => ({
+                        ...prev,
+                        client_name: c.name || c.company || '',
+                        client_document: c.document || '',
+                        client_address: c.address || '',
+                        client_email: c.email || '',
+                        client_phone: c.phone || '',
+                      }));
+                      toast({ title: 'Dados preenchidos', description: `Cadastro "${c.name}" carregado.` });
+                    }
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecionar cadastro" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Preenchimento manual</SelectItem>
+                    {customers
+                      .filter(c => selectedCategoryId === 'all' || c.registration_category_id === selectedCategoryId)
+                      .map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}{c.company ? ` • ${c.company}` : ''}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             <div>
               <Label className="text-xs">Nome do Cliente *</Label>
