@@ -48,6 +48,9 @@ import {
   EyeOff,
 } from "lucide-react";
 import { GestaoLivreRecordCard } from "./GestaoLivreRecordCard";
+import { buildResourceUrl } from "@/lib/resourceLinks";
+import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
+
 
 
 interface ContactHistoryPanelProps {
