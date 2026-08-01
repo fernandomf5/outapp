@@ -43,7 +43,7 @@ import { ChecklistBlockEditor } from "@/components/members-area/ChecklistBlockEd
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'receipt_history' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -151,6 +151,7 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       video_gallery: <Film className="w-4 h-4" />,
       secret: <EyeOff className="w-4 h-4" />,
       payment_history: <History className="w-4 h-4" />,
+      receipt_history: <History className="w-4 h-4" />,
     };
     return icons[block.type] || <FileText className="w-4 h-4" />;
   };
@@ -164,7 +165,7 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="font-medium text-sm truncate">{block.title || (block.type === 'secret' ? 'Conteúdo Oculto' : block.type)}</div>
         <div className="text-xs text-muted-foreground truncate max-w-full">
-          {['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(block.type) && block.customer_name 
+          {['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'receipt_history', 'client_mindmap'].includes(block.type) && block.customer_name 
             ? `Cliente: ${block.customer_name}` 
             : block.type === 'secret'
             ? '•'.repeat(Math.min((block.content || '').length || 10, 30))
@@ -587,7 +588,7 @@ export function SimpleMembersArea() {
 
     try {
       // Pegar nome do cliente se for histórico
-      const selectedCustomer = ['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type)
+      const selectedCustomer = ['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'receipt_history', 'client_mindmap'].includes(blockFormData.type)
         ? customers.find(c => c.id === blockFormData.customer_id)
         : null;
 
@@ -633,7 +634,7 @@ export function SimpleMembersArea() {
 
     try {
       // Pegar nome do cliente se for histórico
-      const selectedCustomer = ['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type)
+      const selectedCustomer = ['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'receipt_history', 'client_mindmap'].includes(blockFormData.type)
         ? customers.find(c => c.id === blockFormData.customer_id)
         : null;
 
@@ -1519,6 +1520,7 @@ export function SimpleMembersArea() {
                     <SelectItem value="client_table">📋 Tabela de Organização</SelectItem>
                     <SelectItem value="client_financial">💼 Gestão Financeira</SelectItem>
                     <SelectItem value="client_receipts">🧾 Recibos do Cliente</SelectItem>
+                    <SelectItem value="receipt_history">🧾 Histórico de Recibos</SelectItem>
                     <SelectItem value="client_mindmap">🧠 Mapa Mental do Cliente</SelectItem>
                     <SelectItem value="secret">🔒 Conteúdo Oculto (Senha)</SelectItem>
                   </SelectContent>
@@ -1534,7 +1536,7 @@ export function SimpleMembersArea() {
               </div>
 
               {/* Seleção de Cliente para Histórico */}
-              {['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type) && (
+              {['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'receipt_history', 'client_mindmap'].includes(blockFormData.type) && (
                 <div>
                   <Label>Selecionar cadastro (Gestão Livre)</Label>
                   <ContactCategoryPicker
@@ -1591,7 +1593,7 @@ export function SimpleMembersArea() {
                 </div>
               )}
 
-              {!['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type) && blockFormData.type !== 'ads_dashboard' && (
+              {!['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'receipt_history', 'client_mindmap'].includes(blockFormData.type) && blockFormData.type !== 'ads_dashboard' && (
               <div>
                 <Label>Conteúdo</Label>
                 {blockFormData.type === 'image' ? (

@@ -48,7 +48,7 @@ const SecretContentBlock = ({ content, title, accentColor, textColor }: { conten
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'receipt_history' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -516,6 +516,7 @@ export default function MembersAreaPublic() {
       client_table: <FileText className="w-4 h-4" />,
       client_financial: <DollarSign className="w-4 h-4" />,
       client_receipts: <DollarSign className="w-4 h-4" />,
+      receipt_history: <DollarSign className="w-4 h-4" />,
       client_mindmap: <Brain className="w-4 h-4" />,
       customer_history: <History className="w-4 h-4" />,
       checklist: <CheckSquare className="w-4 h-4" />,
@@ -752,6 +753,7 @@ export default function MembersAreaPublic() {
       case 'client_table':
       case 'client_financial':
       case 'client_receipts':
+      case 'receipt_history':
       case 'client_mindmap': {
         if (!block.customer_id) {
           return (
@@ -1725,7 +1727,7 @@ export default function MembersAreaPublic() {
                                     <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
                                       {blockContents.map((block, contentIndex) => {
                                         // Block types that already render their own title internally — avoid duplicate label.
-                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'customer_history', 'payment_history', 'faq', 'checklist', 'certificate', 'webinar', 'mindmap', 'slides', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'];
+                                        const selfTitledTypes = ['secret', 'audio', 'document', 'download', 'ads_dashboard', 'customer_history', 'payment_history', 'faq', 'checklist', 'certificate', 'webinar', 'mindmap', 'slides', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'receipt_history', 'client_mindmap'];
                                         const showWrapperTitle = block.title && !selfTitledTypes.includes(block.type);
                                         return (
                                           <div key={block.id}>

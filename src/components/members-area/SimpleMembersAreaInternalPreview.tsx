@@ -31,7 +31,7 @@ import {
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'client_profile' | 'client_tasks' | 'client_routines' | 'client_agenda' | 'client_table' | 'client_financial' | 'client_receipts' | 'receipt_history' | 'client_mindmap' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -97,6 +97,7 @@ export function SimpleMembersAreaInternalPreview({
       gallery: <Images className="w-3 h-3" />,
       video_gallery: <Film className="w-3 h-3" />,
       payment_history: <DollarSign className="w-3 h-3" />,
+      receipt_history: <DollarSign className="w-3 h-3" />,
       secret: <EyeOff className="w-3 h-3" />,
     };
     return icons[type] || <FileText className="w-3 h-3" />;
@@ -131,6 +132,7 @@ export function SimpleMembersAreaInternalPreview({
       video_gallery: 'Vídeos',
       secret: 'Oculto',
       payment_history: 'Pagamentos',
+      receipt_history: 'Histórico de Recibos',
     };
     return labels[type] || type;
   };
