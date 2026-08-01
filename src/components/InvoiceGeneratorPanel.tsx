@@ -18,6 +18,7 @@ import {
   Clock, DollarSign, CheckCircle, AlertCircle, XCircle, Send
 } from "lucide-react";
 import jsPDF from "jspdf";
+import { ContactCategoryPicker } from "@/components/registration/ContactCategoryPicker";
 
 interface InvoiceItem {
   id: string;
@@ -438,7 +439,7 @@ export function InvoiceGeneratorPanel() {
       client_name: cust?.name || '',
       client_email: (plan as any).recipient_email || cust?.email || '',
       client_phone: cust?.phone || '',
-      client_address: [cust?.address, cust?.city, cust?.state].filter(Boolean).join(', '),
+      client_address: cust?.address || '',
       pix_key: plan.pix_key || '',
       pix_key_type: plan.pix_key_type || 'cpf',
       payment_method: plan.payment_method || 'pix',
@@ -493,8 +494,8 @@ export function InvoiceGeneratorPanel() {
           client_name: cust?.name || '',
           client_email: (plan as any).recipient_email || cust?.email || '',
           client_phone: cust?.phone || '',
-          client_document: '',
-          client_address: cust ? [cust.address, cust.city, cust.state].filter(Boolean).join(', ') : '',
+          client_document: cust?.document || '',
+          client_address: cust?.address || '',
           company_name: biz?.company_name || biz?.name || '',
           company_document: biz?.cnpj || '',
           company_address: addr,
