@@ -703,7 +703,49 @@ export function ContactHistoryPanel({ contactId, contactName }: ContactHistoryPa
                   />
                 </div>
               </div>
+
+              <div className="space-y-2 pt-1">
+                <Label className="text-xs">Recibo (do gerador de recibos)</Label>
+                <Select
+                  value={form.receipt_id || "none"}
+                  onValueChange={(v) => setForm({ ...form, receipt_id: v === "none" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um recibo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum recibo</SelectItem>
+                    {receipts.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {(r.receipt_number || "Recibo")}
+                        {r.client_name ? ` • ${r.client_name}` : ""}
+                        {r.total_amount != null ? ` • ${formatCurrency(r.total_amount)}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {receipts.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Nenhum recibo salvo ainda. Crie um em Gerador de Recibos.
+                  </p>
+                )}
+                {form.receipt_id && (
+                  <div className="flex items-center justify-between rounded-md border p-2">
+                    <div>
+                      <Label className="text-xs">Atribuir recibo ao cadastro</Label>
+                      <p className="text-[11px] text-muted-foreground">
+                        Também aparecerá na aba Atribuições deste cadastro.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.link_receipt_to_contact}
+                      onCheckedChange={(v) => setForm({ ...form, link_receipt_to_contact: v })}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
+
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
