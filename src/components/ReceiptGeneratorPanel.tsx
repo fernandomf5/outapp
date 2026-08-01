@@ -219,6 +219,49 @@ export function ReceiptGeneratorPanel() {
       setTemplateName('');
       setEditingTemplateId(null);
       await fetchTemplates();
+      return true;
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar modelo", description: error.message, variant: "destructive" });
+      return false;
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  // Salvar o recibo atual como modelo e ir direto para "Modelos"
+  const handleQuickSaveTemplate = async () => {
+    if (!quickTemplateName.trim()) {
+      toast({ title: "Erro", description: "Informe um nome para o modelo.", variant: "destructive" });
+      return;
+    }
+    setTemplateName(quickTemplateName.trim());
+    setEditingTemplateId(null);
+    setSavingTemplate(true);
+    try {
+      const payload = {
+        user_id: user!.id,
+        name: quickTemplateName.trim(),
+        business_id: selectedBusinessId && selectedBusinessId !== '_none' ? selectedBusinessId : null,
+        company_name: receipt.company_name,
+        company_document: receipt.company_document,
+        company_address: receipt.company_address,
+        company_phone: receipt.company_phone,
+        logo_url: receipt.logo_url,
+        primary_color: receipt.primary_color,
+        receipt_title: receipt.receipt_title,
+        issuer_signer_name: receipt.issuer_signer_name,
+        warranty_text: receipt.warranty_text,
+        terms_text: receipt.terms_text,
+        notes_template: receipt.notes,
+      };
+      const { error } = await supabase.from('receipt_templates').insert([payload]);
+      if (error) throw error;
+      toast({ title: "Modelo salvo! ✅", description: `Modelo "${quickTemplateName.trim()}" criado com sucesso.` });
+      setTemplateName('');
+      setQuickTemplateName('');
+      setSaveTemplateOpen(false);
+      await fetchTemplates();
+      setTemplatesOpen(true);
     } catch (error: any) {
       toast({ title: "Erro ao salvar modelo", description: error.message, variant: "destructive" });
     } finally {
