@@ -372,42 +372,40 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       return shell(
         <>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+            <div className="rounded-lg p-2 text-center" style={{ backgroundColor: `${accentColor}12` }}>
               <p className="text-[10px] opacity-70">Total</p>
-              <p className="text-sm font-bold" style={{ color: accentColor }}>{currency(total)}</p>
+              <p className="text-xs font-bold" style={{ color: accentColor }}>{currency(total)}</p>
             </div>
-            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+            <div className="rounded-lg p-2 text-center" style={{ backgroundColor: `${accentColor}12` }}>
               <p className="text-[10px] opacity-70">Recibos</p>
-              <p className="text-sm font-bold" style={{ color: accentColor }}>{receipts.length}</p>
+              <p className="text-xs font-bold" style={{ color: accentColor }}>{receipts.length}</p>
             </div>
           </div>
-          <ScrollArea className="max-h-[400px]">
-            <div className="space-y-2">
-              {receipts.map((r) =>
-                box(
-                  <div className="flex items-center gap-3">
-                    <Receipt className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{r.receipt_number}</p>
-                      {(r.receipt_data?.receipt_title || r.receipt_data?.title) && (
-                        <p className="text-xs opacity-90 truncate">{r.receipt_data.receipt_title || r.receipt_data.title}</p>
-                      )}
-                      <p className="text-[11px] opacity-70">{dateBR(r.receipt_data?.date || r.created_at)}</p>
-                    </div>
-                    <p className="text-sm font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(r.total_amount)}</p>
-                    <Button
-                      variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0"
-                      title="Baixar PDF" style={{ color: accentColor }}
-                      onClick={() => { try { downloadReceiptPDF(r.receipt_data, r.receipt_data?.logo_url || undefined); } catch { /* noop */ } }}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>,
-                  r.id
-                )
-              )}
-            </div>
-          </ScrollArea>
+          {scroller(
+            receipts.map((r) =>
+              box(
+                <div className="flex items-center gap-2 min-w-0">
+                  <Receipt className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{r.receipt_number}</p>
+                    {(r.receipt_data?.receipt_title || r.receipt_data?.title) && (
+                      <p className="text-[11px] opacity-90 truncate">{r.receipt_data.receipt_title || r.receipt_data.title}</p>
+                    )}
+                    <p className="text-[10px] opacity-70">{dateBR(r.receipt_data?.date || r.created_at)}</p>
+                  </div>
+                  <p className="text-xs font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(r.total_amount)}</p>
+                  <Button
+                    variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0"
+                    title="Baixar PDF" style={{ color: accentColor }}
+                    onClick={() => { try { downloadReceiptPDF(r.receipt_data, r.receipt_data?.logo_url || undefined); } catch { /* noop */ } }}
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </div>,
+                r.id
+              )
+            )
+          )}
         </>
       );
     }
@@ -417,22 +415,22 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       const maps: any[] = data?.mindMaps || [];
       if (!maps.length) return empty('Nenhum mapa mental atribuído');
       return shell(
-        <div className="space-y-3">
-          {maps.map((m) => {
+        scroller(
+          maps.map((m) => {
             const nodes: any[] = Array.isArray(m.nodes) ? m.nodes : [];
             return box(
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Brain className="w-4 h-4" style={{ color: accentColor }} />
-                  <p className="text-sm font-semibold">{m.name}</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <Brain className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                  <p className="text-xs font-semibold break-words">{m.name}</p>
                   <Badge className="border-0 text-[10px]" style={{ backgroundColor: `${accentColor}20`, color: accentColor }}>
                     {nodes.length} nós
                   </Badge>
                 </div>
-                {m.description && <p className="text-xs opacity-70 mb-2">{m.description}</p>}
-                <div className="flex flex-wrap gap-1.5">
+                {m.description && <p className="text-[11px] opacity-70 mb-1.5 break-words">{m.description}</p>}
+                <div className="flex flex-wrap gap-1">
                   {nodes.slice(0, 40).map((n: any, i: number) => (
-                    <span key={i} className="text-[11px] px-2 py-1 rounded-full" style={{ backgroundColor: `${accentColor}15` }}>
+                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-full break-words" style={{ backgroundColor: `${accentColor}15` }}>
                       {n?.data?.label || n?.label || `Nó ${i + 1}`}
                     </span>
                   ))}
@@ -440,8 +438,8 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               </div>,
               m.id
             );
-          })}
-        </div>
+          })
+        )
       );
     }
 
