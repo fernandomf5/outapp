@@ -226,11 +226,25 @@ export function GestaoLivreRecordCard({ contactId }: GestaoLivreRecordCardProps)
                             </p>
                           </div>
                         </div>
-                        <Button asChild size="sm" variant="ghost" className="gap-1 shrink-0">
-                          <Link to={link.resource_url || buildResourceUrl(link.resource_type, link.resource_id)}>
-                            <ExternalLink className="h-3.5 w-3.5" /> Abrir
-                          </Link>
-                        </Button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button asChild size="sm" variant="ghost" className="gap-1">
+                            <Link to={link.resource_url || buildResourceUrl(link.resource_type, link.resource_id)}>
+                              <ExternalLink className="h-3.5 w-3.5" /> Abrir
+                            </Link>
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setToDelete(link);
+                            }}
+                            title="Remover atribuição"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
