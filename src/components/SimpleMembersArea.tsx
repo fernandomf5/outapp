@@ -96,6 +96,8 @@ interface MembersArea {
 interface Customer {
   id: string;
   name: string;
+  company?: string | null;
+  registration_category_id?: string | null;
 }
 
 interface Business {
@@ -253,6 +255,7 @@ export function SimpleMembersArea() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [adClients, setAdClients] = useState<{ id: string; name: string }[]>([]);
+  const [registrationCategories, setRegistrationCategories] = useState<{ id: string; name: string }[]>([]);
   const defaultAreaFormData = {
     name: '',
     slug: '',
@@ -331,15 +334,17 @@ export function SimpleMembersArea() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [customersRes, businessesRes, adClientsRes] = await Promise.all([
-        supabase.from('customers').select('id, name').eq('user_id', user.id).order('name'),
+      const [customersRes, businessesRes, adClientsRes, categoriesRes] = await Promise.all([
+        supabase.from('contacts').select('id, name, company, registration_category_id').eq('user_id', user.id).order('name').limit(1000),
         supabase.from('businesses').select('id, name').eq('user_id', user.id).order('name'),
-        supabase.from('ad_clients').select('id, name').eq('user_id', user.id).order('name')
+        supabase.from('ad_clients').select('id, name').eq('user_id', user.id).order('name'),
+        supabase.from('registration_categories').select('id, name').eq('user_id', user.id).order('name')
       ]);
 
       if (customersRes.data) setCustomers(customersRes.data);
       if (businessesRes.data) setBusinesses(businessesRes.data);
       if (adClientsRes.data) setAdClients(adClientsRes.data);
+      if (categoriesRes.data) setRegistrationCategories(categoriesRes.data as any);
     } catch (error) {
       console.error('Error loading customers/businesses:', error);
     }
@@ -1530,30 +1535,21 @@ export function SimpleMembersArea() {
               {/* Seleção de Cliente para Histórico */}
               {['customer_history', 'payment_history', 'client_profile', 'client_tasks', 'client_routines', 'client_agenda', 'client_table', 'client_financial', 'client_receipts', 'client_mindmap'].includes(blockFormData.type) && (
                 <div>
-                  <Label>Selecionar Cliente</Label>
-                  <Select 
-                    value={blockFormData.customer_id} 
-                    onValueChange={(value) => setBlockFormData({ ...blockFormData, customer_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Escolha um cliente..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {customers.length === 0 ? (
-                        <div className="p-2 text-sm text-muted-foreground text-center">
-                          Nenhum cliente cadastrado
-                        </div>
-                      ) : (
-                        customers.map((customer) => (
-                          <SelectItem key={customer.id} value={customer.id}>
-                            {customer.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Label>Selecionar cadastro (Gestão Livre)</Label>
+                  <ContactCategoryPicker
+                    value={blockFormData.customer_id || null}
+                    onChange={(id) => setBlockFormData({ ...blockFormData, customer_id: id || '' })}
+                    contacts={customers.map((c) => ({
+                      id: c.id,
+                      name: c.name,
+                      company: c.company ?? null,
+                      registration_category_id: c.registration_category_id ?? null,
+                    }))}
+                    categories={registrationCategories}
+                    placeholder="Escolha um cadastro..."
+                  />
                   <p className="text-xs text-muted-foreground mt-1">
-                    O histórico de serviços, compras e pagamentos deste cliente será exibido automaticamente
+                    Os dados atribuídos a este cadastro (em Gestão Livre → Atribuições) serão exibidos automaticamente
                   </p>
                 </div>
               )}
