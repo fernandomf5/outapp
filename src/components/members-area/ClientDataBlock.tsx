@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 import {
   Loader2, ListTodo, Repeat, CalendarDays, Table2, Wallet, Receipt,
@@ -114,10 +114,28 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
   const box = (children: React.ReactNode, key?: string) => (
     <div
       key={key}
-      className="rounded-lg border p-3"
+      className="rounded-lg border p-2 sm:p-2.5 min-w-0"
       style={{ borderColor: `${accentColor}30`, backgroundColor: `${accentColor}08` }}
     >
       {children}
+    </div>
+  );
+
+  // Scroll container padronizado: altura responsiva + scrollbar visível
+  const scroller = (children: React.ReactNode, size: 'sm' | 'md' = 'md') => (
+    <div
+      className={`${
+        size === 'sm'
+          ? 'max-h-[220px] sm:max-h-[280px]'
+          : 'max-h-[300px] sm:max-h-[360px] md:max-h-[420px]'
+      } overflow-y-auto overflow-x-hidden rounded-lg border p-2 scrollbar-accent min-w-0`}
+      style={{
+        borderColor: `${accentColor}30`,
+        '--scrollbar-thumb': `${accentColor}99`,
+        '--scrollbar-track': `${accentColor}15`,
+      } as React.CSSProperties}
+    >
+      <div className="space-y-2 pr-1 min-w-0">{children}</div>
     </div>
   );
 
@@ -134,27 +152,19 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       ].filter(([, v]) => v) as [string, any][];
       const custom = c.custom_fields && typeof c.custom_fields === 'object' ? Object.entries(c.custom_fields as Record<string, any>).filter(([, v]) => v !== null && v !== '' && typeof v !== 'object') : [];
       return shell(
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {fields.map(([label, value]) => (
-              <div key={label} className="rounded-lg p-3" style={{ backgroundColor: `${accentColor}12` }}>
-                <p className="text-[10px] uppercase tracking-wide opacity-60">{label}</p>
-                <p className="text-sm font-medium break-words">{String(value)}</p>
-              </div>
-            ))}
-          </div>
-          {custom.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {custom.map(([label, value]) => (
-                <div key={label} className="rounded-lg p-3" style={{ backgroundColor: `${accentColor}12` }}>
-                  <p className="text-[10px] uppercase tracking-wide opacity-60">{label}</p>
-                  <p className="text-sm font-medium break-words">{String(value)}</p>
+        scroller(
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {[...fields, ...custom].map(([label, value]) => (
+                <div key={label} className="rounded-md px-2 py-1.5 min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                  <p className="text-[10px] uppercase tracking-wide opacity-60 truncate">{label}</p>
+                  <p className="text-xs font-medium break-words">{String(value)}</p>
                 </div>
               ))}
             </div>
-          )}
-          {c.notes && box(<p className="text-sm whitespace-pre-wrap opacity-90">{c.notes}</p>)}
-        </>
+            {c.notes && box(<p className="text-xs whitespace-pre-wrap break-words opacity-90">{c.notes}</p>)}
+          </>
+        )
       );
     }
 
@@ -169,29 +179,29 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               {done}/{tasks.length} concluídas
             </Badge>
           </div>
-          <ScrollArea className="max-h-[420px]">
-            <div className="space-y-2">
+          {scroller(
+            <>
               {tasks.map((t) => {
                 const isDone = t.status === 'completed' || t.status === 'concluida';
                 return box(
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2 min-w-0">
                     {isDone
                       ? <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accentColor }} />
                       : <Circle className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />}
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${isDone ? 'line-through opacity-60' : ''}`}>{t.title}</p>
-                      {t.description && <p className="text-xs opacity-70 mt-0.5">{t.description}</p>}
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] opacity-70">
+                      <p className={`text-xs font-medium break-words ${isDone ? 'line-through opacity-60' : ''}`}>{t.title}</p>
+                      {t.description && <p className="text-[11px] opacity-70 mt-0.5 line-clamp-2 break-words">{t.description}</p>}
+                      <div className="flex flex-wrap items-center gap-x-2 text-[10px] opacity-70 mt-0.5">
                         {t.due_date && <span>Prazo: {dateBR(t.due_date)}</span>}
-                        {t.priority && <span>• Prioridade: {t.priority}</span>}
+                        {t.priority && <span>• {t.priority}</span>}
                         {t.category && <span>• {t.category}</span>}
                       </div>
                       {Array.isArray(t.checklist) && t.checklist.length > 0 && (
-                        <ul className="mt-2 space-y-1">
+                        <ul className="mt-1 space-y-0.5">
                           {t.checklist.map((item: any, i: number) => (
-                            <li key={i} className="text-xs flex items-center gap-1.5 opacity-80">
-                              {item?.done ? <CheckCircle2 className="w-3 h-3" style={{ color: accentColor }} /> : <Circle className="w-3 h-3" />}
-                              <span className={item?.done ? 'line-through' : ''}>{item?.text || item?.title}</span>
+                            <li key={i} className="text-[11px] flex items-start gap-1.5 opacity-80 min-w-0">
+                              {item?.done ? <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0" style={{ color: accentColor }} /> : <Circle className="w-3 h-3 mt-0.5 shrink-0" />}
+                              <span className={`break-words ${item?.done ? 'line-through' : ''}`}>{item?.text || item?.title}</span>
                             </li>
                           ))}
                         </ul>
@@ -201,8 +211,8 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                   t.id
                 );
               })}
-            </div>
-          </ScrollArea>
+            </>
+          )}
         </>
       );
     }
@@ -211,21 +221,21 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       const routines: any[] = data?.routines || [];
       if (!routines.length) return empty('Nenhuma rotina atribuída');
       return shell(
-        <div className="space-y-3">
-          {routines.map((r) =>
+        scroller(
+          routines.map((r) =>
             box(
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Repeat className="w-4 h-4" style={{ color: accentColor }} />
-                  <p className="text-sm font-semibold">{r.name}</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Repeat className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                  <p className="text-xs font-semibold break-words">{r.name}</p>
                 </div>
-                <div className="space-y-1.5">
-                  {(r.items || []).length === 0 && <p className="text-xs opacity-60">Sem itens</p>}
+                <div className="space-y-1">
+                  {(r.items || []).length === 0 && <p className="text-[11px] opacity-60">Sem itens</p>}
                   {(r.items || []).map((i: any) => (
-                    <div key={i.id} className="flex items-center gap-2 text-xs">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: i.color || accentColor }} />
-                      <span className="font-medium">{i.title}</span>
-                      <span className="opacity-60">
+                    <div key={i.id} className="flex items-start gap-2 text-[11px] min-w-0">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: i.color || accentColor }} />
+                      <span className="font-medium break-words">{i.title}</span>
+                      <span className="opacity-60 break-words">
                         {typeof i.day_of_week === 'number' ? WEEK[i.day_of_week] : ''}
                         {i.start_time ? ` ${i.start_time}` : ''}{i.end_time ? ` - ${i.end_time}` : ''}
                       </span>
@@ -235,8 +245,8 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               </div>,
               r.id
             )
-          )}
-        </div>
+          )
+        )
       );
     }
 
@@ -244,26 +254,24 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       const events: any[] = data?.events || [];
       if (!events.length) return empty('Nenhum evento atribuído');
       return shell(
-        <ScrollArea className="max-h-[420px]">
-          <div className="space-y-2">
-            {events.map((e) =>
-              box(
-                <div className="flex items-start gap-3">
-                  <span className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: e.color || accentColor }} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{e.title}</p>
-                    {e.description && <p className="text-xs opacity-70 mt-0.5">{e.description}</p>}
-                    <p className="text-[11px] opacity-70 mt-1">
-                      {e.all_day ? dateBR(e.start_date) : dateTimeBR(e.start_date)}
-                      {e.end_date ? ` → ${e.all_day ? dateBR(e.end_date) : dateTimeBR(e.end_date)}` : ''}
-                    </p>
-                  </div>
-                </div>,
-                e.id
-              )
-            )}
-          </div>
-        </ScrollArea>
+        scroller(
+          events.map((e) =>
+            box(
+              <div className="flex items-start gap-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: e.color || accentColor }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium break-words">{e.title}</p>
+                  {e.description && <p className="text-[11px] opacity-70 mt-0.5 line-clamp-2 break-words">{e.description}</p>}
+                  <p className="text-[10px] opacity-70 mt-0.5 break-words">
+                    {e.all_day ? dateBR(e.start_date) : dateTimeBR(e.start_date)}
+                    {e.end_date ? ` → ${e.all_day ? dateBR(e.end_date) : dateTimeBR(e.end_date)}` : ''}
+                  </p>
+                </div>
+              </div>,
+              e.id
+            )
+          )
+        )
       );
     }
 
@@ -271,19 +279,19 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       const tables: any[] = data?.tables || [];
       if (!tables.length) return empty('Nenhuma tabela atribuída');
       return shell(
-        <div className="space-y-4">
-          {tables.map((t) => (
-            <div key={t.id}>
-              <div className="flex items-center gap-2 mb-2">
-                <Table2 className="w-4 h-4" style={{ color: t.color || accentColor }} />
-                <p className="text-sm font-semibold">{t.name}</p>
+        scroller(
+          tables.map((t) => (
+            <div key={t.id} className="min-w-0">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Table2 className="w-4 h-4 shrink-0" style={{ color: t.color || accentColor }} />
+                <p className="text-xs font-semibold break-words">{t.name}</p>
               </div>
-              <div className="overflow-x-auto rounded-lg border" style={{ borderColor: `${accentColor}30` }}>
-                <table className="w-full text-xs">
+              <div className="overflow-x-auto rounded-lg border scrollbar-accent" style={{ borderColor: `${accentColor}30` }}>
+                <table className="w-full text-[11px]">
                   <thead>
                     <tr style={{ backgroundColor: `${accentColor}15` }}>
                       {t.columns.map((c: any) => (
-                        <th key={c.id} className="text-left px-3 py-2 font-semibold whitespace-nowrap">{c.name}</th>
+                        <th key={c.id} className="text-left px-2 py-1.5 font-semibold whitespace-nowrap">{c.name}</th>
                       ))}
                     </tr>
                   </thead>
@@ -291,7 +299,7 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                     {t.rows.map((r: any) => (
                       <tr key={r.id} className="border-t" style={{ borderColor: `${accentColor}20` }}>
                         {t.columns.map((c: any) => (
-                          <td key={c.id} className="px-3 py-2 whitespace-nowrap opacity-90">
+                          <td key={c.id} className="px-2 py-1.5 whitespace-nowrap opacity-90">
                             {r.cells.find((cell: any) => cell.column_id === c.id)?.value || '-'}
                           </td>
                         ))}
@@ -301,8 +309,8 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                 </table>
               </div>
             </div>
-          ))}
-        </div>
+          ))
+        )
       );
     }
 
@@ -322,34 +330,33 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
                   <Wallet className="w-4 h-4" style={{ color: accentColor }} />
                   <p className="text-sm font-semibold">{b.name}</p>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   {[
                     { label: 'Entradas', value: currency(income), icon: TrendingUp },
                     { label: 'Saídas', value: currency(expense), icon: TrendingDown },
                     { label: 'Saldo', value: currency(income - expense), icon: Wallet },
                   ].map(({ label, value, icon: I }) => (
-                    <div key={label} className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
-                      <I className="w-4 h-4 mx-auto mb-1" style={{ color: accentColor }} />
-                      <p className="text-[10px] opacity-70">{label}</p>
-                      <p className="text-xs font-bold" style={{ color: accentColor }}>{value}</p>
+                    <div key={label} className="rounded-lg p-2 text-center min-w-0" style={{ backgroundColor: `${accentColor}12` }}>
+                      <I className="w-3.5 h-3.5 mx-auto mb-0.5" style={{ color: accentColor }} />
+                      <p className="text-[10px] opacity-70 truncate">{label}</p>
+                      <p className="text-[11px] font-bold break-words" style={{ color: accentColor }}>{value}</p>
                     </div>
                   ))}
                 </div>
-                <ScrollArea className="max-h-[300px]">
-                  <div className="space-y-1.5">
-                    {(b.transactions || []).slice(0, 100).map((t: any) => (
-                      <div key={t.id} className="flex items-center gap-3 p-2.5 rounded-lg border" style={{ borderColor: `${accentColor}25` }}>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{t.description || t.category}</p>
-                          <p className="text-[10px] opacity-60">{dateBR(t.date)} {t.category ? `• ${t.category}` : ''}</p>
-                        </div>
-                        <p className="text-xs font-bold flex-shrink-0" style={{ color: accentColor }}>
-                          {currency(t.amount)}
-                        </p>
+                {scroller(
+                  (b.transactions || []).slice(0, 200).map((t: any) => (
+                    <div key={t.id} className="flex items-center gap-2 p-2 rounded-lg border min-w-0" style={{ borderColor: `${accentColor}25` }}>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-medium truncate">{t.description || t.category}</p>
+                        <p className="text-[10px] opacity-60 truncate">{dateBR(t.date)} {t.category ? `• ${t.category}` : ''}</p>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                      <p className="text-[11px] font-bold flex-shrink-0" style={{ color: accentColor }}>
+                        {currency(t.amount)}
+                      </p>
+                    </div>
+                  )),
+                  'sm'
+                )}
               </div>
             );
           })}
@@ -365,42 +372,40 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       return shell(
         <>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+            <div className="rounded-lg p-2 text-center" style={{ backgroundColor: `${accentColor}12` }}>
               <p className="text-[10px] opacity-70">Total</p>
-              <p className="text-sm font-bold" style={{ color: accentColor }}>{currency(total)}</p>
+              <p className="text-xs font-bold" style={{ color: accentColor }}>{currency(total)}</p>
             </div>
-            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+            <div className="rounded-lg p-2 text-center" style={{ backgroundColor: `${accentColor}12` }}>
               <p className="text-[10px] opacity-70">Recibos</p>
-              <p className="text-sm font-bold" style={{ color: accentColor }}>{receipts.length}</p>
+              <p className="text-xs font-bold" style={{ color: accentColor }}>{receipts.length}</p>
             </div>
           </div>
-          <ScrollArea className="max-h-[400px]">
-            <div className="space-y-2">
-              {receipts.map((r) =>
-                box(
-                  <div className="flex items-center gap-3">
-                    <Receipt className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{r.receipt_number}</p>
-                      {(r.receipt_data?.receipt_title || r.receipt_data?.title) && (
-                        <p className="text-xs opacity-90 truncate">{r.receipt_data.receipt_title || r.receipt_data.title}</p>
-                      )}
-                      <p className="text-[11px] opacity-70">{dateBR(r.receipt_data?.date || r.created_at)}</p>
-                    </div>
-                    <p className="text-sm font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(r.total_amount)}</p>
-                    <Button
-                      variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0"
-                      title="Baixar PDF" style={{ color: accentColor }}
-                      onClick={() => { try { downloadReceiptPDF(r.receipt_data, r.receipt_data?.logo_url || undefined); } catch { /* noop */ } }}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>,
-                  r.id
-                )
-              )}
-            </div>
-          </ScrollArea>
+          {scroller(
+            receipts.map((r) =>
+              box(
+                <div className="flex items-center gap-2 min-w-0">
+                  <Receipt className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{r.receipt_number}</p>
+                    {(r.receipt_data?.receipt_title || r.receipt_data?.title) && (
+                      <p className="text-[11px] opacity-90 truncate">{r.receipt_data.receipt_title || r.receipt_data.title}</p>
+                    )}
+                    <p className="text-[10px] opacity-70">{dateBR(r.receipt_data?.date || r.created_at)}</p>
+                  </div>
+                  <p className="text-xs font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(r.total_amount)}</p>
+                  <Button
+                    variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0"
+                    title="Baixar PDF" style={{ color: accentColor }}
+                    onClick={() => { try { downloadReceiptPDF(r.receipt_data, r.receipt_data?.logo_url || undefined); } catch { /* noop */ } }}
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </div>,
+                r.id
+              )
+            )
+          )}
         </>
       );
     }
@@ -410,22 +415,22 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       const maps: any[] = data?.mindMaps || [];
       if (!maps.length) return empty('Nenhum mapa mental atribuído');
       return shell(
-        <div className="space-y-3">
-          {maps.map((m) => {
+        scroller(
+          maps.map((m) => {
             const nodes: any[] = Array.isArray(m.nodes) ? m.nodes : [];
             return box(
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Brain className="w-4 h-4" style={{ color: accentColor }} />
-                  <p className="text-sm font-semibold">{m.name}</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <Brain className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                  <p className="text-xs font-semibold break-words">{m.name}</p>
                   <Badge className="border-0 text-[10px]" style={{ backgroundColor: `${accentColor}20`, color: accentColor }}>
                     {nodes.length} nós
                   </Badge>
                 </div>
-                {m.description && <p className="text-xs opacity-70 mb-2">{m.description}</p>}
-                <div className="flex flex-wrap gap-1.5">
+                {m.description && <p className="text-[11px] opacity-70 mb-1.5 break-words">{m.description}</p>}
+                <div className="flex flex-wrap gap-1">
                   {nodes.slice(0, 40).map((n: any, i: number) => (
-                    <span key={i} className="text-[11px] px-2 py-1 rounded-full" style={{ backgroundColor: `${accentColor}15` }}>
+                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-full break-words" style={{ backgroundColor: `${accentColor}15` }}>
                       {n?.data?.label || n?.label || `Nó ${i + 1}`}
                     </span>
                   ))}
@@ -433,8 +438,8 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
               </div>,
               m.id
             );
-          })}
-        </div>
+          })
+        )
       );
     }
 
@@ -501,7 +506,7 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
             </div>
           )}
           <div
-            className="h-[280px] sm:h-[340px] md:h-[400px] rounded-lg border p-2 overflow-y-auto scrollbar-accent"
+            className="max-h-[300px] sm:max-h-[360px] md:max-h-[420px] rounded-lg border p-2 overflow-y-auto overflow-x-hidden scrollbar-accent min-w-0"
             style={{
               borderColor: `${accentColor}30`,
               '--scrollbar-thumb': `${accentColor}99`,
@@ -664,33 +669,31 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
       return shell(
         <>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+            <div className="rounded-lg p-2 text-center" style={{ backgroundColor: `${accentColor}12` }}>
               <p className="text-[10px] opacity-70">Total pago</p>
-              <p className="text-sm font-bold" style={{ color: accentColor }}>{currency(total)}</p>
+              <p className="text-xs font-bold" style={{ color: accentColor }}>{currency(total)}</p>
             </div>
-            <div className="rounded-lg p-3 text-center" style={{ backgroundColor: `${accentColor}12` }}>
+            <div className="rounded-lg p-2 text-center" style={{ backgroundColor: `${accentColor}12` }}>
               <p className="text-[10px] opacity-70">Pagamentos</p>
-              <p className="text-sm font-bold" style={{ color: accentColor }}>{payments.length}</p>
+              <p className="text-xs font-bold" style={{ color: accentColor }}>{payments.length}</p>
             </div>
           </div>
-          <ScrollArea className="max-h-[400px]">
-            <div className="space-y-2">
-              {payments.map((p) =>
-                box(
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{p.description || 'Pagamento'}</p>
-                      <p className="text-[11px] opacity-70">
-                        {dateBR(p.payment_date || p.created_at)}{p.payment_method ? ` • ${p.payment_method}` : ''}
-                      </p>
-                    </div>
-                    <p className="text-sm font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(p.amount)}</p>
-                  </div>,
-                  p.id
-                )
-              )}
-            </div>
-          </ScrollArea>
+          {scroller(
+            payments.map((p) =>
+              box(
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{p.description || 'Pagamento'}</p>
+                    <p className="text-[10px] opacity-70 truncate">
+                      {dateBR(p.payment_date || p.created_at)}{p.payment_method ? ` • ${p.payment_method}` : ''}
+                    </p>
+                  </div>
+                  <p className="text-xs font-bold flex-shrink-0" style={{ color: accentColor }}>{currency(p.amount)}</p>
+                </div>,
+                p.id
+              )
+            )
+          )}
         </>
       );
     }
