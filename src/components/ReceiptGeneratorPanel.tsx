@@ -442,6 +442,7 @@ export function ReceiptGeneratorPanel() {
         receipt_data: JSON.parse(JSON.stringify(receipt)),
         total_amount: total,
         client_name: receipt.client_name,
+        contact_id: selectedCustomerId || null,
       };
 
       let receiptId = editingReceiptId;
