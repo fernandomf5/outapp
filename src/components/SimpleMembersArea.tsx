@@ -1612,6 +1612,13 @@ export function SimpleMembersArea() {
                     bucketName="members-content"
                   />
 
+                ) : blockFormData.type === 'checklist' ? (
+                  <ChecklistBlockEditor
+                    content={blockFormData.content}
+                    onChange={(content) => setBlockFormData({ ...blockFormData, content })}
+                  />
+
+
                 ) : blockFormData.type === 'document' ? (
                   <DocumentUpload
                     currentDocument={blockFormData.content}
