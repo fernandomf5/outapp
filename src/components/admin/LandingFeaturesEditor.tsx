@@ -68,8 +68,13 @@ export const LandingFeaturesEditor = () => {
     if (!error && data && data.value) {
       try {
         const parsedFeatures = JSON.parse(data.value);
-        setFeatures(parsedFeatures);
-      } catch (e) {
+        if (Array.isArray(parsedFeatures)) {
+          setFeatures(
+            [...parsedFeatures].sort(
+              (a: Feature, b: Feature) => (a.order_index ?? 0) - (b.order_index ?? 0)
+            )
+          );
+        }
         console.error('Error parsing features:', e);
       }
     }
