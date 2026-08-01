@@ -23,6 +23,17 @@ import { PendingOrdersDialog } from "@/components/members-area/PendingOrdersDial
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import { Switch } from "@/components/ui/switch";
+import {
+  MembersButtons,
+  parseButtonsContent,
+  stringifyButtonsContent,
+  BUTTON_LAYOUT_OPTIONS,
+  BUTTON_ALIGN_OPTIONS,
+  BUTTON_STYLE_OPTIONS,
+  BUTTON_SIZE_OPTIONS,
+  BUTTON_SHAPE_OPTIONS,
+} from "@/components/members-area/MembersButtons";
 import { GalleryBlockEditor } from "@/components/members-area/GalleryBlockEditor";
 import { VideoGalleryBlockEditor } from "@/components/members-area/VideoGalleryBlockEditor";
 import { SlidesBlockEditor } from "@/components/members-area/SlidesBlockEditor";
