@@ -114,10 +114,28 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
   const box = (children: React.ReactNode, key?: string) => (
     <div
       key={key}
-      className="rounded-lg border p-3"
+      className="rounded-lg border p-2 sm:p-2.5 min-w-0"
       style={{ borderColor: `${accentColor}30`, backgroundColor: `${accentColor}08` }}
     >
       {children}
+    </div>
+  );
+
+  // Scroll container padronizado: altura responsiva + scrollbar visível
+  const scroller = (children: React.ReactNode, size: 'sm' | 'md' = 'md') => (
+    <div
+      className={`${
+        size === 'sm'
+          ? 'max-h-[220px] sm:max-h-[280px]'
+          : 'max-h-[300px] sm:max-h-[360px] md:max-h-[420px]'
+      } overflow-y-auto overflow-x-hidden rounded-lg border p-2 scrollbar-accent min-w-0`}
+      style={{
+        borderColor: `${accentColor}30`,
+        '--scrollbar-thumb': `${accentColor}99`,
+        '--scrollbar-track': `${accentColor}15`,
+      } as React.CSSProperties}
+    >
+      <div className="space-y-2 pr-1 min-w-0">{children}</div>
     </div>
   );
 
