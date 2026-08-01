@@ -17,6 +17,10 @@ export type ButtonsShape = "rounded" | "pill" | "square";
 export interface ButtonItem {
   label: string;
   url: string;
+  /** Cores individuais (sobrescrevem as globais) */
+  bgColor?: string;
+  textColor?: string;
+  gradientTo?: string;
 }
 
 export interface ButtonsData {
@@ -27,6 +31,10 @@ export interface ButtonsData {
   size: ButtonsSize;
   shape: ButtonsShape;
   showIcon?: boolean;
+  /** Cores globais dos botões */
+  bgColor?: string;
+  textColor?: string;
+  gradientTo?: string;
 }
 
 export const BUTTONS_DEFAULTS: ButtonsData = {
@@ -37,6 +45,9 @@ export const BUTTONS_DEFAULTS: ButtonsData = {
   size: "md",
   shape: "rounded",
   showIcon: false,
+  bgColor: "",
+  textColor: "",
+  gradientTo: "",
 };
 
 export const BUTTON_LAYOUT_OPTIONS: { value: ButtonsLayout; label: string }[] = [
