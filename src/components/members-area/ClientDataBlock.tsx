@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 import {
   Loader2, ListTodo, Repeat, CalendarDays, Table2, Wallet, Receipt,
