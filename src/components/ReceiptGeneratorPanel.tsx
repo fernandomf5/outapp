@@ -795,7 +795,7 @@ export function ReceiptGeneratorPanel() {
             <History className="h-4 w-4 mr-1" /> Histórico
           </Button>
           <Button variant="outline" size="sm" onClick={() => { setTemplatesOpen(true); fetchTemplates(); }}>
-            <LayoutTemplate className="h-4 w-4 mr-1" /> Modelos
+            <LayoutTemplate className="h-4 w-4 mr-1" /> Modelos Salvos
           </Button>
           <Button variant="outline" size="sm" onClick={() => { setSearchOpen(true); fetchSavedReceipts(); }}>
             <Search className="h-4 w-4 mr-1" /> Recibos Salvos
