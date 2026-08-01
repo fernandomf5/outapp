@@ -264,7 +264,7 @@ export function PaymentHistoryPanel({ receipts, contacts = [], onLoadReceipt, on
       </div>
 
       {/* Client groups */}
-      <ScrollArea className="h-[60vh] max-h-[60vh] w-full overscroll-contain">
+      <ScrollArea className="flex-1 min-h-0 w-full overscroll-contain">
         <div className="space-y-3 pr-3 pb-6">
 
           {clientGroups.length === 0 ? (
