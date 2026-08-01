@@ -90,7 +90,8 @@ interface BusinessOption {
 
 interface CustomerOption {
   id: string; name: string; email: string | null; phone: string | null;
-  address: string | null; city: string | null; state: string | null; company: string | null;
+  address: string | null; document: string | null; company: string | null;
+  registration_category_id: string | null;
 }
 
 const defaultInvoice: InvoiceData = {
@@ -168,7 +169,7 @@ export function InvoiceGeneratorPanel() {
     const fetchData = async () => {
       const [bizRes, custRes, invRes, planRes] = await Promise.all([
         supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
-        supabase.from('customers').select('id, name, email, phone, address, city, state, company').eq('user_id', user.id).order('name'),
+        supabase.from('contacts').select('id, name, email, phone, address, document, company, registration_category_id').eq('user_id', user.id).order('name').limit(1000),
         supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, client_email, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('invoice_recurring_plans').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ]);
@@ -245,11 +246,11 @@ export function InvoiceGeneratorPanel() {
     }
     const cust = customers.find(c => c.id === custId);
     if (!cust) return;
-    const addr = [cust.address, cust.city, cust.state].filter(Boolean).join(', ');
     updateField('client_name', cust.name || '');
     updateField('client_email', cust.email || '');
     updateField('client_phone', cust.phone || '');
-    updateField('client_address', addr);
+    updateField('client_address', cust.address || '');
+    updateField('client_document', cust.document || '');
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -732,18 +733,16 @@ export function InvoiceGeneratorPanel() {
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm">Cliente</CardTitle></CardHeader>
                   <CardContent className="space-y-2">
-                    {customers.length > 0 && (
-                      <div>
-                        <Label className="text-xs flex items-center gap-1"><Users className="w-3 h-3" /> Cliente cadastrado</Label>
-                        <Select value={selectedCustomerId} onValueChange={handleSelectCustomer}>
-                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="_none">— Manual —</SelectItem>
-                            {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                    <div>
+                      <Label className="text-xs flex items-center gap-1 mb-1"><Users className="w-3 h-3" /> Cadastro (Gestão Livre)</Label>
+                      <ContactCategoryPicker
+                        value={selectedCustomerId && selectedCustomerId !== '_none' ? selectedCustomerId : null}
+                        onChange={(id) => handleSelectCustomer(id || '_none')}
+                        contacts={customers as any}
+                        placeholder="Preencher manualmente"
+                      />
+                    </div>
+
                     <Input className="h-8 text-xs" value={invoice.client_name} onChange={e => updateField('client_name', e.target.value)} placeholder="Nome do Cliente *" />
                     <Input className="h-8 text-xs" value={invoice.client_document} onChange={e => updateField('client_document', e.target.value)} placeholder="CPF/CNPJ" />
                     <Input className="h-8 text-xs" value={invoice.client_email} onChange={e => updateField('client_email', e.target.value)} placeholder="Email" />
