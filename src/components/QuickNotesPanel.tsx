@@ -678,6 +678,93 @@ export const QuickNotesPanel = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Nova aba */}
+      <Dialog open={isTabDialogOpen} onOpenChange={setIsTabDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Nova Aba</DialogTitle>
+            <DialogDescription>Organize suas anotações por abas</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <Label>Nome da aba</Label>
+            <Input
+              value={newTabName}
+              onChange={(e) => setNewTabName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateTab(); } }}
+              placeholder="Ex: Trabalho"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTabDialogOpen(false)}>Cancelar</Button>
+            <Button className="gradient-primary" onClick={handleCreateTab}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Anotações em massa */}
+      <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Anotações em Massa</DialogTitle>
+            <DialogDescription>
+              Uma linha por item. Serão criadas na aba{" "}
+              <strong>{activeTab === "all" ? "Todas" : tabs.find((t) => t.id === activeTab)?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={bulkMode === "notes" ? "default" : "outline"}
+                onClick={() => setBulkMode("notes")}
+                className="flex-1"
+              >
+                <StickyNote className="h-4 w-4 mr-1" /> Várias anotações
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={bulkMode === "checklist" ? "default" : "outline"}
+                onClick={() => setBulkMode("checklist")}
+                className="flex-1"
+              >
+                <ListChecks className="h-4 w-4 mr-1" /> Uma lista (checklist)
+              </Button>
+            </div>
+
+            {bulkMode === "checklist" && (
+              <div className="grid gap-2">
+                <Label>Título da lista</Label>
+                <Input
+                  value={bulkTitle}
+                  onChange={(e) => setBulkTitle(e.target.value)}
+                  placeholder="Ex: Compras da semana"
+                />
+              </div>
+            )}
+
+            <div className="grid gap-2">
+              <Label>Itens (um por linha)</Label>
+              <Textarea
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                rows={8}
+                placeholder={"Ligar para o cliente\nEnviar proposta\nAgendar reunião"}
+              />
+              <p className="text-xs text-muted-foreground">
+                {bulkText.split("\n").filter((l) => l.trim()).length} item(ns) detectado(s)
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBulkOpen(false)}>Cancelar</Button>
+            <Button className="gradient-primary" onClick={handleBulkSave}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
+
   );
 };
