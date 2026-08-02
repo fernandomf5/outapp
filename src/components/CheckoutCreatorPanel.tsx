@@ -122,6 +122,13 @@ export const CheckoutCreatorPanel = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CheckoutAnalyticsDialog
+        checkout={analyticsTarget}
+        open={!!analyticsTarget}
+        onOpenChange={(open) => { if (!open) setAnalyticsTarget(null); }}
+      />
+
     </div>
   );
 };
