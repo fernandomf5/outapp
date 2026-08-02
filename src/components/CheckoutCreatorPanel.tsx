@@ -3,9 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Save, Plus, ExternalLink, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Save, Plus, ExternalLink, Pencil, Trash2, Loader2, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import { CheckoutAnalyticsDialog } from "@/components/checkout/CheckoutAnalyticsDialog";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +24,8 @@ export const CheckoutCreatorPanel = () => {
   const [checkouts, setCheckouts] = useState<any[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [analyticsTarget, setAnalyticsTarget] = useState<any | null>(null);
+
 
   const loadCheckouts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -73,9 +77,12 @@ export const CheckoutCreatorPanel = () => {
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-1">{c.name}</h3>
               <p className="text-sm text-slate-500 line-clamp-2 mb-4">{c.item_name} - R$ {Number(c.price).toFixed(2)}</p>
-              <div className="flex items-center gap-2 pt-4 border-t border-slate-50">
+              <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-slate-50">
                 <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-slate-600 flex items-center gap-1">
                   <Pencil className="w-3 h-3" /> Editar
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-[#10b981] hover:bg-green-50 flex items-center gap-1" onClick={(e) => { e.stopPropagation(); setAnalyticsTarget(c); }}>
+                  <BarChart3 className="w-3 h-3" /> Analytics
                 </Button>
                 <Button variant="ghost" size="sm" className="text-xs h-8 px-3 rounded-lg text-slate-600 flex items-center gap-1" onClick={(e) => { e.stopPropagation(); window.open(`/checkout/${c.id}`, '_blank'); }}>
                   <ExternalLink className="w-3 h-3" /> Visualizar
@@ -89,6 +96,7 @@ export const CheckoutCreatorPanel = () => {
                   <Trash2 className="w-3 h-3" /> Excluir
                 </Button>
               </div>
+
             </div>
           </Card>
         ))}
@@ -114,6 +122,13 @@ export const CheckoutCreatorPanel = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CheckoutAnalyticsDialog
+        checkout={analyticsTarget}
+        open={!!analyticsTarget}
+        onOpenChange={(open) => { if (!open) setAnalyticsTarget(null); }}
+      />
+
     </div>
   );
 };

@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { trackCheckoutEvent } from "@/lib/checkoutTracking";
+
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -178,6 +180,20 @@ const CheckoutPage = () => {
   useEffect(() => { loadCheckout(); }, [checkoutId]);
 
   useEffect(() => {
+    if (checkoutId) trackCheckoutEvent(checkoutId, 'view');
+  }, [checkoutId]);
+
+  const formStartedRef = useRef(false);
+  useEffect(() => {
+    const filled = customerData.name.trim() || customerData.email.trim();
+    if (filled && !formStartedRef.current && checkoutId) {
+      formStartedRef.current = true;
+      trackCheckoutEvent(checkoutId, 'form_start');
+    }
+  }, [customerData.name, customerData.email, checkoutId]);
+
+
+  useEffect(() => {
     const email = customerData.email.trim();
     if (!checkoutId || !isValidEmail(email)) { setEmailInUseName(null); return; }
     let cancelled = false;
@@ -226,9 +242,15 @@ const CheckoutPage = () => {
 
   const toggleBump = (id: string) => {
     const newSet = new Set(selectedBumps);
-    if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
+    if (newSet.has(id)) newSet.delete(id);
+    else {
+      newSet.add(id);
+      const item = additionalItems.find(i => i.id === id);
+      if (checkoutId) trackCheckoutEvent(checkoutId, 'bump_added', { item_id: id, name: item?.name, price: item?.price });
+    }
     setSelectedBumps(newSet);
   };
+
 
   const updateRelatedQty = (id: string, delta: number) => {
     const newMap = new Map(relatedCart);
@@ -267,6 +289,8 @@ const CheckoutPage = () => {
 
   const handleProceedToPayment = async () => {
     if (!checkout) return;
+    trackCheckoutEvent(checkout.id, 'checkout_start', { amount: calculateTotal() });
+
     const normalizedEmail = customerData.email.trim().toLowerCase();
     if (!customerData.name.trim()) { alert('Preencha seu nome completo'); return; }
     if (!isValidEmail(normalizedEmail)) { alert('E-mail inválido'); return; }
@@ -306,9 +330,11 @@ const CheckoutPage = () => {
 
   const handlePaymentSuccess = (data: { accessCode?: string; paymentId: string; isManualPix?: boolean }) => {
     setPaymentSuccess(true);
+    if (checkoutId) trackCheckoutEvent(checkoutId, 'payment_success', { amount: calculateTotal(), payment_id: data.paymentId, manual_pix: !!data.isManualPix });
     if (data.accessCode) setAccessCode(data.accessCode);
     if (data.isManualPix) setIsManualPix(true);
   };
+
 
   const handlePaymentError = (errorMsg: string) => {
     alert(errorMsg);
