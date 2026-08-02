@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Clock, CheckCircle2, StickyNote, Pencil, ListChecks, X } from "lucide-react";
+import { Plus, Trash2, Clock, CheckCircle2, StickyNote, Pencil, ListChecks, X, FolderPlus, Layers } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -21,6 +21,12 @@ interface ChecklistItem {
   done: boolean;
 }
 
+interface NoteTab {
+  id: string;
+  name: string;
+  position: number;
+}
+
 interface Note {
   id: string;
   title: string;
@@ -29,12 +35,21 @@ interface Note {
   is_completed: boolean;
   created_at: string;
   checklist?: ChecklistItem[];
+  tab_id?: string | null;
 }
 
 const emptyForm = { title: "", content: "", reminder_date: "", checklist: [] as ChecklistItem[] };
 
 export const QuickNotesPanel = () => {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [tabs, setTabs] = useState<NoteTab[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [isTabDialogOpen, setIsTabDialogOpen] = useState(false);
+  const [newTabName, setNewTabName] = useState("");
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkMode, setBulkMode] = useState<"notes" | "checklist">("notes");
+  const [bulkTitle, setBulkTitle] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [reminderNote, setReminderNote] = useState<Note | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -42,7 +57,110 @@ export const QuickNotesPanel = () => {
   const [formData, setFormData] = useState(emptyForm);
   const [newChecklistText, setNewChecklistText] = useState("");
 
-  useEffect(() => { loadNotes(); }, []);
+
+  useEffect(() => { loadNotes(); loadTabs(); }, []);
+
+  const loadTabs = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("quick_note_tabs" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      setTabs(((data as any) || []) as NoteTab[]);
+    } catch (error) {
+      console.error("Erro ao carregar abas:", error);
+    }
+  };
+
+  const handleCreateTab = async () => {
+    if (!newTabName.trim()) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("quick_note_tabs" as any)
+        .insert([{ user_id: user.id, name: newTabName.trim(), position: tabs.length }])
+        .select()
+        .single();
+      if (error) throw error;
+      setNewTabName("");
+      setIsTabDialogOpen(false);
+      await loadTabs();
+      if (data) setActiveTab((data as any).id);
+      toast.success("Aba criada!");
+    } catch {
+      toast.error("Erro ao criar aba");
+    }
+  };
+
+  const handleDeleteTab = async (tabId: string) => {
+    try {
+      const { error } = await supabase.from("quick_note_tabs" as any).delete().eq("id", tabId);
+      if (error) throw error;
+      setActiveTab("all");
+      await loadTabs();
+      await loadNotes();
+      toast.success("Aba excluída (as anotações foram mantidas)");
+    } catch {
+      toast.error("Erro ao excluir aba");
+    }
+  };
+
+  const handleBulkSave = async () => {
+    const lines = bulkText
+      .split("\n")
+      .map((l) => l.replace(/^\s*([-*•]|\[\s*[xX]?\s*\])\s*/, "").trim())
+      .filter(Boolean);
+    if (lines.length === 0) {
+      toast.error("Digite ao menos uma linha");
+      return;
+    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const tabId = activeTab === "all" ? null : activeTab;
+
+      if (bulkMode === "checklist") {
+        const payload = {
+          user_id: user.id,
+          title: bulkTitle.trim() || "Lista rápida",
+          content: "",
+          reminder_date: null,
+          is_completed: false,
+          tab_id: tabId,
+          checklist: lines.map((text) => ({ id: crypto.randomUUID(), text, done: false })),
+        };
+        const { error } = await supabase.from("quick_notes" as any).insert([payload as any]);
+        if (error) throw error;
+      } else {
+        const rows = lines.map((line) => ({
+          user_id: user.id,
+          title: line.slice(0, 120),
+          content: "",
+          reminder_date: null,
+          is_completed: false,
+          tab_id: tabId,
+          checklist: [],
+        }));
+        const { error } = await supabase.from("quick_notes" as any).insert(rows as any);
+        if (error) throw error;
+      }
+
+      toast.success(bulkMode === "checklist" ? "Lista criada!" : `${lines.length} anotações criadas!`);
+      setBulkText("");
+      setBulkTitle("");
+      setIsBulkOpen(false);
+      loadNotes();
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao criar anotações em massa");
+    }
+  };
+
 
   useEffect(() => {
     const reminderInterval = setInterval(() => checkReminders(), 10000);
@@ -118,7 +236,7 @@ export const QuickNotesPanel = () => {
         if (error) throw error;
         toast.success("Nota atualizada!");
       } else {
-        const { error } = await supabase.from("quick_notes" as any).insert([{ ...payload, user_id: user.id, is_completed: false }]);
+        const { error } = await supabase.from("quick_notes" as any).insert([{ ...payload, user_id: user.id, is_completed: false, tab_id: activeTab === "all" ? null : activeTab }]);
         if (error) throw error;
         toast.success("Nota adicionada!");
       }
@@ -227,6 +345,10 @@ export const QuickNotesPanel = () => {
     return { done, total: list.length, pct: Math.round((done / list.length) * 100) };
   };
 
+  const visibleNotes = activeTab === "all" ? notes : notes.filter((n) => n.tab_id === activeTab);
+  const countForTab = (tabId: string) => notes.filter((n) => n.tab_id === tabId).length;
+
+
   return (
     <>
       {/* Reminder popup */}
@@ -257,8 +379,8 @@ export const QuickNotesPanel = () => {
       </AlertDialog>
 
       <Card className="glass">
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="space-y-3">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <StickyNote className="h-5 w-5" />
               <CardTitle className="text-lg">Anotações Rápidas</CardTitle>
@@ -268,21 +390,58 @@ export const QuickNotesPanel = () => {
                 </Badge>
               )}
             </div>
-            <Button size="sm" variant="outline" onClick={openNewDialog}>
-              <Plus className="h-4 w-4 mr-1" />
-              Nova
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => setIsBulkOpen(true)}>
+                <Layers className="h-4 w-4 mr-1" />
+                Em massa
+              </Button>
+              <Button size="sm" variant="outline" onClick={openNewDialog}>
+                <Plus className="h-4 w-4 mr-1" />
+                Nova
+              </Button>
+            </div>
+          </div>
+
+          {/* Abas */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap border transition-smooth ${
+                activeTab === "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-accent/40"
+              }`}
+            >
+              Todas ({notes.length})
+            </button>
+            {tabs.map((tab) => (
+              <div
+                key={tab.id}
+                className={`group flex items-center gap-1 px-3 py-1.5 rounded-full text-xs whitespace-nowrap border transition-smooth cursor-pointer ${
+                  activeTab === tab.id ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-accent/40"
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>{tab.name} ({countForTab(tab.id)})</span>
+                <X
+                  className="h-3 w-3 opacity-0 group-hover:opacity-70 hover:opacity-100"
+                  onClick={(e) => { e.stopPropagation(); handleDeleteTab(tab.id); }}
+                />
+              </div>
+            ))}
+            <Button size="sm" variant="ghost" className="h-7 px-2 shrink-0" onClick={() => setIsTabDialogOpen(true)}>
+              <FolderPlus className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {notes.length === 0 ? (
+          {visibleNotes.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <StickyNote className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Nenhuma anotação ainda</p>
+              <p className="text-sm">Nenhuma anotação nesta aba</p>
             </div>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
-              {notes.map((note) => {
+              {visibleNotes.map((note) => {
+
                 const prog = checklistProgress(note);
                 return (
                   <div
@@ -519,6 +678,93 @@ export const QuickNotesPanel = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Nova aba */}
+      <Dialog open={isTabDialogOpen} onOpenChange={setIsTabDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Nova Aba</DialogTitle>
+            <DialogDescription>Organize suas anotações por abas</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <Label>Nome da aba</Label>
+            <Input
+              value={newTabName}
+              onChange={(e) => setNewTabName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateTab(); } }}
+              placeholder="Ex: Trabalho"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTabDialogOpen(false)}>Cancelar</Button>
+            <Button className="gradient-primary" onClick={handleCreateTab}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Anotações em massa */}
+      <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Anotações em Massa</DialogTitle>
+            <DialogDescription>
+              Uma linha por item. Serão criadas na aba{" "}
+              <strong>{activeTab === "all" ? "Todas" : tabs.find((t) => t.id === activeTab)?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={bulkMode === "notes" ? "default" : "outline"}
+                onClick={() => setBulkMode("notes")}
+                className="flex-1"
+              >
+                <StickyNote className="h-4 w-4 mr-1" /> Várias anotações
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={bulkMode === "checklist" ? "default" : "outline"}
+                onClick={() => setBulkMode("checklist")}
+                className="flex-1"
+              >
+                <ListChecks className="h-4 w-4 mr-1" /> Uma lista (checklist)
+              </Button>
+            </div>
+
+            {bulkMode === "checklist" && (
+              <div className="grid gap-2">
+                <Label>Título da lista</Label>
+                <Input
+                  value={bulkTitle}
+                  onChange={(e) => setBulkTitle(e.target.value)}
+                  placeholder="Ex: Compras da semana"
+                />
+              </div>
+            )}
+
+            <div className="grid gap-2">
+              <Label>Itens (um por linha)</Label>
+              <Textarea
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                rows={8}
+                placeholder={"Ligar para o cliente\nEnviar proposta\nAgendar reunião"}
+              />
+              <p className="text-xs text-muted-foreground">
+                {bulkText.split("\n").filter((l) => l.trim()).length} item(ns) detectado(s)
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBulkOpen(false)}>Cancelar</Button>
+            <Button className="gradient-primary" onClick={handleBulkSave}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
+
   );
 };
