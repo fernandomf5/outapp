@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useWheelZoom } from '@/hooks/useWheelZoom';
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
@@ -1211,7 +1212,6 @@ export const MindMapCreatorPanel = () => {
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          onWheel={handleWheel}
         >
           {/* Grid pattern */}
           <div 

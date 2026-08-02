@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 type OrganizationType = 'radial' | 'horizontal' | 'vertical' | 'tree' | 'mindmap';
 import { toast } from 'sonner';
+import { useWheelZoom } from '@/hooks/useWheelZoom';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface MindMapNode {
@@ -871,7 +872,6 @@ export default function MindMapFullEditor() {
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
-          onWheel={handleWheel}
         >
           {isLocked && (
             <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-red-500/80 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1.5">

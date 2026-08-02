@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useWheelZoom } from '@/hooks/useWheelZoom';
 
 interface MindMapNode {
   id: string;
@@ -356,7 +357,6 @@ export default function MindMapPresentation() {
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          onWheel={handleWheel}
         >
           <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle, ${theme.line}33 1px, transparent 1px)`, backgroundSize: '30px 30px' }} />
 
