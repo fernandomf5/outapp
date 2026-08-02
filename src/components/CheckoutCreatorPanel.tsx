@@ -24,6 +24,8 @@ export const CheckoutCreatorPanel = () => {
   const [checkouts, setCheckouts] = useState<any[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [analyticsTarget, setAnalyticsTarget] = useState<any | null>(null);
+
 
   const loadCheckouts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
