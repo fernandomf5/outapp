@@ -289,6 +289,8 @@ const CheckoutPage = () => {
 
   const handleProceedToPayment = async () => {
     if (!checkout) return;
+    trackCheckoutEvent(checkout.id, 'checkout_start', { amount: calculateTotal() });
+
     const normalizedEmail = customerData.email.trim().toLowerCase();
     if (!customerData.name.trim()) { alert('Preencha seu nome completo'); return; }
     if (!isValidEmail(normalizedEmail)) { alert('E-mail inválido'); return; }
