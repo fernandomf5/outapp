@@ -717,6 +717,13 @@ export function SimpleMembersArea() {
     toast.success('Link do checkout copiado!');
   };
 
+  const handleOpenCreateDialog = () => {
+    setEditingArea(null);
+    setUploadedImageUrl('');
+    setAreaFormData(defaultAreaFormData);
+    setIsCreateDialogOpen(true);
+  };
+
   const handleOpenEditDialog = (area: MembersArea) => {
     setEditingArea(area);
     setAreaFormData({
