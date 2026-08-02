@@ -58,7 +58,109 @@ export const QuickNotesPanel = () => {
   const [newChecklistText, setNewChecklistText] = useState("");
 
 
-  useEffect(() => { loadNotes(); }, []);
+  useEffect(() => { loadNotes(); loadTabs(); }, []);
+
+  const loadTabs = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("quick_note_tabs" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      setTabs(((data as any) || []) as NoteTab[]);
+    } catch (error) {
+      console.error("Erro ao carregar abas:", error);
+    }
+  };
+
+  const handleCreateTab = async () => {
+    if (!newTabName.trim()) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("quick_note_tabs" as any)
+        .insert([{ user_id: user.id, name: newTabName.trim(), position: tabs.length }])
+        .select()
+        .single();
+      if (error) throw error;
+      setNewTabName("");
+      setIsTabDialogOpen(false);
+      await loadTabs();
+      if (data) setActiveTab((data as any).id);
+      toast.success("Aba criada!");
+    } catch {
+      toast.error("Erro ao criar aba");
+    }
+  };
+
+  const handleDeleteTab = async (tabId: string) => {
+    try {
+      const { error } = await supabase.from("quick_note_tabs" as any).delete().eq("id", tabId);
+      if (error) throw error;
+      setActiveTab("all");
+      await loadTabs();
+      await loadNotes();
+      toast.success("Aba excluída (as anotações foram mantidas)");
+    } catch {
+      toast.error("Erro ao excluir aba");
+    }
+  };
+
+  const handleBulkSave = async () => {
+    const lines = bulkText
+      .split("\n")
+      .map((l) => l.replace(/^\s*([-*•]|\[\s*[xX]?\s*\])\s*/, "").trim())
+      .filter(Boolean);
+    if (lines.length === 0) {
+      toast.error("Digite ao menos uma linha");
+      return;
+    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const tabId = activeTab === "all" ? null : activeTab;
+
+      if (bulkMode === "checklist") {
+        const payload = {
+          user_id: user.id,
+          title: bulkTitle.trim() || "Lista rápida",
+          content: "",
+          reminder_date: null,
+          is_completed: false,
+          tab_id: tabId,
+          checklist: lines.map((text) => ({ id: crypto.randomUUID(), text, done: false })),
+        };
+        const { error } = await supabase.from("quick_notes" as any).insert([payload as any]);
+        if (error) throw error;
+      } else {
+        const rows = lines.map((line) => ({
+          user_id: user.id,
+          title: line.slice(0, 120),
+          content: "",
+          reminder_date: null,
+          is_completed: false,
+          tab_id: tabId,
+          checklist: [],
+        }));
+        const { error } = await supabase.from("quick_notes" as any).insert(rows as any);
+        if (error) throw error;
+      }
+
+      toast.success(bulkMode === "checklist" ? "Lista criada!" : `${lines.length} anotações criadas!`);
+      setBulkText("");
+      setBulkTitle("");
+      setIsBulkOpen(false);
+      loadNotes();
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao criar anotações em massa");
+    }
+  };
+
 
   useEffect(() => {
     const reminderInterval = setInterval(() => checkReminders(), 10000);
