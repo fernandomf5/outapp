@@ -330,9 +330,11 @@ const CheckoutPage = () => {
 
   const handlePaymentSuccess = (data: { accessCode?: string; paymentId: string; isManualPix?: boolean }) => {
     setPaymentSuccess(true);
+    if (checkoutId) trackCheckoutEvent(checkoutId, 'payment_success', { amount: calculateTotal(), payment_id: data.paymentId, manual_pix: !!data.isManualPix });
     if (data.accessCode) setAccessCode(data.accessCode);
     if (data.isManualPix) setIsManualPix(true);
   };
+
 
   const handlePaymentError = (errorMsg: string) => {
     alert(errorMsg);
