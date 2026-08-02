@@ -2818,6 +2818,47 @@ export type Database = {
           },
         ]
       }
+      checkout_events: {
+        Row: {
+          checkout_id: string
+          created_at: string
+          device: string | null
+          event_type: string
+          id: string
+          metadata: Json
+          referrer: string | null
+          session_id: string | null
+        }
+        Insert: {
+          checkout_id: string
+          created_at?: string
+          device?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json
+          referrer?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          checkout_id?: string
+          created_at?: string
+          device?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json
+          referrer?: string | null
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_events_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkout_orders: {
         Row: {
           additional_items: Json | null
