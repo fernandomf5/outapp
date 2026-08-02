@@ -236,7 +236,7 @@ export const QuickNotesPanel = () => {
         if (error) throw error;
         toast.success("Nota atualizada!");
       } else {
-        const { error } = await supabase.from("quick_notes" as any).insert([{ ...payload, user_id: user.id, is_completed: false }]);
+        const { error } = await supabase.from("quick_notes" as any).insert([{ ...payload, user_id: user.id, is_completed: false, tab_id: activeTab === "all" ? null : activeTab }]);
         if (error) throw error;
         toast.success("Nota adicionada!");
       }
