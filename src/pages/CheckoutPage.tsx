@@ -242,9 +242,15 @@ const CheckoutPage = () => {
 
   const toggleBump = (id: string) => {
     const newSet = new Set(selectedBumps);
-    if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
+    if (newSet.has(id)) newSet.delete(id);
+    else {
+      newSet.add(id);
+      const item = additionalItems.find(i => i.id === id);
+      if (checkoutId) trackCheckoutEvent(checkoutId, 'bump_added', { item_id: id, name: item?.name, price: item?.price });
+    }
     setSelectedBumps(newSet);
   };
+
 
   const updateRelatedQty = (id: string, delta: number) => {
     const newMap = new Map(relatedCart);
