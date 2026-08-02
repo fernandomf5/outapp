@@ -866,7 +866,7 @@ export default function MindMapFullEditor() {
         <div
           ref={canvasRef}
           className={`flex-1 relative overflow-hidden touch-none ${isLocked ? 'cursor-not-allowed' : ''}`}
-          style={{ cursor: isLocked ? 'not-allowed' : isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab' }}
+          style={{ cursor: isLocked ? 'not-allowed' : isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab', overscrollBehavior: 'none' }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}

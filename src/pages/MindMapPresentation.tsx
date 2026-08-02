@@ -351,7 +351,7 @@ export default function MindMapPresentation() {
         <div
           ref={canvasRef}
           className="flex-1 relative overflow-hidden touch-none"
-          style={{ cursor: isPanning ? 'grabbing' : (draggedNode && isEditMode) ? 'move' : 'grab' }}
+          style={{ cursor: isPanning ? 'grabbing' : (draggedNode && isEditMode) ? 'move' : 'grab', overscrollBehavior: 'none' }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
