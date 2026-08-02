@@ -379,8 +379,8 @@ export const QuickNotesPanel = () => {
       </AlertDialog>
 
       <Card className="glass">
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="space-y-3">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <StickyNote className="h-5 w-5" />
               <CardTitle className="text-lg">Anotações Rápidas</CardTitle>
@@ -390,21 +390,58 @@ export const QuickNotesPanel = () => {
                 </Badge>
               )}
             </div>
-            <Button size="sm" variant="outline" onClick={openNewDialog}>
-              <Plus className="h-4 w-4 mr-1" />
-              Nova
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => setIsBulkOpen(true)}>
+                <Layers className="h-4 w-4 mr-1" />
+                Em massa
+              </Button>
+              <Button size="sm" variant="outline" onClick={openNewDialog}>
+                <Plus className="h-4 w-4 mr-1" />
+                Nova
+              </Button>
+            </div>
+          </div>
+
+          {/* Abas */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap border transition-smooth ${
+                activeTab === "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-accent/40"
+              }`}
+            >
+              Todas ({notes.length})
+            </button>
+            {tabs.map((tab) => (
+              <div
+                key={tab.id}
+                className={`group flex items-center gap-1 px-3 py-1.5 rounded-full text-xs whitespace-nowrap border transition-smooth cursor-pointer ${
+                  activeTab === tab.id ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-accent/40"
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>{tab.name} ({countForTab(tab.id)})</span>
+                <X
+                  className="h-3 w-3 opacity-0 group-hover:opacity-70 hover:opacity-100"
+                  onClick={(e) => { e.stopPropagation(); handleDeleteTab(tab.id); }}
+                />
+              </div>
+            ))}
+            <Button size="sm" variant="ghost" className="h-7 px-2 shrink-0" onClick={() => setIsTabDialogOpen(true)}>
+              <FolderPlus className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {notes.length === 0 ? (
+          {visibleNotes.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <StickyNote className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Nenhuma anotação ainda</p>
+              <p className="text-sm">Nenhuma anotação nesta aba</p>
             </div>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
-              {notes.map((note) => {
+              {visibleNotes.map((note) => {
+
                 const prog = checklistProgress(note);
                 return (
                   <div
