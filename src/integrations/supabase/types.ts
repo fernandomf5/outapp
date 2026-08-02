@@ -7063,6 +7063,30 @@ export type Database = {
         }
         Relationships: []
       }
+      quick_note_tabs: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       quick_notes: {
         Row: {
           checklist: Json
@@ -7071,6 +7095,7 @@ export type Database = {
           id: string
           is_completed: boolean
           reminder_date: string | null
+          tab_id: string | null
           title: string
           updated_at: string
           user_id: string
@@ -7082,6 +7107,7 @@ export type Database = {
           id?: string
           is_completed?: boolean
           reminder_date?: string | null
+          tab_id?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -7093,11 +7119,20 @@ export type Database = {
           id?: string
           is_completed?: boolean
           reminder_date?: string | null
+          tab_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quick_notes_tab_id_fkey"
+            columns: ["tab_id"]
+            isOneToOne: false
+            referencedRelation: "quick_note_tabs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       receipt_templates: {
         Row: {
