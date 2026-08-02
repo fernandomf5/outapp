@@ -1959,7 +1959,7 @@ export function SimpleMembersArea() {
             <h2 className="text-2xl font-bold">Áreas de Membros</h2>
             <div className="mt-3"><ResourceAssignmentsButton resourceType="members_area" /></div>
           </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={handleOpenCreateDialog}>
           <Plus className="w-4 h-4 mr-2" />
           Nova Área
         </Button>
@@ -1969,7 +1969,7 @@ export function SimpleMembersArea() {
         <Card>
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground mb-4">Nenhuma área de membros criada ainda</p>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button onClick={handleOpenCreateDialog}>
               <Plus className="w-4 h-4 mr-2" />
               Criar Primeira Área
             </Button>
@@ -2119,7 +2119,13 @@ export function SimpleMembersArea() {
       )}
 
 
-      <Dialog modal={false} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <Dialog modal={false} open={isCreateDialogOpen} onOpenChange={(open) => {
+        setIsCreateDialogOpen(open);
+        if (!open) {
+          setUploadedImageUrl('');
+          setAreaFormData(defaultAreaFormData);
+        }
+      }}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Nova Área de Membros</DialogTitle>
@@ -2445,7 +2451,14 @@ export function SimpleMembersArea() {
         </DialogContent>
       </Dialog>
 
-      <Dialog modal={false} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog modal={false} open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open);
+        if (!open) {
+          setEditingArea(null);
+          setUploadedImageUrl('');
+          setAreaFormData(defaultAreaFormData);
+        }
+      }}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Editar Área de Membros</DialogTitle>
