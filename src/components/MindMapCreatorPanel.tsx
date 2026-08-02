@@ -1119,6 +1119,10 @@ export const MindMapCreatorPanel = () => {
                   <Maximize2 className="w-4 h-4 mr-2" />
                   Editor Full
                 </Button>
+                <Button onClick={() => window.open(`/mindmap/${currentMapId}`, '_blank')} size="sm" variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-500 hover:bg-purple-500/20">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Abrir Apresentação
+                </Button>
                 <Button onClick={copyPresentationLink} size="sm" variant="outline" className="bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20">
                   <Link2 className="w-4 h-4 mr-2" />
                   Link Apresentação
