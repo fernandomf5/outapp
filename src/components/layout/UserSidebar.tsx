@@ -39,6 +39,7 @@ interface MenuItem {
   superscript?: string;
   moduleKey?: string; // Key for team member permission check
   hideForTeamMember?: boolean; // Explicitly hide this item for team members
+  openInNewTab?: boolean; // Open the path in a new browser tab
 }
 
 interface RegistrationCategory {
@@ -176,6 +177,7 @@ export function UserSidebar() {
   // Main items - overview is always visible, Blog is external
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview", hideForTeamMember: true },
+    { title: "Abrir nova aba", icon: ExternalLink, path: "/dashboard", tab: "overview", openInNewTab: true, hideForTeamMember: true },
   ];
 
   const organizerItems: MenuItem[] = [
@@ -283,7 +285,8 @@ export function UserSidebar() {
   }, [searchQuery, allMenuItems]);
 
   const handleSearchSelect = (item: MenuItem) => {
-    handleNavigation(item.path, item.tab);
+    if (item.openInNewTab) window.open(`${item.path}${item.tab ? `?tab=${item.tab}` : ''}`, '_blank');
+    else handleNavigation(item.path, item.tab);
     setSearchQuery("");
   };
 
@@ -439,7 +442,8 @@ export function UserSidebar() {
                       <SidebarMenuItem key={title + idx} className={cn(collapsed && "w-full flex justify-center")}>
                         <SidebarMenuButton
                           onClick={() => {
-                            if (item.title === "Blog") window.open(item.path, '_blank');
+                            if (item.openInNewTab) window.open(`${path}${tab ? `?tab=${tab}` : ''}`, '_blank');
+                            else if (item.title === "Blog") window.open(item.path, '_blank');
                             else handleNavigation(path, tab, catId);
                           }}
                           className={cn(
