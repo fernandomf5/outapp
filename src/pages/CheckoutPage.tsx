@@ -178,6 +178,20 @@ const CheckoutPage = () => {
   useEffect(() => { loadCheckout(); }, [checkoutId]);
 
   useEffect(() => {
+    if (checkoutId) trackCheckoutEvent(checkoutId, 'view');
+  }, [checkoutId]);
+
+  const formStartedRef = useRef(false);
+  useEffect(() => {
+    const filled = customerData.name.trim() || customerData.email.trim();
+    if (filled && !formStartedRef.current && checkoutId) {
+      formStartedRef.current = true;
+      trackCheckoutEvent(checkoutId, 'form_start');
+    }
+  }, [customerData.name, customerData.email, checkoutId]);
+
+
+  useEffect(() => {
     const email = customerData.email.trim();
     if (!checkoutId || !isValidEmail(email)) { setEmailInUseName(null); return; }
     let cancelled = false;
