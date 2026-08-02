@@ -32,5 +32,5 @@ export function useWheelZoom(
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [ref]);
+  });
 }

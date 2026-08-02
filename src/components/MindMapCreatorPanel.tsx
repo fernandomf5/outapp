@@ -1201,6 +1201,7 @@ export const MindMapCreatorPanel = () => {
           style={{ 
             backgroundColor: theme.bg,
             cursor: isLocked ? 'default' : (isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab'),
+            overscrollBehavior: 'none',
           }}
           onPointerDown={(e) => {
             if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('canvas-area')) {
