@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus, Maximize2, Lock, Unlock } from 'lucide-react';
+import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus, Maximize2, Lock, Unlock, ExternalLink } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -1118,6 +1118,10 @@ export const MindMapCreatorPanel = () => {
                 }} size="sm" variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20">
                   <Maximize2 className="w-4 h-4 mr-2" />
                   Editor Full
+                </Button>
+                <Button onClick={() => window.open(`/mindmap/${currentMapId}`, '_blank')} size="sm" variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-500 hover:bg-purple-500/20">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Abrir Apresentação
                 </Button>
                 <Button onClick={copyPresentationLink} size="sm" variant="outline" className="bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20">
                   <Link2 className="w-4 h-4 mr-2" />
