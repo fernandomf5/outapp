@@ -385,11 +385,10 @@ export const MindMapCreatorPanel = () => {
     setLastMousePos({ x: e.clientX, y: e.clientY });
   }, [connectingFrom, nodes, isLocked]);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (isLocked) return;
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setScale(prev => Math.max(0.3, Math.min(2, prev + delta)));
-  }, [isLocked]);
+  useWheelZoom(canvasRef, (factor) => {
+    setScale(prev => Math.max(0.3, Math.min(2, prev * factor)));
+  }, !isLocked);
+
 
   const startConnecting = (nodeId: string) => {
     setConnectingFrom(nodeId);
