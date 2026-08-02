@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Clock, CheckCircle2, StickyNote, Pencil, ListChecks, X } from "lucide-react";
+import { Plus, Trash2, Clock, CheckCircle2, StickyNote, Pencil, ListChecks, X, FolderPlus, Layers } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -21,6 +21,12 @@ interface ChecklistItem {
   done: boolean;
 }
 
+interface NoteTab {
+  id: string;
+  name: string;
+  position: number;
+}
+
 interface Note {
   id: string;
   title: string;
@@ -29,18 +35,28 @@ interface Note {
   is_completed: boolean;
   created_at: string;
   checklist?: ChecklistItem[];
+  tab_id?: string | null;
 }
 
 const emptyForm = { title: "", content: "", reminder_date: "", checklist: [] as ChecklistItem[] };
 
 export const QuickNotesPanel = () => {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [tabs, setTabs] = useState<NoteTab[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [isTabDialogOpen, setIsTabDialogOpen] = useState(false);
+  const [newTabName, setNewTabName] = useState("");
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkMode, setBulkMode] = useState<"notes" | "checklist">("notes");
+  const [bulkTitle, setBulkTitle] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [reminderNote, setReminderNote] = useState<Note | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [detailNote, setDetailNote] = useState<Note | null>(null);
   const [formData, setFormData] = useState(emptyForm);
   const [newChecklistText, setNewChecklistText] = useState("");
+
 
   useEffect(() => { loadNotes(); }, []);
 
