@@ -39,6 +39,7 @@ interface MenuItem {
   superscript?: string;
   moduleKey?: string; // Key for team member permission check
   hideForTeamMember?: boolean; // Explicitly hide this item for team members
+  openInNewTab?: boolean; // Open the path in a new browser tab
 }
 
 interface RegistrationCategory {
@@ -176,6 +177,7 @@ export function UserSidebar() {
   // Main items - overview is always visible, Blog is external
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview", hideForTeamMember: true },
+    { title: "Abrir nova aba", icon: ExternalLink, path: "/dashboard", tab: "overview", openInNewTab: true, hideForTeamMember: true },
   ];
 
   const organizerItems: MenuItem[] = [
