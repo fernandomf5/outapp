@@ -112,17 +112,58 @@ const Dashboard = () => {
   const { isTeamMember, teamMember, getAllowedIds, canAccessModule } = useTeamMember();
   const [resourceSearch, setResourceSearch] = useState("");
   const resourcesGridRef = useRef<HTMLDivElement>(null);
+  const [favoriteResources, setFavoriteResources] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem("dashboard_favorite_resources");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleFavoriteResource = (title: string) => {
+    setFavoriteResources((prev) => {
+      const next = prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title];
+      try {
+        localStorage.setItem("dashboard_favorite_resources", JSON.stringify(next));
+      } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   useEffect(() => {
     const grid = resourcesGridRef.current;
     if (!grid) return;
     const query = resourceSearch.trim().toLowerCase();
+
     Array.from(grid.children).forEach((child) => {
       const el = child as HTMLElement;
-      const title = el.querySelector("h3")?.textContent?.toLowerCase() ?? "";
-      el.style.display = !query || title.includes(query) ? "" : "none";
+      const title = el.querySelector("h3")?.textContent?.trim() ?? "";
+      const isFav = favoriteResources.includes(title);
+
+      el.style.display = !query || title.toLowerCase().includes(query) ? "" : "none";
+      el.style.order = isFav ? "-1" : "0";
+      el.style.position = "relative";
+
+      let btn = el.querySelector<HTMLButtonElement>("[data-fav-btn]");
+      if (!btn) {
+        btn = document.createElement("button");
+        btn.setAttribute("data-fav-btn", "true");
+        btn.type = "button";
+        btn.className =
+          "absolute top-2 right-2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-background/70 backdrop-blur border border-border hover:bg-accent transition-colors";
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleFavoriteResource(el.querySelector("h3")?.textContent?.trim() ?? "");
+        });
+        el.appendChild(btn);
+      }
+      btn.title = isFav ? "Remover dos favoritos" : "Marcar como favorito";
+      btn.setAttribute("aria-label", btn.title);
+      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${isFav ? "text-primary" : "text-muted-foreground"}"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
     });
-  }, [resourceSearch]);
+  }, [resourceSearch, favoriteResources, activeTab]);
+
   
   // Track user presence for online status
   useUserPresence();
