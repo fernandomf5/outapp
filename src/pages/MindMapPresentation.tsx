@@ -177,10 +177,10 @@ export default function MindMapPresentation() {
     setDraggedNode(null);
   }, []);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setScale(prev => Math.max(0.3, Math.min(3, prev + delta)));
-  }, []);
+  useWheelZoom(canvasRef, (factor) => {
+    setScale(prev => Math.max(0.3, Math.min(3, prev * factor)));
+  });
+
 
   const handleNodePointerDown = (e: React.PointerEvent, nodeId: string) => {
     e.stopPropagation();
