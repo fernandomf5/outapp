@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useWheelZoom } from '@/hooks/useWheelZoom';
 
 interface MindMapNode {
   id: string;
@@ -177,10 +178,10 @@ export default function MindMapPresentation() {
     setDraggedNode(null);
   }, []);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setScale(prev => Math.max(0.3, Math.min(3, prev + delta)));
-  }, []);
+  useWheelZoom(canvasRef, (factor) => {
+    setScale(prev => Math.max(0.3, Math.min(3, prev * factor)));
+  });
+
 
   const handleNodePointerDown = (e: React.PointerEvent, nodeId: string) => {
     e.stopPropagation();
@@ -356,7 +357,6 @@ export default function MindMapPresentation() {
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          onWheel={handleWheel}
         >
           <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle, ${theme.line}33 1px, transparent 1px)`, backgroundSize: '30px 30px' }} />
 

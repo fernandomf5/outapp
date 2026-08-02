@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useWheelZoom } from '@/hooks/useWheelZoom';
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
 
 
@@ -384,11 +385,10 @@ export const MindMapCreatorPanel = () => {
     setLastMousePos({ x: e.clientX, y: e.clientY });
   }, [connectingFrom, nodes, isLocked]);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (isLocked) return;
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setScale(prev => Math.max(0.3, Math.min(2, prev + delta)));
-  }, [isLocked]);
+  useWheelZoom(canvasRef, (factor) => {
+    setScale(prev => Math.max(0.3, Math.min(2, prev * factor)));
+  }, !isLocked);
+
 
   const startConnecting = (nodeId: string) => {
     setConnectingFrom(nodeId);
@@ -1211,7 +1211,6 @@ export const MindMapCreatorPanel = () => {
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          onWheel={handleWheel}
         >
           {/* Grid pattern */}
           <div 
