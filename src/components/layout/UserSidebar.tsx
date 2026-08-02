@@ -285,7 +285,8 @@ export function UserSidebar() {
   }, [searchQuery, allMenuItems]);
 
   const handleSearchSelect = (item: MenuItem) => {
-    handleNavigation(item.path, item.tab);
+    if (item.openInNewTab) window.open(`${item.path}${item.tab ? `?tab=${item.tab}` : ''}`, '_blank');
+    else handleNavigation(item.path, item.tab);
     setSearchQuery("");
   };
 
@@ -441,7 +442,8 @@ export function UserSidebar() {
                       <SidebarMenuItem key={title + idx} className={cn(collapsed && "w-full flex justify-center")}>
                         <SidebarMenuButton
                           onClick={() => {
-                            if (item.title === "Blog") window.open(item.path, '_blank');
+                            if (item.openInNewTab) window.open(`${path}${tab ? `?tab=${tab}` : ''}`, '_blank');
+                            else if (item.title === "Blog") window.open(item.path, '_blank');
                             else handleNavigation(path, tab, catId);
                           }}
                           className={cn(
