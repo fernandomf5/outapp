@@ -345,6 +345,10 @@ export const QuickNotesPanel = () => {
     return { done, total: list.length, pct: Math.round((done / list.length) * 100) };
   };
 
+  const visibleNotes = activeTab === "all" ? notes : notes.filter((n) => n.tab_id === activeTab);
+  const countForTab = (tabId: string) => notes.filter((n) => n.tab_id === tabId).length;
+
+
   return (
     <>
       {/* Reminder popup */}
