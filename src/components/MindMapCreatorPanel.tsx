@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus, Maximize2, Lock, Unlock } from 'lucide-react';
+import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus, Maximize2, Lock, Unlock, ExternalLink } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
