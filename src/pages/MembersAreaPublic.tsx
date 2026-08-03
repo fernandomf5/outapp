@@ -1187,10 +1187,7 @@ export default function MembersAreaPublic() {
 
 
   // Internal Members Area with Sidebar
-  const currentSection = useMemo(() => {
-    if (!area?.sections || !activeSection) return null;
-    return area.sections.find(s => s.id === activeSection) || area.sections[0];
-  }, [area?.sections, activeSection]);
+  // currentSection is now defined at the top to avoid hook order issues (React Error #310)
 
 
   return (
