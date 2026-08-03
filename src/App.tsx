@@ -55,6 +55,7 @@ import CampaignPublicView from "./pages/CampaignPublicView";
 import ClientCampaignsPublicView from "./pages/ClientCampaignsPublicView";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutThankYouPage from "./pages/CheckoutThankYouPage";
+import PaymentThankYou from "./pages/PaymentThankYou";
 import TeamMemberAuth from "./pages/TeamMemberAuth";
 import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
