@@ -1354,53 +1354,94 @@ export default function MembersAreaPublic() {
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 md:flex-row">
-        {/* Sections Sidebar (Desktop) - Only show for content view */}
-        {activeView === 'content' && (
-          <div 
-            className="hidden md:block w-72 lg:w-80 flex-shrink-0 border-r overflow-y-auto"
-            style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}15` }}
-          >
-            {/* Header */}
+      {/* Secondary Content Layer */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Main Content Area */}
+        <div className="flex-1 flex min-w-0 md:flex-row overflow-hidden">
+          {/* Module List Sidebar (Desktop) - Only show for content view */}
+          {activeView === 'content' && (
             <div 
-              className="px-4 md:px-6 py-4 md:py-5 border-b"
-              style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
+              className="hidden md:flex flex-col w-72 lg:w-80 flex-shrink-0 border-r overflow-hidden"
+              style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}10` }}
             >
-              <h2 className="text-lg font-bold" style={{ color: textColor }}>{area.name}</h2>
-              <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>{area.description}</p>
-            </div>
-
-            {/* Progress - only show for courses */}
-            {area.area_type !== 'exclusive' && (
-            <div className="p-4 border-b" style={{ borderColor: `${accentColor}15` }}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium" style={{ color: cardTextColor }}>Seu Progresso</span>
-                <span className="text-sm font-bold" style={{ color: accentColor }}>35%</span>
-              </div>
+              {/* Sidebar Header with Meta Info */}
               <div 
-                className="w-full h-2 rounded-full overflow-hidden"
-                style={{ backgroundColor: `${accentColor}20` }}
+                className="px-6 py-8 border-b"
+                style={{ backgroundColor: `${headerBackgroundColor}50`, borderColor: `${accentColor}05` }}
               >
-                <div 
-                  className="h-full rounded-full transition-all"
-                  style={{ 
-                    width: '35%',
-                    background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` 
-                  }}
-                />
+                <div className="mb-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary" style={{ color: accentColor, backgroundColor: `${accentColor}10` }}>
+                  Área de Membros
+                </div>
+                <h2 className="text-xl font-bold tracking-tight mb-2" style={{ color: textColor }}>{area.name}</h2>
+                <p className="text-sm opacity-60 line-clamp-2 leading-relaxed" style={{ color: textColor }}>{area.description}</p>
+                
+                {/* Progress Mini Widget */}
+                {area.area_type !== 'exclusive' && (
+                  <div className="mt-6 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider" style={{ color: `${textColor}60` }}>
+                      <span>Progresso</span>
+                      <span style={{ color: accentColor }}>35%</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-black/5 overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-1000" style={{ width: '35%', background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` }} />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            )}
 
-            {/* Sections List */}
-            <div className="p-4 space-y-2">
-              <h3 
-                className="text-xs font-semibold uppercase tracking-wide mb-3"
-                style={{ color: cardTextColor }}
-              >
-                Módulos
-              </h3>
+              {/* Scrollable Section List */}
+              <ScrollArea className="flex-1">
+                <div className="p-4 space-y-1.5">
+                  <div className="px-3 mb-4 text-[10px] font-bold uppercase tracking-widest opacity-40" style={{ color: textColor }}>
+                    Módulos do Curso
+                  </div>
+                  
+                  {area.sections.map((section, index) => (
+                    <button
+                      key={section.id}
+                      onClick={() => setActiveSection(section.id)}
+                      className="group w-full p-3.5 rounded-2xl flex items-center gap-4 transition-all duration-200 text-left hover:bg-black/5"
+                      style={{ 
+                        backgroundColor: activeSection === section.id ? `${accentColor}08` : 'transparent',
+                        boxShadow: activeSection === section.id ? `inset 0 0 0 1px ${accentColor}20` : 'none'
+                      }}
+                    >
+                      <div 
+                        className="relative w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-sm font-bold transition-all shadow-sm group-hover:scale-105"
+                        style={{ 
+                          background: activeSection === section.id 
+                            ? `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
+                            : `${accentColor}10`,
+                          color: activeSection === section.id ? 'white' : accentColor
+                        }}
+                      >
+                        {section.cover_image ? (
+                          <img src={section.cover_image} alt="" className="w-full h-full object-cover rounded-xl" />
+                        ) : (
+                          <span>{index + 1}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold mb-0.5 transition-colors ${activeSection === section.id ? '' : 'opacity-80'}`} style={{ color: textColor }}>
+                          {section.title}
+                        </p>
+                        <p className="text-[11px] opacity-50 truncate font-medium" style={{ color: textColor }}>
+                          {section.blocks?.length || 0} aulas disponíveis
+                        </p>
+                      </div>
+                      {activeSection === section.id && (
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
+          {/* Right Side Content Viewer */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto pt-[68px] md:pt-0 pb-24 md:pb-0">
+            {/* View Dispatcher Content */}
               
               {area.sections.map((section, index) => (
                 <button
