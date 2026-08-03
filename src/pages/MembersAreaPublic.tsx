@@ -1657,11 +1657,14 @@ export default function MembersAreaPublic() {
                     <h2 className="text-xl font-bold break-words" style={{ color: textColor }}>
                       {area.sections.find(s => s.id === activeSection)?.title || 'Selecione um módulo'}
                     </h2>
-                    {currentSection?.description && (
-                      <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
-                        {currentSection.description}
-                      </p>
-                    )}
+                    {(() => {
+                      const s = area.sections.find(sec => sec.id === activeSection);
+                      return s?.description && (
+                        <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
+                          {s.description}
+                        </p>
+                      );
+                    })()}
                   </div>
                   <Badge 
                     className="text-sm px-3 py-1 border"
