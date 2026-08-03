@@ -48,7 +48,15 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // 15 MB
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Checkouts must always load the latest payment code. In particular,
+        // Safari can otherwise keep an older app shell after a deployment.
+        navigateFallbackDenylist: [/^\/checkout(?:\/|$)/],
         runtimeCaching: [
+          {
+            urlPattern: ({ request, url }) =>
+              request.mode === "navigate" && url.pathname.startsWith("/checkout/"),
+            handler: "NetworkOnly",
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: "CacheFirst",
