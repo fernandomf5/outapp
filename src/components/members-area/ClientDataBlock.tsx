@@ -702,60 +702,92 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
 
     case 'client_invoices': {
       const invoices: any[] = data?.invoices || [];
-      if (!invoices.length) return empty('Nenhuma fatura encontrada');
+      const subscriptions: any[] = data?.subscriptions || [];
+
       return shell(
         <div className="space-y-4">
-          {scroller(
-            invoices.map((inv) => {
-              const statusColor = inv.status === 'paid' ? '#16a34a' : inv.status === 'overdue' ? '#dc2626' : '#ea580c';
-              const statusLabel = inv.status === 'paid' ? 'Pago' : inv.status === 'overdue' ? 'Atrasada' : 'Pendente';
-              
-              return box(
-                <div className="space-y-3">
+          {subscriptions.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase font-bold opacity-60 px-1">Assinaturas Ativas</p>
+              {subscriptions.map((sub) => (
+                <div key={sub.id} className="p-3 rounded-lg border flex flex-col gap-1" style={{ borderColor: `${accentColor}30`, backgroundColor: `${accentColor}08` }}>
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold" style={{ color: cardTextColor }}>
-                        Fatura #{inv.invoice_number}
-                      </p>
-                      <p className="text-[10px] opacity-70">
-                        Vencimento: {dateBR(inv.due_date)}
-                      </p>
-                    </div>
-                    <Badge style={{ backgroundColor: `${statusColor}15`, color: statusColor, borderColor: `${statusColor}30` }} variant="outline" className="text-[10px] font-bold">
-                      {statusLabel}
-                    </Badge>
+                    <span className="text-xs font-semibold flex items-center gap-1.5">
+                      <Repeat className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                      Plano Recorrente
+                    </span>
+                    <Badge style={{ backgroundColor: '#dcfce7', color: '#166534', border: '0' }} className="text-[10px]">Ativa</Badge>
                   </div>
-                  
-                  <div className="flex items-center justify-between pt-2 border-t border-black/5" style={{ borderColor: `${accentColor}10` }}>
-                    <p className="text-sm font-black" style={{ color: accentColor }}>
-                      {currency(inv.total_amount)}
-                    </p>
-                    {inv.status !== 'paid' && (
-                      <Button 
-                        size="sm" 
-                        className="h-7 text-[10px] font-bold px-3"
-                        style={{ backgroundColor: accentColor }}
-                        onClick={() => window.open(`/fatura/${inv.public_token}`, '_blank')}
-                      >
-                        Pagar Agora
-                      </Button>
-                    )}
-                    {inv.status === 'paid' && (
-                      <Button 
-                        variant="ghost"
-                        size="sm" 
-                        className="h-7 text-[10px] font-bold px-3 gap-1"
-                        onClick={() => downloadReceiptPDF(inv)}
-                      >
-                        <Download className="w-3 h-3" /> Recibo
-                      </Button>
+                  <div className="text-[11px] opacity-80 mt-1">
+                    {sub.billing_day ? (
+                      <p>Próxima cobrança: <span className="font-bold">Todo dia {sub.billing_day}</span></p>
+                    ) : (
+                      <p>Próxima renovação: <span className="font-bold">{dateBR(sub.next_billing_date)}</span></p>
                     )}
                   </div>
-                </div>,
-                inv.id
-              );
-            })
+                </div>
+              ))}
+            </div>
           )}
+
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase font-bold opacity-60 px-1">Histórico de Faturas</p>
+            {invoices.length === 0 ? (
+              <p className="text-xs opacity-50 text-center py-4">Nenhuma fatura encontrada.</p>
+            ) : (
+              scroller(
+                invoices.map((inv) => {
+                  const statusColor = inv.status === 'paid' ? '#16a34a' : inv.status === 'overdue' ? '#dc2626' : '#ea580c';
+                  const statusLabel = inv.status === 'paid' ? 'Pago' : inv.status === 'overdue' ? 'Atrasada' : 'Pendente';
+                  
+                  return box(
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold" style={{ color: cardTextColor }}>
+                            Fatura #{inv.invoice_number}
+                          </p>
+                          <p className="text-[10px] opacity-70">
+                            Vencimento: {dateBR(inv.due_date)}
+                          </p>
+                        </div>
+                        <Badge style={{ backgroundColor: `${statusColor}15`, color: statusColor, borderColor: `${statusColor}30` }} variant="outline" className="text-[10px] font-bold">
+                          {statusLabel}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-2 border-t border-black/5" style={{ borderColor: `${accentColor}10` }}>
+                        <p className="text-sm font-black" style={{ color: accentColor }}>
+                          {currency(inv.total_amount)}
+                        </p>
+                        {inv.status !== 'paid' && (
+                          <Button 
+                            size="sm" 
+                            className="h-7 text-[10px] font-bold px-3"
+                            style={{ backgroundColor: accentColor }}
+                            onClick={() => window.open(`/fatura/${inv.public_token}`, '_blank')}
+                          >
+                            Pagar Agora
+                          </Button>
+                        )}
+                        {inv.status === 'paid' && (
+                          <Button 
+                            variant="ghost"
+                            size="sm" 
+                            className="h-7 text-[10px] font-bold px-3 gap-1"
+                            onClick={() => downloadReceiptPDF(inv)}
+                          >
+                            <Download className="w-3 h-3" /> Recibo
+                          </Button>
+                        )}
+                      </div>
+                    </div>,
+                    inv.id
+                  );
+                })
+              )
+            )}
+          </div>
         </div>
       );
     }

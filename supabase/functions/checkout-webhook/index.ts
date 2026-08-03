@@ -108,6 +108,16 @@ serve(async (req) => {
 
           // Handle subscription if recurring
           if (checkout.billing_type === 'recurring') {
+            const now = new Date();
+            let nextBillingDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            
+            // Adjust next billing date if a specific day is set
+            if (checkout.billing_day) {
+              nextBillingDate = new Date(now.getFullYear(), now.getMonth() + 1, checkout.billing_day);
+              // Ensure we don't accidentally set it to a date before "now + standard interval" 
+              // but the requirement is "every day X of each month"
+            }
+
             await supabase.from('checkout_subscriptions').insert({
               checkout_id: checkout.id,
               user_id: checkout.user_id,
@@ -118,9 +128,10 @@ serve(async (req) => {
               billing_type: 'recurring',
               billing_interval: checkout.billing_interval || 'month',
               billing_interval_count: checkout.billing_interval_count || 1,
-              next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-              current_period_start: new Date().toISOString(),
-              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              billing_day: checkout.billing_day || null,
+              next_billing_date: nextBillingDate.toISOString(),
+              current_period_start: now.toISOString(),
+              current_period_end: nextBillingDate.toISOString(),
               access_code: accessCode
             });
           }
