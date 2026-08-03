@@ -1664,18 +1664,9 @@ export default function MembersAreaPublic() {
           {/* Content View */}
           {activeView === 'content' && (
             <>
-              {/* Content Header - Module Title moved slightly above content */}
+              {/* Content Header - Removed module title from here as requested */}
               <div className="px-3 sm:p-4 md:p-6 pb-0 md:pb-0 max-w-6xl mx-auto w-full">
-                <div className="flex flex-col gap-1 mb-2">
-                  <h2 className="text-xl md:text-2xl font-bold break-words" style={{ color: textColor }}>
-                    {area.sections.find(s => s.id === activeSection)?.title || 'Selecione um módulo'}
-                  </h2>
-                  {area.sections.find(s => s.id === activeSection)?.description && (
-                    <p className="text-sm opacity-70" style={{ color: textColor }}>
-                      {area.sections.find(s => s.id === activeSection)?.description}
-                    </p>
-                  )}
-                </div>
+                {/* O título agora aparece apenas na barra lateral */}
               </div>
 
 
