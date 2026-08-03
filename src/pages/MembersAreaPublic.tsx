@@ -247,14 +247,9 @@ export default function MembersAreaPublic() {
       .maybeSingle();
     if (!data) return;
     setArea((prev) => {
-      const at =
-        (data as any).access_type ||
-        ((data as any).password === 'user_password_access'
-          ? 'user_password'
-          : (data as any).password === 'email_code_access'
-          ? 'email_code'
-          : 'password');
-      return { ...(data as any), access_type: at } as any;
+      if (!prev) return { ...(data as any), access_type: at } as any;
+      // Preserve local state of sections to avoid UI jitter if DB is same
+      return { ...prev, ...data, access_type: at } as any;
     });
   };
 
