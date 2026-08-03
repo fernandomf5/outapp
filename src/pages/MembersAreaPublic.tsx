@@ -1858,5 +1858,5 @@ export default function MembersAreaPublic() {
       </div>
     </div>
   </div>
-  );
+    );
 }
