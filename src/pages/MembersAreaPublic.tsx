@@ -424,9 +424,8 @@ export default function MembersAreaPublic() {
   const currentSection = useMemo(() => {
     if (!area?.sections || !activeSection) return null;
     const section = area.sections.find(s => s.id === activeSection);
-    console.log('useMemo currentSection updated:', { activeSection, title: section?.title });
-    return section || area.sections[0];
-  }, [area?.sections, activeSection]);
+    return section || null;
+  }, [area, activeSection]);
 
   const handlePasswordSubmit = async () => {
     if (!area) return;
@@ -1679,11 +1678,11 @@ export default function MembersAreaPublic() {
               <div className="px-3 sm:p-4 md:p-6 pb-0 md:pb-0 max-w-6xl mx-auto w-full">
                 <div className="flex flex-col gap-1 mb-2">
                   <h2 className="text-xl md:text-2xl font-bold break-words" style={{ color: textColor }}>
-                    {currentSection?.title || 'Selecione um módulo'}
+                    {area.sections.find(s => s.id === activeSection)?.title || 'Selecione um módulo'}
                   </h2>
-                  {currentSection?.description && (
+                  {area.sections.find(s => s.id === activeSection)?.description && (
                     <p className="text-sm opacity-70" style={{ color: textColor }}>
-                      {currentSection.description}
+                      {area.sections.find(s => s.id === activeSection)?.description}
                     </p>
                   )}
                 </div>
@@ -1693,13 +1692,14 @@ export default function MembersAreaPublic() {
               {/* Content Blocks */}
               <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
                 {(() => {
-                  if (!currentSection) return null;
-                  if (currentSection.blocks && currentSection.blocks.length > 0) {
-                    const layout = currentSection.blocks_layout || ['full'];
+                  const currentSectionToRender = area.sections.find(s => s.id === activeSection);
+                  if (!currentSectionToRender) return null;
+                  if (currentSectionToRender.blocks && currentSectionToRender.blocks.length > 0) {
+                    const layout = currentSectionToRender.blocks_layout || ['full'];
                     const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
                     // Group all contents by their block_position
-                    currentSection.blocks.forEach(block => {
+                    currentSectionToRender.blocks.forEach(block => {
                       const pos = block.block_position || 0;
                       if (!contentsByBlock[pos]) contentsByBlock[pos] = [];
                       contentsByBlock[pos].push(block);
