@@ -265,7 +265,7 @@ export default function MembersAreaPublic() {
         return prev;
       }
 
-      return { ...prev, ...newData, access_type: at } as any;
+      return { ...newData, access_type: at } as any;
     });
   };
 
