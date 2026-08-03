@@ -246,15 +246,17 @@ export default function MembersAreaPublic() {
       .eq('is_active', true)
       .maybeSingle();
     if (!data) return;
+    const at =
+      (data as any).access_type ||
+      ((data as any).password === 'user_password_access'
+        ? 'user_password'
+        : (data as any).password === 'email_code_access'
+        ? 'email_code'
+        : 'password');
+
     setArea((prev) => {
-      const at =
-        (data as any).access_type ||
-        ((data as any).password === 'user_password_access'
-          ? 'user_password'
-          : (data as any).password === 'email_code_access'
-          ? 'email_code'
-          : 'password');
-      return { ...(data as any), access_type: at } as any;
+      if (!prev) return { ...(data as any), access_type: at } as any;
+      return { ...prev, ...(data as any), access_type: at } as any;
     });
   };
 
@@ -371,7 +373,7 @@ export default function MembersAreaPublic() {
       if (at === 'user_password') setLoginMode('user');
       else if (at === 'email_code') setLoginMode('code');
       else if (at === 'password') setLoginMode('password');
-      if ((data as any).sections?.length > 0) {
+      if ((data as any).sections?.length > 0 && !activeSection) {
         setActiveSection((data as any).sections[0].id);
       }
 
@@ -1146,7 +1148,7 @@ export default function MembersAreaPublic() {
 
 
   // Internal Members Area with Sidebar
-  const currentSection = area.sections.find(s => s.id === activeSection) || (area.sections.length > 0 ? area.sections[0] : null);
+  const currentSection = area.sections.find(s => s.id === activeSection);
 
   return (
     <div 
