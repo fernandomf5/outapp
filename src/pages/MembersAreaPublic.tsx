@@ -1855,6 +1855,7 @@ export default function MembersAreaPublic() {
           <span className="text-[10px] font-medium">Sair</span>
         </button>
       </div>
+      </div>
     </div>
   );
 }
