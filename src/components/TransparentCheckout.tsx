@@ -173,24 +173,24 @@ export const TransparentCheckout = ({
     }
   };
 
-  const handlePixPayment = async () => {
-    if (pixKey?.trim()) {
-      // Manual PIX flow — build a valid PIX EMV BR Code
-      const brcode = generatePixBRCode({
-        pixKey: pixKey.trim(),
-        amount: Number(amount.toFixed(2)),
-        merchantName: "PAGAMENTO PIX",
-        merchantCity: "BRASIL",
-        description: itemName,
-        txid: "***",
-      });
-      setPixPending(true);
-      setPixQrCode(brcode);
-      setPixQrCodeBase64("");
-      return;
-    }
+  const handleManualPixPayment = () => {
+    if (!pixKey?.trim()) return;
+    const brcode = generatePixBRCode({
+      pixKey: pixKey.trim(),
+      amount: Number(amount.toFixed(2)),
+      merchantName: "PAGAMENTO PIX",
+      merchantCity: "BRASIL",
+      description: itemName,
+      txid: "***",
+    });
+    setPixPending(true);
+    setPixQrCode(brcode);
+    setPixQrCodeBase64("");
+  };
 
+  const handlePixPayment = async () => {
     setProcessing(true);
+
     try {
       const { data, error } = await supabase.functions.invoke('checkout-transparent-payment', {
         body: {
