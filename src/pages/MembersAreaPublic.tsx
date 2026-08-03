@@ -1636,7 +1636,7 @@ export default function MembersAreaPublic() {
                     </h2>
                     {currentSection?.description && (
                       <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
-                        {currentSection?.description || (area.sections.length > 0 ? area.sections[0].description : '')}
+                        {currentSection.description}
                       </p>
                     )}
                   </div>
