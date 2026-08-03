@@ -201,10 +201,18 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
               </p>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50/50 border border-blue-100">
-                  <Label className="text-slate-700 font-semibold text-sm">Cobrança Recorrente</Label>
+                <div className={`flex items-center justify-between p-3 rounded-lg border ${mpConfigured ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-100 border-slate-200 opacity-70'}`}>
+                  <div>
+                    <Label className="text-slate-700 font-semibold text-sm">Cobrança Recorrente</Label>
+                    {!mpConfigured && (
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Disponível apenas com o Mercado Pago configurado (aba Pagamentos).
+                      </p>
+                    )}
+                  </div>
                   <Switch
-                    checked={formData.billing_type === 'recurring'}
+                    disabled={!mpConfigured}
+                    checked={mpConfigured && formData.billing_type === 'recurring'}
                     onCheckedChange={(v) => setFormData((prev: any) => ({
                       ...prev,
                       billing_type: v ? 'recurring' : 'one_time',
