@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { linkifyText } from "@/utils/linkify";
 import { getVideoEmbedUrl } from "@/lib/videoEmbed";
 import { useParams, useSearchParams } from "react-router-dom";
