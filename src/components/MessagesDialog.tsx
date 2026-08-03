@@ -55,19 +55,24 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
       // Buscar status de leitura do usuário
       const { data: readsData } = await supabase
         .from('admin_message_reads')
-        .select('message_id, is_read')
+        .select('message_id, is_read, is_deleted')
         .eq('user_id', user.id);
 
       // Mapear status de leitura
       const readStatusMap = new Map(
         readsData?.map(r => [r.message_id, r.is_read]) || []
       );
+      const deletedIds = new Set(
+        (readsData || []).filter((r: any) => r.is_deleted).map(r => r.message_id)
+      );
 
-      // Combinar mensagens com status de leitura
-      const messagesWithReadStatus = messagesData.map(msg => ({
-        ...msg,
-        is_read: readStatusMap.get(msg.id) || false
-      }));
+      // Combinar mensagens com status de leitura (ocultando excluídas)
+      const messagesWithReadStatus = messagesData
+        .filter(msg => !deletedIds.has(msg.id))
+        .map(msg => ({
+          ...msg,
+          is_read: readStatusMap.get(msg.id) || false
+        }));
 
       setMessages(messagesWithReadStatus);
       setLoading(false);
