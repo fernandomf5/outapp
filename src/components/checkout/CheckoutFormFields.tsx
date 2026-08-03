@@ -105,6 +105,18 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
 
   const deviceLabel = device === 'mobile' ? 'Mobile' : device === 'tablet' ? 'Tablet' : 'Desktop';
 
+  const mpConfigured = Boolean(
+    formData?.custom_settings?.enable_mp &&
+    formData?.mp_public_key?.trim() &&
+    formData?.mp_access_token?.trim()
+  );
+
+  useEffect(() => {
+    if (!mpConfigured && formData?.billing_type === 'recurring') {
+      setFormData((prev: any) => ({ ...prev, billing_type: 'one_time', billing_interval: null }));
+    }
+  }, [mpConfigured, formData?.billing_type]);
+
   const renderContent = () => {
     return (
       <div className="flex flex-col h-full">
