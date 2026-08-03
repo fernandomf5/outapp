@@ -1588,60 +1588,79 @@ export default function MembersAreaPublic() {
                         className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold"
                         style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
                       >
-                        <User className="w-8 h-8" />
+                        {studentName?.[0] || area.customer_name?.[0] || 'A'}
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold" style={{ color: textColor }}>
-                          {area.customer_name || 'Membro'}
+                          {studentName || area.customer_name || 'Membro'}
                         </h3>
                         <p className="text-sm opacity-70" style={{ color: textColor }}>Acesso Premium</p>
                       </div>
                     </div>
-                    
-                    <div className="space-y-4">
-                      {area.area_type !== 'exclusive' && (
-                      <div 
-                        className="p-4 rounded-lg"
-                        style={{ backgroundColor: `${accentColor}08` }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span style={{ color: cardTextColor }}>Progresso Geral</span>
-                          <span className="font-bold" style={{ color: accentColor }}>35%</span>
+
+                    <div className="grid grid-cols-1 gap-6">
+                      {/* Faturas Block */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 px-1">
+                          <Receipt className="w-4 h-4" style={{ color: accentColor }} />
+                          <h4 className="font-bold text-sm" style={{ color: cardTextColor }}>Minhas Faturas</h4>
                         </div>
-                        <div 
-                          className="w-full h-2 rounded-full overflow-hidden mt-2"
-                          style={{ backgroundColor: `${accentColor}20` }}
-                        >
+                        <ClientDataBlock 
+                          areaId={area.id} 
+                          blockId="client-invoices-account" 
+                          source="client_invoices"
+                          accentColor={accentColor}
+                          cardTextColor={cardTextColor}
+                        />
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t border-black/5" style={{ borderColor: `${accentColor}10` }}>
+                        <div className="flex items-center gap-2 px-1">
+                          <BookOpen className="w-4 h-4" style={{ color: accentColor }} />
+                          <h4 className="font-bold text-sm" style={{ color: cardTextColor }}>Progresso</h4>
+                        </div>
+                        
+                        {area.area_type !== 'exclusive' && (
                           <div 
-                            className="h-full rounded-full"
-                            style={{ 
-                              width: '35%',
-                              background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` 
-                            }}
-                          />
-                        </div>
-                      </div>
-                      )}
+                            className="p-4 rounded-lg"
+                            style={{ backgroundColor: `${accentColor}08` }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span style={{ color: cardTextColor }}>Progresso Geral</span>
+                              <span className="font-bold" style={{ color: accentColor }}>35%</span>
+                            </div>
+                            <div 
+                              className="w-full h-2 rounded-full overflow-hidden mt-2"
+                              style={{ backgroundColor: `${accentColor}20` }}
+                            >
+                              <div 
+                                className="h-full rounded-full"
+                                style={{ 
+                                  width: '35%',
+                                  background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` 
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
 
-                      <div 
-                        className="p-4 rounded-lg"
-                        style={{ backgroundColor: `${accentColor}08` }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span style={{ color: cardTextColor }}>Módulos Disponíveis</span>
-                          <span className="font-bold" style={{ color: accentColor }}>{area.sections.length}</span>
-                        </div>
-                      </div>
-
-                      <div 
-                        className="p-4 rounded-lg"
-                        style={{ backgroundColor: `${accentColor}08` }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span style={{ color: cardTextColor }}>Conteúdos Totais</span>
-                          <span className="font-bold" style={{ color: accentColor }}>
-                            {area.sections.reduce((acc, s) => acc + (s.blocks?.length || 0), 0)}
-                          </span>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div 
+                            className="p-3 rounded-lg"
+                            style={{ backgroundColor: `${accentColor}08` }}
+                          >
+                            <span className="text-[10px] block opacity-70" style={{ color: cardTextColor }}>Módulos</span>
+                            <span className="font-bold" style={{ color: accentColor }}>{area.sections.length}</span>
+                          </div>
+                          <div 
+                            className="p-3 rounded-lg"
+                            style={{ backgroundColor: `${accentColor}08` }}
+                          >
+                            <span className="text-[10px] block opacity-70" style={{ color: cardTextColor }}>Aulas</span>
+                            <span className="font-bold" style={{ color: accentColor }}>
+                              {area.sections.reduce((acc, s) => acc + (s.blocks?.length || 0), 0)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
