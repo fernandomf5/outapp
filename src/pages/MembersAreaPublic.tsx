@@ -257,16 +257,15 @@ export default function MembersAreaPublic() {
     setArea((prev) => {
       if (!prev) return { ...(data as any), access_type: at } as any;
       
-      // CRITICAL: Check if the sections have actually changed before updating the whole area object
-      // This prevents the UI from resetting the current view/section if the data is identical
+      const newData = data as any;
       const prevSectionsJson = JSON.stringify(prev.sections);
-      const nextSectionsJson = JSON.stringify(data.sections);
+      const nextSectionsJson = JSON.stringify(newData.sections);
       
-      if (prevSectionsJson === nextSectionsJson && prev.name === data.name && prev.description === data.description) {
+      if (prevSectionsJson === nextSectionsJson && prev.name === newData.name && prev.description === newData.description) {
         return prev;
       }
 
-      return { ...prev, ...(data as any), access_type: at } as any;
+      return { ...prev, ...newData, access_type: at } as any;
     });
   };
 
