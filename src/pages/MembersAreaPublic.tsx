@@ -265,7 +265,10 @@ export default function MembersAreaPublic() {
         return prev;
       }
 
-      return { ...prev, ...newData, access_type: at } as any;
+      // Preserve active section if it still exists in the new data
+      const nextArea = { ...prev, ...newData, access_type: at } as any;
+      
+      return nextArea;
     });
   };
 
