@@ -403,7 +403,9 @@ export default function MembersAreaPublic() {
       else if (at === 'password') setLoginMode('password');
       if ((data as any).sections?.length > 0) {
         setActiveSection(prev => {
-          if (prev && (data as any).sections.some((s: any) => s.id === prev)) return prev;
+          if (prev && (data as any).sections.find((s: any) => s.id === prev)) {
+            return prev;
+          }
           return (data as any).sections[0].id;
         });
       }
