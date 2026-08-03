@@ -1791,19 +1791,21 @@ export default function MembersAreaPublic() {
                         })}
                       </div>
                     );
-                  })()
-                ) : (
-                  <div 
-                    className="text-center py-16 rounded-xl"
-                    style={{ backgroundColor: cardBackgroundColor }}
-                  >
-                    <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: cardTextColor }} />
-                    <p className="text-lg font-medium" style={{ color: cardTextColor }}>Nenhum conteúdo disponível</p>
-                    <p className="text-sm opacity-70 mt-1" style={{ color: cardTextColor }}>
-                      Selecione um módulo para ver o conteúdo
-                    </p>
-                  </div>
-                )}
+                  } else {
+                    return (
+                      <div 
+                        className="text-center py-16 rounded-xl"
+                        style={{ backgroundColor: cardBackgroundColor }}
+                      >
+                        <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: cardTextColor }} />
+                        <p className="text-lg font-medium" style={{ color: cardTextColor }}>Nenhum conteúdo disponível</p>
+                        <p className="text-sm opacity-70 mt-1" style={{ color: cardTextColor }}>
+                          Selecione um módulo para ver o conteúdo
+                        </p>
+                      </div>
+                    );
+                  }
+                })()}
               </div>
             </>
           )}
