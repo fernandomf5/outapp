@@ -1632,7 +1632,7 @@ export default function MembersAreaPublic() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-xl font-bold break-words" style={{ color: textColor }}>
-                      {currentSection?.title || 'Selecione um módulo'}
+                      {currentSection?.title || (area.sections.length > 0 ? area.sections[0].title : 'Selecione um módulo')}
                     </h2>
                     {currentSection?.description && (
                       <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
