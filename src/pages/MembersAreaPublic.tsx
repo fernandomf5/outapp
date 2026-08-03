@@ -1657,12 +1657,11 @@ export default function MembersAreaPublic() {
               <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
                 {currentSection?.blocks && currentSection.blocks.length > 0 ? (
                   (() => {
-                    const effectiveSection = currentSection || area.sections[0];
-                    const layout = effectiveSection.blocks_layout || ['full'];
+                    const layout = currentSection.blocks_layout || ['full'];
                     const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
                     // Group all contents by their block_position
-                    effectiveSection.blocks.forEach(block => {
+                    currentSection.blocks.forEach(block => {
                       const pos = block.block_position || 0;
                       if (!contentsByBlock[pos]) contentsByBlock[pos] = [];
                       contentsByBlock[pos].push(block);
