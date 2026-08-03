@@ -1670,34 +1670,20 @@ export default function MembersAreaPublic() {
           {/* Content View */}
           {activeView === 'content' && (
             <>
-              {/* Content Header */}
-              <div 
-                className="px-4 md:px-6 py-4 md:py-5 border-b hidden md:block"
-                style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold break-words" style={{ color: textColor }}>
-                      {currentSection?.title || 'Selecione um módulo'}
-                    </h2>
-                    {currentSection?.description && (
-                      <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
-                        {currentSection.description}
-                      </p>
-                    )}
-                  </div>
-                  <Badge 
-                    className="text-sm px-3 py-1 border"
-                    style={{ 
-                      backgroundColor: `${accentColor}15`, 
-                      color: accentColor,
-                      borderColor: `${accentColor}30`
-                    }}
-                  >
-                    Premium
-                  </Badge>
+              {/* Content Header - Module Title moved slightly above content */}
+              <div className="px-3 sm:p-4 md:p-6 pb-0 md:pb-0 max-w-6xl mx-auto w-full">
+                <div className="flex flex-col gap-1 mb-2">
+                  <h2 className="text-xl md:text-2xl font-bold break-words" style={{ color: textColor }}>
+                    {currentSection?.title || 'Selecione um módulo'}
+                  </h2>
+                  {currentSection?.description && (
+                    <p className="text-sm opacity-70" style={{ color: textColor }}>
+                      {currentSection.description}
+                    </p>
+                  )}
                 </div>
               </div>
+
 
               {/* Content Blocks */}
               <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
