@@ -1683,7 +1683,8 @@ export default function MembersAreaPublic() {
               {/* Content Blocks */}
               <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
                 {(() => {
-                  if (currentSection?.blocks && currentSection.blocks.length > 0) {
+                  if (!currentSection) return null;
+                  if (currentSection.blocks && currentSection.blocks.length > 0) {
                     const layout = currentSection.blocks_layout || ['full'];
                     const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
