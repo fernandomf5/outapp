@@ -155,6 +155,25 @@ serve(async (req) => {
       if (checkout.integration_type === 'members_area' && checkout.integration_id) {
         const accessCode = await generateAccessCode(supabase, checkout, orderId, payerName, normalizedPayerEmail || payerEmail);
         
+        // Handle subscription if recurring
+        if (checkout.billing_type === 'recurring') {
+          await supabase.from('checkout_subscriptions').insert({
+            checkout_id: checkout.id,
+            user_id: checkout.user_id,
+            customer_name: payerName,
+            customer_email: normalizedPayerEmail || payerEmail,
+            customer_cpf: payerCpf,
+            status: 'active',
+            billing_type: 'recurring',
+            billing_interval: checkout.billing_interval || 'month',
+            billing_interval_count: checkout.billing_interval_count || 1,
+            next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Simplified logic
+            current_period_start: new Date().toISOString(),
+            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            access_code: accessCode
+          });
+        }
+
         // Send email with access code
         await sendAccessCodeEmail(supabase, payerEmail, payerName, accessCode, checkout.item_name);
 
