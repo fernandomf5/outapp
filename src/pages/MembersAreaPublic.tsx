@@ -373,7 +373,7 @@ export default function MembersAreaPublic() {
       if (at === 'user_password') setLoginMode('user');
       else if (at === 'email_code') setLoginMode('code');
       else if (at === 'password') setLoginMode('password');
-      if ((data as any).sections?.length > 0) {
+      if ((data as any).sections?.length > 0 && !activeSection) {
         setActiveSection((data as any).sections[0].id);
       }
 
