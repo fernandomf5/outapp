@@ -1199,71 +1199,69 @@ export default function MembersAreaPublic() {
       className="min-h-screen flex"
       style={{ backgroundColor: backgroundColor, color: textColor }}
     >
-      {/* Desktop Sidebar */}
+      {/* Main Sidebar (Slim) */}
       <div 
-        className="hidden md:flex w-20 flex-shrink-0 flex-col items-center py-6 gap-4 border-r"
-        style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20` }}
+        className="hidden md:flex w-16 lg:w-20 flex-shrink-0 flex-col items-center py-6 border-r z-50 transition-all duration-300"
+        style={{ 
+          backgroundColor: headerBackgroundColor, 
+          borderColor: `${accentColor}10`,
+          boxShadow: '4px 0 24px -10px rgba(0,0,0,0.1)'
+        }}
       >
-        {/* Logo */}
-        {area.logo_url ? (
-          <img 
-            src={area.logo_url} 
-            alt={area.name} 
-            className="w-12 h-12 rounded-xl object-cover border-2"
-            style={{ borderColor: accentColor }}
-          />
-        ) : (
-          <div 
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold"
-            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
-          >
-            {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
-          </div>
-        )}
-
-        <div className="flex-1 flex flex-col items-center gap-2 mt-4">
-          <button 
-            onClick={() => setActiveView('home')}
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
-            style={{ 
-              backgroundColor: activeView === 'home' ? accentColor : `${accentColor}10`,
-              color: activeView === 'home' ? '#ffffff' : textColor
-            }}
-            title="Início"
-          >
-            <Home className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={() => setActiveView('content')}
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
-            style={{ 
-              backgroundColor: activeView === 'content' ? accentColor : `${accentColor}10`,
-              color: activeView === 'content' ? '#ffffff' : textColor
-            }}
-            title="Conteúdo"
-          >
-            <BookOpen className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={() => setActiveView('account')}
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
-            style={{ 
-              backgroundColor: activeView === 'account' ? accentColor : `${accentColor}10`,
-              color: activeView === 'account' ? '#ffffff' : textColor
-            }}
-            title="Minha Conta"
-          >
-            <User className="w-5 h-5" />
-          </button>
+        {/* Brand/Logo Container */}
+        <div className="mb-8 px-2 w-full flex justify-center">
+          {area.logo_url ? (
+            <img 
+              src={area.logo_url} 
+              alt={area.name} 
+              className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl object-cover border shadow-sm transition-transform hover:scale-105"
+              style={{ borderColor: `${accentColor}20` }}
+            />
+          ) : (
+            <div 
+              className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
+            >
+              {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
+            </div>
+          )}
         </div>
 
-        <button 
-          onClick={handleLogout}
-          className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:bg-red-100"
-          style={{ color: '#ef4444' }}
-        >
-          <LogOut className="w-5 h-5" />
-        </button>
+        {/* Navigation Items */}
+        <div className="flex-1 flex flex-col items-center gap-4 w-full px-2">
+          {[
+            { id: 'home', icon: Home, label: 'Início' },
+            { id: 'content', icon: BookOpen, label: 'Módulos' },
+            { id: 'account', icon: User, label: 'Perfil' }
+          ].map((item) => (
+            <button 
+              key={item.id}
+              onClick={() => setActiveView(item.id as any)}
+              className="group relative w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all"
+              style={{ 
+                backgroundColor: activeView === item.id ? accentColor : 'transparent',
+                color: activeView === item.id ? '#ffffff' : `${textColor}80`
+              }}
+            >
+              <item.icon className={`w-5 h-5 transition-transform ${activeView === item.id ? 'scale-110' : 'group-hover:scale-110'}`} />
+              
+              {/* Tooltip */}
+              <div className="absolute left-full ml-3 px-2 py-1 bg-black text-white text-[10px] rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-[60]">
+                {item.label}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="mt-auto px-2 w-full flex flex-col items-center gap-4">
+          <button 
+            onClick={handleLogout}
+            className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all hover:bg-red-50 text-red-500"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Header */}
