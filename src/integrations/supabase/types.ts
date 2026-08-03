@@ -2934,6 +2934,7 @@ export type Database = {
       checkout_subscriptions: {
         Row: {
           amount: number
+          billing_day: number | null
           billing_interval: string | null
           billing_interval_count: number | null
           billing_type: string
@@ -2954,6 +2955,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          billing_day?: number | null
           billing_interval?: string | null
           billing_interval_count?: number | null
           billing_type: string
@@ -2974,6 +2976,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          billing_day?: number | null
           billing_interval?: string | null
           billing_interval_count?: number | null
           billing_type?: string
@@ -3007,6 +3010,7 @@ export type Database = {
           background_color: string | null
           banner_url: string | null
           billing_cycles: number | null
+          billing_day: number | null
           billing_interval: string | null
           billing_interval_count: number | null
           billing_type: string | null
@@ -3065,6 +3069,7 @@ export type Database = {
           background_color?: string | null
           banner_url?: string | null
           billing_cycles?: number | null
+          billing_day?: number | null
           billing_interval?: string | null
           billing_interval_count?: number | null
           billing_type?: string | null
@@ -3123,6 +3128,7 @@ export type Database = {
           background_color?: string | null
           banner_url?: string | null
           billing_cycles?: number | null
+          billing_day?: number | null
           billing_interval?: string | null
           billing_interval_count?: number | null
           billing_type?: string | null
