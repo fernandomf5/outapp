@@ -317,10 +317,22 @@ serve(async (req) => {
           .eq('user_id', area.user_id)
           .ilike('client_email', customer.email)
           .order('due_date', { ascending: false })
-          .limit(100);
+          .limit(50);
         
-        payload = { invoices: invoices || [] };
+        // Also fetch recurring subscriptions to show next billing info
+        const { data: subscriptions } = await supabase
+          .from('checkout_subscriptions')
+          .select('id, billing_day, next_billing_date, status, billing_interval')
+          .eq('user_id', area.user_id)
+          .ilike('customer_email', customer.email)
+          .eq('status', 'active');
+
+        payload = { 
+          invoices: invoices || [],
+          subscriptions: subscriptions || []
+        };
         break;
+      }
 
       default:
         return json({ error: 'unsupported_source' }, 400);
