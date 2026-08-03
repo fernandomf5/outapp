@@ -270,6 +270,8 @@ export default function MembersAreaPublic() {
         return prev;
       }
 
+      console.log('Background refreshing area data while preserving local activeSection');
+
       // If we are updating, preserve the access_type
       return { ...newData, access_type: at };
     });
