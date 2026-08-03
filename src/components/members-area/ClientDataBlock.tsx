@@ -46,6 +46,7 @@ const SOURCE_META: Record<string, { label: string; icon: any }> = {
   customer_history: { label: 'Histórico do Cliente', icon: History },
   timeline: { label: 'Histórico do Cliente', icon: History },
   payment_history: { label: 'Histórico de Pagamentos', icon: Wallet },
+  client_invoices: { label: 'Minhas Faturas', icon: Receipt },
   mindmap: { label: 'Mapas Mentais', icon: Brain },
 };
 
