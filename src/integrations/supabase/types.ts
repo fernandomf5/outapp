@@ -2874,6 +2874,7 @@ export type Database = {
           payment_id: string | null
           payment_method: string | null
           status: string
+          subscription_id: string | null
           updated_at: string
           user_id: string
         }
@@ -2891,6 +2892,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           status?: string
+          subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2908,6 +2910,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           status?: string
+          subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2919,12 +2922,94 @@ export type Database = {
             referencedRelation: "checkouts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "checkout_orders_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "checkout_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkout_subscriptions: {
+        Row: {
+          amount: number
+          billing_interval: string | null
+          billing_interval_count: number | null
+          billing_type: string
+          checkout_id: string | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          customer_email: string
+          customer_name: string
+          external_subscription_id: string | null
+          id: string
+          metadata: Json | null
+          next_billing_date: string | null
+          payment_method: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_interval?: string | null
+          billing_interval_count?: number | null
+          billing_type: string
+          checkout_id?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_email: string
+          customer_name: string
+          external_subscription_id?: string | null
+          id?: string
+          metadata?: Json | null
+          next_billing_date?: string | null
+          payment_method?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_interval?: string | null
+          billing_interval_count?: number | null
+          billing_type?: string
+          checkout_id?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_email?: string
+          customer_name?: string
+          external_subscription_id?: string | null
+          id?: string
+          metadata?: Json | null
+          next_billing_date?: string | null
+          payment_method?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_subscriptions_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
         ]
       }
       checkouts: {
         Row: {
           background_color: string | null
           banner_url: string | null
+          billing_cycles: number | null
+          billing_interval: string | null
+          billing_interval_count: number | null
+          billing_type: string | null
           created_at: string
           custom_settings: Json | null
           description: string | null
@@ -2979,6 +3064,10 @@ export type Database = {
         Insert: {
           background_color?: string | null
           banner_url?: string | null
+          billing_cycles?: number | null
+          billing_interval?: string | null
+          billing_interval_count?: number | null
+          billing_type?: string | null
           created_at?: string
           custom_settings?: Json | null
           description?: string | null
@@ -3033,6 +3122,10 @@ export type Database = {
         Update: {
           background_color?: string | null
           banner_url?: string | null
+          billing_cycles?: number | null
+          billing_interval?: string | null
+          billing_interval_count?: number | null
+          billing_type?: string | null
           created_at?: string
           custom_settings?: Json | null
           description?: string | null
