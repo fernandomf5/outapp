@@ -270,9 +270,10 @@ export default function MembersAreaPublic() {
         return prev;
       }
 
-      console.log('Background refreshing area data while preserving local activeSection');
+      console.log('Background refreshing area data while preserving activeSection:', activeSection);
 
       // If we are updating, preserve the access_type
+      // IMPORTANT: replace the whole object to trigger useMemo dependencies properly
       return { ...newData, access_type: at };
     });
 
