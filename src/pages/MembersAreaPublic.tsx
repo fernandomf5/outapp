@@ -259,21 +259,22 @@ export default function MembersAreaPublic() {
       
       const newData = data as any;
       
-      // Compare specific data points to decide if update is needed
+      // Strict equality check for critical fields to prevent unnecessary re-renders
+      // and state flashes.
       const prevSectionsJson = JSON.stringify(prev.sections);
       const nextSectionsJson = JSON.stringify(newData.sections);
       
       if (prevSectionsJson === nextSectionsJson && 
           prev.name === newData.name && 
           prev.description === newData.description && 
-          prev.logo_url === newData.logo_url) {
+          prev.logo_url === newData.logo_url &&
+          prev.is_active === newData.is_active) {
         return prev;
       }
 
       console.log('Background refreshing area data while preserving activeSection:', activeSection);
 
-      // If we are updating, preserve the access_type
-      // IMPORTANT: replace the whole object to trigger useMemo dependencies properly
+      // Replace the object while preserving access_type
       return { ...newData, access_type: at };
     });
 
@@ -396,7 +397,6 @@ export default function MembersAreaPublic() {
         .single();
 
       if (error) throw error;
-      setArea(data as any);
       const at = (data as any).access_type || ((data as any).password === 'user_password_access' ? 'user_password' : (data as any).password === 'email_code_access' ? 'email_code' : 'password');
       setArea({ ...(data as any), access_type: at });
       if (at === 'user_password') setLoginMode('user');
@@ -404,9 +404,11 @@ export default function MembersAreaPublic() {
       else if (at === 'password') setLoginMode('password');
       if ((data as any).sections?.length > 0) {
         setActiveSection(prev => {
-          if (prev && (data as any).sections.find((s: any) => s.id === prev)) {
+          // If we already have a selection, and it's valid in the new data, KEEP IT.
+          if (prev && (data as any).sections.some((s: any) => s.id === prev)) {
             return prev;
           }
+          // Only fallback if the previous selection is gone or null.
           return (data as any).sections[0].id;
         });
       }
