@@ -28,7 +28,8 @@ import {
   Heading,
   Plus,
   Sparkles,
-  GraduationCap
+  GraduationCap,
+  RefreshCcw
 } from "lucide-react";
 import { EFFECT_PRESETS } from "./CheckoutEffects";
 
