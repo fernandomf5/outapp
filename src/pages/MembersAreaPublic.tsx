@@ -259,21 +259,22 @@ export default function MembersAreaPublic() {
       
       const newData = data as any;
       
-      // Compare specific data points to decide if update is needed
+      // Strict equality check for critical fields to prevent unnecessary re-renders
+      // and state flashes.
       const prevSectionsJson = JSON.stringify(prev.sections);
       const nextSectionsJson = JSON.stringify(newData.sections);
       
       if (prevSectionsJson === nextSectionsJson && 
           prev.name === newData.name && 
           prev.description === newData.description && 
-          prev.logo_url === newData.logo_url) {
+          prev.logo_url === newData.logo_url &&
+          prev.is_active === newData.is_active) {
         return prev;
       }
 
       console.log('Background refreshing area data while preserving activeSection:', activeSection);
 
-      // If we are updating, preserve the access_type
-      // IMPORTANT: replace the whole object to trigger useMemo dependencies properly
+      // Replace the object while preserving access_type
       return { ...newData, access_type: at };
     });
 
