@@ -22,6 +22,7 @@ export type ClientDataSource =
   | 'customer_history'
   | 'timeline'
   | 'payment_history'
+  | 'client_invoices'
   | 'mindmap';
 
 interface Props {
@@ -45,6 +46,7 @@ const SOURCE_META: Record<string, { label: string; icon: any }> = {
   customer_history: { label: 'Histórico do Cliente', icon: History },
   timeline: { label: 'Histórico do Cliente', icon: History },
   payment_history: { label: 'Histórico de Pagamentos', icon: Wallet },
+  client_invoices: { label: 'Minhas Faturas', icon: Receipt },
   mindmap: { label: 'Mapas Mentais', icon: Brain },
 };
 
@@ -695,6 +697,66 @@ export function ClientDataBlock({ areaId, blockId, source, accentColor, cardText
             )
           )}
         </>
+      );
+    }
+
+    case 'client_invoices': {
+      const invoices: any[] = data?.invoices || [];
+      if (!invoices.length) return empty('Nenhuma fatura encontrada');
+      return shell(
+        <div className="space-y-4">
+          {scroller(
+            invoices.map((inv) => {
+              const statusColor = inv.status === 'paid' ? '#16a34a' : inv.status === 'overdue' ? '#dc2626' : '#ea580c';
+              const statusLabel = inv.status === 'paid' ? 'Pago' : inv.status === 'overdue' ? 'Atrasada' : 'Pendente';
+              
+              return box(
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold" style={{ color: cardTextColor }}>
+                        Fatura #{inv.invoice_number}
+                      </p>
+                      <p className="text-[10px] opacity-70">
+                        Vencimento: {dateBR(inv.due_date)}
+                      </p>
+                    </div>
+                    <Badge style={{ backgroundColor: `${statusColor}15`, color: statusColor, borderColor: `${statusColor}30` }} variant="outline" className="text-[10px] font-bold">
+                      {statusLabel}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2 border-t border-black/5" style={{ borderColor: `${accentColor}10` }}>
+                    <p className="text-sm font-black" style={{ color: accentColor }}>
+                      {currency(inv.total_amount)}
+                    </p>
+                    {inv.status !== 'paid' && (
+                      <Button 
+                        size="sm" 
+                        className="h-7 text-[10px] font-bold px-3"
+                        style={{ backgroundColor: accentColor }}
+                        onClick={() => window.open(`/fatura/${inv.public_token}`, '_blank')}
+                      >
+                        Pagar Agora
+                      </Button>
+                    )}
+                    {inv.status === 'paid' && (
+                      <Button 
+                        variant="ghost"
+                        size="sm" 
+                        className="h-7 text-[10px] font-bold px-3 gap-1"
+                        onClick={() => downloadReceiptPDF(inv)}
+                      >
+                        <Download className="w-3 h-3" /> Recibo
+                      </Button>
+                    )}
+                  </div>
+                </div>,
+                inv.id
+              );
+            })
+          )}
+        </div>
       );
     }
 

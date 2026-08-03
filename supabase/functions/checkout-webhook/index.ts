@@ -74,7 +74,7 @@ serve(async (req) => {
       // Get checkout details including integration info
       const { data: checkout } = await supabase
         .from('checkouts')
-        .select('total_sales, total_revenue, user_id, integration_type, integration_id, item_name')
+        .select('*')
         .eq('id', checkoutId)
         .single();
 
@@ -105,6 +105,25 @@ serve(async (req) => {
         if (checkout.integration_type === 'members_area' && checkout.integration_id && orderData) {
           console.log('Processing members area integration for area:', checkout.integration_id);
           const accessCode = await handleMembersAreaIntegration(supabase, checkout, orderData, orderId);
+
+          // Handle subscription if recurring
+          if (checkout.billing_type === 'recurring') {
+            await supabase.from('checkout_subscriptions').insert({
+              checkout_id: checkout.id,
+              user_id: checkout.user_id,
+              customer_name: orderData.customer_name,
+              customer_email: orderData.customer_email,
+              customer_cpf: orderData.customer_cpf,
+              status: 'active',
+              billing_type: 'recurring',
+              billing_interval: checkout.billing_interval || 'month',
+              billing_interval_count: checkout.billing_interval_count || 1,
+              next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              current_period_start: new Date().toISOString(),
+              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              access_code: accessCode
+            });
+          }
 
           // Send access code email
           if (accessCode && orderData.customer_email) {
