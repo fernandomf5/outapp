@@ -258,15 +258,22 @@ export default function MembersAreaPublic() {
       if (!prev) return { ...(data as any), access_type: at } as any;
       
       const newData = data as any;
+      
+      // Compare specific data points to decide if update is needed
       const prevSectionsJson = JSON.stringify(prev.sections);
       const nextSectionsJson = JSON.stringify(newData.sections);
       
-      if (prevSectionsJson === nextSectionsJson && prev.name === newData.name && prev.description === newData.description && prev.logo_url === newData.logo_url) {
+      if (prevSectionsJson === nextSectionsJson && 
+          prev.name === newData.name && 
+          prev.description === newData.description && 
+          prev.logo_url === newData.logo_url) {
         return prev;
       }
 
-      return { ...newData, access_type: at } as any;
+      // If we are updating, preserve the access_type
+      return { ...newData, access_type: at };
     });
+
   };
 
   // Force re-sync activeSection if it's no longer in sections list
