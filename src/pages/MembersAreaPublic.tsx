@@ -1810,6 +1810,7 @@ export default function MembersAreaPublic() {
           )}
         </div>
       </div>
+    </div>
 
       {/* Mobile Bottom Navigation */}
       <div 
