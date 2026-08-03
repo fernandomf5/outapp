@@ -393,8 +393,10 @@ export default function MembersAreaPublic() {
       else if (at === 'email_code') setLoginMode('code');
       else if (at === 'password') setLoginMode('password');
       if ((data as any).sections?.length > 0) {
-        // Only set initial active section if none is active
-        setActiveSection(prev => prev || (data as any).sections[0].id);
+        setActiveSection(prev => {
+          if (prev && (data as any).sections.some((s: any) => s.id === prev)) return prev;
+          return (data as any).sections[0].id;
+        });
       }
 
     } catch (error: any) {
