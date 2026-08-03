@@ -1288,7 +1288,7 @@ export default function MembersAreaPublic() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
+                    <p className="font-medium break-words" style={{ color: cardTextColor }}>{section.title}</p>
                     {section.description && (
                       <p className="text-sm truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
                     )}
@@ -1384,7 +1384,7 @@ export default function MembersAreaPublic() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
+                    <p className="text-sm font-medium break-words" style={{ color: cardTextColor }}>{section.title}</p>
                     {section.description && (
                       <p className="text-xs truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
                     )}
@@ -1631,7 +1631,7 @@ export default function MembersAreaPublic() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold" style={{ color: textColor }}>
+                    <h2 className="text-xl font-bold break-words" style={{ color: textColor }}>
                       {currentSection?.title || 'Selecione um módulo'}
                     </h2>
                     {currentSection?.description && (
