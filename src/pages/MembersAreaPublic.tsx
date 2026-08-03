@@ -1386,7 +1386,10 @@ export default function MembersAreaPublic() {
               {area.sections.map((section, index) => (
                 <button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => {
+                    console.log('Switching to section:', section.id, section.title);
+                    setActiveSection(section.id);
+                  }}
                   className="w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left"
                   style={{ 
                     backgroundColor: activeSection === section.id ? `${accentColor}15` : 'transparent',
@@ -1394,6 +1397,7 @@ export default function MembersAreaPublic() {
                     borderWidth: '2px'
                   }}
                 >
+
                   {section.cover_image ? (
                     <img
                       src={section.cover_image}
