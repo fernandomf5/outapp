@@ -405,9 +405,11 @@ export default function MembersAreaPublic() {
       else if (at === 'password') setLoginMode('password');
       if ((data as any).sections?.length > 0) {
         setActiveSection(prev => {
-          if (prev && (data as any).sections.find((s: any) => s.id === prev)) {
+          // If we already have a selection, and it's valid in the new data, KEEP IT.
+          if (prev && (data as any).sections.some((s: any) => s.id === prev)) {
             return prev;
           }
+          // Only fallback if the previous selection is gone or null.
           return (data as any).sections[0].id;
         });
       }
