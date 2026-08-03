@@ -256,7 +256,16 @@ export default function MembersAreaPublic() {
 
     setArea((prev) => {
       if (!prev) return { ...(data as any), access_type: at } as any;
-      return { ...prev, ...(data as any), access_type: at } as any;
+      
+      const newData = data as any;
+      const prevSectionsJson = JSON.stringify(prev.sections);
+      const nextSectionsJson = JSON.stringify(newData.sections);
+      
+      if (prevSectionsJson === nextSectionsJson && prev.name === newData.name && prev.description === newData.description) {
+        return prev;
+      }
+
+      return { ...prev, ...newData, access_type: at } as any;
     });
   };
 
