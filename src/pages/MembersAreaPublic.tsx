@@ -270,6 +270,8 @@ export default function MembersAreaPublic() {
         return prev;
       }
 
+      console.log('Background refreshing area data while preserving local activeSection');
+
       // If we are updating, preserve the access_type
       return { ...newData, access_type: at };
     });
@@ -401,7 +403,9 @@ export default function MembersAreaPublic() {
       else if (at === 'password') setLoginMode('password');
       if ((data as any).sections?.length > 0) {
         setActiveSection(prev => {
-          if (prev && (data as any).sections.some((s: any) => s.id === prev)) return prev;
+          if (prev && (data as any).sections.find((s: any) => s.id === prev)) {
+            return prev;
+          }
           return (data as any).sections[0].id;
         });
       }
@@ -1177,7 +1181,10 @@ export default function MembersAreaPublic() {
 
 
   // Internal Members Area with Sidebar
-  const currentSection = area?.sections?.find(s => s.id === activeSection);
+  const currentSection = useMemo(() => {
+    if (!area?.sections || !activeSection) return null;
+    return area.sections.find(s => s.id === activeSection) || area.sections[0];
+  }, [area?.sections, activeSection]);
 
 
   return (
