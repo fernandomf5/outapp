@@ -1442,54 +1442,7 @@ export default function MembersAreaPublic() {
           {/* Right Side Content Viewer */}
           <div className="flex-1 flex flex-col min-w-0 overflow-y-auto pt-[68px] md:pt-0 pb-24 md:pb-0">
             {/* View Dispatcher Content */}
-              
-              {area.sections.map((section, index) => (
-                <button
-                  key={section.id}
-                  onClick={() => {
-                    console.log('Switching to section:', section.id, section.title);
-                    setActiveSection(section.id);
-                  }}
-                  className="w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left"
-                  style={{ 
-                    backgroundColor: activeSection === section.id ? `${accentColor}15` : 'transparent',
-                    borderColor: activeSection === section.id ? accentColor : 'transparent',
-                    borderWidth: '2px'
-                  }}
-                >
-
-                  {section.cover_image ? (
-                    <img
-                      src={section.cover_image}
-                      alt={section.title}
-                      className="w-14 h-9 rounded-lg object-cover shrink-0"
-                    />
-                  ) : (
-                    <div 
-                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                      style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
-                    >
-                      {index + 1}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium break-words" style={{ color: cardTextColor }}>{section.title}</p>
-                    {section.description && (
-                      <p className="text-xs truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
-                    )}
-                  </div>
-                  <ChevronRight 
-                    className="w-4 h-4 shrink-0 transition-transform"
-                    style={{ 
-                      color: cardTextColor,
-                      transform: activeSection === section.id ? 'rotate(90deg)' : 'none'
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* View Dispatcher Content */}
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto pt-[68px] md:pt-0 pb-24 md:pb-0">
