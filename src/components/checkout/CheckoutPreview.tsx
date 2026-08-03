@@ -179,16 +179,34 @@ export const CheckoutPreview = ({ checkout, activeTab, onTabChange, device = 'de
                     <h3 className="font-bold text-xs line-clamp-1" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>
                       {checkout.item_name || 'Nome do Produto'}
                     </h3>
-                    <p className="text-base font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>
-                      R$ {Number(checkout.price || 0).toFixed(2)}
-                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <p className="text-base font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>
+                        R$ {Number(checkout.price || 0).toFixed(2)}
+                      </p>
+                      {checkout.billing_type === 'recurring' && (
+                        <Badge variant="secondary" className="text-[8px] h-4 py-0 font-bold uppercase" style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}>
+                          Assinatura
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
                 <div className="pt-4 mt-2 border-t border-black/5" style={{ borderColor: `${checkout.custom_settings?.summary_text_color || textColor}10` }}>
+                  {checkout.billing_type === 'recurring' && (
+                    <div className="mb-3 p-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-2">
+                      <RefreshCcw className="w-3 h-3 text-blue-600 animate-spin-slow" />
+                      <span className="text-[10px] font-bold text-slate-600">
+                        Cobrança recorrente {checkout.billing_interval === 'month' ? 'mensal' : 
+                                          checkout.billing_interval === 'week' ? 'semanal' :
+                                          checkout.billing_interval === 'day' ? 'diária' :
+                                          checkout.billing_interval === 'year' ? 'anual' : 'mensal'}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: checkout.custom_settings?.summary_text_color || textColor }}>
-                      Total a pagar
+                      {checkout.billing_type === 'recurring' ? 'Primeiro pagamento' : 'Total a pagar'}
                     </span>
                     <span className="text-xl font-black" style={{ color: checkout.custom_settings?.summary_price_color || primaryColor }}>
                       R$ {Number(checkout.price || 0).toFixed(2)}
