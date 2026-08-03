@@ -270,9 +270,10 @@ export default function MembersAreaPublic() {
         return prev;
       }
 
-      console.log('Background refreshing area data while preserving local activeSection');
+      console.log('Background refreshing area data while preserving activeSection:', activeSection);
 
       // If we are updating, preserve the access_type
+      // IMPORTANT: replace the whole object to trigger useMemo dependencies properly
       return { ...newData, access_type: at };
     });
 
@@ -420,7 +421,9 @@ export default function MembersAreaPublic() {
   // 1. Hooks (Must be top-level, before any early returns)
   const currentSection = useMemo(() => {
     if (!area?.sections || !activeSection) return null;
-    return area.sections.find(s => s.id === activeSection) || area.sections[0];
+    const section = area.sections.find(s => s.id === activeSection);
+    console.log('useMemo currentSection updated:', { activeSection, title: section?.title });
+    return section || area.sections[0];
   }, [area?.sections, activeSection]);
 
   const handlePasswordSubmit = async () => {
