@@ -258,15 +258,22 @@ export default function MembersAreaPublic() {
       if (!prev) return { ...(data as any), access_type: at } as any;
       
       const newData = data as any;
+      
+      // Compare specific data points to decide if update is needed
       const prevSectionsJson = JSON.stringify(prev.sections);
       const nextSectionsJson = JSON.stringify(newData.sections);
       
-      if (prevSectionsJson === nextSectionsJson && prev.name === newData.name && prev.description === newData.description && prev.logo_url === newData.logo_url) {
+      if (prevSectionsJson === nextSectionsJson && 
+          prev.name === newData.name && 
+          prev.description === newData.description && 
+          prev.logo_url === newData.logo_url) {
         return prev;
       }
 
-      return { ...newData, access_type: at } as any;
+      // If we are updating, preserve the access_type
+      return { ...newData, access_type: at };
     });
+
   };
 
   // Force re-sync activeSection if it's no longer in sections list
@@ -1170,10 +1177,8 @@ export default function MembersAreaPublic() {
 
 
   // Internal Members Area with Sidebar
-  const currentSection = useMemo(() => {
-    if (!area?.sections || !activeSection) return undefined;
-    return area.sections.find(s => s.id === activeSection);
-  }, [area, activeSection]);
+  const currentSection = area?.sections?.find(s => s.id === activeSection);
+
 
   return (
     <div 
@@ -1388,7 +1393,10 @@ export default function MembersAreaPublic() {
               {area.sections.map((section, index) => (
                 <button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => {
+                    console.log('Switching to section:', section.id, section.title);
+                    setActiveSection(section.id);
+                  }}
                   className="w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left"
                   style={{ 
                     backgroundColor: activeSection === section.id ? `${accentColor}15` : 'transparent',
@@ -1396,6 +1404,7 @@ export default function MembersAreaPublic() {
                     borderWidth: '2px'
                   }}
                 >
+
                   {section.cover_image ? (
                     <img
                       src={section.cover_image}
