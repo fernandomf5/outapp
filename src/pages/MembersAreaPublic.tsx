@@ -1146,7 +1146,7 @@ export default function MembersAreaPublic() {
 
 
   // Internal Members Area with Sidebar
-  const currentSection = area.sections.find(s => s.id === activeSection) || (area.sections.length > 0 ? area.sections[0] : null);
+  const currentSection = area.sections.find(s => s.id === activeSection);
 
   return (
     <div 
@@ -1632,11 +1632,11 @@ export default function MembersAreaPublic() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-xl font-bold break-words" style={{ color: textColor }}>
-                      {currentSection?.title || (area.sections.length > 0 ? area.sections[0].title : 'Selecione um módulo')}
+                      {currentSection?.title || 'Selecione um módulo'}
                     </h2>
                     {currentSection?.description && (
                       <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
-                        {currentSection?.description || (area.sections.length > 0 ? area.sections[0].description : '')}
+                        {currentSection.description}
                       </p>
                     )}
                   </div>
@@ -1655,14 +1655,13 @@ export default function MembersAreaPublic() {
 
               {/* Content Blocks */}
               <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
-                {(currentSection?.blocks || (area.sections.length > 0 ? area.sections[0].blocks : []))?.length > 0 ? (
+                {currentSection?.blocks && currentSection.blocks.length > 0 ? (
                   (() => {
-                    const effectiveSection = currentSection || area.sections[0];
-                    const layout = effectiveSection.blocks_layout || ['full'];
+                    const layout = currentSection.blocks_layout || ['full'];
                     const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
                     // Group all contents by their block_position
-                    effectiveSection.blocks.forEach(block => {
+                    currentSection.blocks.forEach(block => {
                       const pos = block.block_position || 0;
                       if (!contentsByBlock[pos]) contentsByBlock[pos] = [];
                       contentsByBlock[pos].push(block);
