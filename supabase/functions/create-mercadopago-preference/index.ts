@@ -157,11 +157,11 @@ serve(async (req) => {
         name: profile?.full_name || user.email,
       },
       back_urls: {
-        success: `https://outapp.com.br/dashboard?tab=meu-plano&payment=success&plan_type=${plan.plan_type}&plan_name=${encodeURIComponent(plan.name)}`,
-        failure: `https://outapp.com.br/dashboard?tab=meu-plano&payment=failure`,
-        pending: `https://outapp.com.br/dashboard?tab=meu-plano&payment=pending`,
+        success: `https://outapp.com.br/obrigado?payment=success&plan_type=${plan.plan_type}&plan_name=${encodeURIComponent(plan.name)}`,
+        failure: `https://outapp.com.br/obrigado?payment=failure`,
+        pending: `https://outapp.com.br/obrigado?payment=pending`,
       },
-      auto_return: 'all',
+      auto_return: 'approved',
       notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/mercadopago-webhook`,
       external_reference: `${user.id}|${planId}`,
       metadata: {
