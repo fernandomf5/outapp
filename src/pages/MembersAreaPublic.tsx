@@ -1169,8 +1169,9 @@ export default function MembersAreaPublic() {
 
 
   // Internal Members Area with Sidebar
-  // currentSection is now calculated inline where needed to ensure it uses the latest area.sections state
-  // without being affected by component-level stale closures.
+  const currentSection = useMemo(() => {
+    return area?.sections?.find(s => s.id === activeSection);
+  }, [area?.sections, activeSection]);
 
   return (
     <div 
