@@ -268,6 +268,15 @@ export default function MembersAreaPublic() {
       // Preserve active section if it still exists in the new data
       const nextArea = { ...prev, ...newData, access_type: at } as any;
       
+      // Se a seção ativa não existe mais nos novos dados, resetar para a primeira
+      if (activeSection && !newData.sections?.find((s: any) => s.id === activeSection)) {
+        if (newData.sections?.length > 0) {
+          setActiveSection(newData.sections[0].id);
+        } else {
+          setActiveSection(null);
+        }
+      }
+      
       return nextArea;
     });
   };
