@@ -40,13 +40,16 @@ export const TransparentCheckout = ({
   enableMp = true, enablePixManual,
 }: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string, enableMp?: boolean, enablePixManual?: boolean }) => {
   const { toast } = useToast();
-  const showCard = enableMp && !!mpPublicKey;
-  const showPix = enablePixManual ?? !!pixKey;
-  const hasMpPix = enableMp && !!mpPublicKey && !enablePixManual;
-  const [activeTab, setActiveTab] = useState<string>(showCard ? "credit_card" : "pix");
+  const mpReady = enableMp && !!mpPublicKey;
+  const showCard = mpReady;
+  const showMpPix = mpReady;
+  const showManualPix = enablePixManual ?? !!pixKey;
+  const tabCount = [showCard, showMpPix, showManualPix].filter(Boolean).length;
+  const [activeTab, setActiveTab] = useState<string>(showCard ? "credit_card" : showMpPix ? "pix" : "pix_manual");
   const [processing, setProcessing] = useState(false);
   const [sdkLoaded, setSdkLoaded] = useState(!enableMp || !mpPublicKey);
   const [mp, setMp] = useState<any>(null);
+
 
   // Card form state
   const [cardNumber, setCardNumber] = useState("");
