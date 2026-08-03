@@ -190,6 +190,62 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                 </div>
               )}
             </div>
+
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <div className="flex items-center gap-2">
+                <RefreshCcw className="w-5 h-5 text-blue-600" />
+                <h3 className="font-bold text-lg text-slate-900">Tipo de Cobrança</h3>
+              </div>
+              <p className="text-xs text-slate-500">
+                Escolha se este checkout cobrará uma única vez ou se será uma assinatura recorrente.
+              </p>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50/50 border border-blue-100">
+                  <Label className="text-slate-700 font-semibold text-sm">Cobrança Recorrente</Label>
+                  <Switch
+                    checked={formData.billing_type === 'recurring'}
+                    onCheckedChange={(v) => setFormData((prev: any) => ({
+                      ...prev,
+                      billing_type: v ? 'recurring' : 'one_time',
+                      billing_interval: v ? (prev.billing_interval || 'month') : null
+                    }))}
+                  />
+                </div>
+
+                {formData.billing_type === 'recurring' && (
+                  <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] uppercase font-bold text-slate-500">Intervalo</Label>
+                      <Select 
+                        value={formData.billing_interval || 'month'} 
+                        onValueChange={(v) => setFormData((prev: any) => ({...prev, billing_interval: v}))}
+                      >
+                        <SelectTrigger className="h-9 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="day">Diário</SelectItem>
+                          <SelectItem value="week">Semanal</SelectItem>
+                          <SelectItem value="month">Mensal</SelectItem>
+                          <SelectItem value="year">Anual</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] uppercase font-bold text-slate-500">Frequência</Label>
+                      <Input 
+                        type="number" 
+                        min={1} 
+                        value={formData.billing_interval_count || 1} 
+                        onChange={(e) => setFormData((prev: any) => ({...prev, billing_interval_count: parseInt(e.target.value) || 1}))}
+                        className="h-9 bg-white"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         );
       case 'header':
