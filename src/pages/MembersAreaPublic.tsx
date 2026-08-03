@@ -1199,7 +1199,9 @@ export default function MembersAreaPublic() {
       className="min-h-screen flex"
       style={{ backgroundColor: backgroundColor, color: textColor }}
     >
-      {/* Main Sidebar (Slim) */}
+      {/* Main Container for Internal Area */}
+      <div className="flex-1 flex min-h-screen overflow-hidden">
+        {/* Main Sidebar (Slim) */}
       <div 
         className="hidden md:flex w-16 lg:w-20 flex-shrink-0 flex-col items-center py-6 border-r z-50 transition-all duration-300"
         style={{ 
