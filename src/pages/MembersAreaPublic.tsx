@@ -1440,12 +1440,8 @@ export default function MembersAreaPublic() {
           )}
 
           {/* Right Side Content Viewer */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto pt-[68px] md:pt-0 pb-24 md:pb-0">
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             {/* View Dispatcher Content */}
-            {/* View Dispatcher Content */}
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pt-[68px] md:pt-0 pb-24 md:pb-0">
           {/* Home View */}
           {activeView === 'home' && (
             <>
