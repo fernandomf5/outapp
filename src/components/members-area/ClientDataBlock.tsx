@@ -22,6 +22,7 @@ export type ClientDataSource =
   | 'customer_history'
   | 'timeline'
   | 'payment_history'
+  | 'client_invoices'
   | 'mindmap';
 
 interface Props {
