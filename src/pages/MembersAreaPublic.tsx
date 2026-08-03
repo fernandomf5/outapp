@@ -1300,59 +1300,58 @@ export default function MembersAreaPublic() {
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 z-40 pt-[68px] pb-24"
+          className="md:hidden fixed inset-0 z-[60] pt-[68px]"
           style={{ backgroundColor: backgroundColor }}
         >
-          <ScrollArea className="h-full p-4">
-            <div className="space-y-2">
-              {area.sections.map((section, index) => (
-                <button
-                  key={section.id}
-                  onClick={() => {
-                    setActiveSection(section.id);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full p-4 rounded-xl flex items-center gap-3 transition-all text-left"
-                  style={{ 
-                    backgroundColor: activeSection === section.id ? `${accentColor}15` : cardBackgroundColor,
-                    borderColor: activeSection === section.id ? accentColor : 'transparent',
-                    borderWidth: '2px'
-                  }}
-                >
-                  {section.cover_image ? (
-                    <img
-                      src={section.cover_image}
-                      alt={section.title}
-                      className="w-14 h-10 rounded-lg object-cover shrink-0"
-                    />
-                  ) : (
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto px-4 py-6">
+              <div className="space-y-3 pb-24">
+                <div className="mb-4 text-[10px] font-bold uppercase tracking-widest opacity-40 px-1" style={{ color: textColor }}>
+                  Módulos Disponíveis
+                </div>
+                {area.sections.map((section, index) => (
+                  <button
+                    key={section.id}
+                    onClick={() => {
+                      setActiveSection(section.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full p-3.5 rounded-2xl flex items-center gap-4 transition-all text-left"
+                    style={{ 
+                      backgroundColor: activeSection === section.id ? `${accentColor}10` : cardBackgroundColor,
+                      border: `1px solid ${activeSection === section.id ? accentColor : `${accentColor}10`}`,
+                      boxShadow: activeSection === section.id ? `0 4px 12px -4px ${accentColor}30` : 'none'
+                    }}
+                  >
                     <div 
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0"
-                      style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
+                      className="relative w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-sm font-bold shadow-sm"
+                      style={{ 
+                        background: activeSection === section.id 
+                          ? `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
+                          : `${accentColor}10`,
+                        color: activeSection === section.id ? 'white' : accentColor
+                      }}
                     >
-                      {index + 1}
+                      {section.cover_image ? (
+                        <img src={section.cover_image} alt="" className="w-full h-full object-cover rounded-xl" />
+                      ) : (
+                        <span>{index + 1}</span>
+                      )}
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium break-words" style={{ color: cardTextColor }}>{section.title}</p>
-                    {section.description && (
-                      <p className="text-sm truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate" style={{ color: cardTextColor }}>{section.title}</p>
+                      <p className="text-[11px] opacity-60 truncate font-medium mt-0.5" style={{ color: cardTextColor }}>
+                        {section.blocks?.length || 0} aulas
+                      </p>
+                    </div>
+                    {activeSection === section.id && (
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
                     )}
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
-            
-            <Button 
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full mt-6 gap-2"
-              style={{ borderColor: '#ef4444', color: '#ef4444' }}
-            >
-              <LogOut className="w-4 h-4" />
-              Sair
-            </Button>
-          </ScrollArea>
+          </div>
         </div>
       )}
 
