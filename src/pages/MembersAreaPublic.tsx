@@ -265,7 +265,19 @@ export default function MembersAreaPublic() {
         return prev;
       }
 
-      return { ...prev, ...newData, access_type: at } as any;
+      // Preserve active section if it still exists in the new data
+      const nextArea = { ...prev, ...newData, access_type: at } as any;
+      
+      // Se a seção ativa não existe mais nos novos dados, resetar para a primeira
+      if (activeSection && !newData.sections?.find((s: any) => s.id === activeSection)) {
+        if (newData.sections?.length > 0) {
+          setActiveSection(newData.sections[0].id);
+        } else {
+          setActiveSection(null);
+        }
+      }
+      
+      return nextArea;
     });
   };
 
@@ -1157,7 +1169,8 @@ export default function MembersAreaPublic() {
 
 
   // Internal Members Area with Sidebar
-  const currentSection = area.sections.find(s => s.id === activeSection);
+  // currentSection is now calculated inline where needed to ensure it uses the latest area.sections state
+  // without being affected by component-level stale closures.
 
   return (
     <div 
@@ -1643,13 +1656,16 @@ export default function MembersAreaPublic() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-xl font-bold break-words" style={{ color: textColor }}>
-                      {currentSection?.title || 'Selecione um módulo'}
+                      {area.sections.find(s => s.id === activeSection)?.title || 'Selecione um módulo'}
                     </h2>
-                    {currentSection?.description && (
-                      <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
-                        {currentSection.description}
-                      </p>
-                    )}
+                    {(() => {
+                      const s = area.sections.find(sec => sec.id === activeSection);
+                      return s?.description && (
+                        <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
+                          {s.description}
+                        </p>
+                      );
+                    })()}
                   </div>
                   <Badge 
                     className="text-sm px-3 py-1 border"
@@ -1666,13 +1682,14 @@ export default function MembersAreaPublic() {
 
               {/* Content Blocks */}
               <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
-                {currentSection?.blocks && currentSection.blocks.length > 0 ? (
-                  (() => {
-                    const layout = currentSection.blocks_layout || ['full'];
+                {(() => {
+                  const s = area.sections.find(sec => sec.id === activeSection);
+                  if (s?.blocks && s.blocks.length > 0) {
+                    const layout = s.blocks_layout || ['full'];
                     const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
                     // Group all contents by their block_position
-                    currentSection.blocks.forEach(block => {
+                    s.blocks.forEach(block => {
                       const pos = block.block_position || 0;
                       if (!contentsByBlock[pos]) contentsByBlock[pos] = [];
                       contentsByBlock[pos].push(block);
@@ -1775,19 +1792,21 @@ export default function MembersAreaPublic() {
                         })}
                       </div>
                     );
-                  })()
-                ) : (
-                  <div 
-                    className="text-center py-16 rounded-xl"
-                    style={{ backgroundColor: cardBackgroundColor }}
-                  >
-                    <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: cardTextColor }} />
-                    <p className="text-lg font-medium" style={{ color: cardTextColor }}>Nenhum conteúdo disponível</p>
-                    <p className="text-sm opacity-70 mt-1" style={{ color: cardTextColor }}>
-                      Selecione um módulo para ver o conteúdo
-                    </p>
-                  </div>
-                )}
+                  } else {
+                    return (
+                      <div 
+                        className="text-center py-16 rounded-xl"
+                        style={{ backgroundColor: cardBackgroundColor }}
+                      >
+                        <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: cardTextColor }} />
+                        <p className="text-lg font-medium" style={{ color: cardTextColor }}>Nenhum conteúdo disponível</p>
+                        <p className="text-sm opacity-70 mt-1" style={{ color: cardTextColor }}>
+                          Selecione um módulo para ver o conteúdo
+                        </p>
+                      </div>
+                    );
+                  }
+                })()}
               </div>
             </>
           )}
