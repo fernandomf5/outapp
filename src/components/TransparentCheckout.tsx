@@ -287,26 +287,36 @@ export const TransparentCheckout = ({
     <div className="space-y-6">
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className={`grid w-full ${showCard && showPix ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ backgroundColor: `${primaryColor}10` }}>
+        <TabsList className={`grid w-full ${tabCount === 3 ? 'grid-cols-3' : tabCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ backgroundColor: `${primaryColor}10` }}>
           {showCard && (
             <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{
               color: activeTab === 'credit_card' ? primaryColor : textColor,
               backgroundColor: activeTab === 'credit_card' ? 'white' : 'transparent'
             }}>
               <CreditCard className="w-4 h-4" />
-              Mercado Pago
+              Cartão
             </TabsTrigger>
           )}
-          {showPix && (
+          {showMpPix && (
             <TabsTrigger value="pix" className="flex items-center gap-2" style={{
               color: activeTab === 'pix' ? primaryColor : textColor,
               backgroundColor: activeTab === 'pix' ? 'white' : 'transparent'
             }}>
               <QrCode className="w-4 h-4" />
-              {pixKey ? 'PIX Manual' : 'PIX'}
+              PIX
+            </TabsTrigger>
+          )}
+          {showManualPix && (
+            <TabsTrigger value="pix_manual" className="flex items-center gap-2" style={{
+              color: activeTab === 'pix_manual' ? primaryColor : textColor,
+              backgroundColor: activeTab === 'pix_manual' ? 'white' : 'transparent'
+            }}>
+              <QrCode className="w-4 h-4" />
+              PIX Manual
             </TabsTrigger>
           )}
         </TabsList>
+
 
 
         <TabsContent value="credit_card" className="space-y-4 mt-4">
