@@ -9787,8 +9787,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_checkout_order: {
+        Args: {
+          _additional_items?: Json
+          _amount: number
+          _checkout_id: string
+          _customer_cpf: string
+          _customer_email: string
+          _customer_name: string
+          _customer_phone: string
+        }
+        Returns: string
+      }
       generate_access_code: { Args: never; Returns: string }
       generate_checkout_access_code: { Args: never; Returns: string }
+      get_checkout_order_status: {
+        Args: { _order_id: string }
+        Returns: {
+          access_code: string
+          status: string
+        }[]
+      }
       get_team_member_restrictions: {
         Args: { _module_key: string; _team_member_id: string }
         Returns: Json
