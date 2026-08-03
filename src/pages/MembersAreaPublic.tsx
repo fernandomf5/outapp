@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { linkifyText } from "@/utils/linkify";
 import { getVideoEmbedUrl } from "@/lib/videoEmbed";
 import { useParams, useSearchParams } from "react-router-dom";
@@ -261,14 +261,11 @@ export default function MembersAreaPublic() {
       const prevSectionsJson = JSON.stringify(prev.sections);
       const nextSectionsJson = JSON.stringify(newData.sections);
       
-      if (prevSectionsJson === nextSectionsJson && prev.name === newData.name && prev.description === newData.description) {
+      if (prevSectionsJson === nextSectionsJson && prev.name === newData.name && prev.description === newData.description && prev.logo_url === newData.logo_url) {
         return prev;
       }
 
-      // Preserve active section if it still exists in the new data
-      const nextArea = { ...prev, ...newData, access_type: at } as any;
-      
-      return nextArea;
+      return { ...prev, ...newData, access_type: at } as any;
     });
   };
 
@@ -1172,8 +1169,9 @@ export default function MembersAreaPublic() {
 
   // Internal Members Area with Sidebar
   const currentSection = useMemo(() => {
-    return area?.sections?.find(s => s.id === activeSection);
-  }, [area?.sections, activeSection]);
+    if (!area?.sections || !activeSection) return undefined;
+    return area.sections.find(s => s.id === activeSection);
+  }, [area, activeSection]);
 
   return (
     <div 
@@ -1683,7 +1681,8 @@ export default function MembersAreaPublic() {
               {/* Content Blocks */}
               <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
                 {(() => {
-                  if (currentSection?.blocks && currentSection.blocks.length > 0) {
+                  if (!currentSection) return null;
+                  if (currentSection.blocks && currentSection.blocks.length > 0) {
                     const layout = currentSection.blocks_layout || ['full'];
                     const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
