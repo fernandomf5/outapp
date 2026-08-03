@@ -261,14 +261,11 @@ export default function MembersAreaPublic() {
       const prevSectionsJson = JSON.stringify(prev.sections);
       const nextSectionsJson = JSON.stringify(newData.sections);
       
-      if (prevSectionsJson === nextSectionsJson && prev.name === newData.name && prev.description === newData.description) {
+      if (prevSectionsJson === nextSectionsJson && prev.name === newData.name && prev.description === newData.description && prev.logo_url === newData.logo_url) {
         return prev;
       }
 
-      // Preserve active section if it still exists in the new data
-      const nextArea = { ...prev, ...newData, access_type: at } as any;
-      
-      return nextArea;
+      return { ...prev, ...newData, access_type: at } as any;
     });
   };
 
