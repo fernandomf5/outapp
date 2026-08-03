@@ -1,0 +1,1 @@
+ALTER TABLE public.admin_message_reads ADD COLUMN IF NOT EXISTS is_deleted boolean NOT NULL DEFAULT false;

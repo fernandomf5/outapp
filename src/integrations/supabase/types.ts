@@ -227,6 +227,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_deleted: boolean
           is_read: boolean
           message_id: string
           updated_at: string
@@ -235,6 +236,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_deleted?: boolean
           is_read?: boolean
           message_id: string
           updated_at?: string
@@ -243,6 +245,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_deleted?: boolean
           is_read?: boolean
           message_id?: string
           updated_at?: string

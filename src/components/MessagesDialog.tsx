@@ -55,19 +55,24 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
       // Buscar status de leitura do usuário
       const { data: readsData } = await supabase
         .from('admin_message_reads')
-        .select('message_id, is_read')
+        .select('message_id, is_read, is_deleted')
         .eq('user_id', user.id);
 
       // Mapear status de leitura
       const readStatusMap = new Map(
         readsData?.map(r => [r.message_id, r.is_read]) || []
       );
+      const deletedIds = new Set(
+        (readsData || []).filter((r: any) => r.is_deleted).map(r => r.message_id)
+      );
 
-      // Combinar mensagens com status de leitura
-      const messagesWithReadStatus = messagesData.map(msg => ({
-        ...msg,
-        is_read: readStatusMap.get(msg.id) || false
-      }));
+      // Combinar mensagens com status de leitura (ocultando excluídas)
+      const messagesWithReadStatus = messagesData
+        .filter(msg => !deletedIds.has(msg.id))
+        .map(msg => ({
+          ...msg,
+          is_read: readStatusMap.get(msg.id) || false
+        }));
 
       setMessages(messagesWithReadStatus);
       setLoading(false);
@@ -154,43 +159,27 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
   const handleDeleteMessage = async (messageId: string) => {
     if (!user) return;
 
+    const previous = messages;
     // Remove otimisticamente
     setMessages(messages.filter(m => m.id !== messageId));
 
+    // Marca como excluída apenas para este usuário
     const { error } = await supabase
-      .from('admin_messages')
-      .delete()
-      .eq('id', messageId);
+      .from('admin_message_reads')
+      .upsert({
+        message_id: messageId,
+        user_id: user.id,
+        is_read: true,
+        is_deleted: true,
+      }, { onConflict: 'message_id,user_id' });
 
     if (error) {
-      // Reverte se houver erro
+      setMessages(previous);
       toast({
         title: "Erro ao excluir",
         description: error.message,
         variant: "destructive",
       });
-      // Recarregar mensagens em caso de erro
-      const { data } = await supabase
-        .from('admin_messages')
-        .select('*')
-        .or(`user_id.eq.${user.id},sent_to_all.eq.true`)
-        .order('created_at', { ascending: false });
-      
-      if (data) {
-        const { data: readsData } = await supabase
-          .from('admin_message_reads')
-          .select('message_id, is_read')
-          .eq('user_id', user.id);
-        
-        const readStatusMap = new Map(
-          readsData?.map(r => [r.message_id, r.is_read]) || []
-        );
-        
-        setMessages(data.map(msg => ({
-          ...msg,
-          is_read: readStatusMap.get(msg.id) || false
-        })));
-      }
     } else {
       toast({
         title: "Mensagem excluída",
