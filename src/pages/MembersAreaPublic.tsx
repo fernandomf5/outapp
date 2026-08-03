@@ -1199,71 +1199,71 @@ export default function MembersAreaPublic() {
       className="min-h-screen flex"
       style={{ backgroundColor: backgroundColor, color: textColor }}
     >
-      {/* Desktop Sidebar */}
+      {/* Main Container for Internal Area */}
+      <div className="flex-1 flex min-h-screen overflow-hidden">
+        {/* Main Sidebar (Slim) */}
       <div 
-        className="hidden md:flex w-20 flex-shrink-0 flex-col items-center py-6 gap-4 border-r"
-        style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20` }}
+        className="hidden md:flex w-16 lg:w-20 flex-shrink-0 flex-col items-center py-6 border-r z-50 transition-all duration-300"
+        style={{ 
+          backgroundColor: headerBackgroundColor, 
+          borderColor: `${accentColor}10`,
+          boxShadow: '4px 0 24px -10px rgba(0,0,0,0.1)'
+        }}
       >
-        {/* Logo */}
-        {area.logo_url ? (
-          <img 
-            src={area.logo_url} 
-            alt={area.name} 
-            className="w-12 h-12 rounded-xl object-cover border-2"
-            style={{ borderColor: accentColor }}
-          />
-        ) : (
-          <div 
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold"
-            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
-          >
-            {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
-          </div>
-        )}
-
-        <div className="flex-1 flex flex-col items-center gap-2 mt-4">
-          <button 
-            onClick={() => setActiveView('home')}
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
-            style={{ 
-              backgroundColor: activeView === 'home' ? accentColor : `${accentColor}10`,
-              color: activeView === 'home' ? '#ffffff' : textColor
-            }}
-            title="Início"
-          >
-            <Home className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={() => setActiveView('content')}
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
-            style={{ 
-              backgroundColor: activeView === 'content' ? accentColor : `${accentColor}10`,
-              color: activeView === 'content' ? '#ffffff' : textColor
-            }}
-            title="Conteúdo"
-          >
-            <BookOpen className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={() => setActiveView('account')}
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
-            style={{ 
-              backgroundColor: activeView === 'account' ? accentColor : `${accentColor}10`,
-              color: activeView === 'account' ? '#ffffff' : textColor
-            }}
-            title="Minha Conta"
-          >
-            <User className="w-5 h-5" />
-          </button>
+        {/* Brand/Logo Container */}
+        <div className="mb-8 px-2 w-full flex justify-center">
+          {area.logo_url ? (
+            <img 
+              src={area.logo_url} 
+              alt={area.name} 
+              className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl object-cover border shadow-sm transition-transform hover:scale-105"
+              style={{ borderColor: `${accentColor}20` }}
+            />
+          ) : (
+            <div 
+              className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
+            >
+              {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
+            </div>
+          )}
         </div>
 
-        <button 
-          onClick={handleLogout}
-          className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:bg-red-100"
-          style={{ color: '#ef4444' }}
-        >
-          <LogOut className="w-5 h-5" />
-        </button>
+        {/* Navigation Items */}
+        <div className="flex-1 flex flex-col items-center gap-4 w-full px-2">
+          {[
+            { id: 'home', icon: Home, label: 'Início' },
+            { id: 'content', icon: BookOpen, label: 'Módulos' },
+            { id: 'account', icon: User, label: 'Perfil' }
+          ].map((item) => (
+            <button 
+              key={item.id}
+              onClick={() => setActiveView(item.id as any)}
+              className="group relative w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all"
+              style={{ 
+                backgroundColor: activeView === item.id ? accentColor : 'transparent',
+                color: activeView === item.id ? '#ffffff' : `${textColor}80`
+              }}
+            >
+              <item.icon className={`w-5 h-5 transition-transform ${activeView === item.id ? 'scale-110' : 'group-hover:scale-110'}`} />
+              
+              {/* Tooltip */}
+              <div className="absolute left-full ml-3 px-2 py-1 bg-black text-white text-[10px] rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-[60]">
+                {item.label}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="mt-auto px-2 w-full flex flex-col items-center gap-4">
+          <button 
+            onClick={handleLogout}
+            className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all hover:bg-red-50 text-red-500"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Header */}
@@ -1356,104 +1356,94 @@ export default function MembersAreaPublic() {
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 md:flex-row">
-        {/* Sections Sidebar (Desktop) - Only show for content view */}
-        {activeView === 'content' && (
-          <div 
-            className="hidden md:block w-72 lg:w-80 flex-shrink-0 border-r overflow-y-auto"
-            style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}15` }}
-          >
-            {/* Header */}
+      {/* Secondary Content Layer */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Main Content Area */}
+        <div className="flex-1 flex min-w-0 md:flex-row overflow-hidden">
+          {/* Module List Sidebar (Desktop) - Only show for content view */}
+          {activeView === 'content' && (
             <div 
-              className="px-4 md:px-6 py-4 md:py-5 border-b"
-              style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
+              className="hidden md:flex flex-col w-72 lg:w-80 flex-shrink-0 border-r overflow-hidden"
+              style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}10` }}
             >
-              <h2 className="text-lg font-bold" style={{ color: textColor }}>{area.name}</h2>
-              <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>{area.description}</p>
-            </div>
-
-            {/* Progress - only show for courses */}
-            {area.area_type !== 'exclusive' && (
-            <div className="p-4 border-b" style={{ borderColor: `${accentColor}15` }}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium" style={{ color: cardTextColor }}>Seu Progresso</span>
-                <span className="text-sm font-bold" style={{ color: accentColor }}>35%</span>
-              </div>
+              {/* Sidebar Header with Meta Info */}
               <div 
-                className="w-full h-2 rounded-full overflow-hidden"
-                style={{ backgroundColor: `${accentColor}20` }}
+                className="px-6 py-8 border-b"
+                style={{ backgroundColor: `${headerBackgroundColor}50`, borderColor: `${accentColor}05` }}
               >
-                <div 
-                  className="h-full rounded-full transition-all"
-                  style={{ 
-                    width: '35%',
-                    background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` 
-                  }}
-                />
-              </div>
-            </div>
-            )}
-
-            {/* Sections List */}
-            <div className="p-4 space-y-2">
-              <h3 
-                className="text-xs font-semibold uppercase tracking-wide mb-3"
-                style={{ color: cardTextColor }}
-              >
-                Módulos
-              </h3>
-              
-              {area.sections.map((section, index) => (
-                <button
-                  key={section.id}
-                  onClick={() => {
-                    console.log('Switching to section:', section.id, section.title);
-                    setActiveSection(section.id);
-                  }}
-                  className="w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left"
-                  style={{ 
-                    backgroundColor: activeSection === section.id ? `${accentColor}15` : 'transparent',
-                    borderColor: activeSection === section.id ? accentColor : 'transparent',
-                    borderWidth: '2px'
-                  }}
-                >
-
-                  {section.cover_image ? (
-                    <img
-                      src={section.cover_image}
-                      alt={section.title}
-                      className="w-14 h-9 rounded-lg object-cover shrink-0"
-                    />
-                  ) : (
-                    <div 
-                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                      style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
-                    >
-                      {index + 1}
+                <div className="mb-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary" style={{ color: accentColor, backgroundColor: `${accentColor}10` }}>
+                  Área de Membros
+                </div>
+                <h2 className="text-xl font-bold tracking-tight mb-2" style={{ color: textColor }}>{area.name}</h2>
+                <p className="text-sm opacity-60 line-clamp-2 leading-relaxed" style={{ color: textColor }}>{area.description}</p>
+                
+                {/* Progress Mini Widget */}
+                {area.area_type !== 'exclusive' && (
+                  <div className="mt-6 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider" style={{ color: `${textColor}60` }}>
+                      <span>Progresso</span>
+                      <span style={{ color: accentColor }}>35%</span>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium break-words" style={{ color: cardTextColor }}>{section.title}</p>
-                    {section.description && (
-                      <p className="text-xs truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
-                    )}
+                    <div className="w-full h-1.5 rounded-full bg-black/5 overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-1000" style={{ width: '35%', background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` }} />
+                    </div>
                   </div>
-                  <ChevronRight 
-                    className="w-4 h-4 shrink-0 transition-transform"
-                    style={{ 
-                      color: cardTextColor,
-                      transform: activeSection === section.id ? 'rotate(90deg)' : 'none'
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                )}
+              </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pt-[68px] md:pt-0 pb-24 md:pb-0">
+              {/* Scrollable Section List */}
+              <ScrollArea className="flex-1">
+                <div className="p-4 space-y-1.5">
+                  <div className="px-3 mb-4 text-[10px] font-bold uppercase tracking-widest opacity-40" style={{ color: textColor }}>
+                    Módulos do Curso
+                  </div>
+                  
+                  {area.sections.map((section, index) => (
+                    <button
+                      key={section.id}
+                      onClick={() => setActiveSection(section.id)}
+                      className="group w-full p-3.5 rounded-2xl flex items-center gap-4 transition-all duration-200 text-left hover:bg-black/5"
+                      style={{ 
+                        backgroundColor: activeSection === section.id ? `${accentColor}08` : 'transparent',
+                        boxShadow: activeSection === section.id ? `inset 0 0 0 1px ${accentColor}20` : 'none'
+                      }}
+                    >
+                      <div 
+                        className="relative w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-sm font-bold transition-all shadow-sm group-hover:scale-105"
+                        style={{ 
+                          background: activeSection === section.id 
+                            ? `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
+                            : `${accentColor}10`,
+                          color: activeSection === section.id ? 'white' : accentColor
+                        }}
+                      >
+                        {section.cover_image ? (
+                          <img src={section.cover_image} alt="" className="w-full h-full object-cover rounded-xl" />
+                        ) : (
+                          <span>{index + 1}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold mb-0.5 transition-colors ${activeSection === section.id ? '' : 'opacity-80'}`} style={{ color: textColor }}>
+                          {section.title}
+                        </p>
+                        <p className="text-[11px] opacity-50 truncate font-medium" style={{ color: textColor }}>
+                          {section.blocks?.length || 0} aulas disponíveis
+                        </p>
+                      </div>
+                      {activeSection === section.id && (
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
+          {/* Right Side Content Viewer */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto pt-[68px] md:pt-0 pb-24 md:pb-0">
+            {/* View Dispatcher Content */}
           {/* Home View */}
           {activeView === 'home' && (
             <>
@@ -1820,6 +1810,8 @@ export default function MembersAreaPublic() {
               </div>
             </>
           )}
+            </div>
+          </div>
         </div>
       </div>
 
