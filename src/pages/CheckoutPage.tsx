@@ -310,17 +310,18 @@ const CheckoutPage = () => {
       const totalAmount = calculateTotal();
       const extras = getSelectedExtras();
 
-      const { data: order, error: orderError } = await supabase
-        .from('checkout_orders').insert({
-          checkout_id: checkout.id, user_id: checkout.user_id,
-          customer_name: customerData.name, customer_email: normalizedEmail,
-          customer_phone: customerData.phone || null, customer_cpf: customerData.cpf || null,
-          amount: totalAmount, status: 'pending',
-          additional_items: extras,
-        }).select().single();
+      const { data: newOrderId, error: orderError } = await supabase.rpc('create_checkout_order', {
+        _checkout_id: checkout.id,
+        _customer_name: customerData.name,
+        _customer_email: normalizedEmail,
+        _customer_phone: customerData.phone || null,
+        _customer_cpf: customerData.cpf || null,
+        _amount: totalAmount,
+        _additional_items: extras as any,
+      });
       if (orderError) throw orderError;
 
-      setOrderId(order.id);
+      setOrderId(newOrderId as string);
       setShowPayment(true);
     } catch (err: any) {
       console.error('Erro ao criar pedido:', err);
