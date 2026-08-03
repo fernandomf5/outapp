@@ -40,13 +40,16 @@ export const TransparentCheckout = ({
   enableMp = true, enablePixManual,
 }: TransparentCheckoutProps & { pixKey?: string, pixWhatsapp?: string, enableMp?: boolean, enablePixManual?: boolean }) => {
   const { toast } = useToast();
-  const showCard = enableMp && !!mpPublicKey;
-  const showPix = enablePixManual ?? !!pixKey;
-  const hasMpPix = enableMp && !!mpPublicKey && !enablePixManual;
-  const [activeTab, setActiveTab] = useState<string>(showCard ? "credit_card" : "pix");
+  const mpReady = enableMp && !!mpPublicKey;
+  const showCard = mpReady;
+  const showMpPix = mpReady;
+  const showManualPix = enablePixManual ?? !!pixKey;
+  const tabCount = [showCard, showMpPix, showManualPix].filter(Boolean).length;
+  const [activeTab, setActiveTab] = useState<string>(showCard ? "credit_card" : showMpPix ? "pix" : "pix_manual");
   const [processing, setProcessing] = useState(false);
   const [sdkLoaded, setSdkLoaded] = useState(!enableMp || !mpPublicKey);
   const [mp, setMp] = useState<any>(null);
+
 
   // Card form state
   const [cardNumber, setCardNumber] = useState("");
@@ -170,24 +173,24 @@ export const TransparentCheckout = ({
     }
   };
 
-  const handlePixPayment = async () => {
-    if (pixKey?.trim()) {
-      // Manual PIX flow — build a valid PIX EMV BR Code
-      const brcode = generatePixBRCode({
-        pixKey: pixKey.trim(),
-        amount: Number(amount.toFixed(2)),
-        merchantName: "PAGAMENTO PIX",
-        merchantCity: "BRASIL",
-        description: itemName,
-        txid: "***",
-      });
-      setPixPending(true);
-      setPixQrCode(brcode);
-      setPixQrCodeBase64("");
-      return;
-    }
+  const handleManualPixPayment = () => {
+    if (!pixKey?.trim()) return;
+    const brcode = generatePixBRCode({
+      pixKey: pixKey.trim(),
+      amount: Number(amount.toFixed(2)),
+      merchantName: "PAGAMENTO PIX",
+      merchantCity: "BRASIL",
+      description: itemName,
+      txid: "***",
+    });
+    setPixPending(true);
+    setPixQrCode(brcode);
+    setPixQrCodeBase64("");
+  };
 
+  const handlePixPayment = async () => {
     setProcessing(true);
+
     try {
       const { data, error } = await supabase.functions.invoke('checkout-transparent-payment', {
         body: {
@@ -283,27 +286,43 @@ export const TransparentCheckout = ({
   return (
     <div className="space-y-6">
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className={`grid w-full ${showCard && showPix ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ backgroundColor: `${primaryColor}10` }}>
+      <Tabs value={activeTab} onValueChange={(v) => {
+        setActiveTab(v);
+        setPixPending(false);
+        setPixQrCode("");
+        setPixQrCodeBase64("");
+      }}>
+
+        <TabsList className={`grid w-full ${tabCount === 3 ? 'grid-cols-3' : tabCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ backgroundColor: `${primaryColor}10` }}>
           {showCard && (
             <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{
               color: activeTab === 'credit_card' ? primaryColor : textColor,
               backgroundColor: activeTab === 'credit_card' ? 'white' : 'transparent'
             }}>
               <CreditCard className="w-4 h-4" />
-              Mercado Pago
+              Cartão
             </TabsTrigger>
           )}
-          {showPix && (
+          {showMpPix && (
             <TabsTrigger value="pix" className="flex items-center gap-2" style={{
               color: activeTab === 'pix' ? primaryColor : textColor,
               backgroundColor: activeTab === 'pix' ? 'white' : 'transparent'
             }}>
               <QrCode className="w-4 h-4" />
-              {pixKey ? 'PIX Manual' : 'PIX'}
+              PIX
+            </TabsTrigger>
+          )}
+          {showManualPix && (
+            <TabsTrigger value="pix_manual" className="flex items-center gap-2" style={{
+              color: activeTab === 'pix_manual' ? primaryColor : textColor,
+              backgroundColor: activeTab === 'pix_manual' ? 'white' : 'transparent'
+            }}>
+              <QrCode className="w-4 h-4" />
+              PIX Manual
             </TabsTrigger>
           )}
         </TabsList>
+
 
 
         <TabsContent value="credit_card" className="space-y-4 mt-4">
@@ -416,44 +435,23 @@ export const TransparentCheckout = ({
                 )}
               </Button>
             </div>
-
           ) : (
             <div className="text-center space-y-4">
               <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
-                {pixKey ? (
-                  <div className="py-4 space-y-4">
-                    <div className="flex justify-center mb-4">
-                      <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>
-                        <QRCodeCanvas
-                          value={pixQrCode || pixKey}
-                          size={236}
-                          level="H"
-                          includeMargin={true}
-                          bgColor="#ffffff"
-                          fgColor="#000000"
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-white rounded-xl border shadow-inner">
-                      <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">PIX Copia e Cola</p>
-                      <p className="text-xs font-mono break-all text-slate-700 leading-relaxed">{pixQrCode || pixKey}</p>
-                    </div>
-                    <p className="text-xs leading-relaxed" style={{ color: subtitleColor }}>
-                      Escaneie o QR Code no app do seu banco ou use o código copia e cola. Após pagar, clique no botão abaixo para enviar o comprovante.
-                    </p>
-                  </div>
-                ) : pixQrCodeBase64 && (
+                {pixQrCodeBase64 ? (
                   <div className="flex justify-center">
                     <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>
-                      <img
-                        src={`data:image/png;base64,${pixQrCodeBase64}`}
-                        alt="QR Code PIX"
-                        className="w-56 h-56 mx-auto"
-                      />
+                      <img src={`data:image/png;base64,${pixQrCodeBase64}`} alt="QR Code PIX" className="w-56 h-56 mx-auto" />
+                    </div>
+                  </div>
+                ) : pixQrCode && (
+                  <div className="flex justify-center">
+                    <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>
+                      <QRCodeCanvas value={pixQrCode} size={236} level="H" includeMargin bgColor="#ffffff" fgColor="#000000" />
                     </div>
                   </div>
                 )}
-                {!pixKey && <p className="text-sm font-medium" style={{ color: textColor }}>Escaneie o QR Code ou copie o código PIX</p>}
+                <p className="text-sm font-medium" style={{ color: textColor }}>Escaneie o QR Code ou copie o código PIX</p>
                 <Button
                   className="w-full h-12 font-bold rounded-xl shadow-md"
                   onClick={copyPixCode}
@@ -465,31 +463,9 @@ export const TransparentCheckout = ({
                     <><Copy className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiar Código PIX</>
                   )}
                 </Button>
-
-                {pixKey && (
-                  <div className="space-y-3">
-                    <Button 
-                      className="w-full h-14 font-black bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg flex items-center justify-center gap-2" 
-                      onClick={() => {
-                        const msg = encodeURIComponent(`Olá, realizei o pagamento via PIX manual. Nome: ${customerName}. Valor: R$ ${amount.toFixed(2)}`);
-                        window.open(`https://wa.me/${pixWhatsapp}?text=${msg}`, '_blank');
-                      }}
-                    >
-                      <Smartphone className="w-5 h-5" /> Confirmar no WhatsApp
-                    </Button>
-                    <Button 
-                      variant="ghost"
-                      className="w-full h-12 font-bold" 
-                      onClick={() => onSuccess({ paymentId: 'manual_pix', isManualPix: true })}
-                      style={{ color: subtitleColor }}
-                    >
-                      Já realizei o pagamento
-                    </Button>
-                  </div>
-                )}
               </div>
 
-              {checkingPixStatus && !pixKey && (
+              {checkingPixStatus && (
                 <div className="flex items-center justify-center gap-2 text-sm animate-pulse" style={{ color: subtitleColor }}>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Aguardando confirmação do pagamento...
@@ -498,6 +474,79 @@ export const TransparentCheckout = ({
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="pix_manual" className="space-y-4 mt-4">
+          {!pixPending ? (
+            <div className="text-center space-y-6 py-4">
+              <div className="p-6 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <QrCode className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg" style={{ color: textColor }}>PIX Manual</h3>
+                <p className="text-sm max-w-[260px] mx-auto mt-2" style={{ color: subtitleColor }}>
+                  Gere o código PIX, pague e envie o comprovante para liberar seu acesso.
+                </p>
+              </div>
+              <Button
+                className="w-full h-14 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                style={{ backgroundColor: primaryColor }}
+                onClick={handleManualPixPayment}
+              >
+                <QrCode className="w-5 h-5 mr-2" />Gerar QR Code PIX
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center space-y-4">
+              <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
+                <div className="py-4 space-y-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>
+                      <QRCodeCanvas value={pixQrCode || pixKey || ''} size={236} level="H" includeMargin bgColor="#ffffff" fgColor="#000000" />
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border shadow-inner">
+                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">PIX Copia e Cola</p>
+                    <p className="text-xs font-mono break-all text-slate-700 leading-relaxed">{pixQrCode || pixKey}</p>
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: subtitleColor }}>
+                    Escaneie o QR Code no app do seu banco ou use o código copia e cola. Após pagar, clique no botão abaixo para enviar o comprovante.
+                  </p>
+                </div>
+                <Button
+                  className="w-full h-12 font-bold rounded-xl shadow-md"
+                  onClick={copyPixCode}
+                  style={{ backgroundColor: primaryColor, color: '#ffffff', borderColor: primaryColor }}
+                >
+                  {pixCopied ? (
+                    <><CheckCircle2 className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiado!</>
+                  ) : (
+                    <><Copy className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiar Código PIX</>
+                  )}
+                </Button>
+                <div className="space-y-3">
+                  <Button
+                    className="w-full h-14 font-black bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg flex items-center justify-center gap-2"
+                    onClick={() => {
+                      const msg = encodeURIComponent(`Olá, realizei o pagamento via PIX manual. Nome: ${customerName}. Valor: R$ ${amount.toFixed(2)}`);
+                      window.open(`https://wa.me/${pixWhatsapp}?text=${msg}`, '_blank');
+                    }}
+                  >
+                    <Smartphone className="w-5 h-5" /> Confirmar no WhatsApp
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full h-12 font-bold"
+                    onClick={() => onSuccess({ paymentId: 'manual_pix', isManualPix: true })}
+                    style={{ color: subtitleColor }}
+                  >
+                    Já realizei o pagamento
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
       </Tabs>
     </div>
   );
