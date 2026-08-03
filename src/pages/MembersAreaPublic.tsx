@@ -561,6 +561,7 @@ export default function MembersAreaPublic() {
       client_table: <FileText className="w-4 h-4" />,
       client_financial: <DollarSign className="w-4 h-4" />,
       client_receipts: <DollarSign className="w-4 h-4" />,
+      client_invoices: <Receipt className="w-4 h-4" />,
       receipt_history: <DollarSign className="w-4 h-4" />,
       client_mindmap: <Brain className="w-4 h-4" />,
       customer_history: <History className="w-4 h-4" />,
