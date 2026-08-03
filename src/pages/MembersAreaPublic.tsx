@@ -417,6 +417,12 @@ export default function MembersAreaPublic() {
     }
   };
 
+  // 1. Hooks (Must be top-level, before any early returns)
+  const currentSection = useMemo(() => {
+    if (!area?.sections || !activeSection) return null;
+    return area.sections.find(s => s.id === activeSection) || area.sections[0];
+  }, [area?.sections, activeSection]);
+
   const handlePasswordSubmit = async () => {
     if (!area) return;
     
