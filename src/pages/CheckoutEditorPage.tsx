@@ -321,9 +321,9 @@ const CheckoutEditorPage = () => {
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center scrollbar-hide">
            <div className="w-full flex justify-center gap-4 mb-6">
-              <Button variant="outline" size="sm" onClick={() => setViewport('desktop')} className={viewport === 'desktop' ? 'bg-green-600 text-white border-green-600' : 'text-white/70 border-white/20 hover:text-white hover:bg-white/10'}>Desktop</Button>
-              <Button variant="outline" size="sm" onClick={() => setViewport('tablet')} className={viewport === 'tablet' ? 'bg-green-600 text-white border-green-600' : 'text-white/70 border-white/20 hover:text-white hover:bg-white/10'}>Tablet</Button>
-              <Button variant="outline" size="sm" onClick={() => setViewport('mobile')} className={viewport === 'mobile' ? 'bg-green-600 text-white border-green-600' : 'text-white/70 border-white/20 hover:text-white hover:bg-white/10'}>Mobile</Button>
+              <Button variant="outline" size="sm" onClick={() => setViewport('desktop')} className={viewport === 'desktop' ? 'bg-green-600 text-white border-green-600 hover:bg-green-700 hover:text-white' : 'bg-white/10 text-white border-white/20 hover:text-white hover:bg-white/20'}>Desktop</Button>
+              <Button variant="outline" size="sm" onClick={() => setViewport('tablet')} className={viewport === 'tablet' ? 'bg-green-600 text-white border-green-600 hover:bg-green-700 hover:text-white' : 'bg-white/10 text-white border-white/20 hover:text-white hover:bg-white/20'}>Tablet</Button>
+              <Button variant="outline" size="sm" onClick={() => setViewport('mobile')} className={viewport === 'mobile' ? 'bg-green-600 text-white border-green-600 hover:bg-green-700 hover:text-white' : 'bg-white/10 text-white border-white/20 hover:text-white hover:bg-white/20'}>Mobile</Button>
            </div>
            <div className={`transition-all duration-500 origin-top ${viewport === 'mobile' ? 'w-[375px]' : viewport === 'tablet' ? 'w-[768px]' : 'w-full max-w-4xl'}`}>
               <CheckoutPreview checkout={{...formData, ...currentSettings}} activeTab={formTab} onTabChange={setFormTab} device={viewport as any} />
