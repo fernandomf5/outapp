@@ -225,16 +225,14 @@ export const TransparentCheckout = ({
     setCheckingPixStatus(true);
     const interval = setInterval(async () => {
       try {
-        const { data: order } = await supabase
-          .from('checkout_orders')
-          .select('status, metadata')
-          .eq('id', orderId)
-          .single();
+        const { data: rows } = await supabase
+          .rpc('get_checkout_order_status', { _order_id: orderId });
+        const order = Array.isArray(rows) ? rows[0] : rows;
 
         if (order?.status === 'approved') {
           clearInterval(interval);
           setCheckingPixStatus(false);
-          const accessCode = (order.metadata as any)?.access_code;
+          const accessCode = order.access_code || undefined;
           onSuccess({ accessCode, paymentId });
         }
       } catch (err) {
