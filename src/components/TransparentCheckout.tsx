@@ -286,7 +286,13 @@ export const TransparentCheckout = ({
   return (
     <div className="space-y-6">
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(v) => {
+        setActiveTab(v);
+        setPixPending(false);
+        setPixQrCode("");
+        setPixQrCodeBase64("");
+      }}>
+
         <TabsList className={`grid w-full ${tabCount === 3 ? 'grid-cols-3' : tabCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ backgroundColor: `${primaryColor}10` }}>
           {showCard && (
             <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{
