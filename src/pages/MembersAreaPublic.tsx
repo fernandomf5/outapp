@@ -1681,13 +1681,14 @@ export default function MembersAreaPublic() {
 
               {/* Content Blocks */}
               <div className="p-3 sm:p-4 md:p-6 space-y-4 max-w-6xl mx-auto w-full">
-                {currentSection?.blocks && currentSection.blocks.length > 0 ? (
-                  (() => {
-                    const layout = currentSection.blocks_layout || ['full'];
+                {(() => {
+                  const s = area.sections.find(sec => sec.id === activeSection);
+                  if (s?.blocks && s.blocks.length > 0) {
+                    const layout = s.blocks_layout || ['full'];
                     const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
                     // Group all contents by their block_position
-                    currentSection.blocks.forEach(block => {
+                    s.blocks.forEach(block => {
                       const pos = block.block_position || 0;
                       if (!contentsByBlock[pos]) contentsByBlock[pos] = [];
                       contentsByBlock[pos].push(block);
