@@ -214,34 +214,54 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                 </div>
 
                 {formData.billing_type === 'recurring' && (
-                  <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] uppercase font-bold text-slate-500">Intervalo</Label>
-                      <Select 
-                        value={formData.billing_interval || 'month'} 
-                        onValueChange={(v) => setFormData((prev: any) => ({...prev, billing_interval: v}))}
-                      >
-                        <SelectTrigger className="h-9 bg-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="day">Diário</SelectItem>
-                          <SelectItem value="week">Semanal</SelectItem>
-                          <SelectItem value="month">Mensal</SelectItem>
-                          <SelectItem value="year">Anual</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  <div className="space-y-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-slate-500">Intervalo</Label>
+                        <Select 
+                          value={formData.billing_interval || 'month'} 
+                          onValueChange={(v) => setFormData((prev: any) => ({...prev, billing_interval: v}))}
+                        >
+                          <SelectTrigger className="h-9 bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="day">Diário</SelectItem>
+                            <SelectItem value="week">Semanal</SelectItem>
+                            <SelectItem value="month">Mensal</SelectItem>
+                            <SelectItem value="year">Anual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-slate-500">Frequência</Label>
+                        <Input 
+                          type="number" 
+                          min={1} 
+                          value={formData.billing_interval_count || 1} 
+                          onChange={(e) => setFormData((prev: any) => ({...prev, billing_interval_count: parseInt(e.target.value) || 1}))}
+                          className="h-9 bg-white"
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] uppercase font-bold text-slate-500">Frequência</Label>
-                      <Input 
-                        type="number" 
-                        min={1} 
-                        value={formData.billing_interval_count || 1} 
-                        onChange={(e) => setFormData((prev: any) => ({...prev, billing_interval_count: parseInt(e.target.value) || 1}))}
-                        className="h-9 bg-white"
-                      />
-                    </div>
+
+                    {(formData.billing_interval === 'month' || !formData.billing_interval) && (
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-slate-500">Dia do Vencimento (1-28)</Label>
+                        <Input 
+                          type="number" 
+                          min={1} 
+                          max={28}
+                          placeholder="Ex: 5"
+                          value={formData.billing_day || ''} 
+                          onChange={(e) => setFormData((prev: any) => ({...prev, billing_day: parseInt(e.target.value) || null}))}
+                          className="h-9 bg-white"
+                        />
+                        <p className="text-[9px] text-slate-500 italic">
+                          O primeiro pagamento ocorre no checkout. As próximas cobranças serão no dia escolhido.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
