@@ -424,9 +424,8 @@ export default function MembersAreaPublic() {
   const currentSection = useMemo(() => {
     if (!area?.sections || !activeSection) return null;
     const section = area.sections.find(s => s.id === activeSection);
-    console.log('useMemo currentSection updated:', { activeSection, title: section?.title });
-    return section || area.sections[0];
-  }, [area?.sections, activeSection]);
+    return section || null;
+  }, [area, activeSection]);
 
   const handlePasswordSubmit = async () => {
     if (!area) return;
