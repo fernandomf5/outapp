@@ -134,7 +134,9 @@ const AppContent = () => {
               <Route path="/checkout/:checkoutId/:slug" element={<CheckoutPage />} />
               <Route path="/checkout/:checkoutId/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/checkout/:checkoutId/:slug/obrigado" element={<CheckoutThankYouPage />} />
+              <Route path="/obrigado" element={<PaymentThankYou />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
+
               <Route path="/fatura/:token" element={<InvoicePublicPage />} />
               <Route path="/site/:slug" element={<SitePublic />} />
               <Route path="/site/:slug/:pageSlug" element={<SitePublic />} />
