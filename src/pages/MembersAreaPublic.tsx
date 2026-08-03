@@ -1146,7 +1146,7 @@ export default function MembersAreaPublic() {
 
 
   // Internal Members Area with Sidebar
-  const currentSection = area.sections.find(s => s.id === activeSection) || area.sections[0];
+  const currentSection = area.sections.find(s => s.id === activeSection) || (area.sections.length > 0 ? area.sections[0] : null);
 
   return (
     <div 
