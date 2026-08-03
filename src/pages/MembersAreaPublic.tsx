@@ -272,6 +272,16 @@ export default function MembersAreaPublic() {
     });
   };
 
+  // Force re-sync activeSection if it's no longer in sections list
+  useEffect(() => {
+    if (area?.sections?.length && activeSection) {
+      const exists = area.sections.some(s => s.id === activeSection);
+      if (!exists) {
+        setActiveSection(area.sections[0].id);
+      }
+    }
+  }, [area?.sections, activeSection]);
+
   useEffect(() => {
     const areaId = (area as any)?.id;
     if (!areaId) return;
