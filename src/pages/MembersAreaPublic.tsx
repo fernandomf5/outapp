@@ -1807,43 +1807,52 @@ export default function MembersAreaPublic() {
 
       {/* Mobile Bottom Navigation */}
       <div 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] flex items-center justify-around"
-        style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20` }}
+        className="md:hidden fixed bottom-0 left-0 right-0 z-[70] border-t px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] flex items-center justify-around"
+        style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20`, backdropFilter: 'blur(8px)' }}
       >
         <button 
-          onClick={() => setActiveView('home')}
-          className="flex flex-col items-center gap-1 p-2"
-          style={{ color: activeView === 'home' ? accentColor : textColor }}
+          onClick={() => {
+            setActiveView('home');
+            setMobileMenuOpen(false);
+          }}
+          className="flex flex-col items-center gap-1 p-2 min-w-[64px]"
+          style={{ color: activeView === 'home' && !mobileMenuOpen ? accentColor : `${textColor}80` }}
         >
           <Home className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Início</span>
+          <span className="text-[10px] font-bold">Início</span>
         </button>
         <button 
           onClick={() => {
             setActiveView('content');
-            setMobileMenuOpen(true);
+            setMobileMenuOpen(!mobileMenuOpen);
           }}
-          className="flex flex-col items-center gap-1 p-2"
-          style={{ color: activeView === 'content' ? accentColor : textColor }}
+          className="flex flex-col items-center gap-1 p-2 min-w-[64px] relative"
+          style={{ color: mobileMenuOpen || activeView === 'content' ? accentColor : `${textColor}80` }}
         >
-          <BookOpen className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Módulos</span>
+          {mobileMenuOpen ? <X className="w-5 h-5 animate-in fade-in zoom-in duration-200" /> : <BookOpen className="w-5 h-5" />}
+          <span className="text-[10px] font-bold">{mobileMenuOpen ? 'Fechar' : 'Módulos'}</span>
+          {activeView === 'content' && !mobileMenuOpen && (
+            <div className="absolute -top-0.5 right-4 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
+          )}
         </button>
         <button 
-          onClick={() => setActiveView('account')}
-          className="flex flex-col items-center gap-1 p-2"
-          style={{ color: activeView === 'account' ? accentColor : textColor }}
+          onClick={() => {
+            setActiveView('account');
+            setMobileMenuOpen(false);
+          }}
+          className="flex flex-col items-center gap-1 p-2 min-w-[64px]"
+          style={{ color: activeView === 'account' && !mobileMenuOpen ? accentColor : `${textColor}80` }}
         >
           <User className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Perfil</span>
+          <span className="text-[10px] font-bold">Perfil</span>
         </button>
         <button 
           onClick={handleLogout}
-          className="flex flex-col items-center gap-1 p-2"
+          className="flex flex-col items-center gap-1 p-2 min-w-[64px]"
           style={{ color: '#ef4444' }}
         >
           <LogOut className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Sair</span>
+          <span className="text-[10px] font-bold">Sair</span>
         </button>
       </div>
     </div>
