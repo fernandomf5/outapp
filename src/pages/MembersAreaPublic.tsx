@@ -1696,11 +1696,11 @@ export default function MembersAreaPublic() {
                   const currentSectionToRender = area.sections.find(s => s.id === activeSection);
                   if (!currentSectionToRender) return null;
                   if (currentSectionToRender.blocks && currentSectionToRender.blocks.length > 0) {
-                    const layout = currentSection.blocks_layout || ['full'];
+                    const layout = currentSectionToRender.blocks_layout || ['full'];
                     const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
                     // Group all contents by their block_position
-                    currentSection.blocks.forEach(block => {
+                    currentSectionToRender.blocks.forEach(block => {
                       const pos = block.block_position || 0;
                       if (!contentsByBlock[pos]) contentsByBlock[pos] = [];
                       contentsByBlock[pos].push(block);
