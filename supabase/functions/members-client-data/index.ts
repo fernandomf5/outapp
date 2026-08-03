@@ -310,6 +310,18 @@ serve(async (req) => {
         break;
       }
 
+      case 'client_invoices': {
+        const { data: invoices } = await supabase
+          .from('invoices')
+          .select('id, invoice_number, total_amount, due_date, status, public_token, created_at')
+          .eq('user_id', area.user_id)
+          .ilike('client_email', customer.email)
+          .order('due_date', { ascending: false })
+          .limit(100);
+        
+        payload = { invoices: invoices || [] };
+        break;
+
       default:
         return json({ error: 'unsupported_source' }, 400);
     }
