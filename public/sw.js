@@ -1,4 +1,9 @@
-// Service Worker for Push Notifications
+// Service Worker exclusively for Push Notifications.
+// The app shell is intentionally never cached so checkout code is always current.
+
+function isLegacyAppCache(name) {
+  return /(^|-)precache-v\d+-|(^|-)runtime-|(^|-)googleAnalytics-|workbox/i.test(name);
+}
 
 self.addEventListener('push', function(event) {
   console.log('[SW] Push received:', event);
@@ -87,5 +92,20 @@ self.addEventListener('install', function(event) {
 
 self.addEventListener('activate', function(event) {
   console.log('[SW] Service worker activated');
-  event.waitUntil(clients.claim());
+  event.waitUntil((async function() {
+    const cacheNames = await caches.keys();
+    const legacyCaches = cacheNames.filter(isLegacyAppCache);
+    await Promise.allSettled(legacyCaches.map(function(name) {
+      return caches.delete(name);
+    }));
+
+    await clients.claim();
+
+    // A previous Workbox worker may have loaded a stale checkout bundle.
+    // Reload every open window once under this network-only push worker.
+    const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    await Promise.allSettled(windowClients.map(function(client) {
+      return client.navigate(client.url);
+    }));
+  })());
 });
