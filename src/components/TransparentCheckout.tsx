@@ -397,7 +397,7 @@ export const TransparentCheckout = ({
 
             <Button
               className="w-full h-12 text-base font-semibold"
-              style={{ backgroundColor: primaryColor }}
+              style={{ backgroundColor: primaryColor, color: textColor === '#ffffff' ? '#ffffff' : (textColor || '#ffffff') }}
               onClick={handleCardPayment}
               disabled={processing}
             >
@@ -424,7 +424,7 @@ export const TransparentCheckout = ({
               </div>
               <Button
                 className="w-full h-14 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: primaryColor }}
+                style={{ backgroundColor: primaryColor, color: textColor === '#ffffff' ? '#ffffff' : (textColor || '#ffffff') }}
                 onClick={handlePixPayment}
                 disabled={processing}
               >
