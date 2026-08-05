@@ -639,7 +639,7 @@ const CheckoutPage = () => {
                       }
                       if (!showPayment) {
                         return (
-                          <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden ${ctaEffectClasses}`} style={{ backgroundColor: primaryColor, color: checkout.custom_settings?.title_color === '#ffffff' ? '#ffffff' : (checkout.custom_settings?.title_color || '#ffffff') }} onClick={handleProceedToPayment}>
+                          <Button className={`w-full h-16 text-lg font-black ${buttonRadius} shadow-2xl transition-all active:scale-95 group relative overflow-hidden ${ctaEffectClasses}`} style={{ backgroundColor: primaryColor, color: checkout.custom_settings?.button_text_color || checkout.button_text_color || '#ffffff' }} onClick={handleProceedToPayment}>
                             <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
                             <CreditCard className="w-6 h-6 mr-3" /> {buttonText.toUpperCase()}
                           </Button>
