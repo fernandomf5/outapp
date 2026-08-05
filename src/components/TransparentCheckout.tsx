@@ -461,12 +461,12 @@ export const TransparentCheckout = ({
                 <Button
                   className="w-full h-12 font-bold rounded-xl shadow-md"
                   onClick={copyPixCode}
-                  style={{ backgroundColor: primaryColor, color: '#ffffff', borderColor: primaryColor }}
+                  style={{ backgroundColor: primaryColor, color: (textColor && textColor !== '#0f172a' && textColor !== '#000000') ? textColor : '#ffffff', borderColor: primaryColor }}
                 >
                   {pixCopied ? (
-                    <><CheckCircle2 className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiado!</>
+                    <><CheckCircle2 className="w-4 h-4 mr-2" />Copiado!</>
                   ) : (
-                    <><Copy className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiar Código PIX</>
+                    <><Copy className="w-4 h-4 mr-2" />Copiar Código PIX</>
                   )}
                 </Button>
               </div>
@@ -493,9 +493,12 @@ export const TransparentCheckout = ({
                   Gere o código PIX, pague e envie o comprovante para liberar seu acesso.
                 </p>
               </div>
-              <Button
+                <Button
                 className="w-full h-14 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: primaryColor }}
+                style={{ 
+                  backgroundColor: primaryColor, 
+                  color: (textColor && textColor !== '#0f172a' && textColor !== '#000000') ? textColor : '#ffffff'
+                }}
                 onClick={handleManualPixPayment}
               >
                 <QrCode className="w-5 h-5 mr-2" />Gerar QR Code PIX
@@ -521,12 +524,12 @@ export const TransparentCheckout = ({
                 <Button
                   className="w-full h-12 font-bold rounded-xl shadow-md"
                   onClick={copyPixCode}
-                  style={{ backgroundColor: primaryColor, color: '#ffffff', borderColor: primaryColor }}
+                  style={{ backgroundColor: primaryColor, color: (textColor && textColor !== '#0f172a' && textColor !== '#000000') ? textColor : '#ffffff', borderColor: primaryColor }}
                 >
                   {pixCopied ? (
-                    <><CheckCircle2 className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiado!</>
+                    <><CheckCircle2 className="w-4 h-4 mr-2" />Copiado!</>
                   ) : (
-                    <><Copy className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />Copiar Código PIX</>
+                    <><Copy className="w-4 h-4 mr-2" />Copiar Código PIX</>
                   )}
                 </Button>
                 <div className="space-y-3">
