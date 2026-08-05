@@ -399,7 +399,7 @@ export const TransparentCheckout = ({
               className="w-full h-12 text-base font-semibold"
               style={{ 
                 backgroundColor: primaryColor, 
-                color: textColor || '#ffffff' 
+                color: (textColor && textColor !== '#0f172a' && textColor !== '#000000') ? textColor : '#ffffff'
               }}
               onClick={handleCardPayment}
               disabled={processing}
@@ -429,7 +429,7 @@ export const TransparentCheckout = ({
                 className="w-full h-14 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
                 style={{ 
                   backgroundColor: primaryColor, 
-                  color: textColor || '#ffffff' 
+                  color: (textColor && textColor !== '#0f172a' && textColor !== '#000000') ? textColor : '#ffffff'
                 }}
                 onClick={handlePixPayment}
                 disabled={processing}
