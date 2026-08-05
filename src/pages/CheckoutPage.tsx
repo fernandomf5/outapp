@@ -118,6 +118,7 @@ interface CheckoutData {
   layout_structure?: string;
   layout_width?: string;
   top_bar_bg_color?: string;
+  button_text_color?: string;
 }
 
 
