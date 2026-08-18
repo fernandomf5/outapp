@@ -811,7 +811,7 @@ const Dashboard = () => {
 
           {/* 10. Encurtador de Links */}
           {hasFeature('link_shortener') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('shortlinks')}>
+            <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('shortlinks')}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Encurtador de Links</h3>
