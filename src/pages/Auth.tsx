@@ -416,17 +416,6 @@ const Auth = () => {
               </button>
             </p>
             
-            {isLogin && (
-              <p className="text-sm text-muted-foreground">
-                <button
-                  type="button"
-                  onClick={() => navigate("/team-login")}
-                  className="text-primary/80 hover:text-primary hover:underline inline-flex items-center gap-1"
-                >
-                  Entrar como membro da equipe
-                </button>
-              </p>
-            )}
           </div>
 
           {!isLogin && (
