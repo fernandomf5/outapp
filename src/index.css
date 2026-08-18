@@ -1349,9 +1349,10 @@ html, body {
   [role="tablist"]::-webkit-scrollbar { display: none; }
 }
 
-/* App-like resource grid on phones: 2 compact tiles per row */
+/* Mobile app resource grid: 2 tiles per row */
 @media (max-width: 639px) {
-  .resource-grid-3d {
+  [ref="resourcesGridRef"],
+  .grid.grid-cols-1.sm\:grid-cols-2.xl\:grid-cols-3.2xl\:grid-cols-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 0.625rem !important;
   }
