@@ -646,9 +646,9 @@ const Dashboard = () => {
         </div>
 
         {/* All Resources Grid */}
-        <div ref={resourcesGridRef} className="resource-grid-3d grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 pb-6">
+        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 pb-6">
           {/* 1. Gestão Livre */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('cadastro')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('cadastro')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Gestão Livre</h3>
@@ -656,17 +656,17 @@ const Dashboard = () => {
                   Crie e personalize sua própria gestão para organizar o que quiser: pessoas, negócios, produtos, serviços e muito mais.
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Database className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Database className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 2. Organizador de Tarefas */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('tarefas')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('tarefas')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Organizador de Tarefas</h3>
@@ -674,17 +674,17 @@ const Dashboard = () => {
                   Organize e gerencie suas tarefas
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <CheckSquare className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 3. Organizador de Agenda */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('agenda')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('agenda')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Organizador de Agenda</h3>
@@ -692,17 +692,17 @@ const Dashboard = () => {
                   Organize seus eventos e lembretes
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Calendar className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 4. Organizador de Rotina */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('rotina')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('rotina')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Organizador de Rotina</h3>
@@ -710,17 +710,17 @@ const Dashboard = () => {
                   Crie rotinas e hábitos organizados
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <CalendarCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <CalendarCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 5. Tabela de Organização */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('tabelas-organizacao')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('tabelas-organizacao')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Tabela de Organização</h3>
@@ -728,17 +728,17 @@ const Dashboard = () => {
                   Visualize e organize dados em tabelas
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Table className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Table className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 6. Gestão Financeira */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('financeiro')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('financeiro')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Gestão Financeira</h3>
@@ -746,17 +746,17 @@ const Dashboard = () => {
                   Controle suas finanças
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <DollarSign className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 7. Gerador de Recibos */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('recibos')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('recibos')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Gerador de Recibos</h3>
@@ -764,17 +764,17 @@ const Dashboard = () => {
                   Crie recibos personalizados
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Receipt className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Receipt className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 8. Gerador de Link para WhatsApp */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('tools')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('tools')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Gerador de Link para WhatsApp</h3>
@@ -782,17 +782,17 @@ const Dashboard = () => {
                   Crie links personalizados para seu WhatsApp
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <ExternalLink className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <ExternalLink className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 9. Botão Flutuante Multi-Links */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('floating-button')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('floating-button')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Botão Flutuante Multi-Links</h3>
@@ -800,18 +800,18 @@ const Dashboard = () => {
                   Crie botões flutuantes com múltiplos links
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <MousePointer className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <MousePointer className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Botão
             </Button>
           </Card>
 
           {/* 10. Encurtador de Links */}
           {hasFeature('link_shortener') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('shortlinks')}>
+            <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('shortlinks')}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Encurtador de Links</h3>
@@ -819,18 +819,18 @@ const Dashboard = () => {
                     Encurte e rastreie seus links de forma profissional
                   </p>
                 </div>
-                <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                  <Scissors className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                  <Scissors className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                 </div>
               </div>
-              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              <Button className="w-full mt-2 sm:mt-3 gradient-primary">
                 Encurtar Link
               </Button>
             </Card>
           )}
 
           {/* 11. Gerador de QR Code */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('qrcode')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('qrcode')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Gerador de QR Code</h3>
@@ -838,17 +838,17 @@ const Dashboard = () => {
                   Crie QR codes personalizados
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <QrCode className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Gerar QR Code
             </Button>
           </Card>
 
           {/* 12. Scripts de Atendimento */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('scripts')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('scripts')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Scripts de Atendimento</h3>
@@ -856,17 +856,17 @@ const Dashboard = () => {
                   Crie scripts para padronizar seus atendimentos
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 13. Criador de Área de Membros */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('area-membros')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('area-membros')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Área de Membros</h3>
@@ -874,17 +874,17 @@ const Dashboard = () => {
                   Crie sua área de membros exclusiva
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Área
             </Button>
           </Card>
 
           {/* 14. Criador de Checkout */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('checkout-creator')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('checkout-creator')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Checkout</h3>
@@ -892,17 +892,17 @@ const Dashboard = () => {
                   Crie checkouts para vender seus produtos e serviços
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <ShoppingCart className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Checkout
             </Button>
           </Card>
 
           {/* 15. Criador de Dados de Anúncios */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('anuncios')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('anuncios')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Dados de Anúncios</h3>
@@ -910,18 +910,18 @@ const Dashboard = () => {
                   Gerencie suas campanhas de anúncios
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Megaphone className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Megaphone className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 16. Criador de Chat Online */}
           {hasFeature('ai_agent') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/chat-online")}>
+            <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => navigate("/chat-online")}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Chat Online</h3>
@@ -929,18 +929,18 @@ const Dashboard = () => {
                     Sistema de conversa para atendimento online no site
                   </p>
                 </div>
-                <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                  <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                  <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                 </div>
               </div>
-              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              <Button className="w-full mt-2 sm:mt-3 gradient-primary">
                 Criar Chat
               </Button>
             </Card>
           )}
 
           {/* 17. Criador de Sites */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('sites')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('sites')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Sites</h3>
@@ -948,11 +948,11 @@ const Dashboard = () => {
                   Crie sites completos, páginas de captura, portfólios e catálogos com blocos
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Globe className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Site
             </Button>
           </Card>
@@ -960,7 +960,7 @@ const Dashboard = () => {
 
           {/* 20. Clonador de Páginas */}
           {hasFeature('page_cloner') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('cloner')}>
+            <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('cloner')}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Clonador de Páginas</h3>
@@ -968,18 +968,18 @@ const Dashboard = () => {
                     Clone páginas da web e personalize conforme sua necessidade
                   </p>
                 </div>
-                <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                  <Copy className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                  <Copy className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                 </div>
               </div>
-              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              <Button className="w-full mt-2 sm:mt-3 gradient-primary">
                 Clonar Página
               </Button>
             </Card>
           )}
 
           {/* 21. Criador de Link na Bio */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('linkbio')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('linkbio')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Link na Bio</h3>
@@ -987,17 +987,17 @@ const Dashboard = () => {
                   Centralize todos os seus links em uma única página
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <UserCircle className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <UserCircle className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Link
             </Button>
           </Card>
 
           {/* 22. Criador de Funil de Vendas */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('funil-vendas')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('funil-vendas')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Funil de Vendas</h3>
@@ -1005,17 +1005,17 @@ const Dashboard = () => {
                   Gerencie seu funil de vendas
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Filter className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Filter className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 23. Criador de Briefing */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('briefing')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('briefing')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Briefing</h3>
@@ -1023,17 +1023,17 @@ const Dashboard = () => {
                   Colete informações de forma organizada
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Briefing
             </Button>
           </Card>
 
           {/* 24. Criador de Questionário */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('questionario-marketing')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('questionario-marketing')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Questionário</h3>
@@ -1041,17 +1041,17 @@ const Dashboard = () => {
                   Crie questionários simples e direcione ofertas com base nas respostas
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <ClipboardCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Questionário
             </Button>
           </Card>
 
           {/* 25. Criador de Popups */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('popups')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('popups')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Popups</h3>
@@ -1059,17 +1059,17 @@ const Dashboard = () => {
                   Crie pop-ups personalizados para capturar leads
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Layers className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Layers className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Pop-up
             </Button>
           </Card>
 
           {/* 26. Criador de Mapas Mentais */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('mapa-mental')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('mapa-mental')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Mapas Mentais</h3>
@@ -1077,17 +1077,17 @@ const Dashboard = () => {
                   Organize suas ideias visualmente
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Brain className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Mapa
             </Button>
           </Card>
 
           {/* 27. Criador de Propostas */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('propostas')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('propostas')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Propostas</h3>
@@ -1095,17 +1095,17 @@ const Dashboard = () => {
                   Crie propostas comerciais profissionais
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <FileCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Proposta
             </Button>
           </Card>
 
           {/* 28. Criador de Contratos */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('contratos')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('contratos')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Contratos</h3>
@@ -1113,17 +1113,17 @@ const Dashboard = () => {
                   Crie contratos com assinatura digital
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <FileCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Criar Contrato
             </Button>
           </Card>
 
           {/* 29. Criador de Aprova Job */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('aprova-job')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('aprova-job')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Aprova Job</h3>
@@ -1131,17 +1131,17 @@ const Dashboard = () => {
                   Aprovação de trabalhos com clientes
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <ClipboardCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
 
           {/* 30. Extrator de Criativos */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('extrator-criativos')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('extrator-criativos')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Extrator de Criativos</h3>
@@ -1149,11 +1149,11 @@ const Dashboard = () => {
                   Extraia criativos de anúncios
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Download className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <Download className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
               Acessar
             </Button>
           </Card>
