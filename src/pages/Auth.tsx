@@ -292,7 +292,7 @@ const Auth = () => {
           ) : (
             <Bot className="w-28 h-28 sm:w-32 sm:h-32 text-white drop-shadow-2xl" />
           )}
-          <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">Out App</h1>
+          
         </div>
 
         {/* Formulário de Auth */}
