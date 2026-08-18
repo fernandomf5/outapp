@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,14 +21,21 @@ export const ResourceCard = ({
   const [isOverflowing, setIsOverflowing] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
 
-  // Check if text is overflowing after render
-  useState(() => {
-    setTimeout(() => {
+  // Check if text is overflowing after render and on window resize
+  useEffect(() => {
+    const checkOverflow = () => {
       if (textRef.current) {
+        // We need to temporarily remove line-clamp to get real scrollHeight
+        // or just check against the clamped height.
+        // For simplicity, we check if scrollHeight > clientHeight
         setIsOverflowing(textRef.current.scrollHeight > textRef.current.clientHeight);
       }
-    }, 0);
-  });
+    };
+
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [description]);
 
   return (
     <div
@@ -45,12 +52,12 @@ export const ResourceCard = ({
               ref={textRef}
               className={cn(
                 "text-sm sm:text-base text-muted-foreground transition-all duration-300",
-                !isExpanded && "line-clamp-2 md:line-clamp-3"
+                !isExpanded && "line-clamp-2 sm:line-clamp-3"
               )}
             >
               {description}
             </p>
-            {isOverflowing && (
+            {(isOverflowing || isExpanded) && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
