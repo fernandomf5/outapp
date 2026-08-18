@@ -830,7 +830,7 @@ const Dashboard = () => {
           )}
 
           {/* 11. Gerador de QR Code */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('qrcode')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('qrcode')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Gerador de QR Code</h3>
