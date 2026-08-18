@@ -41,6 +41,7 @@ import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 
 import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
+import { ResourceCard } from "@/components/dashboard/ResourceCard";
 import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGenerator";
 import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
 import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
