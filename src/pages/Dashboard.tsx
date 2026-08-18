@@ -933,7 +933,7 @@ const Dashboard = () => {
                   <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                 </div>
               </div>
-              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              <Button className="w-full mt-2 sm:mt-3 gradient-primary">
                 Criar Chat
               </Button>
             </Card>
