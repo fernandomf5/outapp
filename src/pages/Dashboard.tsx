@@ -41,6 +41,7 @@ import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 
 import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
+import { ResourceCard } from "@/components/dashboard/ResourceCard";
 import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGenerator";
 import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
 import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
@@ -646,517 +647,251 @@ const Dashboard = () => {
         </div>
 
         {/* All Resources Grid */}
-        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 pb-6">
+        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 pb-6 items-stretch">
           {/* 1. Gestão Livre */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('cadastro')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Gestão Livre</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie e personalize sua própria gestão para organizar o que quiser: pessoas, negócios, produtos, serviços e muito mais.
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Database className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Gestão Livre"
+            description="Crie e personalize sua própria gestão para organizar o que quiser: pessoas, negócios, produtos, serviços e muito mais."
+            icon={<Database className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('cadastro')}
+          />
 
           {/* 2. Organizador de Tarefas */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('tarefas')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Organizador de Tarefas</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Organize e gerencie suas tarefas
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Organizador de Tarefas"
+            description="Organize e gerencie suas tarefas"
+            icon={<CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('tarefas')}
+          />
 
           {/* 3. Organizador de Agenda */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('agenda')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Organizador de Agenda</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Organize seus eventos e lembretes
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Organizador de Agenda"
+            description="Organize seus eventos e lembretes"
+            icon={<Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('agenda')}
+          />
 
           {/* 4. Organizador de Rotina */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('rotina')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Organizador de Rotina</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie rotinas e hábitos organizados
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <CalendarCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Organizador de Rotina"
+            description="Crie rotinas e hábitos organizados"
+            icon={<CalendarCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('rotina')}
+          />
 
           {/* 5. Tabela de Organização */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('tabelas-organizacao')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Tabela de Organização</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Visualize e organize dados em tabelas
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Table className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Tabela de Organização"
+            description="Visualize e organize dados em tabelas"
+            icon={<Table className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('tabelas-organizacao')}
+          />
 
           {/* 6. Gestão Financeira */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('financeiro')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Gestão Financeira</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Controle suas finanças
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Gestão Financeira"
+            description="Controle suas finanças"
+            icon={<DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('financeiro')}
+          />
 
           {/* 7. Gerador de Recibos */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('recibos')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Gerador de Recibos</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie recibos personalizados
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Receipt className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Gerador de Recibos"
+            description="Crie recibos personalizados"
+            icon={<Receipt className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('recibos')}
+          />
 
           {/* 8. Gerador de Link para WhatsApp */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('tools')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Gerador de Link para WhatsApp</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie links personalizados para seu WhatsApp
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <ExternalLink className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Gerador de Link para WhatsApp"
+            description="Crie links personalizados para seu WhatsApp"
+            icon={<ExternalLink className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('tools')}
+          />
 
           {/* 9. Botão Flutuante Multi-Links */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('floating-button')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Botão Flutuante Multi-Links</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie botões flutuantes com múltiplos links
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <MousePointer className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Botão
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Botão Flutuante Multi-Links"
+            description="Crie botões flutuantes com múltiplos links"
+            icon={<MousePointer className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('floating-button')}
+            buttonText="Criar Botão"
+          />
 
           {/* 10. Encurtador de Links */}
           {hasFeature('link_shortener') && (
-            <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('shortlinks')}>
-              <div className="flex items-start justify-between mb-3 sm:mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg sm:text-xl font-bold mb-2">Encurtador de Links</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                    Encurte e rastreie seus links de forma profissional
-                  </p>
-                </div>
-                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                  <Scissors className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-                </div>
-              </div>
-              <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-                Encurtar Link
-              </Button>
-            </Card>
+            <ResourceCard
+              title="Encurtador de Links"
+              description="Encurte e rastreie seus links de forma profissional"
+              icon={<Scissors className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+              onClick={() => handleTabChange('shortlinks')}
+              buttonText="Encurtar Link"
+            />
           )}
 
           {/* 11. Gerador de QR Code */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('qrcode')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Gerador de QR Code</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie QR codes personalizados
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Gerar QR Code
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Gerador de QR Code"
+            description="Crie QR codes personalizados"
+            icon={<QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('qrcode')}
+            buttonText="Gerar QR Code"
+          />
 
           {/* 12. Scripts de Atendimento */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('scripts')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Scripts de Atendimento</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie scripts para padronizar seus atendimentos
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Scripts de Atendimento"
+            description="Crie scripts para padronizar seus atendimentos"
+            icon={<MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('scripts')}
+          />
 
           {/* 13. Criador de Área de Membros */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('area-membros')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Área de Membros</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie sua área de membros exclusiva
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Área
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Área de Membros"
+            description="Crie sua área de membros exclusiva"
+            icon={<Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('area-membros')}
+            buttonText="Criar Área"
+          />
 
           {/* 14. Criador de Checkout */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('checkout-creator')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Checkout</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie checkouts para vender seus produtos e serviços
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Checkout
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Checkout"
+            description="Crie checkouts para vender seus produtos e serviços"
+            icon={<ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('checkout-creator')}
+            buttonText="Criar Checkout"
+          />
 
           {/* 15. Criador de Dados de Anúncios */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('anuncios')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Dados de Anúncios</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Gerencie suas campanhas de anúncios
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Megaphone className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Dados de Anúncios"
+            description="Gerencie suas campanhas de anúncios"
+            icon={<Megaphone className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('anuncios')}
+          />
 
           {/* 16. Criador de Chat Online */}
           {hasFeature('ai_agent') && (
-            <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => navigate("/chat-online")}>
-              <div className="flex items-start justify-between mb-3 sm:mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Chat Online</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                    Sistema de conversa para atendimento online no site
-                  </p>
-                </div>
-                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                  <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-                </div>
-              </div>
-              <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-                Criar Chat
-              </Button>
-            </Card>
+            <ResourceCard
+              title="Criador de Chat Online"
+              description="Sistema de conversa para atendimento online no site"
+              icon={<MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+              onClick={() => navigate("/chat-online")}
+              buttonText="Criar Chat"
+            />
           )}
 
           {/* 17. Criador de Sites */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('sites')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Sites</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie sites completos, páginas de captura, portfólios e catálogos com blocos
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Site
-            </Button>
-          </Card>
-
+          <ResourceCard
+            title="Criador de Sites"
+            description="Crie sites completos, páginas de captura, portfólios e catálogos com blocos"
+            icon={<Globe className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('sites')}
+            buttonText="Criar Site"
+          />
 
           {/* 20. Clonador de Páginas */}
           {hasFeature('page_cloner') && (
-            <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('cloner')}>
-              <div className="flex items-start justify-between mb-3 sm:mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg sm:text-xl font-bold mb-2">Clonador de Páginas</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                    Clone páginas da web e personalize conforme sua necessidade
-                  </p>
-                </div>
-                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                  <Copy className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-                </div>
-              </div>
-              <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-                Clonar Página
-              </Button>
-            </Card>
+            <ResourceCard
+              title="Clonador de Páginas"
+              description="Clone páginas da web e personalize conforme sua necessidade"
+              icon={<Copy className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+              onClick={() => handleTabChange('cloner')}
+              buttonText="Clonar Página"
+            />
           )}
 
           {/* 21. Criador de Link na Bio */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('linkbio')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Link na Bio</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Centralize todos os seus links em uma única página
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <UserCircle className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Link
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Link na Bio"
+            description="Centralize todos os seus links em uma única página"
+            icon={<UserCircle className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('linkbio')}
+            buttonText="Criar Link"
+          />
 
           {/* 22. Criador de Funil de Vendas */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('funil-vendas')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Funil de Vendas</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Gerencie seu funil de vendas
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Filter className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Funil de Vendas"
+            description="Gerencie seu funil de vendas"
+            icon={<Filter className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('funil-vendas')}
+          />
 
           {/* 23. Criador de Briefing */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('briefing')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Briefing</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Colete informações de forma organizada
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Briefing
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Briefing"
+            description="Colete informações de forma organizada"
+            icon={<FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('briefing')}
+            buttonText="Criar Briefing"
+          />
 
           {/* 24. Criador de Questionário */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('questionario-marketing')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Questionário</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie questionários simples e direcione ofertas com base nas respostas
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Questionário
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Questionário"
+            description="Crie questionários simples e direcione ofertas com base nas respostas"
+            icon={<ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('questionario-marketing')}
+            buttonText="Criar Questionário"
+          />
 
           {/* 25. Criador de Popups */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('popups')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Popups</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie pop-ups personalizados para capturar leads
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Layers className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Pop-up
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Popups"
+            description="Crie pop-ups personalizados para capturar leads"
+            icon={<Layers className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('popups')}
+            buttonText="Criar Pop-up"
+          />
 
           {/* 26. Criador de Mapas Mentais */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('mapa-mental')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Mapas Mentais</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Organize suas ideias visualmente
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Mapa
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Mapas Mentais"
+            description="Organize suas ideias visualmente"
+            icon={<Brain className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('mapa-mental')}
+            buttonText="Criar Mapa"
+          />
 
           {/* 27. Criador de Propostas */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('propostas')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Propostas</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie propostas comerciais profissionais
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Proposta
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Propostas"
+            description="Crie propostas comerciais profissionais"
+            icon={<FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('propostas')}
+            buttonText="Criar Proposta"
+          />
 
           {/* 28. Criador de Contratos */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('contratos')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Contratos</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Crie contratos com assinatura digital
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Criar Contrato
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Contratos"
+            description="Crie contratos com assinatura digital"
+            icon={<FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('contratos')}
+            buttonText="Criar Contrato"
+          />
 
           {/* 29. Criador de Aprova Job */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('aprova-job')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Aprova Job</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Aprovação de trabalhos com clientes
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Criador de Aprova Job"
+            description="Aprovação de trabalhos com clientes"
+            icon={<ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('aprova-job')}
+          />
 
           {/* 30. Extrator de Criativos */}
-          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('extrator-criativos')}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Extrator de Criativos</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Extraia criativos de anúncios
-                </p>
-              </div>
-              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
-                <Download className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-3 gradient-primary">
-              Acessar
-            </Button>
-          </Card>
+          <ResourceCard
+            title="Extrator de Criativos"
+            description="Extraia criativos de anúncios"
+            icon={<Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
+            onClick={() => handleTabChange('extrator-criativos')}
+          />
         </div>
 
         {/* Meus Chats Section */}
