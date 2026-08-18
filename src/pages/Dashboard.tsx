@@ -648,7 +648,7 @@ const Dashboard = () => {
         {/* All Resources Grid */}
         <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 pb-6">
           {/* 1. Gestão Livre */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('cadastro')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('cadastro')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Gestão Livre</h3>
