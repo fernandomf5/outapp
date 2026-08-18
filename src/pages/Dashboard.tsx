@@ -782,8 +782,8 @@ const Dashboard = () => {
                   Crie links personalizados para seu WhatsApp
                 </p>
               </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <ExternalLink className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl ml-2 shrink-0">
+                <ExternalLink className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
             </div>
             <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
