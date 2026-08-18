@@ -792,7 +792,7 @@ const Dashboard = () => {
           </Card>
 
           {/* 9. Botão Flutuante Multi-Links */}
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('floating-button')}>
+          <Card className="p-4 sm:p-5 hover:border-primary/50 transition-smooth cursor-pointer" onClick={() => handleTabChange('floating-button')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Botão Flutuante Multi-Links</h3>
