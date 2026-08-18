@@ -647,152 +647,249 @@ const Dashboard = () => {
         </div>
 
         {/* All Resources Grid */}
-        <div ref={resourcesGridRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 pb-6 items-stretch">
+        <div ref={resourcesGridRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 pb-6 items-stretch">
           {/* 1. Gestão Livre */}
           <ResourceCard
             title="Gestão Livre"
-            icon={<Database className="w-5 h-5 text-primary" />}
+            description="Crie e personalize sua própria gestão para organizar o que quiser: pessoas, negócios, produtos, serviços e muito mais."
+            icon={<Database className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('cadastro')}
           />
+
+          {/* 2. Organizador de Tarefas */}
           <ResourceCard
-            title="Tarefas"
-            icon={<CheckSquare className="w-5 h-5 text-primary" />}
+            title="Organizador de Tarefas"
+            description="Organize e gerencie suas tarefas"
+            icon={<CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('tarefas')}
           />
+
+          {/* 3. Organizador de Agenda */}
           <ResourceCard
-            title="Agenda"
-            icon={<Calendar className="w-5 h-5 text-primary" />}
+            title="Organizador de Agenda"
+            description="Organize seus eventos e lembretes"
+            icon={<Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('agenda')}
           />
+
+          {/* 4. Organizador de Rotina */}
           <ResourceCard
-            title="Rotina"
-            icon={<CalendarCheck className="w-5 h-5 text-primary" />}
+            title="Organizador de Rotina"
+            description="Crie rotinas e hábitos organizados"
+            icon={<CalendarCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('rotina')}
           />
+
+          {/* 5. Tabela de Organização */}
           <ResourceCard
-            title="Tabelas"
-            icon={<Table className="w-5 h-5 text-primary" />}
+            title="Tabela de Organização"
+            description="Visualize e organize dados em tabelas"
+            icon={<Table className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('tabelas-organizacao')}
           />
+
+          {/* 6. Gestão Financeira */}
           <ResourceCard
-            title="Financeiro"
-            icon={<DollarSign className="w-5 h-5 text-primary" />}
+            title="Gestão Financeira"
+            description="Controle suas finanças"
+            icon={<DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('financeiro')}
           />
+
+          {/* 7. Gerador de Recibos */}
           <ResourceCard
-            title="Recibos"
-            icon={<Receipt className="w-5 h-5 text-primary" />}
+            title="Gerador de Recibos"
+            description="Crie recibos personalizados"
+            icon={<Receipt className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('recibos')}
           />
+
+          {/* 8. Gerador de Link para WhatsApp */}
           <ResourceCard
-            title="Link WhatsApp"
-            icon={<ExternalLink className="w-5 h-5 text-primary" />}
+            title="Gerador de Link para WhatsApp"
+            description="Crie links personalizados para seu WhatsApp"
+            icon={<ExternalLink className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('tools')}
           />
+
+          {/* 9. Botão Flutuante Multi-Links */}
           <ResourceCard
-            title="Botão Multi-Links"
-            icon={<MousePointer className="w-5 h-5 text-primary" />}
+            title="Botão Flutuante Multi-Links"
+            description="Crie botões flutuantes com múltiplos links"
+            icon={<MousePointer className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('floating-button')}
+            buttonText="Criar Botão"
           />
+
+          {/* 10. Encurtador de Links */}
           {hasFeature('link_shortener') && (
             <ResourceCard
-              title="Encurtador"
-              icon={<Scissors className="w-5 h-5 text-primary" />}
+              title="Encurtador de Links"
+              description="Encurte e rastreie seus links de forma profissional"
+              icon={<Scissors className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
               onClick={() => handleTabChange('shortlinks')}
+              buttonText="Encurtar Link"
             />
           )}
+
+          {/* 11. Gerador de QR Code */}
           <ResourceCard
-            title="QR Code"
-            icon={<QrCode className="w-5 h-5 text-primary" />}
+            title="Gerador de QR Code"
+            description="Crie QR codes personalizados"
+            icon={<QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('qrcode')}
+            buttonText="Gerar QR Code"
           />
+
+          {/* 12. Scripts de Atendimento */}
           <ResourceCard
-            title="Scripts"
-            icon={<MessageSquare className="w-5 h-5 text-primary" />}
+            title="Scripts de Atendimento"
+            description="Crie scripts para padronizar seus atendimentos"
+            icon={<MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('scripts')}
           />
+
+          {/* 13. Criador de Área de Membros */}
           <ResourceCard
-            title="Área de Membros"
-            icon={<Users className="w-5 h-5 text-primary" />}
+            title="Criador de Área de Membros"
+            description="Crie sua área de membros exclusiva"
+            icon={<Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('area-membros')}
+            buttonText="Criar Área"
           />
+
+          {/* 14. Criador de Checkout */}
           <ResourceCard
-            title="Checkout"
-            icon={<ShoppingCart className="w-5 h-5 text-primary" />}
+            title="Criador de Checkout"
+            description="Crie checkouts para vender seus produtos e serviços"
+            icon={<ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('checkout-creator')}
+            buttonText="Criar Checkout"
           />
+
+          {/* 15. Criador de Dados de Anúncios */}
           <ResourceCard
-            title="Anúncios"
-            icon={<Megaphone className="w-5 h-5 text-primary" />}
+            title="Criador de Dados de Anúncios"
+            description="Gerencie suas campanhas de anúncios"
+            icon={<Megaphone className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('anuncios')}
           />
+
+          {/* 16. Criador de Chat Online */}
           {hasFeature('ai_agent') && (
             <ResourceCard
-              title="Chat Online"
-              icon={<MessageSquare className="w-5 h-5 text-primary" />}
+              title="Criador de Chat Online"
+              description="Sistema de conversa para atendimento online no site"
+              icon={<MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
               onClick={() => navigate("/chat-online")}
+              buttonText="Criar Chat"
             />
           )}
+
+          {/* 17. Criador de Sites */}
           <ResourceCard
             title="Criador de Sites"
-            icon={<Globe className="w-5 h-5 text-primary" />}
+            description="Crie sites completos, páginas de captura, portfólios e catálogos com blocos"
+            icon={<Globe className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('sites')}
+            buttonText="Criar Site"
           />
+
+          {/* 20. Clonador de Páginas */}
           {hasFeature('page_cloner') && (
             <ResourceCard
-              title="Clonador"
-              icon={<Copy className="w-5 h-5 text-primary" />}
+              title="Clonador de Páginas"
+              description="Clone páginas da web e personalize conforme sua necessidade"
+              icon={<Copy className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
               onClick={() => handleTabChange('cloner')}
+              buttonText="Clonar Página"
             />
           )}
+
+          {/* 21. Criador de Link na Bio */}
           <ResourceCard
-            title="Link na Bio"
-            icon={<UserCircle className="w-5 h-5 text-primary" />}
+            title="Criador de Link na Bio"
+            description="Centralize todos os seus links em uma única página"
+            icon={<UserCircle className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('linkbio')}
+            buttonText="Criar Link"
           />
+
+          {/* 22. Criador de Funil de Vendas */}
           <ResourceCard
-            title="Funil de Vendas"
-            icon={<Filter className="w-5 h-5 text-primary" />}
+            title="Criador de Funil de Vendas"
+            description="Gerencie seu funil de vendas"
+            icon={<Filter className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('funil-vendas')}
           />
+
+          {/* 23. Criador de Briefing */}
           <ResourceCard
-            title="Briefing"
-            icon={<FileText className="w-5 h-5 text-primary" />}
+            title="Criador de Briefing"
+            description="Colete informações de forma organizada"
+            icon={<FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('briefing')}
+            buttonText="Criar Briefing"
           />
+
+          {/* 24. Criador de Questionário */}
           <ResourceCard
-            title="Questionário"
-            icon={<ClipboardCheck className="w-5 h-5 text-primary" />}
+            title="Criador de Questionário"
+            description="Crie questionários simples e direcione ofertas com base nas respostas"
+            icon={<ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('questionario-marketing')}
+            buttonText="Criar Questionário"
           />
+
+          {/* 25. Criador de Popups */}
           <ResourceCard
-            title="Popups"
-            icon={<Layers className="w-5 h-5 text-primary" />}
+            title="Criador de Popups"
+            description="Crie pop-ups personalizados para capturar leads"
+            icon={<Layers className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('popups')}
+            buttonText="Criar Pop-up"
           />
+
+          {/* 26. Criador de Mapas Mentais */}
           <ResourceCard
-            title="Mapas Mentais"
-            icon={<Brain className="w-5 h-5 text-primary" />}
+            title="Criador de Mapas Mentais"
+            description="Organize suas ideias visualmente"
+            icon={<Brain className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('mapa-mental')}
+            buttonText="Criar Mapa"
           />
+
+          {/* 27. Criador de Propostas */}
           <ResourceCard
-            title="Propostas"
-            icon={<FileCheck className="w-5 h-5 text-primary" />}
+            title="Criador de Propostas"
+            description="Crie propostas comerciais profissionais"
+            icon={<FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('propostas')}
+            buttonText="Criar Proposta"
           />
+
+          {/* 28. Criador de Contratos */}
           <ResourceCard
-            title="Contratos"
-            icon={<FileCheck className="w-5 h-5 text-primary" />}
+            title="Criador de Contratos"
+            description="Crie contratos com assinatura digital"
+            icon={<FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('contratos')}
+            buttonText="Criar Contrato"
           />
+
+          {/* 29. Criador de Aprova Job */}
           <ResourceCard
-            title="Aprova Job"
-            icon={<ClipboardCheck className="w-5 h-5 text-primary" />}
+            title="Criador de Aprova Job"
+            description="Aprovação de trabalhos com clientes"
+            icon={<ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('aprova-job')}
           />
+
+          {/* 30. Extrator de Criativos */}
           <ResourceCard
-            title="Extrator"
-            icon={<Target className="w-5 h-5 text-primary" />}
+            title="Extrator de Criativos"
+            description="Extraia criativos de anúncios"
+            icon={<Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('extrator-criativos')}
           />
         </div>
