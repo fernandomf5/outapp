@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import logoAsset from "@/assets/Logo_3D_Verde.png.asset.json";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +62,7 @@ const Auth = () => {
   };
 
   // Use light logo for auth page (colored background)
-  const logoUrl = settings.siteLogoLightUrl || settings.siteLogoUrl || '';
+  const logoUrl = settings.siteLogoLightUrl || settings.siteLogoUrl || logoAsset.url;
 
   // Redirect if already logged in
   useEffect(() => {
