@@ -5,7 +5,7 @@ import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditC
 import { Input } from "@/components/ui/input";
 
 import { useTheme } from "next-themes";
-import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
+import logoAsset from "@/assets/Logo_3D_Verde.png.asset.json";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";

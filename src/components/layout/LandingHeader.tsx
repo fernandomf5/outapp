@@ -10,7 +10,7 @@ import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
+import logoAsset from "@/assets/Logo_3D_Verde.png.asset.json";
 const logoLion = logoAsset.url;
 
 interface CustomPageItem {
