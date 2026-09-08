@@ -41,8 +41,42 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [entityType, setEntityType] = useState<EntityType>('pf');
 
   const { bankAccounts, refetch: refetchBankAccounts } = useBankAccounts(selectedBusinessId);
+  const { categories } = useFinancialCategories(selectedBusinessId || undefined);
+
+  /** Nomes (normalizados) das categorias marcadas como recorrentes, ex.: "Contas fixas". */
+  const recurringCategoryNames = useMemo(
+    () => new Set(categories.filter((c) => c.is_recurring).map((c) => c.name.trim().toLowerCase())),
+    [categories]
+  );
+
+  /** Transações do mês selecionado, já separadas por PF/PJ e com as contas fixas repetidas. */
+  const periodTransactions = useMemo(
+    () => getMonthTransactions(transactions, selectedYear, selectedMonth, recurringCategoryNames, entityType),
+    [transactions, selectedYear, selectedMonth, recurringCategoryNames, entityType]
+  );
+
+  const goToPreviousMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+      setSelectedYear((y) => y - 1);
+few    } else {
+      setSelectedMonth((m) => m - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+      setSelectedYear((y) => y + 1);
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+  };
 
   useEffect(() => {
     loadBusinesses();
