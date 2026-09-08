@@ -124,8 +124,9 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
-    await createCategory(newName.trim(), newColor);
+    await createCategory(newName.trim(), newColor, newRecurring);
     setNewName("");
+    setNewRecurring(false);
   };
 
   return (
