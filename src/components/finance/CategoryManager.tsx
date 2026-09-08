@@ -210,13 +210,27 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
                               />
                             ))}
                           </div>
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`edit-recurring-${category.id}`}
+                              checked={editRecurring}
+                              onCheckedChange={(checked) => setEditRecurring(!!checked)}
+                            />
+                            <Label htmlFor={`edit-recurring-${category.id}`} className="cursor-pointer text-xs font-normal">
+                              Recorrente
+                            </Label>
+                          </div>
                           <div className="flex gap-2">
                             <Button
                               size="icon"
                               className="h-8 w-8"
                               onClick={async () => {
                                 if (!editName.trim()) return;
-                                await updateCategory(category.id, { name: editName.trim(), color: editColor });
+                                await updateCategory(category.id, {
+                                  name: editName.trim(),
+                                  color: editColor,
+                                  is_recurring: editRecurring,
+                                });
                                 setEditingId(null);
                               }}
                             >
