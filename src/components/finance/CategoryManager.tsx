@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Check, X, Tags, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Tags, GripVertical, Repeat } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -58,7 +59,14 @@ const SortableCategoryRow = ({
       </button>
       <span className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: category.color || "#6366f1" }} />
       <button type="button" onClick={onSelect} className="flex-1 text-left">
-        <p className="font-medium">{category.name}</p>
+        <p className="font-medium flex items-center gap-2">
+          {category.name}
+          {category.is_recurring && (
+            <Badge variant="secondary" className="gap-1 text-[10px]">
+              <Repeat className="h-3 w-3" /> Todo mês
+            </Badge>
+          )}
+        </p>
         <p className="text-xs text-muted-foreground">
           {stats.count} conta(s) • Receitas R$ {stats.income.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} • Despesas R$ {stats.expense.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
         </p>
@@ -80,6 +88,8 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState(COLORS[0]);
+  const [newRecurring, setNewRecurring] = useState(false);
+  const [editRecurring, setEditRecurring] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<FinancialCategory | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -115,8 +125,9 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
-    await createCategory(newName.trim(), newColor);
+    await createCategory(newName.trim(), newColor, newRecurring);
     setNewName("");
+    setNewRecurring(false);
   };
 
   return (
@@ -160,6 +171,19 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
                   <Plus className="mr-2 h-4 w-4" /> Adicionar
                 </Button>
               </div>
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="new-category-recurring"
+                  checked={newRecurring}
+                  onCheckedChange={(checked) => setNewRecurring(!!checked)}
+                />
+                <Label htmlFor="new-category-recurring" className="cursor-pointer text-sm font-normal leading-snug">
+                  Categoria recorrente (contas fixas)
+                  <span className="block text-xs text-muted-foreground">
+                    As contas lançadas nesta categoria se repetem automaticamente em todos os meses seguintes.
+                  </span>
+                </Label>
+              </div>
             </CardContent>
           </Card>
 
@@ -186,13 +210,27 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
                               />
                             ))}
                           </div>
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`edit-recurring-${category.id}`}
+                              checked={editRecurring}
+                              onCheckedChange={(checked) => setEditRecurring(!!checked)}
+                            />
+                            <Label htmlFor={`edit-recurring-${category.id}`} className="cursor-pointer text-xs font-normal">
+                              Recorrente
+                            </Label>
+                          </div>
                           <div className="flex gap-2">
                             <Button
                               size="icon"
                               className="h-8 w-8"
                               onClick={async () => {
                                 if (!editName.trim()) return;
-                                await updateCategory(category.id, { name: editName.trim(), color: editColor });
+                                await updateCategory(category.id, {
+                                  name: editName.trim(),
+                                  color: editColor,
+                                  is_recurring: editRecurring,
+                                });
                                 setEditingId(null);
                               }}
                             >
@@ -212,6 +250,7 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
                             setEditingId(category.id);
                             setEditName(category.name);
                             setEditColor(category.color || COLORS[0]);
+                            setEditRecurring(Boolean(category.is_recurring));
                           }}
                           onDelete={() => setDeleteTarget(category)}
                           onSelect={() => {

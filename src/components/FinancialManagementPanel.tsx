@@ -1,12 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History, ChevronLeft, ChevronRight, Building2, User } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
+import { useFinancialCategories } from "@/hooks/useFinancialCategories";
+import { getMonthTransactions, MONTH_NAMES, buildPeriodKey, EntityType } from "./finance/monthUtils";
 
 // New Components
 import { FinancialOverview } from "./finance/FinancialOverview";
@@ -38,8 +41,42 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [entityType, setEntityType] = useState<EntityType>('pf');
 
   const { bankAccounts, refetch: refetchBankAccounts } = useBankAccounts(selectedBusinessId);
+  const { categories } = useFinancialCategories(selectedBusinessId || undefined);
+
+  /** Nomes (normalizados) das categorias marcadas como recorrentes, ex.: "Contas fixas". */
+  const recurringCategoryNames = useMemo(
+    () => new Set(categories.filter((c) => c.is_recurring).map((c) => c.name.trim().toLowerCase())),
+    [categories]
+  );
+
+  /** Transações do mês selecionado, já separadas por PF/PJ e com as contas fixas repetidas. */
+  const periodTransactions = useMemo(
+    () => getMonthTransactions(transactions, selectedYear, selectedMonth, recurringCategoryNames, entityType),
+    [transactions, selectedYear, selectedMonth, recurringCategoryNames, entityType]
+  );
+
+  const goToPreviousMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+      setSelectedYear((y) => y - 1);
+} else {
+      setSelectedMonth((m) => m - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+      setSelectedYear((y) => y + 1);
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+  };
 
   useEffect(() => {
     loadBusinesses();
@@ -297,12 +334,77 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             <p className="text-sm text-muted-foreground">Sistema Financeiro Inteligente</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="px-3 py-1">
-            {format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}
-          </Badge>
+        {/* Chave PF / PJ */}
+        <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={entityType === 'pf' ? 'default' : 'ghost'}
+            className="gap-2"
+            aria-pressed={entityType === 'pf'}
+            onClick={() => setEntityType('pf')}
+          >
+            <User className="h-4 w-4" /> Pessoa Física
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={entityType === 'pj' ? 'default' : 'ghost'}
+            className="gap-2"
+            aria-pressed={entityType === 'pj'}
+            onClick={() => setEntityType('pj')}
+          >
+            <Building2 className="h-4 w-4" /> Pessoa Jurídica
+          </Button>
         </div>
       </div>
+
+      {/* Barra de meses */}
+      <div className="rounded-xl border bg-card p-3 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Mês anterior">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-center">
+            <p className="text-sm font-semibold">
+              {MONTH_NAMES[selectedMonth]} de {selectedYear}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {periodTransactions.length} conta(s) • {entityType === 'pf' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedYear((y) => y - 1)}>
+              {selectedYear - 1}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedYear((y) => y + 1)}>
+              {selectedYear + 1}
+            </Button>
+            <Button variant="outline" size="icon" onClick={goToNextMonth} aria-label="Próximo mês">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-12">
+          {MONTH_NAMES.map((name, index) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => setSelectedMonth(index)}
+              className={cn(
+                "rounded-md border px-2 py-2 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                selectedMonth === index
+                  ? "border-primary bg-primary text-primary-foreground hover:bg-primary"
+                  : "border-border bg-background text-muted-foreground"
+              )}
+              aria-pressed={selectedMonth === index}
+            >
+              {name.slice(0, 3)}
+            </button>
+          ))}
+        </div>
+      </div>
+
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-5 lg:w-[700px] mb-8">
@@ -331,7 +433,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
         <TabsContent value="overview" className="space-y-4">
           <FinancialOverview 
-            transactions={transactions} 
+            transactions={periodTransactions} 
             bankAccounts={bankAccounts} 
           />
         </TabsContent>
@@ -346,22 +448,25 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
         <TabsContent value="transactions" className="space-y-4">
           <TransactionManager 
-            transactions={transactions} 
+            transactions={periodTransactions} 
             bankAccounts={bankAccounts} 
             onRefresh={() => {
               loadTransactions();
               refetchBankAccounts();
             }}
             businessId={selectedBusinessId}
+            entityType={entityType}
+            periodKey={buildPeriodKey(selectedYear, selectedMonth)}
+            periodLabel={`${MONTH_NAMES[selectedMonth]} de ${selectedYear}`}
           />
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">
-          <TransactionHistory transactions={transactions} bankAccounts={bankAccounts} />
+          <TransactionHistory transactions={periodTransactions} bankAccounts={bankAccounts} />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
-          <ReportCenter transactions={transactions} />
+          <ReportCenter transactions={periodTransactions} />
         </TabsContent>
       </Tabs>
     </div>
