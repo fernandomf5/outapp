@@ -433,7 +433,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
         <TabsContent value="overview" className="space-y-4">
           <FinancialOverview 
-            transactions={transactions} 
+            transactions={periodTransactions} 
             bankAccounts={bankAccounts} 
           />
         </TabsContent>
@@ -448,22 +448,25 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
         <TabsContent value="transactions" className="space-y-4">
           <TransactionManager 
-            transactions={transactions} 
+            transactions={periodTransactions} 
             bankAccounts={bankAccounts} 
             onRefresh={() => {
               loadTransactions();
               refetchBankAccounts();
             }}
             businessId={selectedBusinessId}
+            entityType={entityType}
+            periodKey={buildPeriodKey(selectedYear, selectedMonth)}
+            periodLabel={`${MONTH_NAMES[selectedMonth]} de ${selectedYear}`}
           />
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">
-          <TransactionHistory transactions={transactions} bankAccounts={bankAccounts} />
+          <TransactionHistory transactions={periodTransactions} bankAccounts={bankAccounts} />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
-          <ReportCenter transactions={transactions} />
+          <ReportCenter transactions={periodTransactions} />
         </TabsContent>
       </Tabs>
     </div>
