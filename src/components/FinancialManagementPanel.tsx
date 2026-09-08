@@ -1,12 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History, ChevronLeft, ChevronRight, Building2, User } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
+import { useFinancialCategories } from "@/hooks/useFinancialCategories";
+import { getMonthTransactions, MONTH_NAMES, buildPeriodKey, EntityType } from "./finance/monthUtils";
 
 // New Components
 import { FinancialOverview } from "./finance/FinancialOverview";
