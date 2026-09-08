@@ -9,6 +9,8 @@ export interface FinancialCategory {
   name: string;
   color: string | null;
   order_index: number | null;
+  /** Quando true, as contas dessa categoria se repetem todos os meses. */
+  is_recurring: boolean;
 }
 
 export const useFinancialCategories = (businessId?: string) => {
@@ -32,7 +34,9 @@ export const useFinancialCategories = (businessId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      setCategories((data || []) as FinancialCategory[]);
+      setCategories(
+        ((data || []) as any[]).map((c) => ({ ...c, is_recurring: Boolean(c.is_recurring) })) as FinancialCategory[]
+      );
     } catch (error) {
       toast.error("Erro ao carregar categorias");
     } finally {
@@ -44,7 +48,7 @@ export const useFinancialCategories = (businessId?: string) => {
     fetchCategories();
   }, [fetchCategories]);
 
-  const createCategory = async (name: string, color: string) => {
+  const createCategory = async (name: string, color: string, isRecurring = false) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { error } = await supabase.from("financial_categories").insert({
@@ -53,7 +57,8 @@ export const useFinancialCategories = (businessId?: string) => {
       name,
       color,
       order_index: categories.length,
-    });
+      is_recurring: isRecurring,
+    } as any);
     if (error) {
       toast.error("Erro ao criar categoria");
       return;
@@ -62,8 +67,11 @@ export const useFinancialCategories = (businessId?: string) => {
     fetchCategories();
   };
 
-  const updateCategory = async (id: string, values: { name: string; color: string }) => {
-    const { error } = await supabase.from("financial_categories").update(values).eq("id", id);
+  const updateCategory = async (
+    id: string,
+    values: { name: string; color: string; is_recurring?: boolean }
+  ) => {
+    const { error } = await supabase.from("financial_categories").update(values as any).eq("id", id);
     if (error) {
       toast.error("Erro ao atualizar categoria");
       return;
