@@ -334,12 +334,77 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             <p className="text-sm text-muted-foreground">Sistema Financeiro Inteligente</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="px-3 py-1">
-            {format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}
-          </Badge>
+        {/* Chave PF / PJ */}
+        <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={entityType === 'pf' ? 'default' : 'ghost'}
+            className="gap-2"
+            aria-pressed={entityType === 'pf'}
+            onClick={() => setEntityType('pf')}
+          >
+            <User className="h-4 w-4" /> Pessoa Física
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={entityType === 'pj' ? 'default' : 'ghost'}
+            className="gap-2"
+            aria-pressed={entityType === 'pj'}
+            onClick={() => setEntityType('pj')}
+          >
+            <Building2 className="h-4 w-4" /> Pessoa Jurídica
+          </Button>
         </div>
       </div>
+
+      {/* Barra de meses */}
+      <div className="rounded-xl border bg-card p-3 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Mês anterior">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-center">
+            <p className="text-sm font-semibold">
+              {MONTH_NAMES[selectedMonth]} de {selectedYear}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {periodTransactions.length} conta(s) • {entityType === 'pf' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedYear((y) => y - 1)}>
+              {selectedYear - 1}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedYear((y) => y + 1)}>
+              {selectedYear + 1}
+            </Button>
+            <Button variant="outline" size="icon" onClick={goToNextMonth} aria-label="Próximo mês">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-12">
+          {MONTH_NAMES.map((name, index) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => setSelectedMonth(index)}
+              className={cn(
+                "rounded-md border px-2 py-2 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                selectedMonth === index
+                  ? "border-primary bg-primary text-primary-foreground hover:bg-primary"
+                  : "border-border bg-background text-muted-foreground"
+              )}
+              aria-pressed={selectedMonth === index}
+            >
+              {name.slice(0, 3)}
+            </button>
+          ))}
+        </div>
+      </div>
+
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-5 lg:w-[700px] mb-8">
