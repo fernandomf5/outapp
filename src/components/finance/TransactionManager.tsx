@@ -20,6 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useFinancialCategories } from "@/hooks/useFinancialCategories";
 import { CategoryManager } from "./CategoryManager";
 import { CategorySelect } from "./CategorySelect";
+import { EntityType } from "./monthUtils";
 
 
 const PAYMENT_METHODS: Record<string, string> = {
@@ -41,7 +42,15 @@ interface Transaction {
   status: string;
   payment_method: string;
   is_recurring: boolean;
-  bank_account_id?: string;
+  bank_account_id?: string | null;
+  entity_type?: EntityType;
+  monthly_status?: Record<string, { status: string; bank_account_id?: string | null }> | null;
+  /** true quando a linha é uma repetição mensal projetada de uma conta fixa */
+  __projected?: boolean;
+  /** id real no banco (igual a `id` quando não é projetada) */
+  __sourceId?: string;
+  /** período exibido, no formato YYYY-MM */
+  __periodKey?: string;
 }
 
 interface TransactionManagerProps {
@@ -49,7 +58,16 @@ interface TransactionManagerProps {
   bankAccounts: any[];
   onRefresh: () => void;
   businessId: string;
+  /** PF ou PJ atualmente selecionado na chave da gestão */
+  entityType: EntityType;
+  /** Período exibido, formato YYYY-MM */
+  periodKey: string;
+  /** Rótulo amigável do período, ex.: "Agosto de 2026" */
+  periodLabel: string;
 }
+
+/** Id real da transação no banco (projeções usam id sintético). */
+const sourceIdOf = (t: Transaction): string => t.__sourceId || t.id;
 
 const SortableTransactionRow = ({ id, children, className }: { id: string; children: (handle: React.ReactNode) => React.ReactNode; className?: string }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -66,7 +84,7 @@ const SortableTransactionRow = ({ id, children, className }: { id: string; child
   );
 };
 
-export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId }: TransactionManagerProps) => {
+export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId, entityType, periodKey, periodLabel }: TransactionManagerProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -88,6 +106,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const { categories, createCategory } = useFinancialCategories(businessId);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
+  /** Data padrão de vencimento: hoje quando estamos no mês atual, senão dia 1 do mês exibido. */
+  const defaultDueDate = useMemo(() => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    return today.startsWith(periodKey) ? today : `${periodKey}-01`;
+  }, [periodKey]);
+
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
@@ -97,7 +121,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     status: "pending",
     payment_method: "pix",
     bank_account_id: "",
-    is_recurring: false
+    is_recurring: false,
+    entity_type: entityType as EntityType
   });
   
   const [bulkRows, setBulkRows] = useState<any[]>([
@@ -155,9 +180,13 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     setOrderedIds(nextGlobal);
 
     try {
+      const idMap = new Map(orderedTransactions.map(t => [t.id, sourceIdOf(t)]));
       await Promise.all(
         nextGlobal.map((id, index) =>
-          supabase.from('financial_transactions').update({ order_index: index }).eq('id', id)
+          supabase
+            .from('financial_transactions')
+            .update({ order_index: index })
+            .eq('id', idMap.get(id) || id)
         )
       );
     } catch {
@@ -208,6 +237,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         payment_method: formData.payment_method,
         bank_account_id: formData.bank_account_id || null,
         is_recurring: formData.is_recurring,
+        entity_type: formData.entity_type,
         year: new Date(formData.due_date).getFullYear(),
         month: format(new Date(formData.due_date + 'T00:00:00'), 'MMMM', { locale: ptBR })
       };
@@ -218,7 +248,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         
         const { error } = await supabase
           .from('financial_transactions')
-          .update(transactionData)
+          .update(transactionData as any)
           .eq('id', editingTransactionId);
 
         if (error) throw error;
@@ -239,7 +269,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
         toast.success("Transação atualizada!");
       } else {
-        const { error } = await supabase.from('financial_transactions').insert(transactionData);
+        const { error } = await supabase.from('financial_transactions').insert(transactionData as any);
         if (error) throw error;
 
         // Atualizar saldo se o status for 'paid'
@@ -288,11 +318,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           payment_method: row.payment_method,
           bank_account_id: row.bank_account_id || null,
           is_recurring: false,
+          entity_type: entityType,
           year: new Date(row.due_date).getFullYear(),
           month: format(new Date(row.due_date + 'T00:00:00'), 'MMMM', { locale: ptBR })
         };
 
-        const { error } = await supabase.from('financial_transactions').insert(transactionData);
+        const { error } = await supabase.from('financial_transactions').insert(transactionData as any);
         if (error) throw error;
 
         // Atualizar saldo se o status for 'paid'
@@ -337,11 +368,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       amount: "",
       type: "expense",
       category: "",
-      due_date: format(new Date(), "yyyy-MM-dd"),
+      due_date: defaultDueDate,
       status: "pending",
       payment_method: "pix",
       bank_account_id: "",
-      is_recurring: false
+      is_recurring: false,
+      entity_type: entityType
     });
     setEditingTransactionId(null);
   };
@@ -356,9 +388,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       status: t.status,
       payment_method: t.payment_method,
       bank_account_id: t.bank_account_id || "",
-      is_recurring: t.is_recurring
+      is_recurring: t.is_recurring,
+      entity_type: (t.entity_type as EntityType) || entityType
     });
-    setEditingTransactionId(t.id);
+    setEditingTransactionId(sourceIdOf(t));
     setIsAddOpen(true);
   };
 
@@ -371,7 +404,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     if (!transactionToDelete) return;
     const t = transactionToDelete;
     try {
-      const { error } = await supabase.from('financial_transactions').delete().eq('id', t.id);
+      const { error } = await supabase.from('financial_transactions').delete().eq('id', sourceIdOf(t));
       if (error) throw error;
 
       // Reverter saldo se estava paga
