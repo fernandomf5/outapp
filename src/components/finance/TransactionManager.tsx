@@ -823,6 +823,22 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label>Tipo de conta</Label>
+                <Select
+                  value={formData.entity_type}
+                  onValueChange={(value) => setFormData({ ...formData, entity_type: value as EntityType })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pf">Pessoa Física</SelectItem>
+                    <SelectItem value="pj">Pessoa Jurídica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="recurring" 
@@ -866,7 +882,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                        Nenhuma transação encontrada.
+                        Nenhuma transação em {periodLabel}.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -878,7 +894,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               <TableCell className="w-[40px]">{handle}</TableCell>
                               <TableCell>
                                 <div className="flex flex-col">
-                                  <span className="font-medium">{t.description}</span>
+                                  <span className="font-medium flex items-center gap-2">
+                                    {t.description}
+                                    {t.__projected && (
+                                      <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
+                                    )}
+                                  </span>
                                   <span className="text-xs text-muted-foreground">
                                     {PAYMENT_METHODS[t.payment_method] || t.payment_method}
                                   </span>
