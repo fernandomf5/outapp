@@ -250,6 +250,7 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
                             setEditingId(category.id);
                             setEditName(category.name);
                             setEditColor(category.color || COLORS[0]);
+                            setEditRecurring(Boolean(category.is_recurring));
                           }}
                           onDelete={() => setDeleteTarget(category)}
                           onSelect={() => {
