@@ -64,7 +64,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     if (selectedMonth === 0) {
       setSelectedMonth(11);
       setSelectedYear((y) => y - 1);
-few    } else {
+} else {
       setSelectedMonth((m) => m - 1);
     }
   };
