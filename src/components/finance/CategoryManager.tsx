@@ -87,6 +87,8 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState(COLORS[0]);
+  const [newRecurring, setNewRecurring] = useState(false);
+  const [editRecurring, setEditRecurring] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<FinancialCategory | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
