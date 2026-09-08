@@ -170,6 +170,19 @@ export const CategoryManager = ({ open, onOpenChange, businessId, transactions, 
                   <Plus className="mr-2 h-4 w-4" /> Adicionar
                 </Button>
               </div>
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="new-category-recurring"
+                  checked={newRecurring}
+                  onCheckedChange={(checked) => setNewRecurring(!!checked)}
+                />
+                <Label htmlFor="new-category-recurring" className="cursor-pointer text-sm font-normal leading-snug">
+                  Categoria recorrente (contas fixas)
+                  <span className="block text-xs text-muted-foreground">
+                    As contas lançadas nesta categoria se repetem automaticamente em todos os meses seguintes.
+                  </span>
+                </Label>
+              </div>
             </CardContent>
           </Card>
 
