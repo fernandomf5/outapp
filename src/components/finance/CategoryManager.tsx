@@ -58,7 +58,14 @@ const SortableCategoryRow = ({
       </button>
       <span className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: category.color || "#6366f1" }} />
       <button type="button" onClick={onSelect} className="flex-1 text-left">
-        <p className="font-medium">{category.name}</p>
+        <p className="font-medium flex items-center gap-2">
+          {category.name}
+          {category.is_recurring && (
+            <Badge variant="secondary" className="gap-1 text-[10px]">
+              <Repeat className="h-3 w-3" /> Todo mês
+            </Badge>
+          )}
+        </p>
         <p className="text-xs text-muted-foreground">
           {stats.count} conta(s) • Receitas R$ {stats.income.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} • Despesas R$ {stats.expense.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
         </p>
