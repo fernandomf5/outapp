@@ -431,31 +431,36 @@ export function ScriptOrganizerPanel() {
             />
           </div>
 
-          {/* Category filter chips */}
-          <div className="flex flex-wrap gap-2">
-            <Badge 
-              variant={!selectedCategory ? "default" : "outline"} 
-              className="cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => setSelectedCategory(null)}
+          {/* Category filter dropdown */}
+          {categories.length > 0 ? (
+            <Select
+              value={selectedCategory || categories[0]?.id}
+              onValueChange={(v) => setSelectedCategory(v)}
             >
-              Todos
-            </Badge>
-            {categories.map(cat => {
-              const count = scripts.filter(s => s.category_id === cat.id).length;
-              return (
-                <Badge
-                  key={cat.id}
-                  variant={selectedCategory === cat.id ? "default" : "outline"}
-                  className="cursor-pointer hover:opacity-80 transition-opacity gap-1.5"
-                  style={selectedCategory === cat.id ? { backgroundColor: cat.color } : { borderColor: cat.color, color: cat.color }}
-                  onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                >
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedCategory === cat.id ? 'white' : cat.color }} />
-                  {cat.name} ({count})
-                </Badge>
-              );
-            })}
-          </div>
+              <SelectTrigger className="w-full sm:max-w-xs">
+                <SelectValue placeholder="Selecione a categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(cat => {
+                  const count = scripts.filter(s => s.category_id === cat.id).length;
+                  return (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <span className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                        {cat.name} ({count})
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          ) : (
+            !loading && (
+              <p className="text-sm text-muted-foreground">
+                Nenhuma categoria criada. Crie uma categoria para organizar seus scripts.
+              </p>
+            )
+          )}
 
           {/* Category management */}
           {categories.length > 0 && (
