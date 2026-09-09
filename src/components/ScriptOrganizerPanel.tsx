@@ -480,6 +480,9 @@ export function ScriptOrganizerPanel() {
     setScriptTags("");
     setScriptMediaUrl(null);
     setScriptMediaType(null);
+    setScriptScheduledAt("");
+    setScriptPlatform("");
+    setScriptReminder(60);
   };
 
   const openEditCategory = (cat: ScriptCategory) => {
@@ -498,6 +501,8 @@ export function ScriptOrganizerPanel() {
     setScriptMediaUrl(s.media_url || null);
     setScriptMediaType(s.media_type || null);
     setScriptTags(s.tags?.join(", ") || "");
+    setScriptScheduledAt(toLocalInput(s.scheduled_at));
+    setScriptPlatform(s.platform || "");
     setShowScriptDialog(true);
   };
 
@@ -505,9 +510,6 @@ export function ScriptOrganizerPanel() {
   const getCategoryById = (id: string | null) => categories.find(c => c.id === id);
 
   const filteredScripts = scripts.filter(s => {
-    // Business filter removed
-
-
     // Category filter
     const matchCategory = !selectedCategory || 
       (selectedCategory === "none" ? !s.category_id : s.category_id === selectedCategory);
@@ -518,8 +520,21 @@ export function ScriptOrganizerPanel() {
       s.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return matchCategory && matchSearch;
+    // Situação da postagem
+    const matchView =
+      viewFilter === 'all' ? true :
+      viewFilter === 'published' ? s.post_status === 'published' :
+      Boolean(s.scheduled_at) && s.post_status !== 'published';
+
+    return matchCategory && matchSearch && matchView;
   });
+
+  // Agendamentos futuros ordenados (próximas postagens)
+  const upcoming = scripts
+    .filter(s => s.scheduled_at && s.post_status !== 'published')
+    .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
+    .slice(0, 4);
+
 
 
   return (
