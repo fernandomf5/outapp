@@ -878,7 +878,7 @@ export function ScriptOrganizerPanel() {
       <Dialog open={showScriptDialog} onOpenChange={(v) => { if (!v) resetScriptForm(); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingScript ? "Editar Script" : "Novo Script de Atendimento"}</DialogTitle>
+            <DialogTitle>{editingScript ? "Editar Conteúdo" : "Novo Conteúdo"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
