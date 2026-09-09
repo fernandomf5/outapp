@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PlatformBadge } from "@/components/ads/PlatformLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ContactCategoryPicker, type CategoryOption } from "@/components/registration/ContactCategoryPicker";
@@ -962,14 +963,6 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     gasto: c.spent
   }));
 
-  const getPlatformIcon = (platform: string) => {
-    switch(platform) {
-      case 'meta': return '📘';
-      case 'google': return '🔍';
-      case 'tiktok': return '🎵';
-      default: return '📱';
-    }
-  };
 
   // Função para avaliar performance da campanha
   const evaluateCampaignPerformance = (campaign: AdCampaign) => {
@@ -1963,7 +1956,10 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 const selected = campaigns.find(c => c.id === selectedCampaignId);
                 return (
                   <div className="text-muted-foreground space-y-1">
-                    <p>Visualizando campanha: {selected?.name}</p>
+                    <p className="flex items-center gap-2 flex-wrap">
+                      Visualizando campanha: {selected?.name}
+                      {selected && <PlatformBadge platform={selected.platform} className="text-foreground" />}
+                    </p>
                     {selected && (
                       <p className="text-sm flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
@@ -2849,6 +2845,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                     <TableHeader>
                       <TableRow>
                         <TableHead>Campanha</TableHead>
+                        <TableHead>Plataforma</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Tipo</TableHead>
                         <TableHead>Período</TableHead>
@@ -2962,7 +2959,10 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                             onClick={() => setSelectedCampaignId(isSelected ? null : campaign.id)}
                           >
                             <TableCell className="font-medium">
-                              {isSelected && '✓ '}{getPlatformIcon(campaign.platform)} {campaign.name}
+                              {isSelected && '✓ '}{campaign.name}
+                            </TableCell>
+                            <TableCell>
+                              <PlatformBadge platform={campaign.platform} />
                             </TableCell>
                             <TableCell>{client?.name || '-'}</TableCell>
                             <TableCell>
