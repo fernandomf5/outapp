@@ -76,6 +76,10 @@ export function ScriptOrganizerPanel() {
   const [scriptCategoryId, setScriptCategoryId] = useState<string>("");
   
   const [scriptTags, setScriptTags] = useState("");
+  const [scriptMediaUrl, setScriptMediaUrl] = useState<string | null>(null);
+  const [scriptMediaType, setScriptMediaType] = useState<'image' | 'video' | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
 
   useEffect(() => {
     if (user) {
