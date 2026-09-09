@@ -107,19 +107,14 @@ interface AdsManagementPanelProps {
   teamContext?: TeamContext;
 }
 
-interface ExistingCustomer {
+interface AdContactOption {
   id: string;
   name: string;
-  email?: string;
-  company?: string;
+  company: string | null;
+  email?: string | null;
+  registration_category_id: string | null;
 }
 
-interface ExistingBusiness {
-  id: string;
-  name: string;
-  company_name?: string;
-  logo_url?: string;
-}
 
 export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => {
   const [clients, setClients] = useState<AdClient[]>([]);
