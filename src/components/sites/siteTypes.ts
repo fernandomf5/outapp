@@ -48,6 +48,42 @@ const subtitleField: FieldDef = { key: "subtitle", label: "Subtítulo", type: "t
 
 export const BLOCK_DEFS: BlockDef[] = [
   {
+    type: "section",
+    label: "Seção livre",
+    icon: "Columns3",
+    category: "Estrutura",
+    defaults: {
+      columns: [],
+      gap: 24,
+      paddingY: 64,
+      paddingX: 20,
+      maxWidth: 1152,
+      verticalAlign: "start",
+      backgroundImage: "",
+      overlay: 0,
+      stackOnMobile: true,
+    },
+    fields: [
+      { key: "paddingY", label: "Espaço em cima/embaixo (px)", type: "number" },
+      { key: "paddingX", label: "Espaço nas laterais (px)", type: "number" },
+      { key: "gap", label: "Distância entre colunas (px)", type: "number" },
+      { key: "maxWidth", label: "Largura máxima do conteúdo (px)", type: "number" },
+      {
+        key: "verticalAlign",
+        label: "Alinhamento vertical",
+        type: "select",
+        options: [
+          { value: "start", label: "Topo" },
+          { value: "center", label: "Centro" },
+          { value: "end", label: "Base" },
+        ],
+      },
+      { key: "backgroundImage", label: "Imagem de fundo", type: "image" },
+      { key: "overlay", label: "Escurecer fundo (%)", type: "number" },
+    ],
+  },
+
+  {
     type: "header",
     label: "Cabeçalho",
     icon: "PanelTop",
