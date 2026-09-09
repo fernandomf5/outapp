@@ -289,22 +289,26 @@ export const MindMapCreatorPanel = () => {
     setIsEditDialogOpen(true);
   };
 
-  const saveNodeEdit = () => {
-    if (!editingNode) return;
-    setNodes(nodes.map(n => 
-      n.id === editingNode.id 
-        ? { 
-            ...n, 
-            text: editText, 
-            description: editDescription, 
-            icon: editIcon, 
-            color: editColor, 
+  // Aplica as alterações do diálogo no nó em tempo real (sem esperar o botão salvar)
+  useEffect(() => {
+    if (!isEditDialogOpen || !editingNode) return;
+    setNodes(prev => prev.map(n =>
+      n.id === editingNode.id
+        ? {
+            ...n,
+            text: editText,
+            description: editDescription,
+            icon: editIcon,
+            color: editColor,
             size: editSize,
             customWidth: editCustomWidth,
-            customHeight: editCustomHeight
-          } 
+            customHeight: editCustomHeight,
+          }
         : n
     ));
+  }, [isEditDialogOpen, editingNode?.id, editText, editDescription, editIcon, editColor, editSize, editCustomWidth, editCustomHeight]);
+
+  const saveNodeEdit = () => {
     setIsEditDialogOpen(false);
     setEditingNode(null);
   };
@@ -394,6 +398,23 @@ export const MindMapCreatorPanel = () => {
     setConnectingFrom(nodeId);
     toast.info('Clique em outro nó para conectar');
   };
+
+  // Auto-salvamento do mapa já salvo (debounce)
+  useEffect(() => {
+    if (!user || !currentMapId || !mapName) return;
+    const timer = setTimeout(async () => {
+      const { error } = await supabase
+        .from('mind_maps')
+        .update({
+          nodes: JSON.parse(JSON.stringify(nodes)),
+          theme: currentTheme,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', currentMapId);
+      if (!error) setSavedNodes(JSON.parse(JSON.stringify(nodes)));
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [nodes, currentTheme, currentMapId, mapName, user]);
 
   const saveMap = async () => {
     if (!user) {

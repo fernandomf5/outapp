@@ -120,7 +120,7 @@ export function SitesCreatorPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold">Criador de Sites</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Criador de Site link</h2>
           <p className="text-sm text-muted-foreground">
             Monte sites completos com blocos de arrastar e soltar e modelos por nicho.
           </p>

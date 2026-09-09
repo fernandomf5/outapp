@@ -786,9 +786,9 @@ const Dashboard = () => {
             />
           )}
 
-          {/* 17. Criador de Sites */}
+          {/* 17. Criador de Site link */}
           <ResourceCard
-            title="Criador de Sites"
+            title="Criador de Site link"
             description="Crie sites completos, páginas de captura, portfólios e catálogos com blocos"
             icon={<Globe className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('sites')}
