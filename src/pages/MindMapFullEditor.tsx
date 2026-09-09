@@ -146,7 +146,7 @@ export default function MindMapFullEditor() {
     if (error || !data) {
       toast.error('Erro ao salvar');
     } else {
-      const persistedNodes = (data.nodes as unknown as MindMapNode[]) || nodesToSave;
+      const persistedNodes = nodesToSave;
       nodesRef.current = persistedNodes;
       setNodes(persistedNodes);
       setNodeTitleDrafts(prev => ({
