@@ -312,6 +312,8 @@ export function ScriptOrganizerPanel() {
     setScriptCategoryId("");
     
     setScriptTags("");
+    setScriptMediaUrl(null);
+    setScriptMediaType(null);
   };
 
   const openEditCategory = (cat: ScriptCategory) => {
