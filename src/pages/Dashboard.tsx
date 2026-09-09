@@ -50,7 +50,7 @@ import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
 import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
-import { SitesCreatorPanel } from "@/components/sites/SitesCreatorPanel";
+
 
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
@@ -786,14 +786,6 @@ const Dashboard = () => {
             />
           )}
 
-          {/* 17. Criador de Site link */}
-          <ResourceCard
-            title="Criador de Site link"
-            description="Crie sites completos, páginas de captura, portfólios e catálogos com blocos"
-            icon={<Globe className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
-            onClick={() => handleTabChange('sites')}
-            buttonText="Criar Site"
-          />
 
           {/* 20. Clonador de Páginas */}
           {hasFeature('page_cloner') && (
@@ -1271,12 +1263,6 @@ const Dashboard = () => {
             </ErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="sites">
-            <ErrorBoundary>
-              <FeatureTutorialVideo featureKey="sites" />
-              <SitesCreatorPanel />
-            </ErrorBoundary>
-          </TabsContent>
 
 
 
