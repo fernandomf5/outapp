@@ -1896,9 +1896,12 @@ export function SimpleMembersArea() {
                             <Input
                               value={videoData.url}
                               onChange={(e) => updateVideoData({ ...videoData, url: e.target.value })}
-                              placeholder="URL do vídeo (YouTube, Vimeo, etc)"
+                              placeholder="URL do vídeo (YouTube, Vimeo, Google Drive)"
                             />
-                            <p className="text-[11px] text-muted-foreground">Cole um link ou envie um arquivo de vídeo:</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              Cole um link (YouTube, Vimeo ou Google Drive) ou envie um arquivo de vídeo.
+                              No Drive, compartilhe o arquivo como "qualquer pessoa com o link" para o vídeo rodar aqui.
+                            </p>
                             <VideoUploadField
                               value={videoData.url}
                               onChange={(url) => updateVideoData({ ...videoData, url })}
