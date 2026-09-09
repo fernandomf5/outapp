@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
 
-const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB (limite do storage)
 
 export interface VideoUploadFieldProps {
   /** URL atual do vídeo (link externo ou arquivo enviado) */
@@ -26,7 +26,7 @@ export const VideoUploadField = ({ value, onChange, className }: VideoUploadFiel
       return;
     }
     if (file.size > MAX_VIDEO_SIZE) {
-      toast.error("Vídeo muito grande. Máximo 200MB");
+      toast.error("Vídeo muito grande. Máximo 50MB — para vídeos maiores, use um link (YouTube, Vimeo, Drive)");
       return;
     }
 
@@ -88,7 +88,7 @@ export const VideoUploadField = ({ value, onChange, className }: VideoUploadFiel
             <X className="mr-1 h-4 w-4" /> Remover
           </Button>
         )}
-        <span className="text-xs text-muted-foreground">MP4, WebM ou MOV até 200MB</span>
+        <span className="text-xs text-muted-foreground">MP4, WebM ou MOV até 50MB</span>
       </div>
 
       {isUploaded && (
