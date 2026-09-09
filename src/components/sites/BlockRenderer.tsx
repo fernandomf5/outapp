@@ -3,6 +3,8 @@ import { SiteBlock, SiteTheme, DEFAULT_THEME, mergeBlockStyle } from "./siteType
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
+import { SectionRenderer } from "./SectionRenderer";
+
 
 interface Props {
   block: SiteBlock;
@@ -57,7 +59,10 @@ export function BlockRenderer({ block, theme: t, siteId, preview }: Props) {
     ) : null;
 
   switch (block.type) {
+    case "section":
+      return <SectionRenderer block={block} theme={t} preview={preview} />;
     case "header":
+
       return (
         <header
           className="w-full border-b backdrop-blur"
