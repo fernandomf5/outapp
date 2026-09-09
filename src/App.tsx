@@ -1,4 +1,3 @@
-import DevSiteEditorTest from "@/pages/DevSiteEditorTest";
 import { Toaster } from "@/components/ui/toaster";
 
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -121,7 +120,6 @@ const AppContent = () => {
           <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
           <Route path="/mindmap/:id" element={<MindMapPresentation />} />
-          <Route path="/dev-site-editor" element={<DevSiteEditorTest />} />
 
           <Route path="/mindmap-editor/:id" element={
             <ProtectedRoute>
