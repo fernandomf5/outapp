@@ -201,6 +201,53 @@ export function ScriptOrganizerPanel() {
     fetchScripts();
   };
 
+  /**
+   * Cria, atualiza ou remove o lembrete na Agenda vinculado a uma postagem.
+   * Retorna o id do evento (ou null quando não há agendamento).
+   */
+  const syncAgendaEvent = async (params: {
+    eventId: string | null;
+    title: string;
+    description: string;
+    scheduledAtIso: string | null;
+    reminderMinutes: number;
+    color: string;
+  }): Promise<string | null> => {
+    const { eventId, title, description, scheduledAtIso, reminderMinutes, color } = params;
+
+    if (!scheduledAtIso) {
+      if (eventId) await supabase.from('agenda_events').delete().eq('id', eventId);
+      return null;
+    }
+
+    const eventPayload = {
+      user_id: user!.id,
+      title: `Postagem: ${title}`,
+      description: description.slice(0, 500),
+      start_date: scheduledAtIso,
+      color,
+      reminder_minutes: reminderMinutes,
+      reminder_shown: false,
+    };
+
+    if (eventId) {
+      const { error } = await supabase.from('agenda_events').update(eventPayload).eq('id', eventId);
+      if (!error) return eventId;
+    }
+
+    const { data, error } = await supabase
+      .from('agenda_events')
+      .insert(eventPayload)
+      .select('id')
+      .single();
+    if (error) {
+      console.error('Erro ao criar lembrete na agenda:', error);
+      toast.error('Postagem salva, mas o lembrete na agenda falhou.');
+      return null;
+    }
+    return data.id;
+  };
+
   // Script CRUD
   const handleSaveScript = async () => {
     if (!scriptTitle.trim() || !scriptContent.trim()) {
@@ -211,6 +258,19 @@ export function ScriptOrganizerPanel() {
     const tags = scriptTags.split(",").map(t => t.trim()).filter(Boolean);
     const bizId = null;
     const catId = scriptCategoryId && scriptCategoryId !== "none" ? scriptCategoryId : null;
+    const scheduledIso = scriptScheduledAt ? new Date(scriptScheduledAt).toISOString() : null;
+    const categoryColor = categories.find(c => c.id === catId)?.color || '#6366f1';
+
+    const agendaEventId = await syncAgendaEvent({
+      eventId: editingScript?.agenda_event_id || null,
+      title: scriptTitle.trim(),
+      description: scriptContent.trim(),
+      scheduledAtIso: scheduledIso,
+      reminderMinutes: scriptReminder,
+      color: categoryColor,
+    });
+
+    const keepPublished = editingScript?.post_status === 'published';
     const payload = {
       user_id: user!.id,
       title: scriptTitle.trim(),
@@ -221,21 +281,42 @@ export function ScriptOrganizerPanel() {
       sort_order: scripts.length,
       media_url: scriptMediaUrl,
       media_type: scriptMediaType,
+      scheduled_at: scheduledIso,
+      platform: scriptPlatform || null,
+      post_status: keepPublished ? 'published' : (scheduledIso ? 'scheduled' : 'idea'),
+      agenda_event_id: agendaEventId,
     };
 
     if (editingScript) {
       const { error } = await supabase.from('saved_scripts').update(payload as any).eq('id', editingScript.id);
       if (error) { toast.error("Erro ao atualizar"); return; }
-      toast.success("Script atualizado!");
+      toast.success("Conteúdo atualizado!");
     } else {
       const { error } = await supabase.from('saved_scripts').insert(payload as any);
       if (error) { toast.error("Erro ao criar"); return; }
-      toast.success("Script criado!");
+      toast.success(scheduledIso ? "Conteúdo agendado! Lembrete criado na agenda." : "Conteúdo salvo!");
     }
 
     resetScriptForm();
     fetchScripts();
   };
+
+  /** Marca / desmarca a postagem como publicada. */
+  const handleTogglePublished = async (script: SavedScript) => {
+    const published = script.post_status === 'published';
+    const next: PostStatus = published ? (script.scheduled_at ? 'scheduled' : 'idea') : 'published';
+    const { error } = await supabase
+      .from('saved_scripts')
+      .update({ post_status: next } as any)
+      .eq('id', script.id);
+    if (error) { toast.error('Não foi possível atualizar a situação'); return; }
+    if (!published && script.agenda_event_id) {
+      await supabase.from('agenda_events').update({ reminder_shown: true }).eq('id', script.agenda_event_id);
+    }
+    toast.success(published ? 'Marcado como pendente' : 'Marcado como publicado!');
+    fetchScripts();
+  };
+
 
   const handleDeleteScript = async (id: string) => {
     const { error } = await supabase.from('saved_scripts').delete().eq('id', id);
