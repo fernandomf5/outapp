@@ -13,7 +13,8 @@ import { toast } from "sonner";
 import { 
   Plus, Search, Star, Copy, Trash2, Edit, FolderPlus, 
   MessageSquareText, MoreVertical, Building2, Briefcase,
-  Check, Hash, Filter, Share2, ImagePlus, X, Film
+  Check, Hash, Filter, Share2, ImagePlus, X, Film,
+  CalendarClock, CheckCircle2, BellRing
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -39,7 +40,44 @@ interface SavedScript {
   created_at: string;
   media_url?: string | null;
   media_type?: 'image' | 'video' | null;
+  scheduled_at?: string | null;
+  platform?: string | null;
+  post_status?: PostStatus | null;
+  agenda_event_id?: string | null;
 }
+
+type PostStatus = 'idea' | 'scheduled' | 'published';
+type ViewFilter = 'all' | 'scheduled' | 'published';
+
+const PLATFORMS = [
+  "Instagram", "Facebook", "TikTok", "YouTube", "LinkedIn", "WhatsApp Status", "Blog", "Outro",
+] as const;
+
+const REMINDER_OPTIONS = [
+  { value: 0, label: "Sem lembrete" },
+  { value: 15, label: "15 minutos antes" },
+  { value: 60, label: "1 hora antes" },
+  { value: 180, label: "3 horas antes" },
+  { value: 1440, label: "1 dia antes" },
+];
+
+/** Converte ISO em valor aceito pelo input datetime-local (horário local). */
+const toLocalInput = (iso?: string | null): string => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const formatSchedule = (iso?: string | null): string => {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+};
+
+
 
 interface Business {
   id: string;
@@ -79,6 +117,12 @@ export function ScriptOrganizerPanel() {
   const [scriptMediaUrl, setScriptMediaUrl] = useState<string | null>(null);
   const [scriptMediaType, setScriptMediaType] = useState<'image' | 'video' | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [scriptScheduledAt, setScriptScheduledAt] = useState("");
+  const [scriptPlatform, setScriptPlatform] = useState("");
+  const [scriptReminder, setScriptReminder] = useState(60);
+  const [viewFilter, setViewFilter] = useState<ViewFilter>('all');
+
+
 
 
   useEffect(() => {
@@ -157,6 +201,53 @@ export function ScriptOrganizerPanel() {
     fetchScripts();
   };
 
+  /**
+   * Cria, atualiza ou remove o lembrete na Agenda vinculado a uma postagem.
+   * Retorna o id do evento (ou null quando não há agendamento).
+   */
+  const syncAgendaEvent = async (params: {
+    eventId: string | null;
+    title: string;
+    description: string;
+    scheduledAtIso: string | null;
+    reminderMinutes: number;
+    color: string;
+  }): Promise<string | null> => {
+    const { eventId, title, description, scheduledAtIso, reminderMinutes, color } = params;
+
+    if (!scheduledAtIso) {
+      if (eventId) await supabase.from('agenda_events').delete().eq('id', eventId);
+      return null;
+    }
+
+    const eventPayload = {
+      user_id: user!.id,
+      title: `Postagem: ${title}`,
+      description: description.slice(0, 500),
+      start_date: scheduledAtIso,
+      color,
+      reminder_minutes: reminderMinutes,
+      reminder_shown: false,
+    };
+
+    if (eventId) {
+      const { error } = await supabase.from('agenda_events').update(eventPayload).eq('id', eventId);
+      if (!error) return eventId;
+    }
+
+    const { data, error } = await supabase
+      .from('agenda_events')
+      .insert(eventPayload)
+      .select('id')
+      .single();
+    if (error) {
+      console.error('Erro ao criar lembrete na agenda:', error);
+      toast.error('Postagem salva, mas o lembrete na agenda falhou.');
+      return null;
+    }
+    return data.id;
+  };
+
   // Script CRUD
   const handleSaveScript = async () => {
     if (!scriptTitle.trim() || !scriptContent.trim()) {
@@ -167,6 +258,19 @@ export function ScriptOrganizerPanel() {
     const tags = scriptTags.split(",").map(t => t.trim()).filter(Boolean);
     const bizId = null;
     const catId = scriptCategoryId && scriptCategoryId !== "none" ? scriptCategoryId : null;
+    const scheduledIso = scriptScheduledAt ? new Date(scriptScheduledAt).toISOString() : null;
+    const categoryColor = categories.find(c => c.id === catId)?.color || '#6366f1';
+
+    const agendaEventId = await syncAgendaEvent({
+      eventId: editingScript?.agenda_event_id || null,
+      title: scriptTitle.trim(),
+      description: scriptContent.trim(),
+      scheduledAtIso: scheduledIso,
+      reminderMinutes: scriptReminder,
+      color: categoryColor,
+    });
+
+    const keepPublished = editingScript?.post_status === 'published';
     const payload = {
       user_id: user!.id,
       title: scriptTitle.trim(),
@@ -177,26 +281,51 @@ export function ScriptOrganizerPanel() {
       sort_order: scripts.length,
       media_url: scriptMediaUrl,
       media_type: scriptMediaType,
+      scheduled_at: scheduledIso,
+      platform: scriptPlatform || null,
+      post_status: keepPublished ? 'published' : (scheduledIso ? 'scheduled' : 'idea'),
+      agenda_event_id: agendaEventId,
     };
 
     if (editingScript) {
       const { error } = await supabase.from('saved_scripts').update(payload as any).eq('id', editingScript.id);
       if (error) { toast.error("Erro ao atualizar"); return; }
-      toast.success("Script atualizado!");
+      toast.success("Conteúdo atualizado!");
     } else {
       const { error } = await supabase.from('saved_scripts').insert(payload as any);
       if (error) { toast.error("Erro ao criar"); return; }
-      toast.success("Script criado!");
+      toast.success(scheduledIso ? "Conteúdo agendado! Lembrete criado na agenda." : "Conteúdo salvo!");
     }
 
     resetScriptForm();
     fetchScripts();
   };
 
+  /** Marca / desmarca a postagem como publicada. */
+  const handleTogglePublished = async (script: SavedScript) => {
+    const published = script.post_status === 'published';
+    const next: PostStatus = published ? (script.scheduled_at ? 'scheduled' : 'idea') : 'published';
+    const { error } = await supabase
+      .from('saved_scripts')
+      .update({ post_status: next } as any)
+      .eq('id', script.id);
+    if (error) { toast.error('Não foi possível atualizar a situação'); return; }
+    if (!published && script.agenda_event_id) {
+      await supabase.from('agenda_events').update({ reminder_shown: true }).eq('id', script.agenda_event_id);
+    }
+    toast.success(published ? 'Marcado como pendente' : 'Marcado como publicado!');
+    fetchScripts();
+  };
+
+
   const handleDeleteScript = async (id: string) => {
+    const target = scripts.find(s => s.id === id);
     const { error } = await supabase.from('saved_scripts').delete().eq('id', id);
     if (error) { toast.error("Erro ao excluir"); return; }
-    toast.success("Script excluído!");
+    if (target?.agenda_event_id) {
+      await supabase.from('agenda_events').delete().eq('id', target.agenda_event_id);
+    }
+    toast.success("Conteúdo excluído!");
     fetchScripts();
   };
 
@@ -351,6 +480,9 @@ export function ScriptOrganizerPanel() {
     setScriptTags("");
     setScriptMediaUrl(null);
     setScriptMediaType(null);
+    setScriptScheduledAt("");
+    setScriptPlatform("");
+    setScriptReminder(60);
   };
 
   const openEditCategory = (cat: ScriptCategory) => {
@@ -369,6 +501,8 @@ export function ScriptOrganizerPanel() {
     setScriptMediaUrl(s.media_url || null);
     setScriptMediaType(s.media_type || null);
     setScriptTags(s.tags?.join(", ") || "");
+    setScriptScheduledAt(toLocalInput(s.scheduled_at));
+    setScriptPlatform(s.platform || "");
     setShowScriptDialog(true);
   };
 
@@ -376,9 +510,6 @@ export function ScriptOrganizerPanel() {
   const getCategoryById = (id: string | null) => categories.find(c => c.id === id);
 
   const filteredScripts = scripts.filter(s => {
-    // Business filter removed
-
-
     // Category filter
     const matchCategory = !selectedCategory || 
       (selectedCategory === "none" ? !s.category_id : s.category_id === selectedCategory);
@@ -389,8 +520,21 @@ export function ScriptOrganizerPanel() {
       s.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return matchCategory && matchSearch;
+    // Situação da postagem
+    const matchView =
+      viewFilter === 'all' ? true :
+      viewFilter === 'published' ? s.post_status === 'published' :
+      Boolean(s.scheduled_at) && s.post_status !== 'published';
+
+    return matchCategory && matchSearch && matchView;
   });
+
+  // Agendamentos futuros ordenados (próximas postagens)
+  const upcoming = scripts
+    .filter(s => s.scheduled_at && s.post_status !== 'published')
+    .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
+    .slice(0, 4);
+
 
 
   return (
@@ -401,10 +545,10 @@ export function ScriptOrganizerPanel() {
             <div>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <MessageSquareText className="h-5 w-5 text-primary" />
-                Organizador de Scripts
+                Organizador de Script e Postagem
               </CardTitle>
               <CardDescription>
-                Organize mensagens e scripts por negócios cadastrados ou avulsos
+                Salve textos, imagens e vídeos e programe as postagens com lembrete na agenda
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -414,21 +558,54 @@ export function ScriptOrganizerPanel() {
               </Button>
               <Button size="sm" onClick={() => setShowScriptDialog(true)}>
                 <Plus className="h-4 w-4 mr-1" />
-                Novo Script
+                Novo Conteúdo
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Próximas postagens agendadas */}
+          {upcoming.length > 0 && (
+            <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+              <p className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                <BellRing className="h-3.5 w-3.5" /> Próximas postagens
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {upcoming.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => openEditScript(item)}
+                    className="text-left text-xs rounded-md bg-background border border-border px-2.5 py-2 hover:border-primary transition-colors"
+                  >
+                    <span className="font-medium block truncate">{item.title}</span>
+                    <span className="text-muted-foreground">
+                      {formatSchedule(item.scheduled_at)}{item.platform ? ` · ${item.platform}` : ''}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Filtro por situação */}
+          <Tabs value={viewFilter} onValueChange={(v) => setViewFilter(v as ViewFilter)}>
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="scheduled">Agendados</TabsTrigger>
+              <TabsTrigger value="published">Publicados</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           {/* Search bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar scripts por título, conteúdo ou tag..."
+              placeholder="Buscar por título, conteúdo ou tag..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
             />
+
           </div>
 
           {/* Category filter dropdown */}
@@ -489,17 +666,18 @@ export function ScriptOrganizerPanel() {
             <div className="text-center py-10">
               <MessageSquareText className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
               <p className="text-muted-foreground font-medium">
-                {searchQuery ? "Nenhum script encontrado" : "Nenhum script criado ainda"}
+                {searchQuery ? "Nenhum conteúdo encontrado" : "Nenhum conteúdo criado ainda"}
               </p>
               <p className="text-sm text-muted-foreground/70 mt-1">
-                {!searchQuery && "Crie seu primeiro script clicando em 'Novo Script'"}
+                {!searchQuery && "Crie o primeiro clicando em 'Novo Conteúdo'"}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredScripts.map(script => {
                 const cat = getCategoryById(script.category_id);
-                
+                const isPublished = script.post_status === 'published';
+
                 return (
                   <Card key={script.id} className="group relative hover:shadow-md transition-shadow border-l-4" style={{ borderLeftColor: cat?.color || 'hsl(var(--border))' }}>
                     <CardContent className="p-4 space-y-2">
@@ -514,8 +692,26 @@ export function ScriptOrganizerPanel() {
                                 {cat.name}
                               </span>
                             )}
+                            {script.platform && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">{script.platform}</Badge>
+                            )}
                           </div>
+                          {(script.scheduled_at || isPublished) && (
+                            <div className="mt-1">
+                              {isPublished ? (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1">
+                                  <CheckCircle2 className="h-2.5 w-2.5" /> Publicado
+                                </Badge>
+                              ) : (
+                                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                  <CalendarClock className="h-3 w-3" />
+                                  {formatSchedule(script.scheduled_at)}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
+
                         <div className="flex items-center gap-1 shrink-0">
                           <button 
                             onClick={() => handleToggleFavorite(script)}
@@ -533,6 +729,11 @@ export function ScriptOrganizerPanel() {
                               <DropdownMenuItem onClick={() => openEditScript(script)}>
                                 <Edit className="h-4 w-4 mr-2" /> Editar
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleTogglePublished(script)}>
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                {isPublished ? 'Marcar como pendente' : 'Marcar como publicado'}
+                              </DropdownMenuItem>
+
                               <DropdownMenuItem onClick={() => handleDeleteScript(script.id)} className="text-destructive">
                                 <Trash2 className="h-4 w-4 mr-2" /> Excluir
                               </DropdownMenuItem>
@@ -677,7 +878,7 @@ export function ScriptOrganizerPanel() {
       <Dialog open={showScriptDialog} onOpenChange={(v) => { if (!v) resetScriptForm(); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingScript ? "Editar Script" : "Novo Script de Atendimento"}</DialogTitle>
+            <DialogTitle>{editingScript ? "Editar Conteúdo" : "Novo Conteúdo"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
@@ -764,6 +965,59 @@ export function ScriptOrganizerPanel() {
             </div>
 
 
+            {/* Programação da postagem */}
+            <div className="rounded-lg border border-border p-3 space-y-3">
+              <p className="text-sm font-medium flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-primary" />
+                Programar postagem (opcional)
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block" htmlFor="script-schedule">
+                    Data e hora da postagem
+                  </label>
+                  <Input
+                    id="script-schedule"
+                    type="datetime-local"
+                    value={scriptScheduledAt}
+                    onChange={(e) => setScriptScheduledAt(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Onde será publicado</label>
+                  <Select value={scriptPlatform || "none"} onValueChange={(v) => setScriptPlatform(v === "none" ? "" : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o canal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Não definir</SelectItem>
+                      {PLATFORMS.map(p => (
+                        <SelectItem key={p} value={p}>{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {scriptScheduledAt && (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Lembrete na agenda</label>
+                  <Select value={String(scriptReminder)} onValueChange={(v) => setScriptReminder(Number(v))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REMINDER_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    O lembrete aparece automaticamente na sua Agenda e como aviso na plataforma.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div>
               <label className="text-sm font-medium mb-1.5 block">Tags (separadas por vírgula)</label>
               <Input
@@ -776,8 +1030,9 @@ export function ScriptOrganizerPanel() {
           <DialogFooter>
             <Button variant="outline" onClick={resetScriptForm}>Cancelar</Button>
             <Button onClick={handleSaveScript} disabled={!scriptTitle.trim() || !scriptContent.trim()}>
-              {editingScript ? "Salvar" : "Criar Script"}
+              {editingScript ? "Salvar" : (scriptScheduledAt ? "Salvar e agendar" : "Criar")}
             </Button>
+
           </DialogFooter>
         </DialogContent>
       </Dialog>
