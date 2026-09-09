@@ -27,7 +27,7 @@ export const parseCreatives = (value: unknown): CampaignCreative[] => {
     .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
     .map((item, index) => ({
       id: typeof item.id === "string" ? item.id : `creative-${index}`,
-      type: item.type === "video" ? "video" : "image",
+      type: (item.type === "video" ? "video" : "image") as CampaignCreative["type"],
       url: typeof item.url === "string" ? item.url : "",
       title: typeof item.title === "string" ? item.title : "",
       copy: typeof item.copy === "string" ? item.copy : "",
