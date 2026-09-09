@@ -28,17 +28,18 @@ export const TwoFactorVerification = ({
   const [canResend, setCanResend] = useState(false);
   const { toast } = useToast();
 
-  // Timer para habilitar botão de reenviar
+  // Timer para habilitar botão de reenviar — intervalo único e estável
   useEffect(() => {
-    if (resendTimer > 0) {
-      const timer = setTimeout(() => {
-        setResendTimer(resendTimer - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
+    if (resendTimer <= 0) {
       setCanResend(true);
+      return;
     }
-  }, [resendTimer]);
+    setCanResend(false);
+    const interval = setInterval(() => {
+      setResendTimer((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendTimer <= 0]);
 
   const handleVerify = async () => {
     if (code.length !== 6) {
