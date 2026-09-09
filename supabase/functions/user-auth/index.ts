@@ -709,13 +709,21 @@ serve(async (req) => {
       const twoFACode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-      await supabase
+      const { error: resendInsertError } = await supabase
         .from('user_2fa_codes')
         .insert({
           user_id: userId,
           code: twoFACode,
           expires_at: expiresAt.toISOString(),
         });
+
+      if (resendInsertError) {
+        console.error('Failed to store 2FA code (resend):', resendInsertError);
+        return new Response(
+          JSON.stringify({ error: 'Não foi possível gerar um novo código. Tente novamente.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
       // Send 2FA code via email
       try {
