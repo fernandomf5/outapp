@@ -88,7 +88,6 @@ export default function MindMapFullEditor() {
 
   useEffect(() => {
     nodesRef.current = nodes;
-    console.info('[mind-map-nodes]', nodes.map(node => `${node.id}:${node.text}`).join('|'));
   }, [nodes]);
 
   useEffect(() => {
@@ -944,7 +943,7 @@ export default function MindMapFullEditor() {
               const nodeMinWidth = node.customWidth ? undefined : sizeClasses.minWidth;
               return (
                 <div
-                  key={node.id}
+                  key={`${node.id}-${node.text}`}
                   className="absolute transform -translate-x-1/2 -translate-y-1/2"
                   style={{ left: node.x, top: node.y, touchAction: 'none' }}
                   onPointerDown={(e) => handleNodePointerDown(e, node.id)}
