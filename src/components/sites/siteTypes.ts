@@ -557,12 +557,18 @@ export function getBlockDef(type: string): BlockDef | undefined {
 
 export function createBlock(type: string, overrides: Record<string, any> = {}): SiteBlock {
   const def = getBlockDef(type);
+  const props = JSON.parse(JSON.stringify({ ...(def?.defaults ?? {}), ...overrides })) as Record<string, any>;
+  // A seção livre nasce com uma coluna vazia pronta para receber elementos.
+  if (type === "section" && (!Array.isArray(props.columns) || props.columns.length === 0)) {
+    props.columns = [{ id: `col-${Math.random().toString(36).slice(2, 9)}`, width: 100, elements: [] }];
+  }
   return {
     id: `${type}-${Math.random().toString(36).slice(2, 9)}`,
     type,
-    props: JSON.parse(JSON.stringify({ ...(def?.defaults ?? {}), ...overrides })),
+    props,
   };
 }
+
 
 export const DEFAULT_THEME: SiteTheme = {
   primary: "#22C55E",
