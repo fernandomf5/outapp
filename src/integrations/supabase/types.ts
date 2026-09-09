@@ -7764,6 +7764,7 @@ export type Database = {
           category_id: string | null
           content: string
           created_at: string | null
+          extra_media: string[]
           id: string
           is_favorite: boolean | null
           media_type: string | null
@@ -7784,6 +7785,7 @@ export type Database = {
           category_id?: string | null
           content?: string
           created_at?: string | null
+          extra_media?: string[]
           id?: string
           is_favorite?: boolean | null
           media_type?: string | null
@@ -7804,6 +7806,7 @@ export type Database = {
           category_id?: string | null
           content?: string
           created_at?: string | null
+          extra_media?: string[]
           id?: string
           is_favorite?: boolean | null
           media_type?: string | null
