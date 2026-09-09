@@ -119,6 +119,8 @@ const AppContent = () => {
           <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
           <Route path="/mindmap/:id" element={<MindMapPresentation />} />
+          <Route path="/dev-site-editor" element={<DevSiteEditorTest />} />
+
           <Route path="/mindmap-editor/:id" element={
             <ProtectedRoute>
               <MindMapFullEditor />
