@@ -227,52 +227,31 @@ export function ScriptOrganizerPanel() {
     return png;
   };
 
-  // Copia a mensagem completa. Limitação real dos navegadores: a área de
-  // transferência guarda imagem E texto, mas apps como o WhatsApp Web, ao
-  // colar, escolhem apenas UM formato (a imagem). Por isso a estratégia é:
-  // 1) Com mídia: copia a IMAGEM primeiro e, em seguida, copia o TEXTO por
-  //    cima? Não — isso apagaria a imagem. Em vez disso, copiamos imagem+texto
-  //    juntos (funciona no Telegram e em apps que leem os dois formatos) e
-  //    orientamos o usuário a usar o botão "Enviar", que entrega arquivo +
-  //    legenda juntos no WhatsApp e demais apps.
-  const handleCopyFullMessage = async (script: SavedScript) => {
+  // Copia apenas a imagem (em PNG) para a área de transferência.
+  const handleCopyImage = async (url: string) => {
     try {
-      if (
-        script.media_url &&
-        script.media_type === 'image' &&
-        typeof ClipboardItem !== 'undefined' &&
-        navigator.clipboard?.write
-      ) {
-        const pngBlob = await fetchImageAsPng(script.media_url);
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            'image/png': pngBlob,
-            'text/plain': new Blob([script.content], { type: 'text/plain' }),
-          }),
-        ]);
-        toast.success('Imagem e mensagem copiadas! Ao colar, se só vier a imagem, use o botão "Enviar" para mandar com o texto junto.', { duration: 5000 });
-      } else if (script.media_url) {
-        await navigator.clipboard.writeText(`${script.content}\n\n${script.media_url}`);
-        toast.success(
-          script.media_type === 'video'
-            ? 'Texto e link do vídeo copiados! Use "Enviar" para mandar o arquivo com a legenda.'
-            : 'Mensagem e link da mídia copiados!',
-          { duration: 5000 }
-        );
-      } else {
-        await navigator.clipboard.writeText(script.content);
-        toast.success('Copiado para a área de transferência!');
+      if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) {
+        throw new Error('Navegador não suporta cópia de imagem');
       }
+      const pngBlob = await fetchImageAsPng(url);
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': pngBlob }),
+      ]);
+      toast.success('Imagem copiada! Agora cole no WhatsApp, depois volte e copie o texto.');
     } catch (error) {
-      console.error('Erro ao copiar mensagem:', error);
-      try {
-        await navigator.clipboard.writeText(
-          script.media_url ? `${script.content}\n\n${script.media_url}` : script.content
-        );
-        toast.success('Mensagem copiada com o link da mídia!');
-      } catch {
-        toast.error('Não foi possível copiar. Tente novamente.');
-      }
+      console.error('Erro ao copiar imagem:', error);
+      toast.error('Não foi possível copiar a imagem. Use o botão "Enviar".');
+    }
+  };
+
+  // Copia o link do vídeo para a área de transferência.
+  const handleCopyVideoLink = async (script: SavedScript) => {
+    if (!script.media_url) return;
+    try {
+      await navigator.clipboard.writeText(script.media_url);
+      toast.success('Link do vídeo copiado! Agora cole no WhatsApp, depois volte e copie o texto.');
+    } catch {
+      toast.error('Não foi possível copiar o link do vídeo.');
     }
   };
 
@@ -293,12 +272,12 @@ export function ScriptOrganizerPanel() {
         await navigator.share({ text: script.media_url ? `${script.content}\n\n${script.media_url}` : script.content });
         return;
       }
-      await handleCopyFullMessage(script);
+      await handleCopyText(script.content);
     } catch (error) {
       if ((error as DOMException)?.name === 'AbortError') return;
       console.error('Erro ao compartilhar:', error);
-      toast.error('Não foi possível compartilhar. A mensagem foi copiada.');
-      await handleCopyFullMessage(script);
+      toast.error('Não foi possível compartilhar. O texto foi copiado.');
+      await handleCopyText(script.content);
     }
   };
 
@@ -332,13 +311,13 @@ export function ScriptOrganizerPanel() {
     }
   };
 
-  const handleIncrementUse = async (script: SavedScript) => {
-    // Com mídia anexada, o compartilhamento nativo (quando disponível) entrega
-    // arquivo + texto juntos de verdade — melhor que a área de transferência.
-    if (script.media_url && typeof navigator.share === 'function') {
-      await handleShareScript(script);
-    } else {
-      await handleCopyFullMessage(script);
+  const handleIncrementUse = async (script: SavedScript, mode: 'text' | 'media') => {
+    if (mode === 'text') {
+      await handleCopyText(script.content);
+    } else if (script.media_type === 'image' && script.media_url) {
+      await handleCopyImage(script.media_url);
+    } else if (script.media_type === 'video' && script.media_url) {
+      await handleCopyVideoLink(script);
     }
     await supabase.from('saved_scripts').update({ use_count: script.use_count + 1 }).eq('id', script.id);
     fetchScripts();
@@ -600,8 +579,36 @@ export function ScriptOrganizerPanel() {
                               <Share2 className="h-3 w-3" /> Enviar
                             </Button>
                           )}
-                          <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => handleIncrementUse(script)}>
-                            <Copy className="h-3 w-3" /> Copiar
+                          {script.media_url && script.media_type === 'image' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-xs gap-1"
+                              onClick={() => handleIncrementUse(script, 'media')}
+                              aria-label="Copiar imagem"
+                            >
+                              <ImagePlus className="h-3 w-3" /> Copiar imagem
+                            </Button>
+                          )}
+                          {script.media_url && script.media_type === 'video' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-xs gap-1"
+                              onClick={() => handleIncrementUse(script, 'media')}
+                              aria-label="Copiar link do vídeo"
+                            >
+                              <Film className="h-3 w-3" /> Copiar vídeo
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs gap-1"
+                            onClick={() => handleIncrementUse(script, 'text')}
+                            aria-label="Copiar texto"
+                          >
+                            <Copy className="h-3 w-3" /> Copiar texto
                           </Button>
                         </div>
                       </div>
