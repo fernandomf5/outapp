@@ -3672,6 +3672,19 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 />
               </div>
             </div>
+            <div className="grid gap-2">
+              <Label>Orçamento diário (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={campaignFormData.daily_budget}
+                onChange={(e) => setCampaignFormData({...campaignFormData, daily_budget: e.target.value})}
+                placeholder="50.00"
+              />
+              <p className="text-xs text-muted-foreground">Valor investido por dia nessa campanha.</p>
+            </div>
+            <CampaignCreativesEditor creatives={campaignCreatives} onChange={setCampaignCreatives} />
+            
             
             {/* Campos dinâmicos baseados no tipo de campanha - mesma lógica do Add Dialog */}
             {(campaignFormData.campaign_type === 'conversion' || campaignFormData.campaign_type === 'catalog' || campaignFormData.campaign_type === 'promotion') && (
