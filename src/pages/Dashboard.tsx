@@ -739,10 +739,10 @@ const Dashboard = () => {
             buttonText="Gerar QR Code"
           />
 
-          {/* 12. Scripts de Atendimento */}
+          {/* 12. Organizador de Script e Postagem */}
           <ResourceCard
-            title="Scripts de Atendimento"
-            description="Crie scripts para padronizar seus atendimentos"
+            title="Organizador de Script e Postagem"
+            description="Salve scripts e planeje suas postagens com lembretes na agenda"
             icon={<MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('scripts')}
           />

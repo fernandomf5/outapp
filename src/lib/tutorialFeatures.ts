@@ -28,7 +28,7 @@ export const TUTORIAL_FEATURES: TutorialFeature[] = [
   { key: "floating-button", label: "Botão Flutuante", group: "Recursos Básicos" },
   { key: "shortlinks", label: "Encurtador de Links", group: "Recursos Básicos" },
   { key: "qrcode", label: "Gerador de QR Code", group: "Recursos Básicos" },
-  { key: "scripts", label: "Scripts de Atendimento", group: "Recursos Básicos" },
+  { key: "scripts", label: "Organizador de Script e Postagem", group: "Recursos Básicos" },
 
   // Recursos Avançados
   { key: "area-membros", label: "Criador de Área de Membros", group: "Recursos Avançados" },
