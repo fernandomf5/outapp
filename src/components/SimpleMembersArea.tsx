@@ -19,6 +19,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } 
 import { CSS } from '@dnd-kit/utilities';
 import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMembersAreaPreview";
 import { ManageQuestionsDialog } from "@/components/members-area/ManageQuestionsDialog";
+import { VideoUploadField } from "@/components/members-area/VideoUploadField";
 import { AccessCodesDialog } from "@/components/members-area/AccessCodesDialog";
 import { PendingOrdersDialog } from "@/components/members-area/PendingOrdersDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -1890,12 +1891,17 @@ export function SimpleMembersArea() {
                       };
                       return (
                         <>
-                          <div>
+                          <div className="space-y-2">
                             <Label className="text-xs">URL do Vídeo</Label>
                             <Input
                               value={videoData.url}
                               onChange={(e) => updateVideoData({ ...videoData, url: e.target.value })}
                               placeholder="URL do vídeo (YouTube, Vimeo, etc)"
+                            />
+                            <p className="text-[11px] text-muted-foreground">Cole um link ou envie um arquivo de vídeo:</p>
+                            <VideoUploadField
+                              value={videoData.url}
+                              onChange={(url) => updateVideoData({ ...videoData, url })}
                             />
                           </div>
                           <div>

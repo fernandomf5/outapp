@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -670,7 +671,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           campaign_type: campaignFormData.campaign_type,
           budget: parseFloat(campaignFormData.budget),
           daily_budget: parseFloat(campaignFormData.daily_budget) || 0,
-          creatives: campaignCreatives,
+          creatives: campaignCreatives as unknown as Json,
           spent: parseFloat(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
           clicks: parseInt(campaignFormData.clicks) || 0,
@@ -823,7 +824,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           campaign_type: campaignFormData.campaign_type,
           budget: parseFloat(campaignFormData.budget),
           daily_budget: parseFloat(campaignFormData.daily_budget) || 0,
-          creatives: campaignCreatives,
+          creatives: campaignCreatives as unknown as Json,
           spent: parseFloat(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
           clicks: parseInt(campaignFormData.clicks) || 0,

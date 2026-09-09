@@ -32,7 +32,9 @@ export type Database = {
           cpm: number | null
           cpv: number | null
           created_at: string
+          creatives: Json
           custom_conversions: number | null
+          daily_budget: number
           end_date: string | null
           engagement_cost: number | null
           engagement_count: number | null
@@ -77,7 +79,9 @@ export type Database = {
           cpm?: number | null
           cpv?: number | null
           created_at?: string
+          creatives?: Json
           custom_conversions?: number | null
+          daily_budget?: number
           end_date?: string | null
           engagement_cost?: number | null
           engagement_count?: number | null
@@ -122,7 +126,9 @@ export type Database = {
           cpm?: number | null
           cpv?: number | null
           created_at?: string
+          creatives?: Json
           custom_conversions?: number | null
+          daily_budget?: number
           end_date?: string | null
           engagement_cost?: number | null
           engagement_count?: number | null
