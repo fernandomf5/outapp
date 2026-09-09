@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CampaignCreativesEditor, CampaignCreativesGallery, parseCreatives, type CampaignCreative } from "@/components/ads/CampaignCreatives";
 import { PlatformBadge } from "@/components/ads/PlatformLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -176,6 +177,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     platform: 'meta' as 'meta' | 'google' | 'tiktok',
     campaign_type: 'conversion',
     budget: '',
+    daily_budget: '',
     spent: '',
     impressions: '',
     clicks: '',
@@ -202,6 +204,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     end_date: '',
     client_id: ''
   });
+
+  // Criativos (imagem/vídeo + copy) da campanha em edição
+  const [campaignCreatives, setCampaignCreatives] = useState<CampaignCreative[]>([]);
 
   // Definir quais campos aparecem para cada tipo de campanha
   const campaignTypeFields: Record<string, string[]> = {
@@ -664,6 +669,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           platform: campaignFormData.platform,
           campaign_type: campaignFormData.campaign_type,
           budget: parseFloat(campaignFormData.budget),
+          daily_budget: parseFloat(campaignFormData.daily_budget) || 0,
+          creatives: campaignCreatives,
           spent: parseFloat(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
           clicks: parseInt(campaignFormData.clicks) || 0,
@@ -703,6 +710,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
         platform: 'meta',
         campaign_type: 'conversion',
         budget: '',
+        daily_budget: '',
+    daily_budget: '',
         spent: '',
         impressions: '',
         clicks: '',
@@ -763,6 +772,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       platform: campaign.platform,
       campaign_type: campaign.campaign_type || 'conversion',
       budget: campaign.budget.toString(),
+      daily_budget: campaign.daily_budget?.toString() || '',
       spent: campaign.spent.toString(),
       impressions: campaign.impressions.toString(),
       clicks: campaign.clicks.toString(),
@@ -789,6 +799,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       end_date: campaign.end_date || '',
       client_id: campaign.client_id || ''
     });
+    setCampaignCreatives(parseCreatives(campaign.creatives));
     setIsEditCampaignDialogOpen(true);
   };
 
@@ -811,6 +822,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           platform: campaignFormData.platform,
           campaign_type: campaignFormData.campaign_type,
           budget: parseFloat(campaignFormData.budget),
+          daily_budget: parseFloat(campaignFormData.daily_budget) || 0,
+          creatives: campaignCreatives,
           spent: parseFloat(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
           clicks: parseInt(campaignFormData.clicks) || 0,
@@ -851,6 +864,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
         platform: 'meta',
         campaign_type: 'conversion',
         budget: '',
+        daily_budget: '',
+    daily_budget: '',
         spent: '',
         impressions: '',
         clicks: '',
