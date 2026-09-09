@@ -265,27 +265,40 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       const userId = await getTargetUserId();
       if (!userId) return;
 
-      // Load existing customers
-      const { data: customersData } = await supabase
-        .from('customers')
-        .select('id, name, email, company')
-        .eq('user_id', userId)
-        .order('name');
-      
-      setExistingCustomers((customersData || []) as ExistingCustomer[]);
+      const [{ data: cats }, { data: cts }] = await Promise.all([
+        supabase
+          .from('registration_categories')
+          .select('id, name')
+          .eq('user_id', userId)
+          .order('name'),
+        supabase
+          .from('contacts')
+          .select('id, name, company, email, registration_category_id')
+          .eq('user_id', userId)
+          .order('name')
+          .limit(1000),
+      ]);
 
-      // Load existing businesses
-      const { data: businessesData } = await supabase
-        .from('businesses')
-        .select('id, name, company_name, logo_url')
-        .eq('user_id', userId)
-        .order('name');
-      
-      setExistingBusinesses((businessesData || []) as ExistingBusiness[]);
+      setCategoryOptions((cats || []) as CategoryOption[]);
+      setContactOptions((cts || []) as AdContactOption[]);
     } catch (error) {
-      console.error('Error loading existing entities:', error);
+      console.error('Error loading registrations:', error);
     }
   };
+
+  const handleSelectContact = (contactId: string | null) => {
+    setSelectedContactId(contactId);
+    if (!contactId) return;
+    const contact = contactOptions.find((c) => c.id === contactId);
+    if (!contact) return;
+    setClientFormData((prev) => ({
+      ...prev,
+      name: contact.name,
+      client_type: contact.company ? 'company' : 'personal',
+      description: contact.company || contact.email || prev.description,
+    }));
+  };
+
 
   // Load existing entities when dialog opens
   useEffect(() => {
