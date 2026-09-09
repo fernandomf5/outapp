@@ -100,6 +100,21 @@ interface AdCampaign {
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--success))'];
 
+// Formata data ISO para dd/mm/aaaa; retorna '-' quando ausente
+const formatCampaignDate = (date?: string | null): string => {
+  if (!date) return '-';
+  const parsed = new Date(date);
+  if (isNaN(parsed.getTime())) return '-';
+  return parsed.toLocaleDateString('pt-BR');
+};
+
+// Monta o texto de período da campanha: "01/09/2026 - 30/09/2026"
+const formatCampaignPeriod = (start?: string | null, end?: string | null): string => {
+  const startLabel = formatCampaignDate(start);
+  const endLabel = end ? formatCampaignDate(end) : 'Em andamento';
+  return `${startLabel} - ${endLabel}`;
+};
+
 interface TeamContext {
   adminUserId: string;
   allowedIds: string[];
