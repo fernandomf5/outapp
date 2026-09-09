@@ -83,6 +83,11 @@ export default function MindMapFullEditor() {
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState('default');
   const [isLocked, setIsLocked] = useState(false);
+  const selectedNode = nodes.find(node => node.id === selectedNodeId) ?? null;
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
   useEffect(() => {
     if (id) fetchMap();
@@ -665,7 +670,7 @@ export default function MindMapFullEditor() {
     } else {
       setDraggedNode(nodeId);
       setLastMousePos({ x: e.clientX, y: e.clientY });
-      setSelectedNode(nodes.find(n => n.id === nodeId) || null);
+      setSelectedNodeId(nodeId);
     }
   };
 
