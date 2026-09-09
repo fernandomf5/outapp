@@ -26,7 +26,7 @@ export const VideoUploadField = ({ value, onChange, className }: VideoUploadFiel
       return;
     }
     if (file.size > MAX_VIDEO_SIZE) {
-      toast.error("Vídeo muito grande. Máximo 200MB");
+      toast.error("Vídeo muito grande. Máximo 50MB — para vídeos maiores, use um link (YouTube, Vimeo, Drive)");
       return;
     }
 
