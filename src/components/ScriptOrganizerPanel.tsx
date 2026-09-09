@@ -319,9 +319,13 @@ export function ScriptOrganizerPanel() {
 
 
   const handleDeleteScript = async (id: string) => {
+    const target = scripts.find(s => s.id === id);
     const { error } = await supabase.from('saved_scripts').delete().eq('id', id);
     if (error) { toast.error("Erro ao excluir"); return; }
-    toast.success("Script excluído!");
+    if (target?.agenda_event_id) {
+      await supabase.from('agenda_events').delete().eq('id', target.agenda_event_id);
+    }
+    toast.success("Conteúdo excluído!");
     fetchScripts();
   };
 
