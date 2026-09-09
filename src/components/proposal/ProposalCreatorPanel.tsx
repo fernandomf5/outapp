@@ -88,6 +88,7 @@ export function ProposalCreatorPanel() {
   const [generatedLink, setGeneratedLink] = useState('');
   const [deleteProposal, setDeleteProposal] = useState<Proposal | null>(null);
   const [editingProposal, setEditingProposal] = useState<string | null>(null);
+  const [mode, setMode] = useState<'quick' | 'advanced'>('quick');
 
   useEffect(() => {
     if (user) {
