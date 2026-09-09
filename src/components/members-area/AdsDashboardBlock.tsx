@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { CampaignCreativesGallery, parseCreatives } from "@/components/ads/CampaignCreatives";
 import { TrendingUp, TrendingDown, DollarSign, BarChart3, MousePointer, Eye, Target, Megaphone } from "lucide-react";
 
 interface Campaign {
@@ -15,6 +16,8 @@ interface Campaign {
   conversions: number;
   start_date: string;
   end_date: string | null;
+  daily_budget: number | null;
+  creatives: unknown;
 }
 
 interface AdClient {
@@ -241,6 +244,17 @@ function CampaignCard({ campaign, accentColor, cardTextColor }: { campaign: Camp
           <p className="font-medium" style={{ color: profit >= 0 ? '#10b981' : '#ef4444' }}>{formatCurrency(profit)}</p>
         </div>
       </div>
+      {(campaign.daily_budget ?? 0) > 0 && (
+        <p className="mt-2 text-[11px] opacity-70" style={{ color: cardTextColor }}>
+          Orçamento diário: {formatCurrency(campaign.daily_budget ?? 0)}
+        </p>
+      )}
+      {parseCreatives(campaign.creatives).length > 0 && (
+        <div className="mt-3">
+          <p className="text-[11px] font-medium mb-2" style={{ color: cardTextColor }}>Criativos usados</p>
+          <CampaignCreativesGallery creatives={parseCreatives(campaign.creatives)} />
+        </div>
+      )}
       <div className="flex gap-3 mt-2 text-[10px] opacity-60 flex-wrap" style={{ color: cardTextColor }}>
         <span>{campaign.platform}</span>
         <span>•</span>
