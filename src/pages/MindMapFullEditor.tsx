@@ -149,10 +149,6 @@ export default function MindMapFullEditor() {
       const persistedNodes = nodesToSave;
       nodesRef.current = persistedNodes;
       setNodes(persistedNodes);
-      setNodeTitleDrafts(prev => ({
-        ...prev,
-        ...Object.fromEntries(persistedNodes.map(node => [node.id, node.text])),
-      }));
       setSavedNodes(JSON.parse(JSON.stringify(persistedNodes)));
       toast.success('Salvo com sucesso!');
     }
