@@ -14,7 +14,19 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Service client: used ONLY for privileged database access.
+    // It must never receive a user session, otherwise every subsequent
+    // query would run as that user and be blocked by RLS.
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Separate client used exclusively to validate user credentials.
+    const authClient = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_ANON_KEY') ?? supabaseKey,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
     const requestData = await req.json();
     const { action, email, password, name, code, userId } = requestData;
@@ -214,7 +226,7 @@ serve(async (req) => {
       console.log('Login attempt for:', email);
       
       // Login with Supabase Auth first to validate credentials
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
         email,
         password
       });
@@ -273,7 +285,7 @@ serve(async (req) => {
       // Check if user is banned
       if (profile.is_banned) {
         console.log('User is banned:', email);
-        await supabase.auth.signOut();
+        await authClient.auth.signOut();
         return new Response(
           JSON.stringify({ error: 'Você foi banido do sistema' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -296,7 +308,7 @@ serve(async (req) => {
       if (!isAdmin && !profile.email_verified) {
         console.log('Email not verified, logging out...');
         // Logout the user since they can't proceed
-        await supabase.auth.signOut();
+        await authClient.auth.signOut();
         
         return new Response(
           JSON.stringify({ 
@@ -344,13 +356,21 @@ serve(async (req) => {
           const twoFACode = Math.floor(100000 + Math.random() * 900000).toString();
           const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-          await supabase
+          const { error: codeInsertError } = await supabase
             .from('user_2fa_codes')
             .insert({
               user_id: profile.user_id,
               code: twoFACode,
               expires_at: expiresAt.toISOString(),
             });
+
+          if (codeInsertError) {
+            console.error('Failed to store 2FA code:', codeInsertError);
+            return new Response(
+              JSON.stringify({ error: 'Não foi possível gerar o código de verificação. Tente novamente.' }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
 
           // Send 2FA code via email
           try {
@@ -367,7 +387,7 @@ serve(async (req) => {
           }
 
           // Don't set session yet, return that 2FA is required
-          await supabase.auth.signOut();
+          await authClient.auth.signOut();
           
           return new Response(
             JSON.stringify({ 
@@ -596,29 +616,48 @@ serve(async (req) => {
     }
 
     if (action === 'verify-2fa') {
-      const { code: twoFACode, deviceFingerprint } = requestData;
+      const { deviceFingerprint } = requestData;
+      const twoFACode = String(requestData.code ?? '').replace(/\D/g, '');
 
-      // Verify code
-      const { data: codeData, error: codeError } = await supabase
+      if (!userId || twoFACode.length !== 6) {
+        return new Response(
+          JSON.stringify({ error: 'Código inválido' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify code (most recent matching code wins)
+      const { data: codeRows, error: codeError } = await supabase
         .from('user_2fa_codes')
         .select('*')
         .eq('user_id', userId)
         .eq('code', twoFACode)
         .eq('verified', false)
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (codeError || !codeData) {
+      if (codeError) {
+        console.error('2FA lookup error:', codeError);
         return new Response(
-          JSON.stringify({ error: 'Código inválido' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Erro ao verificar o código. Tente novamente.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const codeData = codeRows?.[0];
+
+      if (!codeData) {
+        return new Response(
+          JSON.stringify({ error: 'Código inválido. Solicite um novo código.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       // Check if expired
       if (new Date() > new Date(codeData.expires_at)) {
         return new Response(
-          JSON.stringify({ error: 'Código expirado' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Código expirado. Solicite um novo código.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -632,14 +671,18 @@ serve(async (req) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
 
-      await supabase
-        .from('user_trusted_devices')
-        .insert({
-          user_id: userId,
-          device_fingerprint: deviceFingerprint,
-          device_name: requestData.deviceName || 'Dispositivo',
-          expires_at: expiresAt.toISOString(),
-        });
+      if (deviceFingerprint) {
+        const { error: deviceError } = await supabase
+          .from('user_trusted_devices')
+          .insert({
+            user_id: userId,
+            device_fingerprint: deviceFingerprint,
+            device_name: requestData.deviceName || 'Dispositivo',
+            expires_at: expiresAt.toISOString(),
+          });
+        // A duplicated device must not break a valid verification.
+        if (deviceError) console.error('Trusted device insert failed:', deviceError);
+      }
 
       return new Response(
         JSON.stringify({ success: true }),
@@ -666,13 +709,21 @@ serve(async (req) => {
       const twoFACode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-      await supabase
+      const { error: resendInsertError } = await supabase
         .from('user_2fa_codes')
         .insert({
           user_id: userId,
           code: twoFACode,
           expires_at: expiresAt.toISOString(),
         });
+
+      if (resendInsertError) {
+        console.error('Failed to store 2FA code (resend):', resendInsertError);
+        return new Response(
+          JSON.stringify({ error: 'Não foi possível gerar um novo código. Tente novamente.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
       // Send 2FA code via email
       try {
