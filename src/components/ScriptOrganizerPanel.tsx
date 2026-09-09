@@ -729,6 +729,11 @@ export function ScriptOrganizerPanel() {
                               <DropdownMenuItem onClick={() => openEditScript(script)}>
                                 <Edit className="h-4 w-4 mr-2" /> Editar
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleTogglePublished(script)}>
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                {isPublished ? 'Marcar como pendente' : 'Marcar como publicado'}
+                              </DropdownMenuItem>
+
                               <DropdownMenuItem onClick={() => handleDeleteScript(script.id)} className="text-destructive">
                                 <Trash2 className="h-4 w-4 mr-2" /> Excluir
                               </DropdownMenuItem>
