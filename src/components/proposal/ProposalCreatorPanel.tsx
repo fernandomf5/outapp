@@ -428,27 +428,50 @@ export function ProposalCreatorPanel() {
         <TabsContent value="create" className="space-y-6">
           <Card>
             <CardContent className="pt-6">
-              {renderStepContent()}
-              
-              <div className="mt-6 pt-6 border-t">
-                <ProposalWizard
-                  currentStep={currentStep}
-                  totalSteps={STEPS.length}
-                  onNext={handleNext}
-                  onPrev={handlePrev}
-                  onFinish={handleFinish}
-                  canProceed={canProceed()}
-                  isLastStep={currentStep === STEPS.length - 1}
-                  steps={STEPS}
-                />
-              </div>
-              
-              {currentStep === STEPS.length - 1 && (
-                <div className="flex justify-center gap-3 mt-4">
-                  <Button variant="outline" onClick={() => saveProposal('draft')} disabled={saving}>
-                    Salvar como Rascunho
-                  </Button>
+              {mode === 'quick' && !editingProposal ? (
+                <div className="space-y-5">
+                  <div className="rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">
+                    Modo rápido: preencha o essencial em uma única tela e gere o link da proposta.
+                  </div>
+                  <QuickProposalForm
+                    saving={saving}
+                    onSubmit={handleQuickSubmit}
+                    onSwitchToAdvanced={switchToAdvanced}
+                  />
                 </div>
+              ) : (
+                <>
+                  {!editingProposal && (
+                    <div className="mb-4 flex justify-end">
+                      <Button variant="ghost" size="sm" onClick={() => setMode('quick')}>
+                        Voltar ao modo rápido
+                      </Button>
+                    </div>
+                  )}
+
+                  {renderStepContent()}
+
+                  <div className="mt-6 pt-6 border-t">
+                    <ProposalWizard
+                      currentStep={currentStep}
+                      totalSteps={STEPS.length}
+                      onNext={handleNext}
+                      onPrev={handlePrev}
+                      onFinish={handleFinish}
+                      canProceed={canProceed()}
+                      isLastStep={currentStep === STEPS.length - 1}
+                      steps={STEPS}
+                    />
+                  </div>
+
+                  {currentStep === STEPS.length - 1 && (
+                    <div className="flex justify-center gap-3 mt-4">
+                      <Button variant="outline" onClick={() => saveProposal('draft')} disabled={saving}>
+                        Salvar como Rascunho
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
