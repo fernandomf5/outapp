@@ -1890,12 +1890,17 @@ export function SimpleMembersArea() {
                       };
                       return (
                         <>
-                          <div>
+                          <div className="space-y-2">
                             <Label className="text-xs">URL do Vídeo</Label>
                             <Input
                               value={videoData.url}
                               onChange={(e) => updateVideoData({ ...videoData, url: e.target.value })}
                               placeholder="URL do vídeo (YouTube, Vimeo, etc)"
+                            />
+                            <p className="text-[11px] text-muted-foreground">Cole um link ou envie um arquivo de vídeo:</p>
+                            <VideoUploadField
+                              value={videoData.url}
+                              onChange={(url) => updateVideoData({ ...videoData, url })}
                             />
                           </div>
                           <div>
