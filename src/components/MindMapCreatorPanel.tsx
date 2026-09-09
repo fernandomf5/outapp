@@ -291,6 +291,7 @@ export const MindMapCreatorPanel = () => {
   };
 
   const updateEditingNode = (updates: Partial<MindMapNode>) => {
+    console.log('[mindmap-debug] updateEditingNode', editingNode?.id, updates);
     if (!editingNode) return;
     const editingNodeId = editingNode.id;
     setEditingNode(current => current?.id === editingNodeId ? { ...current, ...updates } : current);
