@@ -671,14 +671,18 @@ serve(async (req) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
 
-      await supabase
-        .from('user_trusted_devices')
-        .insert({
-          user_id: userId,
-          device_fingerprint: deviceFingerprint,
-          device_name: requestData.deviceName || 'Dispositivo',
-          expires_at: expiresAt.toISOString(),
-        });
+      if (deviceFingerprint) {
+        const { error: deviceError } = await supabase
+          .from('user_trusted_devices')
+          .insert({
+            user_id: userId,
+            device_fingerprint: deviceFingerprint,
+            device_name: requestData.deviceName || 'Dispositivo',
+            expires_at: expiresAt.toISOString(),
+          });
+        // A duplicated device must not break a valid verification.
+        if (deviceError) console.error('Trusted device insert failed:', deviceError);
+      }
 
       return new Response(
         JSON.stringify({ success: true }),
