@@ -37,6 +37,8 @@ interface SavedScript {
   use_count: number;
   sort_order: number;
   created_at: string;
+  media_url?: string | null;
+  media_type?: 'image' | 'video' | null;
 }
 
 interface Business {
