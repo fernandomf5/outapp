@@ -40,6 +40,7 @@ interface SavedScript {
   created_at: string;
   media_url?: string | null;
   media_type?: 'image' | 'video' | null;
+  extra_media?: string[] | null;
   scheduled_at?: string | null;
   platform?: string | null;
   post_status?: PostStatus | null;
@@ -117,6 +118,7 @@ export function ScriptOrganizerPanel() {
   const [scriptMediaUrl, setScriptMediaUrl] = useState<string | null>(null);
   const [scriptMediaType, setScriptMediaType] = useState<'image' | 'video' | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [scriptExtraMedia, setScriptExtraMedia] = useState<string[]>([]);
   const [scriptScheduledAt, setScriptScheduledAt] = useState("");
   const [scriptPlatform, setScriptPlatform] = useState("");
   const [scriptReminder, setScriptReminder] = useState(60);
@@ -281,6 +283,7 @@ export function ScriptOrganizerPanel() {
       sort_order: scripts.length,
       media_url: scriptMediaUrl,
       media_type: scriptMediaType,
+      extra_media: scriptExtraMedia,
       scheduled_at: scheduledIso,
       platform: scriptPlatform || null,
       post_status: keepPublished ? 'published' : (scheduledIso ? 'scheduled' : 'idea'),
@@ -395,13 +398,20 @@ export function ScriptOrganizerPanel() {
   // Compartilha texto + arquivo direto no WhatsApp / apps do celular
   const handleShareScript = async (script: SavedScript) => {
     try {
-      if (script.media_url && typeof navigator.share === 'function') {
-        const response = await fetch(script.media_url);
-        const blob = await response.blob();
-        const ext = script.media_type === 'video' ? 'mp4' : 'jpg';
-        const file = new File([blob], `${script.title || 'mensagem'}.${ext}`, { type: blob.type });
-        if (!navigator.canShare || navigator.canShare({ files: [file] })) {
-          await navigator.share({ text: script.content, files: [file] });
+      const urls: string[] = [
+        ...(script.media_url ? [script.media_url] : []),
+        ...(script.extra_media || []),
+      ];
+      if (urls.length > 0 && typeof navigator.share === 'function') {
+        const files: File[] = [];
+        for (let i = 0; i < urls.length; i++) {
+          const response = await fetch(urls[i]);
+          const blob = await response.blob();
+          const ext = i === 0 && script.media_type === 'video' ? 'mp4' : 'jpg';
+          files.push(new File([blob], `${script.title || 'mensagem'}-${i + 1}.${ext}`, { type: blob.type }));
+        }
+        if (!navigator.canShare || navigator.canShare({ files })) {
+          await navigator.share({ text: script.content, files });
           return;
         }
       }
@@ -448,6 +458,33 @@ export function ScriptOrganizerPanel() {
     }
   };
 
+  /** Envia imagens adicionais (galeria) para o mesmo conteúdo. */
+  const handleUploadExtraImages = async (files: File[]) => {
+    if (!user || files.length === 0) return;
+    setUploadingMedia(true);
+    const uploaded: string[] = [];
+    try {
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) continue;
+        if (file.size > 25 * 1024 * 1024) continue;
+        const ext = file.name.split('.').pop();
+        const path = `${user.id}/scripts/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from('chatbot-media').upload(path, file, { upsert: true });
+        if (error) continue;
+        const { data } = supabase.storage.from('chatbot-media').getPublicUrl(path);
+        uploaded.push(data.publicUrl);
+      }
+      if (uploaded.length === 0) {
+        toast.error('Nenhuma imagem foi enviada. Use imagens de até 25MB.');
+        return;
+      }
+      setScriptExtraMedia(prev => [...prev, ...uploaded]);
+      toast.success(`${uploaded.length} imagem(ns) adicionada(s)!`);
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
   const handleIncrementUse = async (script: SavedScript, mode: 'text' | 'media') => {
     if (mode === 'text') {
       await handleCopyText(script.content);
@@ -480,6 +517,7 @@ export function ScriptOrganizerPanel() {
     setScriptTags("");
     setScriptMediaUrl(null);
     setScriptMediaType(null);
+    setScriptExtraMedia([]);
     setScriptScheduledAt("");
     setScriptPlatform("");
     setScriptReminder(60);
@@ -500,6 +538,7 @@ export function ScriptOrganizerPanel() {
     setScriptCategoryId(s.category_id || "");
     setScriptMediaUrl(s.media_url || null);
     setScriptMediaType(s.media_type || null);
+    setScriptExtraMedia(s.extra_media || []);
     setScriptTags(s.tags?.join(", ") || "");
     setScriptScheduledAt(toLocalInput(s.scheduled_at));
     setScriptPlatform(s.platform || "");
@@ -760,6 +799,23 @@ export function ScriptOrganizerPanel() {
                         )
                       )}
 
+                      {/* Imagens adicionais */}
+                      {script.extra_media && script.extra_media.length > 0 && (
+                        <div className="grid grid-cols-4 gap-1">
+                          {script.extra_media.map((url) => (
+                            <button
+                              key={url}
+                              type="button"
+                              onClick={() => handleCopyImage(url)}
+                              aria-label="Copiar esta imagem"
+                              className="relative aspect-square rounded-md overflow-hidden border border-border focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                              <img src={url} alt="Imagem adicional da postagem" loading="lazy" className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       {/* Content preview */}
                       <p className="text-xs text-muted-foreground line-clamp-4 whitespace-pre-wrap leading-relaxed">
                         {script.content}
@@ -779,7 +835,7 @@ export function ScriptOrganizerPanel() {
                       {/* Footer */}
                       <div className="flex flex-col gap-1 pt-2 border-t border-border">
                         <div className="flex flex-wrap items-center justify-end gap-1">
-                          {script.media_url && (
+                          {(script.media_url || (script.extra_media?.length ?? 0) > 0) && (
                             <Button
                               size="sm"
                               variant="ghost"
@@ -962,6 +1018,47 @@ export function ScriptOrganizerPanel() {
                   />
                 </label>
               )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Imagens adicionais (opcional)</label>
+              {scriptExtraMedia.length > 0 && (
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                  {scriptExtraMedia.map((url) => (
+                    <div key={url} className="relative aspect-square">
+                      <img src={url} alt="Imagem adicional" className="w-full h-full object-cover rounded-md border border-border" />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-1 right-1 h-5 w-5"
+                        aria-label="Remover imagem adicional"
+                        onClick={() => setScriptExtraMedia(prev => prev.filter(u => u !== url))}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-4 cursor-pointer hover:border-primary transition-colors">
+                <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {uploadingMedia ? 'Enviando...' : 'Adicionar mais imagens (pode selecionar várias)'}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  disabled={uploadingMedia}
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length > 0) handleUploadExtraImages(files);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
             </div>
 
 
