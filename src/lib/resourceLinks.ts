@@ -65,7 +65,7 @@ export const RESOURCE_TYPES: ResourceTypeDef[] = [
   { key: "ad_campaign", label: "Campanha de Anúncio", table: "ad_campaigns", titleColumns: ["name"], tab: "anuncios", icon: Megaphone },
   { key: "chat_online", label: "Chat Online", table: "ai_agents", titleColumns: ["name"], tab: "chat-online", icon: MessageSquareQuote },
   { key: "aprova_job", label: "Aprova Job", table: "aprova_job_jobs", titleColumns: ["title"], tab: "aprova-job", icon: ClipboardList },
-  { key: "site", label: "Site", table: "sites", titleColumns: ["name", "slug"], tab: "sites", icon: Globe },
+  
   { key: "product", label: "Produto/Serviço", table: "products", titleColumns: ["name"], tab: "produtos-servicos", icon: ShoppingCart },
 
 ];
