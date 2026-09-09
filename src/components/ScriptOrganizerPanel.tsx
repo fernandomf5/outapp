@@ -329,7 +329,8 @@ export function ScriptOrganizerPanel() {
     setScriptTitle(s.title);
     setScriptContent(s.content);
     setScriptCategoryId(s.category_id || "");
-    
+    setScriptMediaUrl(s.media_url || null);
+    setScriptMediaType(s.media_type || null);
     setScriptTags(s.tags?.join(", ") || "");
     setShowScriptDialog(true);
   };
