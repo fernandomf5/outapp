@@ -95,7 +95,15 @@ export function ScriptOrganizerPanel() {
       .select('*')
       .eq('user_id', user!.id)
       .order('sort_order', { ascending: true });
-    if (!error && data) setCategories(data as any);
+    if (!error && data) {
+      const cats = data as unknown as ScriptCategory[];
+      setCategories(cats);
+      // Seleciona automaticamente a primeira categoria cadastrada
+      setSelectedCategory((current) => {
+        if (current && cats.some(c => c.id === current)) return current;
+        return cats.length > 0 ? cats[0].id : null;
+      });
+    }
   };
 
   const fetchScripts = async () => {
