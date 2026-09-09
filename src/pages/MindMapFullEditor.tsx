@@ -114,7 +114,6 @@ export default function MindMapFullEditor() {
     const mapNodes = (data.nodes as any) || [];
     setMap({ ...data, nodes: mapNodes });
     nodesRef.current = mapNodes;
-    setNodeTitleDrafts({});
     setNodes(mapNodes);
     setSavedNodes(JSON.parse(JSON.stringify(mapNodes)));
     setCurrentTheme(data.theme || 'default');
