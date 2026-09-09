@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ContactCategoryPicker, type CategoryOption } from "@/components/registration/ContactCategoryPicker";
+
 import { 
   TrendingUp, 
   DollarSign, 
@@ -107,19 +109,14 @@ interface AdsManagementPanelProps {
   teamContext?: TeamContext;
 }
 
-interface ExistingCustomer {
+interface AdContactOption {
   id: string;
   name: string;
-  email?: string;
-  company?: string;
+  company: string | null;
+  email?: string | null;
+  registration_category_id: string | null;
 }
 
-interface ExistingBusiness {
-  id: string;
-  name: string;
-  company_name?: string;
-  logo_url?: string;
-}
 
 export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => {
   const [clients, setClients] = useState<AdClient[]>([]);
@@ -149,12 +146,11 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
   const [isEditClientDialogOpen, setIsEditClientDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<AdClient | null>(null);
   
-  // New states for linking existing entities
-  const [addClientMode, setAddClientMode] = useState<'new' | 'existing_customer' | 'existing_business'>('new');
-  const [existingCustomers, setExistingCustomers] = useState<ExistingCustomer[]>([]);
-  const [existingBusinesses, setExistingBusinesses] = useState<ExistingBusiness[]>([]);
-  const [selectedExistingCustomerId, setSelectedExistingCustomerId] = useState<string>('');
-  const [selectedExistingBusinessId, setSelectedExistingBusinessId] = useState<string>('');
+  // Cadastros (Gestão Livre) para vincular ao cliente de anúncios
+  const [contactOptions, setContactOptions] = useState<AdContactOption[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+
 
   const [campaignFormData, setCampaignFormData] = useState({
     name: '',
@@ -265,27 +261,40 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       const userId = await getTargetUserId();
       if (!userId) return;
 
-      // Load existing customers
-      const { data: customersData } = await supabase
-        .from('customers')
-        .select('id, name, email, company')
-        .eq('user_id', userId)
-        .order('name');
-      
-      setExistingCustomers((customersData || []) as ExistingCustomer[]);
+      const [{ data: cats }, { data: cts }] = await Promise.all([
+        supabase
+          .from('registration_categories')
+          .select('id, name')
+          .eq('user_id', userId)
+          .order('name'),
+        supabase
+          .from('contacts')
+          .select('id, name, company, email, registration_category_id')
+          .eq('user_id', userId)
+          .order('name')
+          .limit(1000),
+      ]);
 
-      // Load existing businesses
-      const { data: businessesData } = await supabase
-        .from('businesses')
-        .select('id, name, company_name, logo_url')
-        .eq('user_id', userId)
-        .order('name');
-      
-      setExistingBusinesses((businessesData || []) as ExistingBusiness[]);
+      setCategoryOptions((cats || []) as CategoryOption[]);
+      setContactOptions((cts || []) as AdContactOption[]);
     } catch (error) {
-      console.error('Error loading existing entities:', error);
+      console.error('Error loading registrations:', error);
     }
   };
+
+  const handleSelectContact = (contactId: string | null) => {
+    setSelectedContactId(contactId);
+    if (!contactId) return;
+    const contact = contactOptions.find((c) => c.id === contactId);
+    if (!contact) return;
+    setClientFormData((prev) => ({
+      ...prev,
+      name: contact.name,
+      client_type: contact.company ? 'company' : 'personal',
+      description: contact.company || contact.email || prev.description,
+    }));
+  };
+
 
   // Load existing entities when dialog opens
   useEffect(() => {
@@ -351,64 +360,6 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     }
   };
 
-  const handleAddFromExistingCustomer = async () => {
-    try {
-      const userId = await getTargetUserId();
-      if (!userId || !selectedExistingCustomerId) return;
-
-      const customer = existingCustomers.find(c => c.id === selectedExistingCustomerId);
-      if (!customer) return;
-
-      const { error } = await supabase
-        .from('ad_clients')
-        .insert([{
-          user_id: userId,
-          name: customer.name,
-          client_type: 'personal',
-          description: customer.company || customer.email || null,
-          cashbox: parseFloat(clientFormData.cashbox) || 0
-        }]);
-
-      if (error) throw error;
-
-      toast.success("Cliente vinculado com sucesso!");
-      setIsAddClientDialogOpen(false);
-      loadData();
-      resetClientDialog();
-    } catch (error: any) {
-      toast.error("Erro ao vincular cliente");
-    }
-  };
-
-  const handleAddFromExistingBusiness = async () => {
-    try {
-      const userId = await getTargetUserId();
-      if (!userId || !selectedExistingBusinessId) return;
-
-      const business = existingBusinesses.find(b => b.id === selectedExistingBusinessId);
-      if (!business) return;
-
-      const { error } = await supabase
-        .from('ad_clients')
-        .insert([{
-          user_id: userId,
-          name: business.name,
-          client_type: 'company',
-          description: business.company_name || null,
-          cashbox: parseFloat(clientFormData.cashbox) || 0
-        }]);
-
-      if (error) throw error;
-
-      toast.success("Negócio vinculado com sucesso!");
-      setIsAddClientDialogOpen(false);
-      loadData();
-      resetClientDialog();
-    } catch (error: any) {
-      toast.error("Erro ao vincular negócio");
-    }
-  };
-
   const resetClientDialog = () => {
     setClientFormData({
       name: '',
@@ -416,10 +367,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       description: '',
       cashbox: ''
     });
-    setAddClientMode('new');
-    setSelectedExistingCustomerId('');
-    setSelectedExistingBusinessId('');
+    setSelectedContactId(null);
   };
+
 
   const handleEditClient = async () => {
     if (!editingClient) return;
@@ -1581,101 +1531,23 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             </DialogHeader>
             
             <div className="grid gap-4 py-4">
-              {/* Optional: link existing customer or business */}
-              {(existingCustomers.length > 0 || existingBusinesses.length > 0) && (
-                <div className="grid gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
-                  <Label className="text-sm font-medium">Vincular cadastro existente (opcional)</Label>
-                  <Select
-                    value={
-                      selectedExistingCustomerId
-                        ? `customer:${selectedExistingCustomerId}`
-                        : selectedExistingBusinessId
-                        ? `business:${selectedExistingBusinessId}`
-                        : ''
-                    }
-                    onValueChange={(value) => {
-                      if (!value) {
-                        setSelectedExistingCustomerId('');
-                        setSelectedExistingBusinessId('');
-                        return;
-                      }
-                      const [kind, id] = value.split(':');
-                      if (kind === 'customer') {
-                        setSelectedExistingCustomerId(id);
-                        setSelectedExistingBusinessId('');
-                        const c = existingCustomers.find((x) => x.id === id);
-                        if (c) {
-                          setClientFormData((prev) => ({
-                            ...prev,
-                            name: c.name,
-                            client_type: 'personal',
-                            description: c.company || c.email || prev.description,
-                          }));
-                        }
-                      } else if (kind === 'business') {
-                        setSelectedExistingBusinessId(id);
-                        setSelectedExistingCustomerId('');
-                        const b = existingBusinesses.find((x) => x.id === id);
-                        if (b) {
-                          setClientFormData((prev) => ({
-                            ...prev,
-                            name: b.name,
-                            client_type: 'company',
-                            description: b.company_name || prev.description,
-                          }));
-                        }
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente ou negócio cadastrado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {existingCustomers.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                            Clientes
-                          </div>
-                          {existingCustomers.map((customer) => (
-                            <SelectItem key={`c-${customer.id}`} value={`customer:${customer.id}`}>
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                <span>{customer.name}</span>
-                                {customer.company && (
-                                  <span className="text-muted-foreground text-xs">({customer.company})</span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                      {existingBusinesses.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-1">
-                            Negócios
-                          </div>
-                          {existingBusinesses.map((business) => (
-                            <SelectItem key={`b-${business.id}`} value={`business:${business.id}`}>
-                              <div className="flex items-center gap-2">
-                                <Building2 className="h-4 w-4" />
-                                <span>{business.name}</span>
-                                {business.company_name && (
-                                  <span className="text-muted-foreground text-xs">({business.company_name})</span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {(selectedExistingCustomerId || selectedExistingBusinessId) && (
-                    <p className="text-xs text-muted-foreground">
-                      Os dados foram preenchidos automaticamente. Você ainda pode ajustá-los abaixo.
-                    </p>
-                  )}
-                </div>
-              )}
+              {/* Selecionar cadastro da Gestão Livre */}
+              <div className="grid gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <Label className="text-sm font-medium">Selecionar cadastro da Gestão Livre (opcional)</Label>
+                <ContactCategoryPicker
+                  value={selectedContactId}
+                  onChange={handleSelectContact}
+                  contacts={contactOptions}
+                  categories={categoryOptions}
+                  placeholder="Novo cliente manual"
+                />
+                {selectedContactId && (
+                  <p className="text-xs text-muted-foreground">
+                    Os dados foram preenchidos automaticamente. Você ainda pode ajustá-los abaixo.
+                  </p>
+                )}
+              </div>
+
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -3180,6 +3052,17 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             <DialogDescription>Crie um novo cliente ou negócio</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <Label className="text-sm font-medium">Selecionar cadastro da Gestão Livre (opcional)</Label>
+              <ContactCategoryPicker
+                value={selectedContactId}
+                onChange={handleSelectContact}
+                contacts={contactOptions}
+                categories={categoryOptions}
+                placeholder="Novo cliente manual"
+              />
+            </div>
+
             <div className="grid gap-2">
               <Label>Nome *</Label>
               <Input 

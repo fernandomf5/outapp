@@ -5085,6 +5085,7 @@ export type Database = {
           color: string | null
           created_at: string
           id: string
+          is_recurring: boolean
           name: string
           order_index: number | null
           updated_at: string
@@ -5095,6 +5096,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           id?: string
+          is_recurring?: boolean
           name: string
           order_index?: number | null
           updated_at?: string
@@ -5105,6 +5107,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           id?: string
+          is_recurring?: boolean
           name?: string
           order_index?: number | null
           updated_at?: string
@@ -5262,6 +5265,7 @@ export type Database = {
           date: string | null
           description: string
           due_date: string | null
+          entity_type: string
           id: string
           is_recurring: boolean | null
           month: string | null
@@ -5286,6 +5290,7 @@ export type Database = {
           date?: string | null
           description: string
           due_date?: string | null
+          entity_type?: string
           id?: string
           is_recurring?: boolean | null
           month?: string | null
@@ -5310,6 +5315,7 @@ export type Database = {
           date?: string | null
           description?: string
           due_date?: string | null
+          entity_type?: string
           id?: string
           is_recurring?: boolean | null
           month?: string | null
