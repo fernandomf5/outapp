@@ -88,7 +88,7 @@ export const VideoUploadField = ({ value, onChange, className }: VideoUploadFiel
             <X className="mr-1 h-4 w-4" /> Remover
           </Button>
         )}
-        <span className="text-xs text-muted-foreground">MP4, WebM ou MOV até 200MB</span>
+        <span className="text-xs text-muted-foreground">MP4, WebM ou MOV até 50MB</span>
       </div>
 
       {isUploaded && (
