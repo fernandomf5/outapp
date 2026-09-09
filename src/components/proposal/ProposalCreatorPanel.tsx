@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ProposalWizard } from './ProposalWizard';
+import { QuickProposalForm, type QuickProposalValues } from './QuickProposalForm';
 import { CompanyDataStep } from './steps/CompanyDataStep';
 import { ClientDataStep } from './steps/ClientDataStep';
 import { IntroductionStep } from './steps/IntroductionStep';
