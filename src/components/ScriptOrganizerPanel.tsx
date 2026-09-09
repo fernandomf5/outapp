@@ -202,11 +202,98 @@ export function ScriptOrganizerPanel() {
     toast.success("Copiado para a área de transferência!");
   };
 
+  // Copia a mensagem completa (texto + mídia). Quando o navegador suporta,
+  // a imagem vai junto na área de transferência; senão, o link é anexado ao texto.
+  const handleCopyFullMessage = async (script: SavedScript) => {
+    try {
+      if (script.media_url && script.media_type === 'image' && typeof ClipboardItem !== 'undefined') {
+        const response = await fetch(script.media_url);
+        const blob = await response.blob();
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            [blob.type]: blob,
+            'text/plain': new Blob([script.content], { type: 'text/plain' }),
+          }),
+        ]);
+        toast.success('Mensagem e imagem copiadas!');
+      } else if (script.media_url) {
+        await navigator.clipboard.writeText(`${script.content}\n\n${script.media_url}`);
+        toast.success('Mensagem e link da mídia copiados!');
+      } else {
+        await navigator.clipboard.writeText(script.content);
+        toast.success('Copiado para a área de transferência!');
+      }
+    } catch (error) {
+      console.error('Erro ao copiar mensagem:', error);
+      await navigator.clipboard.writeText(
+        script.media_url ? `${script.content}\n\n${script.media_url}` : script.content
+      );
+      toast.success('Mensagem copiada!');
+    }
+  };
+
+  // Compartilha texto + arquivo direto no WhatsApp / apps do celular
+  const handleShareScript = async (script: SavedScript) => {
+    try {
+      if (script.media_url && typeof navigator.share === 'function') {
+        const response = await fetch(script.media_url);
+        const blob = await response.blob();
+        const ext = script.media_type === 'video' ? 'mp4' : 'jpg';
+        const file = new File([blob], `${script.title || 'mensagem'}.${ext}`, { type: blob.type });
+        if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+          await navigator.share({ text: script.content, files: [file] });
+          return;
+        }
+      }
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ text: script.media_url ? `${script.content}\n\n${script.media_url}` : script.content });
+        return;
+      }
+      await handleCopyFullMessage(script);
+    } catch (error) {
+      if ((error as DOMException)?.name === 'AbortError') return;
+      console.error('Erro ao compartilhar:', error);
+      toast.error('Não foi possível compartilhar. A mensagem foi copiada.');
+      await handleCopyFullMessage(script);
+    }
+  };
+
+  const handleUploadMedia = async (file: File) => {
+    if (!user) return;
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    if (!isImage && !isVideo) {
+      toast.error('Selecione uma imagem ou um vídeo');
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo 25MB');
+      return;
+    }
+    setUploadingMedia(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/scripts/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('chatbot-media').upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from('chatbot-media').getPublicUrl(path);
+      setScriptMediaUrl(data.publicUrl);
+      setScriptMediaType(isImage ? 'image' : 'video');
+      toast.success('Mídia anexada!');
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      toast.error('Erro ao enviar o arquivo');
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
   const handleIncrementUse = async (script: SavedScript) => {
-    handleCopyScript(script.content);
+    await handleCopyFullMessage(script);
     await supabase.from('saved_scripts').update({ use_count: script.use_count + 1 }).eq('id', script.id);
     fetchScripts();
   };
+
 
   // Form helpers
   const resetCategoryForm = () => {
