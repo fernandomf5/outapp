@@ -1983,6 +1983,11 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                         Período: {formatCampaignPeriod(selected.start_date, selected.end_date)}
                       </p>
                     )}
+                    {selected && (selected.daily_budget ?? 0) > 0 && (
+                      <p className="text-sm">
+                        Orçamento diário: R$ {(selected.daily_budget ?? 0).toFixed(2)}
+                      </p>
+                    )}
                   </div>
                 );
               })()}
