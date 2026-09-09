@@ -2841,6 +2841,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                         <TableHead>Campanha</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Tipo</TableHead>
+                        <TableHead>Período</TableHead>
                         <TableHead>Investido</TableHead>
                         <TableHead>Resultado Principal</TableHead>
                         <TableHead>Avaliação</TableHead>
