@@ -226,7 +226,7 @@ serve(async (req) => {
       console.log('Login attempt for:', email);
       
       // Login with Supabase Auth first to validate credentials
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
         email,
         password
       });
@@ -285,7 +285,7 @@ serve(async (req) => {
       // Check if user is banned
       if (profile.is_banned) {
         console.log('User is banned:', email);
-        await supabase.auth.signOut();
+        await authClient.auth.signOut();
         return new Response(
           JSON.stringify({ error: 'Você foi banido do sistema' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -308,7 +308,7 @@ serve(async (req) => {
       if (!isAdmin && !profile.email_verified) {
         console.log('Email not verified, logging out...');
         // Logout the user since they can't proceed
-        await supabase.auth.signOut();
+        await authClient.auth.signOut();
         
         return new Response(
           JSON.stringify({ 
@@ -379,7 +379,7 @@ serve(async (req) => {
           }
 
           // Don't set session yet, return that 2FA is required
-          await supabase.auth.signOut();
+          await authClient.auth.signOut();
           
           return new Response(
             JSON.stringify({ 
