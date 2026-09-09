@@ -73,6 +73,7 @@ export default function MindMapFullEditor() {
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
   const nodesRef = useRef<MindMapNode[]>([]);
   const [nodeTitleDrafts, setNodeTitleDrafts] = useState<Record<string, string>>({});
+  const nodeEditVersionRef = useRef(0);
   const [savedNodes, setSavedNodes] = useState<MindMapNode[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(1);
@@ -95,6 +96,7 @@ export default function MindMapFullEditor() {
   }, [id]);
 
   const fetchMap = async () => {
+    const editVersionAtRequest = nodeEditVersionRef.current;
     const { data, error } = await supabase
       .from('mind_maps')
       .select('*')
@@ -105,6 +107,9 @@ export default function MindMapFullEditor() {
       toast.error('Mapa não encontrado');
       return;
     }
+
+    // Uma resposta atrasada nunca pode desfazer um título que o usuário já digitou.
+    if (nodeEditVersionRef.current !== editVersionAtRequest) return;
 
     const mapNodes = (data.nodes as any) || [];
     setMap({ ...data, nodes: mapNodes });
@@ -979,6 +984,7 @@ export default function MindMapFullEditor() {
                   value={nodeTitleDrafts[selectedNode.id] ?? selectedNode.text}
                   onInput={(e) => {
                     const text = e.currentTarget.value;
+                    nodeEditVersionRef.current += 1;
                     setNodeTitleDrafts(prev => ({ ...prev, [selectedNode.id]: text }));
                     updateNode(selectedNode.id, { text });
                   }}
