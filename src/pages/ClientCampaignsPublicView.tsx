@@ -17,6 +17,7 @@ import {
   User
 } from "lucide-react";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { CampaignCreativesGallery, parseCreatives } from "@/components/ads/CampaignCreatives";
 
 interface AdCampaign {
   id: string;
@@ -31,6 +32,8 @@ interface AdCampaign {
   product_cost: number;
   revenue: number;
   start_date?: string;
+  daily_budget?: number;
+  creatives?: unknown;
   end_date?: string;
 }
 
@@ -456,12 +459,22 @@ const ClientCampaignsPublicView = () => {
                               </p>
                             </div>
                             <div>
+                              <p className="text-muted-foreground text-xs">Orçamento diário</p>
+                              <p className="font-medium">R$ {(campaign.daily_budget ?? 0).toFixed(2)}</p>
+                            </div>
+                            <div>
                               <p className="text-muted-foreground text-xs">ROI Lucro</p>
                               <p className={`font-medium ${roiLucro >= 0 ? 'text-green-500' : 'text-destructive'}`}>
                                 {roiLucro.toFixed(1)}%
                               </p>
                             </div>
                           </div>
+                          {parseCreatives(campaign.creatives).length > 0 && (
+                            <div className="pt-2 border-t space-y-2">
+                              <p className="text-xs font-medium">Criativos usados</p>
+                              <CampaignCreativesGallery creatives={parseCreatives(campaign.creatives)} />
+                            </div>
+                          )}
                           <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t">
                             <span>{campaign.impressions.toLocaleString()} impressões</span>
                             <span>{campaign.conversions} conversões</span>
