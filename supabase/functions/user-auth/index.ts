@@ -616,29 +616,48 @@ serve(async (req) => {
     }
 
     if (action === 'verify-2fa') {
-      const { code: twoFACode, deviceFingerprint } = requestData;
+      const { deviceFingerprint } = requestData;
+      const twoFACode = String(requestData.code ?? '').replace(/\D/g, '');
 
-      // Verify code
-      const { data: codeData, error: codeError } = await supabase
+      if (!userId || twoFACode.length !== 6) {
+        return new Response(
+          JSON.stringify({ error: 'Código inválido' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify code (most recent matching code wins)
+      const { data: codeRows, error: codeError } = await supabase
         .from('user_2fa_codes')
         .select('*')
         .eq('user_id', userId)
         .eq('code', twoFACode)
         .eq('verified', false)
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (codeError || !codeData) {
+      if (codeError) {
+        console.error('2FA lookup error:', codeError);
         return new Response(
-          JSON.stringify({ error: 'Código inválido' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Erro ao verificar o código. Tente novamente.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const codeData = codeRows?.[0];
+
+      if (!codeData) {
+        return new Response(
+          JSON.stringify({ error: 'Código inválido. Solicite um novo código.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       // Check if expired
       if (new Date() > new Date(codeData.expires_at)) {
         return new Response(
-          JSON.stringify({ error: 'Código expirado' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Código expirado. Solicite um novo código.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
