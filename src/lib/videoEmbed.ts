@@ -41,6 +41,7 @@ export const getVimeoId = (url: string): string | null => {
 export const getVideoKind = (url: string): VideoKind => {
   if (getYouTubeId(url)) return 'youtube';
   if (getVimeoId(url)) return 'vimeo';
+  if (getGoogleDriveId(url)) return 'drive';
   return 'file';
 };
 
