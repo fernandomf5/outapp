@@ -149,12 +149,11 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
   const [isEditClientDialogOpen, setIsEditClientDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<AdClient | null>(null);
   
-  // New states for linking existing entities
-  const [addClientMode, setAddClientMode] = useState<'new' | 'existing_customer' | 'existing_business'>('new');
-  const [existingCustomers, setExistingCustomers] = useState<ExistingCustomer[]>([]);
-  const [existingBusinesses, setExistingBusinesses] = useState<ExistingBusiness[]>([]);
-  const [selectedExistingCustomerId, setSelectedExistingCustomerId] = useState<string>('');
-  const [selectedExistingBusinessId, setSelectedExistingBusinessId] = useState<string>('');
+  // Cadastros (Gestão Livre) para vincular ao cliente de anúncios
+  const [contactOptions, setContactOptions] = useState<AdContactOption[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+
 
   const [campaignFormData, setCampaignFormData] = useState({
     name: '',
