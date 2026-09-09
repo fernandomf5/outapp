@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { 
   Plus, Search, Star, Copy, Trash2, Edit, FolderPlus, 
   MessageSquareText, MoreVertical, Building2, Briefcase,
-  Check, Hash, Filter
+  Check, Hash, Filter, Share2, ImagePlus, X, Film
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -37,6 +37,8 @@ interface SavedScript {
   use_count: number;
   sort_order: number;
   created_at: string;
+  media_url?: string | null;
+  media_type?: 'image' | 'video' | null;
 }
 
 interface Business {
@@ -74,6 +76,10 @@ export function ScriptOrganizerPanel() {
   const [scriptCategoryId, setScriptCategoryId] = useState<string>("");
   
   const [scriptTags, setScriptTags] = useState("");
+  const [scriptMediaUrl, setScriptMediaUrl] = useState<string | null>(null);
+  const [scriptMediaType, setScriptMediaType] = useState<'image' | 'video' | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
 
   useEffect(() => {
     if (user) {
@@ -161,6 +167,8 @@ export function ScriptOrganizerPanel() {
       business_id: bizId,
       tags,
       sort_order: scripts.length,
+      media_url: scriptMediaUrl,
+      media_type: scriptMediaType,
     };
 
     if (editingScript) {
@@ -194,11 +202,98 @@ export function ScriptOrganizerPanel() {
     toast.success("Copiado para a área de transferência!");
   };
 
+  // Copia a mensagem completa (texto + mídia). Quando o navegador suporta,
+  // a imagem vai junto na área de transferência; senão, o link é anexado ao texto.
+  const handleCopyFullMessage = async (script: SavedScript) => {
+    try {
+      if (script.media_url && script.media_type === 'image' && typeof ClipboardItem !== 'undefined') {
+        const response = await fetch(script.media_url);
+        const blob = await response.blob();
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            [blob.type]: blob,
+            'text/plain': new Blob([script.content], { type: 'text/plain' }),
+          }),
+        ]);
+        toast.success('Mensagem e imagem copiadas!');
+      } else if (script.media_url) {
+        await navigator.clipboard.writeText(`${script.content}\n\n${script.media_url}`);
+        toast.success('Mensagem e link da mídia copiados!');
+      } else {
+        await navigator.clipboard.writeText(script.content);
+        toast.success('Copiado para a área de transferência!');
+      }
+    } catch (error) {
+      console.error('Erro ao copiar mensagem:', error);
+      await navigator.clipboard.writeText(
+        script.media_url ? `${script.content}\n\n${script.media_url}` : script.content
+      );
+      toast.success('Mensagem copiada!');
+    }
+  };
+
+  // Compartilha texto + arquivo direto no WhatsApp / apps do celular
+  const handleShareScript = async (script: SavedScript) => {
+    try {
+      if (script.media_url && typeof navigator.share === 'function') {
+        const response = await fetch(script.media_url);
+        const blob = await response.blob();
+        const ext = script.media_type === 'video' ? 'mp4' : 'jpg';
+        const file = new File([blob], `${script.title || 'mensagem'}.${ext}`, { type: blob.type });
+        if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+          await navigator.share({ text: script.content, files: [file] });
+          return;
+        }
+      }
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ text: script.media_url ? `${script.content}\n\n${script.media_url}` : script.content });
+        return;
+      }
+      await handleCopyFullMessage(script);
+    } catch (error) {
+      if ((error as DOMException)?.name === 'AbortError') return;
+      console.error('Erro ao compartilhar:', error);
+      toast.error('Não foi possível compartilhar. A mensagem foi copiada.');
+      await handleCopyFullMessage(script);
+    }
+  };
+
+  const handleUploadMedia = async (file: File) => {
+    if (!user) return;
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    if (!isImage && !isVideo) {
+      toast.error('Selecione uma imagem ou um vídeo');
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo 25MB');
+      return;
+    }
+    setUploadingMedia(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/scripts/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('chatbot-media').upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from('chatbot-media').getPublicUrl(path);
+      setScriptMediaUrl(data.publicUrl);
+      setScriptMediaType(isImage ? 'image' : 'video');
+      toast.success('Mídia anexada!');
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      toast.error('Erro ao enviar o arquivo');
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
   const handleIncrementUse = async (script: SavedScript) => {
-    handleCopyScript(script.content);
+    await handleCopyFullMessage(script);
     await supabase.from('saved_scripts').update({ use_count: script.use_count + 1 }).eq('id', script.id);
     fetchScripts();
   };
+
 
   // Form helpers
   const resetCategoryForm = () => {
@@ -217,6 +312,8 @@ export function ScriptOrganizerPanel() {
     setScriptCategoryId("");
     
     setScriptTags("");
+    setScriptMediaUrl(null);
+    setScriptMediaType(null);
   };
 
   const openEditCategory = (cat: ScriptCategory) => {
@@ -232,7 +329,8 @@ export function ScriptOrganizerPanel() {
     setScriptTitle(s.title);
     setScriptContent(s.content);
     setScriptCategoryId(s.category_id || "");
-    
+    setScriptMediaUrl(s.media_url || null);
+    setScriptMediaType(s.media_type || null);
     setScriptTags(s.tags?.join(", ") || "");
     setShowScriptDialog(true);
   };
@@ -401,6 +499,24 @@ export function ScriptOrganizerPanel() {
                         </div>
                       </div>
 
+                      {/* Mídia anexada */}
+                      {script.media_url && (
+                        script.media_type === 'video' ? (
+                          <video
+                            src={script.media_url}
+                            controls
+                            className="w-full h-32 object-cover rounded-md border border-border bg-muted"
+                          />
+                        ) : (
+                          <img
+                            src={script.media_url}
+                            alt={`Mídia da mensagem ${script.title}`}
+                            loading="lazy"
+                            className="w-full h-32 object-cover rounded-md border border-border"
+                          />
+                        )
+                      )}
+
                       {/* Content preview */}
                       <p className="text-xs text-muted-foreground line-clamp-4 whitespace-pre-wrap leading-relaxed">
                         {script.content}
@@ -422,9 +538,22 @@ export function ScriptOrganizerPanel() {
                         <span className="text-[10px] text-muted-foreground">
                           Usado {script.use_count}x
                         </span>
-                        <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => handleIncrementUse(script)}>
-                          <Copy className="h-3 w-3" /> Copiar
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          {script.media_url && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-xs gap-1"
+                              onClick={() => handleShareScript(script)}
+                              aria-label="Enviar mensagem com mídia"
+                            >
+                              <Share2 className="h-3 w-3" /> Enviar
+                            </Button>
+                          )}
+                          <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => handleIncrementUse(script)}>
+                            <Copy className="h-3 w-3" /> Copiar
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -519,6 +648,51 @@ export function ScriptOrganizerPanel() {
                 className="resize-y font-mono text-sm"
               />
             </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Imagem ou vídeo (opcional)</label>
+              {scriptMediaUrl ? (
+                <div className="relative">
+                  {scriptMediaType === 'video' ? (
+                    <video src={scriptMediaUrl} controls className="w-full h-44 object-cover rounded-lg border border-border bg-muted" />
+                  ) : (
+                    <img src={scriptMediaUrl} alt="Mídia anexada à mensagem" className="w-full h-44 object-cover rounded-lg border border-border" />
+                  )}
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="destructive"
+                    className="absolute top-2 right-2 h-7 w-7"
+                    aria-label="Remover mídia"
+                    onClick={() => { setScriptMediaUrl(null); setScriptMediaType(null); }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-6 cursor-pointer hover:border-primary transition-colors">
+                  <div className="flex gap-2 text-muted-foreground">
+                    <ImagePlus className="h-6 w-6" />
+                    <Film className="h-6 w-6" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {uploadingMedia ? 'Enviando...' : 'Clique para anexar imagem ou vídeo (até 25MB)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    className="hidden"
+                    disabled={uploadingMedia}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadMedia(file);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+
 
             <div>
               <label className="text-sm font-medium mb-1.5 block">Tags (separadas por vírgula)</label>
