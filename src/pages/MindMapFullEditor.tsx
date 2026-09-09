@@ -254,9 +254,12 @@ export default function MindMapFullEditor() {
   };
 
   const updateNodeTitle = (nodeId: string, text: string) => {
-    console.info('[mind-map-title]', nodeId, text);
     nodeEditVersionRef.current += 1;
-    updateNode(nodeId, { text });
+    const nextNodes = nodesRef.current.map(node =>
+      node.id === nodeId ? { ...node, text } : node
+    );
+    nodesRef.current = nextNodes;
+    setNodes([...nextNodes]);
   };
 
   const toggleCollapse = (nodeId: string, e: React.MouseEvent) => {
