@@ -251,6 +251,11 @@ export default function MindMapFullEditor() {
     setNodes(nextNodes);
   };
 
+  const updateNodeTitle = (nodeId: string, text: string) => {
+    nodeEditVersionRef.current += 1;
+    updateNode(nodeId, { text });
+  };
+
   const toggleCollapse = (nodeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, collapsed: !n.collapsed } : n));
@@ -976,11 +981,8 @@ export default function MindMapFullEditor() {
                 <Label className="text-white/80 text-xs">Texto</Label>
                 <Input
                   value={selectedNode.text}
-                  onChange={(e) => {
-                    const text = e.target.value;
-                    nodeEditVersionRef.current += 1;
-                    updateNode(selectedNode.id, { text });
-                  }}
+                  onInput={(e) => updateNodeTitle(selectedNode.id, e.currentTarget.value)}
+                  onChange={(e) => updateNodeTitle(selectedNode.id, e.target.value)}
                   className="bg-white/10 border-white/20 text-white text-sm"
                 />
               </div>
