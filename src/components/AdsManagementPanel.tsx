@@ -37,7 +37,8 @@ import {
   ExternalLink,
   History,
   Wallet,
-  Megaphone
+  Megaphone,
+  Calendar
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
@@ -99,6 +100,21 @@ interface AdCampaign {
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--success))'];
+
+// Formata data ISO para dd/mm/aaaa; retorna '-' quando ausente
+const formatCampaignDate = (date?: string | null): string => {
+  if (!date) return '-';
+  const parsed = new Date(date);
+  if (isNaN(parsed.getTime())) return '-';
+  return parsed.toLocaleDateString('pt-BR');
+};
+
+// Monta o texto de período da campanha: "01/09/2026 - 30/09/2026"
+const formatCampaignPeriod = (start?: string | null, end?: string | null): string => {
+  const startLabel = formatCampaignDate(start);
+  const endLabel = end ? formatCampaignDate(end) : 'Em andamento';
+  return `${startLabel} - ${endLabel}`;
+};
 
 interface TeamContext {
   adminUserId: string;
@@ -1943,11 +1959,20 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Dashboard de Anúncios</h2>
-              {selectedCampaignId && (
-                <p className="text-muted-foreground">
-                  Visualizando campanha: {campaigns.find(c => c.id === selectedCampaignId)?.name}
-                </p>
-              )}
+              {selectedCampaignId && (() => {
+                const selected = campaigns.find(c => c.id === selectedCampaignId);
+                return (
+                  <div className="text-muted-foreground space-y-1">
+                    <p>Visualizando campanha: {selected?.name}</p>
+                    {selected && (
+                      <p className="text-sm flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        Período: {formatCampaignPeriod(selected.start_date, selected.end_date)}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-3">
               {selectedCampaignId && (
@@ -2826,6 +2851,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                         <TableHead>Campanha</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Tipo</TableHead>
+                        <TableHead>Período</TableHead>
                         <TableHead>Investido</TableHead>
                         <TableHead>Resultado Principal</TableHead>
                         <TableHead>Avaliação</TableHead>
@@ -2943,6 +2969,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                               <Badge variant="outline" className="text-xs">
                                 {getCampaignTypeLabel(campaign.campaign_type)}
                               </Badge>
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                              {formatCampaignPeriod(campaign.start_date, campaign.end_date)}
                             </TableCell>
                             <TableCell>R$ {campaign.spent.toFixed(2)}</TableCell>
                             <TableCell>
