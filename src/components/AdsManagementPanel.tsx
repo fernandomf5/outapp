@@ -703,6 +703,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
 
       toast.success("Campanha adicionada com sucesso!");
       setIsAddCampaignDialogOpen(false);
+      setCampaignCreatives([]);
       loadData();
       
       setCampaignFormData({
@@ -856,6 +857,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       toast.success("Campanha atualizada com sucesso!");
       setIsEditCampaignDialogOpen(false);
       setEditingCampaign(null);
+      setCampaignCreatives([]);
       loadData();
       
       setCampaignFormData({
@@ -2023,7 +2025,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               <Button 
                 className="gradient-primary shadow-glow" 
                 disabled={clients.length === 0}
-                onClick={() => setIsAddCampaignDialogOpen(true)}
+                onClick={() => { setCampaignCreatives([]); setIsAddCampaignDialogOpen(true); }}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Adicionar Campanha
@@ -2046,7 +2048,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground mb-4">Nenhuma campanha adicionada ainda</p>
-                <Button onClick={() => setIsAddCampaignDialogOpen(true)}>
+                <Button onClick={() => { setCampaignCreatives([]); setIsAddCampaignDialogOpen(true); }}>
                   Adicionar Primeira Campanha
                 </Button>
               </CardContent>
@@ -3289,6 +3291,18 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 />
               </div>
             </div>
+            <div className="grid gap-2">
+              <Label>Orçamento diário (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={campaignFormData.daily_budget}
+                onChange={(e) => setCampaignFormData({...campaignFormData, daily_budget: e.target.value})}
+                placeholder="50.00"
+              />
+              <p className="text-xs text-muted-foreground">Valor investido por dia nessa campanha.</p>
+            </div>
+            <CampaignCreativesEditor creatives={campaignCreatives} onChange={setCampaignCreatives} />
             
             {/* Campos dinâmicos baseados no tipo de campanha */}
             {(campaignFormData.campaign_type === 'conversion' || campaignFormData.campaign_type === 'catalog' || campaignFormData.campaign_type === 'promotion') && (
