@@ -1581,101 +1581,23 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             </DialogHeader>
             
             <div className="grid gap-4 py-4">
-              {/* Optional: link existing customer or business */}
-              {(existingCustomers.length > 0 || existingBusinesses.length > 0) && (
-                <div className="grid gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
-                  <Label className="text-sm font-medium">Vincular cadastro existente (opcional)</Label>
-                  <Select
-                    value={
-                      selectedExistingCustomerId
-                        ? `customer:${selectedExistingCustomerId}`
-                        : selectedExistingBusinessId
-                        ? `business:${selectedExistingBusinessId}`
-                        : ''
-                    }
-                    onValueChange={(value) => {
-                      if (!value) {
-                        setSelectedExistingCustomerId('');
-                        setSelectedExistingBusinessId('');
-                        return;
-                      }
-                      const [kind, id] = value.split(':');
-                      if (kind === 'customer') {
-                        setSelectedExistingCustomerId(id);
-                        setSelectedExistingBusinessId('');
-                        const c = existingCustomers.find((x) => x.id === id);
-                        if (c) {
-                          setClientFormData((prev) => ({
-                            ...prev,
-                            name: c.name,
-                            client_type: 'personal',
-                            description: c.company || c.email || prev.description,
-                          }));
-                        }
-                      } else if (kind === 'business') {
-                        setSelectedExistingBusinessId(id);
-                        setSelectedExistingCustomerId('');
-                        const b = existingBusinesses.find((x) => x.id === id);
-                        if (b) {
-                          setClientFormData((prev) => ({
-                            ...prev,
-                            name: b.name,
-                            client_type: 'company',
-                            description: b.company_name || prev.description,
-                          }));
-                        }
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente ou negócio cadastrado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {existingCustomers.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                            Clientes
-                          </div>
-                          {existingCustomers.map((customer) => (
-                            <SelectItem key={`c-${customer.id}`} value={`customer:${customer.id}`}>
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                <span>{customer.name}</span>
-                                {customer.company && (
-                                  <span className="text-muted-foreground text-xs">({customer.company})</span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                      {existingBusinesses.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-1">
-                            Negócios
-                          </div>
-                          {existingBusinesses.map((business) => (
-                            <SelectItem key={`b-${business.id}`} value={`business:${business.id}`}>
-                              <div className="flex items-center gap-2">
-                                <Building2 className="h-4 w-4" />
-                                <span>{business.name}</span>
-                                {business.company_name && (
-                                  <span className="text-muted-foreground text-xs">({business.company_name})</span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {(selectedExistingCustomerId || selectedExistingBusinessId) && (
-                    <p className="text-xs text-muted-foreground">
-                      Os dados foram preenchidos automaticamente. Você ainda pode ajustá-los abaixo.
-                    </p>
-                  )}
-                </div>
-              )}
+              {/* Selecionar cadastro da Gestão Livre */}
+              <div className="grid gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <Label className="text-sm font-medium">Selecionar cadastro da Gestão Livre (opcional)</Label>
+                <ContactCategoryPicker
+                  value={selectedContactId}
+                  onChange={handleSelectContact}
+                  contacts={contactOptions}
+                  categories={categoryOptions}
+                  placeholder="Novo cliente manual"
+                />
+                {selectedContactId && (
+                  <p className="text-xs text-muted-foreground">
+                    Os dados foram preenchidos automaticamente. Você ainda pode ajustá-los abaixo.
+                  </p>
+                )}
+              </div>
+
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
