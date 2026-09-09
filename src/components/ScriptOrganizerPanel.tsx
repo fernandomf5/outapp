@@ -965,6 +965,59 @@ export function ScriptOrganizerPanel() {
             </div>
 
 
+            {/* Programação da postagem */}
+            <div className="rounded-lg border border-border p-3 space-y-3">
+              <p className="text-sm font-medium flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-primary" />
+                Programar postagem (opcional)
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block" htmlFor="script-schedule">
+                    Data e hora da postagem
+                  </label>
+                  <Input
+                    id="script-schedule"
+                    type="datetime-local"
+                    value={scriptScheduledAt}
+                    onChange={(e) => setScriptScheduledAt(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Onde será publicado</label>
+                  <Select value={scriptPlatform || "none"} onValueChange={(v) => setScriptPlatform(v === "none" ? "" : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o canal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Não definir</SelectItem>
+                      {PLATFORMS.map(p => (
+                        <SelectItem key={p} value={p}>{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {scriptScheduledAt && (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Lembrete na agenda</label>
+                  <Select value={String(scriptReminder)} onValueChange={(v) => setScriptReminder(Number(v))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REMINDER_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    O lembrete aparece automaticamente na sua Agenda e como aviso na plataforma.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div>
               <label className="text-sm font-medium mb-1.5 block">Tags (separadas por vírgula)</label>
               <Input
@@ -977,8 +1030,9 @@ export function ScriptOrganizerPanel() {
           <DialogFooter>
             <Button variant="outline" onClick={resetScriptForm}>Cancelar</Button>
             <Button onClick={handleSaveScript} disabled={!scriptTitle.trim() || !scriptContent.trim()}>
-              {editingScript ? "Salvar" : "Criar Script"}
+              {editingScript ? "Salvar" : (scriptScheduledAt ? "Salvar e agendar" : "Criar")}
             </Button>
+
           </DialogFooter>
         </DialogContent>
       </Dialog>
