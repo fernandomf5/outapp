@@ -13,7 +13,8 @@ import { toast } from "sonner";
 import { 
   Plus, Search, Star, Copy, Trash2, Edit, FolderPlus, 
   MessageSquareText, MoreVertical, Building2, Briefcase,
-  Check, Hash, Filter, Share2, ImagePlus, X, Film
+  Check, Hash, Filter, Share2, ImagePlus, X, Film,
+  CalendarClock, CheckCircle2, BellRing
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -39,7 +40,41 @@ interface SavedScript {
   created_at: string;
   media_url?: string | null;
   media_type?: 'image' | 'video' | null;
+  scheduled_at?: string | null;
+  platform?: string | null;
+  post_status?: PostStatus | null;
+  agenda_event_id?: string | null;
 }
+
+type PostStatus = 'idea' | 'scheduled' | 'published';
+type ViewFilter = 'all' | 'scheduled' | 'published';
+
+const PLATFORMS = [
+  "Instagram", "Facebook", "TikTok", "YouTube", "LinkedIn", "WhatsApp Status", "Blog", "Outro",
+] as const;
+
+const REMINDER_OPTIONS = [
+  { value: 0, label: "Sem lembrete" },
+  { value: 15, label: "15 minutos antes" },
+  { value: 60, label: "1 hora antes" },
+  { value: 180, label: "3 horas antes" },
+  { value: 1440, label: "1 dia antes" },
+];
+
+/** Converte ISO em valor aceito pelo input datetime-local (horário local). */
+const toLocalInput = (iso?: string | null): string => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const formatSchedule = (iso?: string | null): string => {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
 
 interface Business {
   id: string;
