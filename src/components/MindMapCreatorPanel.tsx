@@ -399,6 +399,23 @@ export const MindMapCreatorPanel = () => {
     toast.info('Clique em outro nó para conectar');
   };
 
+  // Auto-salvamento do mapa já salvo (debounce)
+  useEffect(() => {
+    if (!user || !currentMapId || !mapName) return;
+    const timer = setTimeout(async () => {
+      const { error } = await supabase
+        .from('mind_maps')
+        .update({
+          nodes: JSON.parse(JSON.stringify(nodes)),
+          theme: currentTheme,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', currentMapId);
+      if (!error) setSavedNodes(JSON.parse(JSON.stringify(nodes)));
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [nodes, currentTheme, currentMapId, mapName, user]);
+
   const saveMap = async () => {
     if (!user) {
       toast.error('Faça login para salvar');
