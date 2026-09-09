@@ -499,6 +499,21 @@ const CampaignPublicView = () => {
           </Card>
         </div>
 
+        {/* Criativos */}
+        {parseCreatives(campaign.creatives).length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Criativos usados no anúncio
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CampaignCreativesGallery creatives={parseCreatives(campaign.creatives)} />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pt-4 border-t">
           <p>Dashboard gerado automaticamente • Dados atualizados em tempo real</p>
