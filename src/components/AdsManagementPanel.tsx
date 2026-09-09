@@ -1958,11 +1958,20 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Dashboard de Anúncios</h2>
-              {selectedCampaignId && (
-                <p className="text-muted-foreground">
-                  Visualizando campanha: {campaigns.find(c => c.id === selectedCampaignId)?.name}
-                </p>
-              )}
+              {selectedCampaignId && (() => {
+                const selected = campaigns.find(c => c.id === selectedCampaignId);
+                return (
+                  <div className="text-muted-foreground space-y-1">
+                    <p>Visualizando campanha: {selected?.name}</p>
+                    {selected && (
+                      <p className="text-sm flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        Período: {formatCampaignPeriod(selected.start_date, selected.end_date)}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-3">
               {selectedCampaignId && (
