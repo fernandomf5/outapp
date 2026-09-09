@@ -144,6 +144,10 @@ export const MindMapCreatorPanel = () => {
     fetchSavedMaps();
   }, [user]);
 
+  useEffect(() => {
+    console.log('[mindmap-debug] nodes state:', nodes.map(n => `${n.id.slice(0,4)}:${n.text}`).join(' | '));
+  }, [nodes]);
+
   const fetchSavedMaps = async () => {
     if (!user) return;
     const { data, error } = await supabase
