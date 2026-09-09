@@ -545,10 +545,10 @@ export function ScriptOrganizerPanel() {
             <div>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <MessageSquareText className="h-5 w-5 text-primary" />
-                Organizador de Scripts
+                Organizador de Script e Postagem
               </CardTitle>
               <CardDescription>
-                Organize mensagens e scripts por negócios cadastrados ou avulsos
+                Salve textos, imagens e vídeos e programe as postagens com lembrete na agenda
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -558,21 +558,54 @@ export function ScriptOrganizerPanel() {
               </Button>
               <Button size="sm" onClick={() => setShowScriptDialog(true)}>
                 <Plus className="h-4 w-4 mr-1" />
-                Novo Script
+                Novo Conteúdo
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Próximas postagens agendadas */}
+          {upcoming.length > 0 && (
+            <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+              <p className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                <BellRing className="h-3.5 w-3.5" /> Próximas postagens
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {upcoming.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => openEditScript(item)}
+                    className="text-left text-xs rounded-md bg-background border border-border px-2.5 py-2 hover:border-primary transition-colors"
+                  >
+                    <span className="font-medium block truncate">{item.title}</span>
+                    <span className="text-muted-foreground">
+                      {formatSchedule(item.scheduled_at)}{item.platform ? ` · ${item.platform}` : ''}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Filtro por situação */}
+          <Tabs value={viewFilter} onValueChange={(v) => setViewFilter(v as ViewFilter)}>
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="scheduled">Agendados</TabsTrigger>
+              <TabsTrigger value="published">Publicados</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           {/* Search bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar scripts por título, conteúdo ou tag..."
+              placeholder="Buscar por título, conteúdo ou tag..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
             />
+
           </div>
 
           {/* Category filter dropdown */}
