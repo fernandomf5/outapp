@@ -291,14 +291,17 @@ export const MindMapCreatorPanel = () => {
 
   const updateEditingNode = (updates: Partial<MindMapNode>) => {
     if (!editingNode) return;
-    setNodes(prev => prev.map(node =>
-      node.id === editingNode.id ? { ...node, ...updates } : node
+    const editingNodeId = editingNode.id;
+    setEditingNode(current => current?.id === editingNodeId ? { ...current, ...updates } : current);
+    setNodes(currentNodes => currentNodes.map(node =>
+      node.id === editingNodeId ? { ...node, ...updates } : node
     ));
   };
 
   const saveNodeEdit = () => {
     if (!editingNode) return;
-    updateEditingNode({
+    const editingNodeId = editingNode.id;
+    const committedNode: Partial<MindMapNode> = {
       text: editText.trim() || 'Nova Ideia',
       description: editDescription,
       icon: editIcon,
@@ -306,7 +309,10 @@ export const MindMapCreatorPanel = () => {
       size: editSize,
       customWidth: editCustomWidth,
       customHeight: editCustomHeight,
-    });
+    };
+    setNodes(currentNodes => currentNodes.map(node =>
+      node.id === editingNodeId ? { ...node, ...committedNode } : node
+    ));
     setIsEditDialogOpen(false);
     setEditingNode(null);
   };
@@ -1292,7 +1298,7 @@ export const MindMapCreatorPanel = () => {
                     <div className={`${sizeClasses.padding} text-center`}>
                       {node.icon && <span className={`${sizeClasses.iconSize} mb-1 block`}>{node.icon}</span>}
                       <p className={`text-white font-semibold ${sizeClasses.textSize}`}>
-                        {node.text}
+                        {editingNode?.id === node.id ? editText : node.text}
                       </p>
                       {node.description && (
                         <p 
