@@ -650,6 +650,51 @@ export function ScriptOrganizerPanel() {
             </div>
 
             <div>
+              <label className="text-sm font-medium mb-1.5 block">Imagem ou vídeo (opcional)</label>
+              {scriptMediaUrl ? (
+                <div className="relative">
+                  {scriptMediaType === 'video' ? (
+                    <video src={scriptMediaUrl} controls className="w-full h-44 object-cover rounded-lg border border-border bg-muted" />
+                  ) : (
+                    <img src={scriptMediaUrl} alt="Mídia anexada à mensagem" className="w-full h-44 object-cover rounded-lg border border-border" />
+                  )}
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="destructive"
+                    className="absolute top-2 right-2 h-7 w-7"
+                    aria-label="Remover mídia"
+                    onClick={() => { setScriptMediaUrl(null); setScriptMediaType(null); }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-6 cursor-pointer hover:border-primary transition-colors">
+                  <div className="flex gap-2 text-muted-foreground">
+                    <ImagePlus className="h-6 w-6" />
+                    <Film className="h-6 w-6" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {uploadingMedia ? 'Enviando...' : 'Clique para anexar imagem ou vídeo (até 25MB)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    className="hidden"
+                    disabled={uploadingMedia}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadMedia(file);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+
+
+            <div>
               <label className="text-sm font-medium mb-1.5 block">Tags (separadas por vírgula)</label>
               <Input
                 placeholder="ex: boas-vindas, vendas, suporte"
