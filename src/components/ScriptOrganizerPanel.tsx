@@ -202,33 +202,67 @@ export function ScriptOrganizerPanel() {
     toast.success("Copiado para a área de transferência!");
   };
 
-  // Copia a mensagem completa (texto + mídia). Quando o navegador suporta,
-  // a imagem vai junto na área de transferência; senão, o link é anexado ao texto.
+  // A área de transferência do navegador só aceita imagem em PNG.
+  // Converte qualquer formato (jpg/webp/etc) para PNG via canvas.
+  const fetchImageAsPng = async (url: string): Promise<Blob> => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Falha ao carregar a imagem');
+    const blob = await response.blob();
+    if (blob.type === 'image/png') return blob;
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas não suportado');
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close();
+    const png = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!png) throw new Error('Falha ao converter a imagem');
+    return png;
+  };
+
+  // Copia a mensagem completa: imagem + texto juntos na área de transferência.
+  // Ao colar (Ctrl+V) no WhatsApp Web, a imagem abre já com o texto como legenda.
+  // Vídeos não cabem na área de transferência — nesse caso vai texto + link,
+  // e o botão "Enviar" (compartilhar) continua disponível para enviar o arquivo.
   const handleCopyFullMessage = async (script: SavedScript) => {
     try {
-      if (script.media_url && script.media_type === 'image' && typeof ClipboardItem !== 'undefined') {
-        const response = await fetch(script.media_url);
-        const blob = await response.blob();
+      if (
+        script.media_url &&
+        script.media_type === 'image' &&
+        typeof ClipboardItem !== 'undefined' &&
+        navigator.clipboard?.write
+      ) {
+        const pngBlob = await fetchImageAsPng(script.media_url);
         await navigator.clipboard.write([
           new ClipboardItem({
-            [blob.type]: blob,
+            'image/png': pngBlob,
             'text/plain': new Blob([script.content], { type: 'text/plain' }),
           }),
         ]);
-        toast.success('Mensagem e imagem copiadas!');
+        toast.success('Imagem e mensagem copiadas! Cole no WhatsApp (Ctrl+V).');
       } else if (script.media_url) {
         await navigator.clipboard.writeText(`${script.content}\n\n${script.media_url}`);
-        toast.success('Mensagem e link da mídia copiados!');
+        toast.success(
+          script.media_type === 'video'
+            ? 'Texto e link do vídeo copiados! Use "Enviar" para mandar o arquivo.'
+            : 'Mensagem e link da mídia copiados!'
+        );
       } else {
         await navigator.clipboard.writeText(script.content);
         toast.success('Copiado para a área de transferência!');
       }
     } catch (error) {
       console.error('Erro ao copiar mensagem:', error);
-      await navigator.clipboard.writeText(
-        script.media_url ? `${script.content}\n\n${script.media_url}` : script.content
-      );
-      toast.success('Mensagem copiada!');
+      try {
+        await navigator.clipboard.writeText(
+          script.media_url ? `${script.content}\n\n${script.media_url}` : script.content
+        );
+        toast.success('Mensagem copiada com o link da mídia!');
+      } catch {
+        toast.error('Não foi possível copiar. Tente novamente.');
+      }
     }
   };
 

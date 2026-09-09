@@ -7765,6 +7765,8 @@ export type Database = {
           created_at: string | null
           id: string
           is_favorite: boolean | null
+          media_type: string | null
+          media_url: string | null
           sort_order: number | null
           tags: string[] | null
           title: string
@@ -7779,6 +7781,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_favorite?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
           sort_order?: number | null
           tags?: string[] | null
           title: string
@@ -7793,6 +7797,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_favorite?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
           sort_order?: number | null
           tags?: string[] | null
           title?: string
