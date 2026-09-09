@@ -60,5 +60,11 @@ export const getVideoEmbedUrl = (url: string, opts?: { autoplay?: boolean }): st
   if (vm) {
     return `https://player.vimeo.com/video/${vm}${opts?.autoplay ? '?autoplay=1' : ''}`;
   }
+  const drive = getGoogleDriveId(url);
+  if (drive) {
+    // O player nativo do Drive exige o modo /preview; exige o arquivo compartilhado como
+    // "qualquer pessoa com o link".
+    return `https://drive.google.com/file/d/${drive}/preview`;
+  }
   return null;
 };
