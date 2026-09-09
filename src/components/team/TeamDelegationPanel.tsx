@@ -111,7 +111,7 @@ const MODULES = [
   },
   { 
     key: 'sites', 
-    label: 'Criador de Sites', 
+    label: 'Criador de Site link', 
     icon: Image,
     description: 'Sites criados na plataforma',
     hasResourceSelection: true,
@@ -259,7 +259,7 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       }));
     }
     
-    // Load Sites (Criador de Sites)
+    // Load Sites (Criador de Site link)
     const { data: sitesList } = await supabase
       .from('sites')
       .select('id, name')
