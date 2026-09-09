@@ -1,4 +1,20 @@
-export type VideoKind = 'youtube' | 'vimeo' | 'file';
+export type VideoKind = 'youtube' | 'vimeo' | 'drive' | 'file';
+
+/** Extrai o ID de um arquivo do Google Drive a partir dos formatos de link mais comuns. */
+export const getGoogleDriveId = (url: string): string | null => {
+  const u = (url || '').trim();
+  if (!/drive\.google\.com|docs\.google\.com/i.test(u)) return null;
+  const patterns = [
+    /\/file\/d\/([A-Za-z0-9_-]{10,})/i,
+    /[?&]id=([A-Za-z0-9_-]{10,})/i,
+    /\/d\/([A-Za-z0-9_-]{10,})/i,
+  ];
+  for (const p of patterns) {
+    const m = u.match(p);
+    if (m?.[1]) return m[1];
+  }
+  return null;
+};
 
 export const getYouTubeId = (url: string): string | null => {
   const u = (url || '').trim();
@@ -25,6 +41,7 @@ export const getVimeoId = (url: string): string | null => {
 export const getVideoKind = (url: string): VideoKind => {
   if (getYouTubeId(url)) return 'youtube';
   if (getVimeoId(url)) return 'vimeo';
+  if (getGoogleDriveId(url)) return 'drive';
   return 'file';
 };
 
@@ -42,6 +59,12 @@ export const getVideoEmbedUrl = (url: string, opts?: { autoplay?: boolean }): st
   const vm = getVimeoId(url);
   if (vm) {
     return `https://player.vimeo.com/video/${vm}${opts?.autoplay ? '?autoplay=1' : ''}`;
+  }
+  const drive = getGoogleDriveId(url);
+  if (drive) {
+    // O player nativo do Drive exige o modo /preview; exige o arquivo compartilhado como
+    // "qualquer pessoa com o link".
+    return `https://drive.google.com/file/d/${drive}/preview`;
   }
   return null;
 };
