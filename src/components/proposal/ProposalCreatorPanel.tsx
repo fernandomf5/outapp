@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ProposalWizard } from './ProposalWizard';
+import { QuickProposalForm, type QuickProposalValues } from './QuickProposalForm';
 import { CompanyDataStep } from './steps/CompanyDataStep';
 import { ClientDataStep } from './steps/ClientDataStep';
 import { IntroductionStep } from './steps/IntroductionStep';
@@ -87,6 +88,7 @@ export function ProposalCreatorPanel() {
   const [generatedLink, setGeneratedLink] = useState('');
   const [deleteProposal, setDeleteProposal] = useState<Proposal | null>(null);
   const [editingProposal, setEditingProposal] = useState<string | null>(null);
+  const [mode, setMode] = useState<'quick' | 'advanced'>('quick');
 
   useEffect(() => {
     if (user) {
@@ -150,20 +152,22 @@ export function ProposalCreatorPanel() {
     return `${base}-${Date.now().toString(36)}`;
   };
 
-  const saveProposal = async (status: string = 'draft') => {
+  const saveProposal = async (status: string = 'draft', override?: typeof initialProposalData) => {
     if (!user) return;
+
+    const data = override ?? proposalData;
 
     try {
       setSaving(true);
-      const slug = generateSlug(proposalData.title);
-      
+      const slug = generateSlug(data.title);
+
       const payload = {
         user_id: user.id,
-        ...proposalData,
+        ...data,
         status,
         slug,
         private_token: crypto.randomUUID(),
-        valid_until: proposalData.valid_until || null,
+        valid_until: data.valid_until || null,
       };
 
       if (editingProposal) {
@@ -174,15 +178,15 @@ export function ProposalCreatorPanel() {
         if (error) throw error;
         toast.success('Proposta atualizada!');
       } else {
-        const { data, error } = await supabase
+        const { data: inserted, error } = await supabase
           .from('commercial_proposals')
           .insert([payload])
           .select()
           .single();
         if (error) throw error;
-        
+
         if (status === 'sent') {
-          setGeneratedLink(`${window.location.origin}/proposta/${data.slug}`);
+          setGeneratedLink(`${window.location.origin}/proposta/${inserted.slug}`);
           setShowLinkDialog(true);
         }
         toast.success(status === 'sent' ? 'Proposta enviada!' : 'Proposta salva como rascunho!');
@@ -205,6 +209,39 @@ export function ProposalCreatorPanel() {
 
   const handleFinish = () => {
     saveProposal('sent');
+  };
+
+  /** Converte o formulário rápido no formato completo já usado pela proposta pública. */
+  const handleQuickSubmit = (values: QuickProposalValues, status: 'draft' | 'sent') => {
+    const pricingItems = values.items.map((item) => ({
+      id: item.id,
+      description: item.description || values.title,
+      quantity: 1,
+      unit_price: item.value,
+    }));
+    const total = pricingItems.reduce((sum, item) => sum + item.unit_price, 0);
+
+    saveProposal(status, {
+      ...initialProposalData,
+      company_name: values.company_name,
+      company_phone: values.company_phone,
+      company_email: values.company_email,
+      client_name: values.client_name,
+      client_company: values.client_company,
+      title: values.title,
+      introduction: values.introduction,
+      services: values.items
+        .filter((item) => item.description.trim() !== '')
+        .map((item) => ({ id: item.id, name: item.description, description: '' })),
+      pricing: { items: pricingItems, discount: 0, total },
+      valid_until: values.valid_until,
+    });
+  };
+
+  /** Leva os dados já digitados no modo rápido para o assistente completo. */
+  const switchToAdvanced = () => {
+    setMode('advanced');
+    setCurrentStep(0);
   };
 
   const copyLink = (slug: string) => {
@@ -265,6 +302,7 @@ export function ProposalCreatorPanel() {
         auto_carousel: (data as any).auto_carousel ?? false,
       });
       setEditingProposal(id);
+      setMode('advanced');
       setCurrentStep(0);
       setActiveTab('create');
     } catch (error) {
@@ -307,6 +345,7 @@ export function ProposalCreatorPanel() {
         auto_carousel: (data as any).auto_carousel ?? false,
       });
       setEditingProposal(null); // Not editing, creating new
+      setMode('advanced');
       setCurrentStep(0);
       setActiveTab('create');
       toast.success('Proposta duplicada! Faça as alterações e salve.');
@@ -391,27 +430,50 @@ export function ProposalCreatorPanel() {
         <TabsContent value="create" className="space-y-6">
           <Card>
             <CardContent className="pt-6">
-              {renderStepContent()}
-              
-              <div className="mt-6 pt-6 border-t">
-                <ProposalWizard
-                  currentStep={currentStep}
-                  totalSteps={STEPS.length}
-                  onNext={handleNext}
-                  onPrev={handlePrev}
-                  onFinish={handleFinish}
-                  canProceed={canProceed()}
-                  isLastStep={currentStep === STEPS.length - 1}
-                  steps={STEPS}
-                />
-              </div>
-              
-              {currentStep === STEPS.length - 1 && (
-                <div className="flex justify-center gap-3 mt-4">
-                  <Button variant="outline" onClick={() => saveProposal('draft')} disabled={saving}>
-                    Salvar como Rascunho
-                  </Button>
+              {mode === 'quick' && !editingProposal ? (
+                <div className="space-y-5">
+                  <div className="rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">
+                    Modo rápido: preencha o essencial em uma única tela e gere o link da proposta.
+                  </div>
+                  <QuickProposalForm
+                    saving={saving}
+                    onSubmit={handleQuickSubmit}
+                    onSwitchToAdvanced={switchToAdvanced}
+                  />
                 </div>
+              ) : (
+                <>
+                  {!editingProposal && (
+                    <div className="mb-4 flex justify-end">
+                      <Button variant="ghost" size="sm" onClick={() => setMode('quick')}>
+                        Voltar ao modo rápido
+                      </Button>
+                    </div>
+                  )}
+
+                  {renderStepContent()}
+
+                  <div className="mt-6 pt-6 border-t">
+                    <ProposalWizard
+                      currentStep={currentStep}
+                      totalSteps={STEPS.length}
+                      onNext={handleNext}
+                      onPrev={handlePrev}
+                      onFinish={handleFinish}
+                      canProceed={canProceed()}
+                      isLastStep={currentStep === STEPS.length - 1}
+                      steps={STEPS}
+                    />
+                  </div>
+
+                  {currentStep === STEPS.length - 1 && (
+                    <div className="flex justify-center gap-3 mt-4">
+                      <Button variant="outline" onClick={() => saveProposal('draft')} disabled={saving}>
+                        Salvar como Rascunho
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
