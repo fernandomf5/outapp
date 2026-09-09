@@ -117,6 +117,12 @@ export function ScriptOrganizerPanel() {
   const [scriptMediaUrl, setScriptMediaUrl] = useState<string | null>(null);
   const [scriptMediaType, setScriptMediaType] = useState<'image' | 'video' | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [scriptScheduledAt, setScriptScheduledAt] = useState("");
+  const [scriptPlatform, setScriptPlatform] = useState("");
+  const [scriptReminder, setScriptReminder] = useState(60);
+  const [viewFilter, setViewFilter] = useState<ViewFilter>('all');
+
+
 
 
   useEffect(() => {
