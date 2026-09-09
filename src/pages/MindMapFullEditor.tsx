@@ -88,6 +88,7 @@ export default function MindMapFullEditor() {
 
   useEffect(() => {
     nodesRef.current = nodes;
+    console.info('[mind-map-nodes]', nodes.map(node => `${node.id}:${node.text}`).join('|'));
   }, [nodes]);
 
   useEffect(() => {
