@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PlatformBadge, PlatformLogo } from "@/components/ads/PlatformLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ContactCategoryPicker, type CategoryOption } from "@/components/registration/ContactCategoryPicker";
@@ -2955,7 +2956,10 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                             onClick={() => setSelectedCampaignId(isSelected ? null : campaign.id)}
                           >
                             <TableCell className="font-medium">
-                              {isSelected && '✓ '}{getPlatformIcon(campaign.platform)} {campaign.name}
+                              {isSelected && '✓ '}{campaign.name}
+                            </TableCell>
+                            <TableCell>
+                              <PlatformBadge platform={campaign.platform} />
                             </TableCell>
                             <TableCell>{client?.name || '-'}</TableCell>
                             <TableCell>
