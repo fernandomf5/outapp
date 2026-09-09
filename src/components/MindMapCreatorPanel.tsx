@@ -144,10 +144,6 @@ export const MindMapCreatorPanel = () => {
     fetchSavedMaps();
   }, [user]);
 
-  useEffect(() => {
-    console.log('[mindmap-debug] nodes state:', nodes.map(n => `${n.id.slice(0,4)}:${n.text}`).join(' | '));
-  }, [nodes]);
-
   const fetchSavedMaps = async () => {
     if (!user) return;
     const { data, error } = await supabase
@@ -295,7 +291,6 @@ export const MindMapCreatorPanel = () => {
   };
 
   const updateEditingNode = (updates: Partial<MindMapNode>) => {
-    console.log('[mindmap-debug] updateEditingNode', editingNode?.id, updates);
     if (!editingNode) return;
     const editingNodeId = editingNode.id;
     setEditingNode(current => current?.id === editingNodeId ? { ...current, ...updates } : current);

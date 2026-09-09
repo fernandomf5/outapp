@@ -46,7 +46,6 @@ import ChatbotResetPassword from "./pages/ChatbotResetPassword";
 import AgentResetPassword from "./pages/AgentResetPassword";
 import MindMapPresentation from "./pages/MindMapPresentation";
 import MindMapFullEditor from "./pages/MindMapFullEditor";
-import { MindMapCreatorPanel } from "./components/MindMapCreatorPanel";
 import ProposalPublicView from "./pages/ProposalPublicView";
 import ContractPublicView from "./pages/ContractPublicView";
 import AprovaJobClient from "./pages/AprovaJobClient";
@@ -120,7 +119,6 @@ const AppContent = () => {
           <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
           <Route path="/mindmap/:id" element={<MindMapPresentation />} />
-          <Route path="/dev-mindmap-panel" element={<MindMapCreatorPanel />} />
           <Route path="/mindmap-editor/:id" element={
             <ProtectedRoute>
               <MindMapFullEditor />
