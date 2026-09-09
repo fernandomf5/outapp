@@ -254,6 +254,7 @@ export default function MindMapFullEditor() {
   };
 
   const updateNodeTitle = (nodeId: string, text: string) => {
+    console.info('[mind-map-title]', nodeId, text);
     nodeEditVersionRef.current += 1;
     updateNode(nodeId, { text });
   };
