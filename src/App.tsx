@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -119,6 +120,7 @@ const AppContent = () => {
           <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
           <Route path="/mindmap/:id" element={<MindMapPresentation />} />
+
           <Route path="/mindmap-editor/:id" element={
             <ProtectedRoute>
               <MindMapFullEditor />

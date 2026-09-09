@@ -48,6 +48,42 @@ const subtitleField: FieldDef = { key: "subtitle", label: "Subtítulo", type: "t
 
 export const BLOCK_DEFS: BlockDef[] = [
   {
+    type: "section",
+    label: "Seção livre",
+    icon: "Columns3",
+    category: "Estrutura",
+    defaults: {
+      columns: [],
+      gap: 24,
+      paddingY: 64,
+      paddingX: 20,
+      maxWidth: 1152,
+      verticalAlign: "start",
+      backgroundImage: "",
+      overlay: 0,
+      stackOnMobile: true,
+    },
+    fields: [
+      { key: "paddingY", label: "Espaço em cima/embaixo (px)", type: "number" },
+      { key: "paddingX", label: "Espaço nas laterais (px)", type: "number" },
+      { key: "gap", label: "Distância entre colunas (px)", type: "number" },
+      { key: "maxWidth", label: "Largura máxima do conteúdo (px)", type: "number" },
+      {
+        key: "verticalAlign",
+        label: "Alinhamento vertical",
+        type: "select",
+        options: [
+          { value: "start", label: "Topo" },
+          { value: "center", label: "Centro" },
+          { value: "end", label: "Base" },
+        ],
+      },
+      { key: "backgroundImage", label: "Imagem de fundo", type: "image" },
+      { key: "overlay", label: "Escurecer fundo (%)", type: "number" },
+    ],
+  },
+
+  {
     type: "header",
     label: "Cabeçalho",
     icon: "PanelTop",
@@ -521,12 +557,18 @@ export function getBlockDef(type: string): BlockDef | undefined {
 
 export function createBlock(type: string, overrides: Record<string, any> = {}): SiteBlock {
   const def = getBlockDef(type);
+  const props = JSON.parse(JSON.stringify({ ...(def?.defaults ?? {}), ...overrides })) as Record<string, any>;
+  // A seção livre nasce com uma coluna vazia pronta para receber elementos.
+  if (type === "section" && (!Array.isArray(props.columns) || props.columns.length === 0)) {
+    props.columns = [{ id: `col-${Math.random().toString(36).slice(2, 9)}`, width: 100, elements: [] }];
+  }
   return {
     id: `${type}-${Math.random().toString(36).slice(2, 9)}`,
     type,
-    props: JSON.parse(JSON.stringify({ ...(def?.defaults ?? {}), ...overrides })),
+    props,
   };
 }
+
 
 export const DEFAULT_THEME: SiteTheme = {
   primary: "#22C55E",
