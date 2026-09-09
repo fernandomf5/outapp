@@ -197,9 +197,14 @@ export function ScriptOrganizerPanel() {
     fetchScripts();
   };
 
-  const handleCopyScript = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast.success("Copiado para a área de transferência!");
+  // Copia apenas o texto / script para a área de transferência.
+  const handleCopyText = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast.success("Texto copiado!");
+    } catch {
+      toast.error("Não foi possível copiar o texto.");
+    }
   };
 
   // A área de transferência do navegador só aceita imagem em PNG.
