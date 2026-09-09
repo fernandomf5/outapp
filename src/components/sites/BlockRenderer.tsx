@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SiteBlock, SiteTheme, DEFAULT_THEME } from "./siteTypes";
+import { SiteBlock, SiteTheme, DEFAULT_THEME, mergeBlockStyle } from "./siteTypes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
@@ -21,9 +21,12 @@ function embedUrl(url: string) {
 }
 
 export function BlockRenderer({ block, theme: t, siteId, preview }: Props) {
-  const theme = { ...DEFAULT_THEME, ...t };
   const p = block.props || {};
+  // Estilo próprio da seção: sobrepõe o tema global apenas neste bloco.
+  const overrides = mergeBlockStyle(p.style);
+  const theme: SiteTheme = { ...DEFAULT_THEME, ...t, ...overrides };
   const radius = `${theme.radius}px`;
+
   const section = "px-5 py-14 sm:px-8 sm:py-20";
   const container = "mx-auto w-full max-w-6xl";
 

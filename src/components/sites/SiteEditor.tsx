@@ -25,7 +25,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BLOCK_DEFS, SiteBlock, SiteTheme, createBlock, getBlockDef, FONT_OPTIONS } from "./siteTypes";
+import {
+  BLOCK_DEFS,
+  BLOCK_STYLE_COLOR_FIELDS,
+  BlockStyle,
+  SiteBlock,
+  SiteTheme,
+  createBlock,
+  getBlockDef,
+  FONT_OPTIONS,
+} from "./siteTypes";
 import { BlockRenderer } from "./BlockRenderer";
 import { FieldEditor } from "./BlockInspector";
 import { cn } from "@/lib/utils";
@@ -92,6 +101,8 @@ export function SiteEditor({ blocks, theme, onBlocksChange, onThemeChange }: Pro
 
   const selected = blocks.find((b) => b.id === selectedId) || null;
   const selectedDef = selected ? getBlockDef(selected.type) : null;
+  const blockStyle: BlockStyle = (selected?.props?.style ?? {}) as BlockStyle;
+  const blockStyleIsCustom = Object.values(blockStyle).some((v) => v !== undefined && v !== "");
 
   const grouped = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -187,6 +198,76 @@ export function SiteEditor({ blocks, theme, onBlocksChange, onThemeChange }: Pro
           </TabsContent>
 
           <TabsContent value="estilo" className="space-y-4 pt-4">
+            {selected && (
+              <div className="space-y-3 rounded-lg border p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-sm font-semibold">
+                    Estilo só desta seção{selectedDef ? ` (${selectedDef.label})` : ""}
+                  </div>
+                  {blockStyleIsCustom && (
+                    <Button size="sm" variant="ghost" onClick={() => updateProp("style", {})}>
+                      Limpar
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  O que você mudar aqui vale apenas neste bloco. Deixe em branco para seguir o estilo geral.
+                </p>
+                {BLOCK_STYLE_COLOR_FIELDS.map(({ key, label }) => {
+                  const current = (blockStyle as any)[key] as string | undefined;
+                  return (
+                    <div key={key} className="space-y-1.5">
+                      <Label className="text-sm">{label}</Label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          aria-label={label}
+                          className="h-9 w-12 rounded border bg-transparent"
+                          value={current || (theme as any)[key] || "#000000"}
+                          onChange={(e) => updateProp("style", { ...blockStyle, [key]: e.target.value })}
+                        />
+                        <Input
+                          value={current ?? ""}
+                          placeholder="Usando o estilo geral"
+                          onChange={(e) => updateProp("style", { ...blockStyle, [key]: e.target.value })}
+                        />
+                        {current && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-9 w-9 shrink-0"
+                            aria-label={`Remover ${label}`}
+                            onClick={() => {
+                              const next = { ...blockStyle };
+                              delete (next as any)[key];
+                              updateProp("style", next);
+                            }}
+                          >
+                            <Icons.X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="space-y-2">
+                  <Label className="text-sm">
+                    Arredondamento desta seção: {blockStyle.radius ?? theme.radius}px
+                    {blockStyle.radius === undefined && " (geral)"}
+                  </Label>
+                  <Slider
+                    value={[blockStyle.radius ?? theme.radius]}
+                    min={0}
+                    max={40}
+                    step={2}
+                    onValueChange={([v]) => updateProp("style", { ...blockStyle, radius: v })}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="text-sm font-semibold pt-2">Estilo geral do site</div>
+
             {(
               [
                 ["primary", "Cor principal"],
