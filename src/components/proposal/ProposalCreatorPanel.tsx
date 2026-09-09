@@ -176,15 +176,15 @@ export function ProposalCreatorPanel() {
         if (error) throw error;
         toast.success('Proposta atualizada!');
       } else {
-        const { data, error } = await supabase
+        const { data: inserted, error } = await supabase
           .from('commercial_proposals')
           .insert([payload])
           .select()
           .single();
         if (error) throw error;
-        
+
         if (status === 'sent') {
-          setGeneratedLink(`${window.location.origin}/proposta/${data.slug}`);
+          setGeneratedLink(`${window.location.origin}/proposta/${inserted.slug}`);
           setShowLinkDialog(true);
         }
         toast.success(status === 'sent' ? 'Proposta enviada!' : 'Proposta salva como rascunho!');
