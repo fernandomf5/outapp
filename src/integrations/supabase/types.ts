@@ -7759,6 +7759,7 @@ export type Database = {
       }
       saved_scripts: {
         Row: {
+          agenda_event_id: string | null
           business_id: string | null
           category_id: string | null
           content: string
@@ -7767,6 +7768,9 @@ export type Database = {
           is_favorite: boolean | null
           media_type: string | null
           media_url: string | null
+          platform: string | null
+          post_status: string
+          scheduled_at: string | null
           sort_order: number | null
           tags: string[] | null
           title: string
@@ -7775,6 +7779,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agenda_event_id?: string | null
           business_id?: string | null
           category_id?: string | null
           content?: string
@@ -7783,6 +7788,9 @@ export type Database = {
           is_favorite?: boolean | null
           media_type?: string | null
           media_url?: string | null
+          platform?: string | null
+          post_status?: string
+          scheduled_at?: string | null
           sort_order?: number | null
           tags?: string[] | null
           title: string
@@ -7791,6 +7799,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agenda_event_id?: string | null
           business_id?: string | null
           category_id?: string | null
           content?: string
@@ -7799,6 +7808,9 @@ export type Database = {
           is_favorite?: boolean | null
           media_type?: string | null
           media_url?: string | null
+          platform?: string | null
+          post_status?: string
+          scheduled_at?: string | null
           sort_order?: number | null
           tags?: string[] | null
           title?: string
