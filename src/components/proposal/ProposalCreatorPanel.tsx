@@ -165,7 +165,7 @@ export function ProposalCreatorPanel() {
         status,
         slug,
         private_token: crypto.randomUUID(),
-        valid_until: proposalData.valid_until || null,
+        valid_until: data.valid_until || null,
       };
 
       if (editingProposal) {
