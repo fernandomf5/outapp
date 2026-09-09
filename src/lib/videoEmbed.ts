@@ -1,4 +1,20 @@
-export type VideoKind = 'youtube' | 'vimeo' | 'file';
+export type VideoKind = 'youtube' | 'vimeo' | 'drive' | 'file';
+
+/** Extrai o ID de um arquivo do Google Drive a partir dos formatos de link mais comuns. */
+export const getGoogleDriveId = (url: string): string | null => {
+  const u = (url || '').trim();
+  if (!/drive\.google\.com|docs\.google\.com/i.test(u)) return null;
+  const patterns = [
+    /\/file\/d\/([A-Za-z0-9_-]{10,})/i,
+    /[?&]id=([A-Za-z0-9_-]{10,})/i,
+    /\/d\/([A-Za-z0-9_-]{10,})/i,
+  ];
+  for (const p of patterns) {
+    const m = u.match(p);
+    if (m?.[1]) return m[1];
+  }
+  return null;
+};
 
 export const getYouTubeId = (url: string): string | null => {
   const u = (url || '').trim();
