@@ -2038,6 +2038,23 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             </div>
           </div>
 
+          {selectedCampaignId && (() => {
+            const selected = campaigns.find(c => c.id === selectedCampaignId);
+            const creatives = parseCreatives(selected?.creatives);
+            if (creatives.length === 0) return null;
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Criativos usados no anúncio</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CampaignCreativesGallery creatives={creatives} />
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+
           {clients.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
