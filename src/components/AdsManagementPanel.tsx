@@ -2960,6 +2960,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                                 {getCampaignTypeLabel(campaign.campaign_type)}
                               </Badge>
                             </TableCell>
+                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                              {formatCampaignPeriod(campaign.start_date, campaign.end_date)}
+                            </TableCell>
                             <TableCell>R$ {campaign.spent.toFixed(2)}</TableCell>
                             <TableCell>
                               <div className="flex flex-col gap-0.5">
