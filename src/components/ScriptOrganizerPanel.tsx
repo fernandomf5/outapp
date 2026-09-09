@@ -167,6 +167,8 @@ export function ScriptOrganizerPanel() {
       business_id: bizId,
       tags,
       sort_order: scripts.length,
+      media_url: scriptMediaUrl,
+      media_type: scriptMediaType,
     };
 
     if (editingScript) {
