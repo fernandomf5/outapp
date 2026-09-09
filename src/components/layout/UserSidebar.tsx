@@ -210,7 +210,7 @@ export function UserSidebar() {
     { title: "Criador de Dados de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
     
     { title: "Criador de Chat Online", icon: MessageSquare, path: "/dashboard", tab: "chat-online", moduleKey: "ai_agents" },
-    { title: "Criador de Site link", icon: Globe, path: "/dashboard", tab: "sites", hideForTeamMember: true },
+    
 
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: "Criador de Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },

@@ -109,15 +109,6 @@ const MODULES = [
     resourceType: 'briefings',
     resourceLabel: 'briefings'
   },
-  { 
-    key: 'sites', 
-    label: 'Criador de Site link', 
-    icon: Image,
-    description: 'Sites criados na plataforma',
-    hasResourceSelection: true,
-    resourceType: 'sites',
-    resourceLabel: 'sites'
-  },
 
   { 
     key: 'websites', 
