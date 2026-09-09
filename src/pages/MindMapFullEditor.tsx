@@ -71,13 +71,14 @@ export default function MindMapFullEditor() {
   
   const [map, setMap] = useState<MindMap | null>(null);
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
+  const nodesRef = useRef<MindMapNode[]>([]);
   const [savedNodes, setSavedNodes] = useState<MindMapNode[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
-  const [selectedNode, setSelectedNode] = useState<MindMapNode | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState('default');
@@ -101,6 +102,7 @@ export default function MindMapFullEditor() {
 
     const mapNodes = (data.nodes as any) || [];
     setMap({ ...data, nodes: mapNodes });
+    nodesRef.current = mapNodes;
     setNodes(mapNodes);
     setSavedNodes(JSON.parse(JSON.stringify(mapNodes)));
     setCurrentTheme(data.theme || 'default');
@@ -118,23 +120,32 @@ export default function MindMapFullEditor() {
 
   const saveMap = async () => {
     if (!map || !user) return;
-    
-    const { error } = await supabase
-      .from('mind_maps')
-      .update({ nodes: nodes as any, theme: currentTheme, updated_at: new Date().toISOString() })
-      .eq('id', map.id);
 
-    if (error) {
+    const nodesToSave = nodesRef.current;
+    const { data, error } = await supabase
+      .from('mind_maps')
+      .update({ nodes: nodesToSave as any, theme: currentTheme, updated_at: new Date().toISOString() })
+      .eq('id', map.id)
+      .eq('user_id', user.id)
+      .select('nodes')
+      .single();
+
+    if (error || !data) {
       toast.error('Erro ao salvar');
     } else {
-      setSavedNodes(JSON.parse(JSON.stringify(nodes)));
+      const persistedNodes = (data.nodes as unknown as MindMapNode[]) || nodesToSave;
+      nodesRef.current = persistedNodes;
+      setNodes(persistedNodes);
+      setSavedNodes(JSON.parse(JSON.stringify(persistedNodes)));
       toast.success('Salvo com sucesso!');
     }
   };
 
   const restoreToSaved = () => {
     if (savedNodes) {
-      setNodes(JSON.parse(JSON.stringify(savedNodes)));
+      const restoredNodes = JSON.parse(JSON.stringify(savedNodes)) as MindMapNode[];
+      nodesRef.current = restoredNodes;
+      setNodes(restoredNodes);
       toast.success('Organização restaurada!');
     } else {
       toast.error('Nenhuma versão salva disponível');
@@ -164,6 +175,7 @@ export default function MindMapFullEditor() {
   };
 
   const addNode = () => {
+    const selectedNode = nodes.find(node => node.id === selectedNodeId);
     const parentNode = selectedNode || nodes.find(n => n.isRoot);
     const newNode: MindMapNode = {
       id: crypto.randomUUID(),
@@ -199,15 +211,20 @@ export default function MindMapFullEditor() {
       toast.error('Não é possível deletar o nó central');
       return;
     }
-    setNodes(prev => prev.filter(n => n.id !== nodeId && n.parentId !== nodeId));
-    if (selectedNode?.id === nodeId) setSelectedNode(null);
+    setNodes(prev => {
+      const nextNodes = prev.filter(n => n.id !== nodeId && n.parentId !== nodeId);
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
+    if (selectedNodeId === nodeId) setSelectedNodeId(null);
   };
 
   const updateNode = (nodeId: string, updates: Partial<MindMapNode>) => {
-    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, ...updates } : n));
-    if (selectedNode?.id === nodeId) {
-      setSelectedNode(prev => prev ? { ...prev, ...updates } : null);
-    }
+    setNodes(prev => {
+      const nextNodes = prev.map(node => node.id === nodeId ? { ...node, ...updates } : node);
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
   };
 
   const toggleCollapse = (nodeId: string, e: React.MouseEvent) => {
