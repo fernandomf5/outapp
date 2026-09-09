@@ -222,10 +222,14 @@ export function ScriptOrganizerPanel() {
     return png;
   };
 
-  // Copia a mensagem completa: imagem + texto juntos na área de transferência.
-  // Ao colar (Ctrl+V) no WhatsApp Web, a imagem abre já com o texto como legenda.
-  // Vídeos não cabem na área de transferência — nesse caso vai texto + link,
-  // e o botão "Enviar" (compartilhar) continua disponível para enviar o arquivo.
+  // Copia a mensagem completa. Limitação real dos navegadores: a área de
+  // transferência guarda imagem E texto, mas apps como o WhatsApp Web, ao
+  // colar, escolhem apenas UM formato (a imagem). Por isso a estratégia é:
+  // 1) Com mídia: copia a IMAGEM primeiro e, em seguida, copia o TEXTO por
+  //    cima? Não — isso apagaria a imagem. Em vez disso, copiamos imagem+texto
+  //    juntos (funciona no Telegram e em apps que leem os dois formatos) e
+  //    orientamos o usuário a usar o botão "Enviar", que entrega arquivo +
+  //    legenda juntos no WhatsApp e demais apps.
   const handleCopyFullMessage = async (script: SavedScript) => {
     try {
       if (
@@ -241,13 +245,14 @@ export function ScriptOrganizerPanel() {
             'text/plain': new Blob([script.content], { type: 'text/plain' }),
           }),
         ]);
-        toast.success('Imagem e mensagem copiadas! Cole no WhatsApp (Ctrl+V).');
+        toast.success('Imagem e mensagem copiadas! Ao colar, se só vier a imagem, use o botão "Enviar" para mandar com o texto junto.', { duration: 5000 });
       } else if (script.media_url) {
         await navigator.clipboard.writeText(`${script.content}\n\n${script.media_url}`);
         toast.success(
           script.media_type === 'video'
-            ? 'Texto e link do vídeo copiados! Use "Enviar" para mandar o arquivo.'
-            : 'Mensagem e link da mídia copiados!'
+            ? 'Texto e link do vídeo copiados! Use "Enviar" para mandar o arquivo com a legenda.'
+            : 'Mensagem e link da mídia copiados!',
+          { duration: 5000 }
         );
       } else {
         await navigator.clipboard.writeText(script.content);
@@ -323,7 +328,13 @@ export function ScriptOrganizerPanel() {
   };
 
   const handleIncrementUse = async (script: SavedScript) => {
-    await handleCopyFullMessage(script);
+    // Com mídia anexada, o compartilhamento nativo (quando disponível) entrega
+    // arquivo + texto juntos de verdade — melhor que a área de transferência.
+    if (script.media_url && typeof navigator.share === 'function') {
+      await handleShareScript(script);
+    } else {
+      await handleCopyFullMessage(script);
+    }
     await supabase.from('saved_scripts').update({ use_count: script.use_count + 1 }).eq('id', script.id);
     fetchScripts();
   };
