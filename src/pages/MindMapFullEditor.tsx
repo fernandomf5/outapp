@@ -72,7 +72,6 @@ export default function MindMapFullEditor() {
   const [map, setMap] = useState<MindMap | null>(null);
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
   const nodesRef = useRef<MindMapNode[]>([]);
-  const [nodeTitleDrafts, setNodeTitleDrafts] = useState<Record<string, string>>({});
   const nodeEditVersionRef = useRef(0);
   const [savedNodes, setSavedNodes] = useState<MindMapNode[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -132,11 +131,7 @@ export default function MindMapFullEditor() {
   const saveMap = async () => {
     if (!map || !user) return;
 
-    const nodesToSave = nodesRef.current.map(node =>
-      Object.prototype.hasOwnProperty.call(nodeTitleDrafts, node.id)
-        ? { ...node, text: nodeTitleDrafts[node.id] }
-        : node
-    );
+    const nodesToSave = nodesRef.current;
     nodesRef.current = nodesToSave;
     setNodes(nodesToSave);
     const { data, error } = await supabase
@@ -249,11 +244,22 @@ export default function MindMapFullEditor() {
   };
 
   const updateNode = (nodeId: string, updates: Partial<MindMapNode>) => {
-    setNodes(prev => {
-      const nextNodes = prev.map(node => node.id === nodeId ? { ...node, ...updates } : node);
+    setNodes(currentNodes => {
+      const nextNodes = currentNodes.map(node =>
+        node.id === nodeId ? { ...node, ...updates } : node
+      );
       nodesRef.current = nextNodes;
       return nextNodes;
     });
+  };
+
+  const updateNodeTitle = (nodeId: string, text: string) => {
+    nodeEditVersionRef.current += 1;
+    const nextNodes = nodesRef.current.map(node =>
+      node.id === nodeId ? { ...node, text } : node
+    );
+    nodesRef.current = nextNodes;
+    setNodes([...nextNodes]);
   };
 
   const toggleCollapse = (nodeId: string, e: React.MouseEvent) => {
@@ -937,7 +943,7 @@ export default function MindMapFullEditor() {
               const nodeMinWidth = node.customWidth ? undefined : sizeClasses.minWidth;
               return (
                 <div
-                  key={node.id}
+                  key={`${node.id}-${node.text}`}
                   className="absolute transform -translate-x-1/2 -translate-y-1/2"
                   style={{ left: node.x, top: node.y, touchAction: 'none' }}
                   onPointerDown={(e) => handleNodePointerDown(e, node.id)}
@@ -955,7 +961,7 @@ export default function MindMapFullEditor() {
                     <div className={`${sizeClasses.padding} text-center`}>
                       {node.icon && <span className={`${sizeClasses.iconSize} mb-1 block`}>{node.icon}</span>}
                       <p className={`text-white font-semibold ${sizeClasses.textSize}`}>
-                        {nodeTitleDrafts[node.id] ?? node.text}
+                        {node.text}
                       </p>
                       {node.description && <p className={`text-white/80 mt-1 ${sizeClasses.descSize} whitespace-pre-wrap break-words`}>{node.description}</p>}
                     </div>
@@ -980,13 +986,9 @@ export default function MindMapFullEditor() {
               <div>
                 <Label className="text-white/80 text-xs">Texto</Label>
                 <Input
-                  value={nodeTitleDrafts[selectedNode.id] ?? selectedNode.text}
-                  onInput={(e) => {
-                    const text = e.currentTarget.value;
-                    nodeEditVersionRef.current += 1;
-                    setNodeTitleDrafts(prev => ({ ...prev, [selectedNode.id]: text }));
-                    updateNode(selectedNode.id, { text });
-                  }}
+                  aria-label="Título do bloco"
+                  value={selectedNode.text}
+                  onChange={(e) => updateNodeTitle(selectedNode.id, e.target.value)}
                   className="bg-white/10 border-white/20 text-white text-sm"
                 />
               </div>
