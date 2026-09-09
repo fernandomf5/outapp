@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { 
   Plus, Search, Star, Copy, Trash2, Edit, FolderPlus, 
   MessageSquareText, MoreVertical, Building2, Briefcase,
-  Check, Hash, Filter
+  Check, Hash, Filter, Share2, ImagePlus, X, Film
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
