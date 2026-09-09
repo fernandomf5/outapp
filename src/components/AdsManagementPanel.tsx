@@ -1956,7 +1956,10 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 const selected = campaigns.find(c => c.id === selectedCampaignId);
                 return (
                   <div className="text-muted-foreground space-y-1">
-                    <p>Visualizando campanha: {selected?.name}</p>
+                    <p className="flex items-center gap-2 flex-wrap">
+                      Visualizando campanha: {selected?.name}
+                      {selected && <PlatformBadge platform={selected.platform} className="text-foreground" />}
+                    </p>
                     {selected && (
                       <p className="text-sm flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
