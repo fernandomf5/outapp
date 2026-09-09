@@ -14,7 +14,19 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Service client: used ONLY for privileged database access.
+    // It must never receive a user session, otherwise every subsequent
+    // query would run as that user and be blocked by RLS.
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Separate client used exclusively to validate user credentials.
+    const authClient = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_ANON_KEY') ?? supabaseKey,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
     const requestData = await req.json();
     const { action, email, password, name, code, userId } = requestData;
