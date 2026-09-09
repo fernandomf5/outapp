@@ -209,6 +209,39 @@ export function ProposalCreatorPanel() {
     saveProposal('sent');
   };
 
+  /** Converte o formulário rápido no formato completo já usado pela proposta pública. */
+  const handleQuickSubmit = (values: QuickProposalValues, status: 'draft' | 'sent') => {
+    const pricingItems = values.items.map((item) => ({
+      id: item.id,
+      description: item.description || values.title,
+      quantity: 1,
+      unit_price: item.value,
+    }));
+    const total = pricingItems.reduce((sum, item) => sum + item.unit_price, 0);
+
+    saveProposal(status, {
+      ...initialProposalData,
+      company_name: values.company_name,
+      company_phone: values.company_phone,
+      company_email: values.company_email,
+      client_name: values.client_name,
+      client_company: values.client_company,
+      title: values.title,
+      introduction: values.introduction,
+      services: values.items
+        .filter((item) => item.description.trim() !== '')
+        .map((item) => ({ id: item.id, name: item.description, description: '' })),
+      pricing: { items: pricingItems, discount: 0, total },
+      valid_until: values.valid_until,
+    });
+  };
+
+  /** Leva os dados já digitados no modo rápido para o assistente completo. */
+  const switchToAdvanced = () => {
+    setMode('advanced');
+    setCurrentStep(0);
+  };
+
   const copyLink = (slug: string) => {
     const link = `${window.location.origin}/proposta/${slug}`;
     navigator.clipboard.writeText(link);
