@@ -289,26 +289,24 @@ export const MindMapCreatorPanel = () => {
     setIsEditDialogOpen(true);
   };
 
-  // Aplica as alterações do diálogo no nó em tempo real (sem esperar o botão salvar)
-  useEffect(() => {
-    if (!isEditDialogOpen || !editingNode) return;
-    setNodes(prev => prev.map(n =>
-      n.id === editingNode.id
-        ? {
-            ...n,
-            text: editText,
-            description: editDescription,
-            icon: editIcon,
-            color: editColor,
-            size: editSize,
-            customWidth: editCustomWidth,
-            customHeight: editCustomHeight,
-          }
-        : n
+  const updateEditingNode = (updates: Partial<MindMapNode>) => {
+    if (!editingNode) return;
+    setNodes(prev => prev.map(node =>
+      node.id === editingNode.id ? { ...node, ...updates } : node
     ));
-  }, [isEditDialogOpen, editingNode?.id, editText, editDescription, editIcon, editColor, editSize, editCustomWidth, editCustomHeight]);
+  };
 
   const saveNodeEdit = () => {
+    if (!editingNode) return;
+    updateEditingNode({
+      text: editText.trim() || 'Nova Ideia',
+      description: editDescription,
+      icon: editIcon,
+      color: editColor,
+      size: editSize,
+      customWidth: editCustomWidth,
+      customHeight: editCustomHeight,
+    });
     setIsEditDialogOpen(false);
     setEditingNode(null);
   };
@@ -1439,7 +1437,11 @@ export const MindMapCreatorPanel = () => {
               <Label>Título</Label>
               <Input 
                 value={editText} 
-                onChange={(e) => setEditText(e.target.value)}
+                onChange={(e) => {
+                  const nextText = e.target.value;
+                  setEditText(nextText);
+                  updateEditingNode({ text: nextText });
+                }}
                 placeholder="Digite o título do nó"
               />
             </div>
