@@ -666,17 +666,18 @@ export function ScriptOrganizerPanel() {
             <div className="text-center py-10">
               <MessageSquareText className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
               <p className="text-muted-foreground font-medium">
-                {searchQuery ? "Nenhum script encontrado" : "Nenhum script criado ainda"}
+                {searchQuery ? "Nenhum conteúdo encontrado" : "Nenhum conteúdo criado ainda"}
               </p>
               <p className="text-sm text-muted-foreground/70 mt-1">
-                {!searchQuery && "Crie seu primeiro script clicando em 'Novo Script'"}
+                {!searchQuery && "Crie o primeiro clicando em 'Novo Conteúdo'"}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredScripts.map(script => {
                 const cat = getCategoryById(script.category_id);
-                
+                const isPublished = script.post_status === 'published';
+
                 return (
                   <Card key={script.id} className="group relative hover:shadow-md transition-shadow border-l-4" style={{ borderLeftColor: cat?.color || 'hsl(var(--border))' }}>
                     <CardContent className="p-4 space-y-2">
@@ -691,8 +692,26 @@ export function ScriptOrganizerPanel() {
                                 {cat.name}
                               </span>
                             )}
+                            {script.platform && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">{script.platform}</Badge>
+                            )}
                           </div>
+                          {(script.scheduled_at || isPublished) && (
+                            <div className="mt-1">
+                              {isPublished ? (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1">
+                                  <CheckCircle2 className="h-2.5 w-2.5" /> Publicado
+                                </Badge>
+                              ) : (
+                                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                  <CalendarClock className="h-3 w-3" />
+                                  {formatSchedule(script.scheduled_at)}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
+
                         <div className="flex items-center gap-1 shrink-0">
                           <button 
                             onClick={() => handleToggleFavorite(script)}
