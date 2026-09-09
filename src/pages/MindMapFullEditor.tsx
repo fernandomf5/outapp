@@ -980,9 +980,9 @@ export default function MindMapFullEditor() {
               <div>
                 <Label className="text-white/80 text-xs">Texto</Label>
                 <Input
+                  aria-label="Título do bloco"
                   value={selectedNode.text}
-                  onInput={(e) => updateNodeTitle(selectedNode.id, e.currentTarget.value)}
-                  onChange={(e) => updateNodeTitle(selectedNode.id, e.target.value)}
+                  onInputCapture={(e) => updateNodeTitle(selectedNode.id, e.currentTarget.value)}
                   className="bg-white/10 border-white/20 text-white text-sm"
                 />
               </div>
