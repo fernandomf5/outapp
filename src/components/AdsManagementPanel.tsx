@@ -98,6 +98,8 @@ interface AdCampaign {
   client_id?: string;
   start_date?: string;
   end_date?: string;
+  daily_budget?: number;
+  creatives?: unknown;
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--success))'];
