@@ -289,22 +289,26 @@ export const MindMapCreatorPanel = () => {
     setIsEditDialogOpen(true);
   };
 
-  const saveNodeEdit = () => {
-    if (!editingNode) return;
-    setNodes(nodes.map(n => 
-      n.id === editingNode.id 
-        ? { 
-            ...n, 
-            text: editText, 
-            description: editDescription, 
-            icon: editIcon, 
-            color: editColor, 
+  // Aplica as alterações do diálogo no nó em tempo real (sem esperar o botão salvar)
+  useEffect(() => {
+    if (!isEditDialogOpen || !editingNode) return;
+    setNodes(prev => prev.map(n =>
+      n.id === editingNode.id
+        ? {
+            ...n,
+            text: editText,
+            description: editDescription,
+            icon: editIcon,
+            color: editColor,
             size: editSize,
             customWidth: editCustomWidth,
-            customHeight: editCustomHeight
-          } 
+            customHeight: editCustomHeight,
+          }
         : n
     ));
+  }, [isEditDialogOpen, editingNode?.id, editText, editDescription, editIcon, editColor, editSize, editCustomWidth, editCustomHeight]);
+
+  const saveNodeEdit = () => {
     setIsEditDialogOpen(false);
     setEditingNode(null);
   };
