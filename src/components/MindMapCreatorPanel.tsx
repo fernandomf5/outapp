@@ -177,7 +177,7 @@ export const MindMapCreatorPanel = () => {
   const createRootNode = () => {
     const theme = THEMES[currentTheme];
     const newNode: MindMapNode = {
-      id: `node-${Date.now()}`,
+      id: crypto.randomUUID(),
       text: 'Ideia Central',
       x: 500,
       y: 350,
@@ -192,7 +192,7 @@ export const MindMapCreatorPanel = () => {
   const addNode = () => {
     const theme = THEMES[currentTheme];
     const newNode: MindMapNode = {
-      id: `node-${Date.now()}`,
+      id: crypto.randomUUID(),
       text: 'Nova Ideia',
       x: 200 + Math.random() * 400,
       y: 100 + Math.random() * 300,
@@ -214,7 +214,7 @@ export const MindMapCreatorPanel = () => {
     const distance = 180;
 
     const newNode: MindMapNode = {
-      id: `node-${Date.now()}`,
+      id: crypto.randomUUID(),
       text: 'Nova Ideia',
       x: parent.x + Math.cos(angle) * distance,
       y: parent.y + Math.sin(angle) * distance,
