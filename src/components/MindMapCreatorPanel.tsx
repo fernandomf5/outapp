@@ -138,6 +138,7 @@ export const MindMapCreatorPanel = () => {
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetchSavedMaps();
@@ -298,11 +299,11 @@ export const MindMapCreatorPanel = () => {
     ));
   };
 
-  const saveNodeEdit = () => {
+  const saveNodeEdit = async () => {
     if (!editingNode) return;
     const editingNodeId = editingNode.id;
     const committedNode: Partial<MindMapNode> = {
-      text: editText.trim() || 'Nova Ideia',
+      text: editText.trim() || editingNode.text,
       description: editDescription,
       icon: editIcon,
       color: editColor,
@@ -310,11 +311,38 @@ export const MindMapCreatorPanel = () => {
       customWidth: editCustomWidth,
       customHeight: editCustomHeight,
     };
-    setNodes(currentNodes => currentNodes.map(node =>
+    const nextNodes = nodes.map(node =>
       node.id === editingNodeId ? { ...node, ...committedNode } : node
-    ));
+    );
+
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+
+    setNodes(nextNodes);
     setIsEditDialogOpen(false);
     setEditingNode(null);
+
+    if (user && currentMapId) {
+      const { error } = await supabase
+        .from('mind_maps')
+        .update({
+          nodes: JSON.parse(JSON.stringify(nextNodes)),
+          theme: currentTheme,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', currentMapId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        toast.error('Erro ao salvar o título do bloco');
+        return;
+      }
+
+      setSavedNodes(JSON.parse(JSON.stringify(nextNodes)));
+      toast.success('Título do bloco salvo!');
+    }
   };
 
   const getNodeSizeClasses = (size: 'small' | 'medium' | 'large' | undefined, isRoot: boolean) => {
@@ -406,7 +434,7 @@ export const MindMapCreatorPanel = () => {
   // Auto-salvamento do mapa já salvo (debounce)
   useEffect(() => {
     if (!user || !currentMapId || !mapName) return;
-    const timer = setTimeout(async () => {
+    autosaveTimerRef.current = setTimeout(async () => {
       const { error } = await supabase
         .from('mind_maps')
         .update({
@@ -417,7 +445,12 @@ export const MindMapCreatorPanel = () => {
         .eq('id', currentMapId);
       if (!error) setSavedNodes(JSON.parse(JSON.stringify(nodes)));
     }, 1200);
-    return () => clearTimeout(timer);
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+        autosaveTimerRef.current = null;
+      }
+    };
   }, [nodes, currentTheme, currentMapId, mapName, user]);
 
   const saveMap = async () => {

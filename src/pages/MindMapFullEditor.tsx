@@ -71,23 +71,32 @@ export default function MindMapFullEditor() {
   
   const [map, setMap] = useState<MindMap | null>(null);
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
+  const nodesRef = useRef<MindMapNode[]>([]);
+  const [nodeTitleDrafts, setNodeTitleDrafts] = useState<Record<string, string>>({});
+  const nodeEditVersionRef = useRef(0);
   const [savedNodes, setSavedNodes] = useState<MindMapNode[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
-  const [selectedNode, setSelectedNode] = useState<MindMapNode | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState('default');
   const [isLocked, setIsLocked] = useState(false);
+  const selectedNode = nodes.find(node => node.id === selectedNodeId) ?? null;
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
   useEffect(() => {
     if (id) fetchMap();
   }, [id]);
 
   const fetchMap = async () => {
+    const editVersionAtRequest = nodeEditVersionRef.current;
     const { data, error } = await supabase
       .from('mind_maps')
       .select('*')
@@ -99,8 +108,12 @@ export default function MindMapFullEditor() {
       return;
     }
 
+    // Uma resposta atrasada nunca pode desfazer um título que o usuário já digitou.
+    if (nodeEditVersionRef.current !== editVersionAtRequest) return;
+
     const mapNodes = (data.nodes as any) || [];
     setMap({ ...data, nodes: mapNodes });
+    nodesRef.current = mapNodes;
     setNodes(mapNodes);
     setSavedNodes(JSON.parse(JSON.stringify(mapNodes)));
     setCurrentTheme(data.theme || 'default');
@@ -118,23 +131,38 @@ export default function MindMapFullEditor() {
 
   const saveMap = async () => {
     if (!map || !user) return;
-    
-    const { error } = await supabase
-      .from('mind_maps')
-      .update({ nodes: nodes as any, theme: currentTheme, updated_at: new Date().toISOString() })
-      .eq('id', map.id);
 
-    if (error) {
+    const nodesToSave = nodesRef.current.map(node =>
+      Object.prototype.hasOwnProperty.call(nodeTitleDrafts, node.id)
+        ? { ...node, text: nodeTitleDrafts[node.id] }
+        : node
+    );
+    nodesRef.current = nodesToSave;
+    setNodes(nodesToSave);
+    const { data, error } = await supabase
+      .from('mind_maps')
+      .update({ nodes: nodesToSave as any, theme: currentTheme, updated_at: new Date().toISOString() })
+      .eq('id', map.id)
+      .eq('user_id', user.id)
+      .select('nodes')
+      .single();
+
+    if (error || !data) {
       toast.error('Erro ao salvar');
     } else {
-      setSavedNodes(JSON.parse(JSON.stringify(nodes)));
+      const persistedNodes = nodesToSave;
+      nodesRef.current = persistedNodes;
+      setNodes(persistedNodes);
+      setSavedNodes(JSON.parse(JSON.stringify(persistedNodes)));
       toast.success('Salvo com sucesso!');
     }
   };
 
   const restoreToSaved = () => {
     if (savedNodes) {
-      setNodes(JSON.parse(JSON.stringify(savedNodes)));
+      const restoredNodes = JSON.parse(JSON.stringify(savedNodes)) as MindMapNode[];
+      nodesRef.current = restoredNodes;
+      setNodes(restoredNodes);
       toast.success('Organização restaurada!');
     } else {
       toast.error('Nenhuma versão salva disponível');
@@ -159,11 +187,16 @@ export default function MindMapFullEditor() {
       icon: '🎯',
       size: 'medium',
     };
-    setNodes(prev => [...prev, newNode]);
+    setNodes(prev => {
+      const nextNodes = [...prev, newNode];
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
     toast.success('Nó central criado!');
   };
 
   const addNode = () => {
+    const selectedNode = nodes.find(node => node.id === selectedNodeId);
     const parentNode = selectedNode || nodes.find(n => n.isRoot);
     const newNode: MindMapNode = {
       id: crypto.randomUUID(),
@@ -175,7 +208,11 @@ export default function MindMapFullEditor() {
       isRoot: false,
       size: 'medium',
     };
-    setNodes(prev => [...prev, newNode]);
+    setNodes(prev => {
+      const nextNodes = [...prev, newNode];
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
   };
 
   const addIndependentNode = () => {
@@ -189,7 +226,11 @@ export default function MindMapFullEditor() {
       isRoot: false,
       size: 'medium',
     };
-    setNodes(prev => [...prev, newNode]);
+    setNodes(prev => {
+      const nextNodes = [...prev, newNode];
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
     toast.success('Nó independente criado! Use "Conectar" para vinculá-lo.');
   };
 
@@ -199,15 +240,20 @@ export default function MindMapFullEditor() {
       toast.error('Não é possível deletar o nó central');
       return;
     }
-    setNodes(prev => prev.filter(n => n.id !== nodeId && n.parentId !== nodeId));
-    if (selectedNode?.id === nodeId) setSelectedNode(null);
+    setNodes(prev => {
+      const nextNodes = prev.filter(n => n.id !== nodeId && n.parentId !== nodeId);
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
+    if (selectedNodeId === nodeId) setSelectedNodeId(null);
   };
 
   const updateNode = (nodeId: string, updates: Partial<MindMapNode>) => {
-    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, ...updates } : n));
-    if (selectedNode?.id === nodeId) {
-      setSelectedNode(prev => prev ? { ...prev, ...updates } : null);
-    }
+    setNodes(prev => {
+      const nextNodes = prev.map(node => node.id === nodeId ? { ...node, ...updates } : node);
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
   };
 
   const toggleCollapse = (nodeId: string, e: React.MouseEvent) => {
@@ -648,7 +694,7 @@ export default function MindMapFullEditor() {
     } else {
       setDraggedNode(nodeId);
       setLastMousePos({ x: e.clientX, y: e.clientY });
-      setSelectedNode(nodes.find(n => n.id === nodeId) || null);
+      setSelectedNodeId(nodeId);
     }
   };
 
@@ -908,7 +954,9 @@ export default function MindMapFullEditor() {
                   >
                     <div className={`${sizeClasses.padding} text-center`}>
                       {node.icon && <span className={`${sizeClasses.iconSize} mb-1 block`}>{node.icon}</span>}
-                      <p className={`text-white font-semibold ${sizeClasses.textSize}`}>{node.text}</p>
+                      <p className={`text-white font-semibold ${sizeClasses.textSize}`}>
+                        {nodeTitleDrafts[node.id] ?? node.text}
+                      </p>
                       {node.description && <p className={`text-white/80 mt-1 ${sizeClasses.descSize} whitespace-pre-wrap break-words`}>{node.description}</p>}
                     </div>
                     {childCount > 0 && (
@@ -931,7 +979,16 @@ export default function MindMapFullEditor() {
             <div className="space-y-4">
               <div>
                 <Label className="text-white/80 text-xs">Texto</Label>
-                <Input value={selectedNode.text} onChange={(e) => updateNode(selectedNode.id, { text: e.target.value })} className="bg-white/10 border-white/20 text-white text-sm" />
+                <Input
+                  value={nodeTitleDrafts[selectedNode.id] ?? selectedNode.text}
+                  onInput={(e) => {
+                    const text = e.currentTarget.value;
+                    nodeEditVersionRef.current += 1;
+                    setNodeTitleDrafts(prev => ({ ...prev, [selectedNode.id]: text }));
+                    updateNode(selectedNode.id, { text });
+                  }}
+                  className="bg-white/10 border-white/20 text-white text-sm"
+                />
               </div>
               
               <div>
