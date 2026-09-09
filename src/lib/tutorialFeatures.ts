@@ -41,8 +41,6 @@ export const TUTORIAL_FEATURES: TutorialFeature[] = [
   { key: "linkbio", label: "Criador de Link na Bio", group: "Recursos Avançados" },
   { key: "funil-vendas", label: "Criador de Funil de Vendas", group: "Recursos Avançados" },
   { key: "briefing", label: "Criador de Briefing", group: "Recursos Avançados" },
-  { key: "questionario-marketing", label: "Criador de Questionário", group: "Recursos Avançados" },
-  { key: "popups", label: "Criador de Pop-ups", group: "Recursos Avançados" },
   { key: "mapa-mental", label: "Criador de Mapa Mental", group: "Recursos Avançados" },
   { key: "propostas", label: "Criador de Proposta Comercial", group: "Recursos Avançados" },
   { key: "contratos", label: "Criador de Contratos", group: "Recursos Avançados" },

@@ -49,12 +49,10 @@ import { TeamManagementPanel } from "@/components/TeamManagementPanel";
 import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
 import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
-import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 
 
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
-import { MarketingQuestionnairePanel } from "@/components/MarketingQuestionnairePanel";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 // MembersAreaCreator removed - only Simple Members Area is used
@@ -824,24 +822,6 @@ const Dashboard = () => {
             buttonText="Criar Briefing"
           />
 
-          {/* 24. Criador de Questionário */}
-          <ResourceCard
-            title="Criador de Questionário"
-            description="Crie questionários simples e direcione ofertas com base nas respostas"
-            icon={<ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
-            onClick={() => handleTabChange('questionario-marketing')}
-            buttonText="Criar Questionário"
-          />
-
-          {/* 25. Criador de Popups */}
-          <ResourceCard
-            title="Criador de Popups"
-            description="Crie pop-ups personalizados para capturar leads"
-            icon={<Layers className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
-            onClick={() => handleTabChange('popups')}
-            buttonText="Criar Pop-up"
-          />
-
           {/* 26. Criador de Mapas Mentais */}
           <ResourceCard
             title="Criador de Mapas Mentais"
@@ -1266,22 +1246,8 @@ const Dashboard = () => {
 
 
 
-          <TabsContent value="popups">
-            <FeatureGate featureKey="popup_creator">
-              <FeatureTutorialVideo featureKey="popups" />
-              <PopupCreatorPanel />
-            </FeatureGate>
-          </TabsContent>
 
 
-          <TabsContent value="questionario-marketing">
-            <FeatureGate featureKey="quiz_creator">
-              <ErrorBoundary>
-                <FeatureTutorialVideo featureKey="questionario-marketing" />
-                <MarketingQuestionnairePanel />
-              </ErrorBoundary>
-            </FeatureGate>
-          </TabsContent>
 
           <TabsContent value="briefing">
             <FeatureGate featureKey="briefing_creator">
