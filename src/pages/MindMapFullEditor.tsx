@@ -244,11 +244,13 @@ export default function MindMapFullEditor() {
   };
 
   const updateNode = (nodeId: string, updates: Partial<MindMapNode>) => {
-    const nextNodes = nodesRef.current.map(node =>
-      node.id === nodeId ? { ...node, ...updates } : node
-    );
-    nodesRef.current = nextNodes;
-    setNodes(nextNodes);
+    setNodes(currentNodes => {
+      const nextNodes = currentNodes.map(node =>
+        node.id === nodeId ? { ...node, ...updates } : node
+      );
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
   };
 
   const updateNodeTitle = (nodeId: string, text: string) => {
@@ -982,7 +984,7 @@ export default function MindMapFullEditor() {
                 <Input
                   aria-label="Título do bloco"
                   value={selectedNode.text}
-                  onInputCapture={(e) => updateNodeTitle(selectedNode.id, e.currentTarget.value)}
+                  onChange={(e) => updateNodeTitle(selectedNode.id, e.target.value)}
                   className="bg-white/10 border-white/20 text-white text-sm"
                 />
               </div>
