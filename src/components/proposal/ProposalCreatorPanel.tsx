@@ -302,6 +302,7 @@ export function ProposalCreatorPanel() {
         auto_carousel: (data as any).auto_carousel ?? false,
       });
       setEditingProposal(id);
+      setMode('advanced');
       setCurrentStep(0);
       setActiveTab('create');
     } catch (error) {
@@ -344,6 +345,7 @@ export function ProposalCreatorPanel() {
         auto_carousel: (data as any).auto_carousel ?? false,
       });
       setEditingProposal(null); // Not editing, creating new
+      setMode('advanced');
       setCurrentStep(0);
       setActiveTab('create');
       toast.success('Proposta duplicada! Faça as alterações e salve.');
