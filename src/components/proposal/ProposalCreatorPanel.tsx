@@ -150,16 +150,18 @@ export function ProposalCreatorPanel() {
     return `${base}-${Date.now().toString(36)}`;
   };
 
-  const saveProposal = async (status: string = 'draft') => {
+  const saveProposal = async (status: string = 'draft', override?: typeof initialProposalData) => {
     if (!user) return;
+
+    const data = override ?? proposalData;
 
     try {
       setSaving(true);
-      const slug = generateSlug(proposalData.title);
-      
+      const slug = generateSlug(data.title);
+
       const payload = {
         user_id: user.id,
-        ...proposalData,
+        ...data,
         status,
         slug,
         private_token: crypto.randomUUID(),
