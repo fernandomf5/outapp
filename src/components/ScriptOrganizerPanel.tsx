@@ -328,7 +328,13 @@ export function ScriptOrganizerPanel() {
   };
 
   const handleIncrementUse = async (script: SavedScript) => {
-    await handleCopyFullMessage(script);
+    // Com mídia anexada, o compartilhamento nativo (quando disponível) entrega
+    // arquivo + texto juntos de verdade — melhor que a área de transferência.
+    if (script.media_url && typeof navigator.share === 'function') {
+      await handleShareScript(script);
+    } else {
+      await handleCopyFullMessage(script);
+    }
     await supabase.from('saved_scripts').update({ use_count: script.use_count + 1 }).eq('id', script.id);
     fetchScripts();
   };
