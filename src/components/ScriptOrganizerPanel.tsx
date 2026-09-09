@@ -499,6 +499,24 @@ export function ScriptOrganizerPanel() {
                         </div>
                       </div>
 
+                      {/* Mídia anexada */}
+                      {script.media_url && (
+                        script.media_type === 'video' ? (
+                          <video
+                            src={script.media_url}
+                            controls
+                            className="w-full h-32 object-cover rounded-md border border-border bg-muted"
+                          />
+                        ) : (
+                          <img
+                            src={script.media_url}
+                            alt={`Mídia da mensagem ${script.title}`}
+                            loading="lazy"
+                            className="w-full h-32 object-cover rounded-md border border-border"
+                          />
+                        )
+                      )}
+
                       {/* Content preview */}
                       <p className="text-xs text-muted-foreground line-clamp-4 whitespace-pre-wrap leading-relaxed">
                         {script.content}
@@ -520,9 +538,22 @@ export function ScriptOrganizerPanel() {
                         <span className="text-[10px] text-muted-foreground">
                           Usado {script.use_count}x
                         </span>
-                        <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => handleIncrementUse(script)}>
-                          <Copy className="h-3 w-3" /> Copiar
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          {script.media_url && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-xs gap-1"
+                              onClick={() => handleShareScript(script)}
+                              aria-label="Enviar mensagem com mídia"
+                            >
+                              <Share2 className="h-3 w-3" /> Enviar
+                            </Button>
+                          )}
+                          <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => handleIncrementUse(script)}>
+                            <Copy className="h-3 w-3" /> Copiar
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
