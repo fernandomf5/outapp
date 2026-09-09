@@ -962,14 +962,6 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     gasto: c.spent
   }));
 
-  const getPlatformIcon = (platform: string) => {
-    switch(platform) {
-      case 'meta': return '📘';
-      case 'google': return '🔍';
-      case 'tiktok': return '🎵';
-      default: return '📱';
-    }
-  };
 
   // Função para avaliar performance da campanha
   const evaluateCampaignPerformance = (campaign: AdCampaign) => {
@@ -2849,6 +2841,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                     <TableHeader>
                       <TableRow>
                         <TableHead>Campanha</TableHead>
+                        <TableHead>Plataforma</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Tipo</TableHead>
                         <TableHead>Período</TableHead>
