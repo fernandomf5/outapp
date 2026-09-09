@@ -363,64 +363,6 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     }
   };
 
-  const handleAddFromExistingCustomer = async () => {
-    try {
-      const userId = await getTargetUserId();
-      if (!userId || !selectedExistingCustomerId) return;
-
-      const customer = existingCustomers.find(c => c.id === selectedExistingCustomerId);
-      if (!customer) return;
-
-      const { error } = await supabase
-        .from('ad_clients')
-        .insert([{
-          user_id: userId,
-          name: customer.name,
-          client_type: 'personal',
-          description: customer.company || customer.email || null,
-          cashbox: parseFloat(clientFormData.cashbox) || 0
-        }]);
-
-      if (error) throw error;
-
-      toast.success("Cliente vinculado com sucesso!");
-      setIsAddClientDialogOpen(false);
-      loadData();
-      resetClientDialog();
-    } catch (error: any) {
-      toast.error("Erro ao vincular cliente");
-    }
-  };
-
-  const handleAddFromExistingBusiness = async () => {
-    try {
-      const userId = await getTargetUserId();
-      if (!userId || !selectedExistingBusinessId) return;
-
-      const business = existingBusinesses.find(b => b.id === selectedExistingBusinessId);
-      if (!business) return;
-
-      const { error } = await supabase
-        .from('ad_clients')
-        .insert([{
-          user_id: userId,
-          name: business.name,
-          client_type: 'company',
-          description: business.company_name || null,
-          cashbox: parseFloat(clientFormData.cashbox) || 0
-        }]);
-
-      if (error) throw error;
-
-      toast.success("Negócio vinculado com sucesso!");
-      setIsAddClientDialogOpen(false);
-      loadData();
-      resetClientDialog();
-    } catch (error: any) {
-      toast.error("Erro ao vincular negócio");
-    }
-  };
-
   const resetClientDialog = () => {
     setClientFormData({
       name: '',
@@ -428,10 +370,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       description: '',
       cashbox: ''
     });
-    setAddClientMode('new');
-    setSelectedExistingCustomerId('');
-    setSelectedExistingBusinessId('');
+    setSelectedContactId(null);
   };
+
 
   const handleEditClient = async () => {
     if (!editingClient) return;
