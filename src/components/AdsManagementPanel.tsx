@@ -3180,6 +3180,17 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             <DialogDescription>Crie um novo cliente ou negócio</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <Label className="text-sm font-medium">Selecionar cadastro da Gestão Livre (opcional)</Label>
+              <ContactCategoryPicker
+                value={selectedContactId}
+                onChange={handleSelectContact}
+                contacts={contactOptions}
+                categories={categoryOptions}
+                placeholder="Novo cliente manual"
+              />
+            </div>
+
             <div className="grid gap-2">
               <Label>Nome *</Label>
               <Input 
