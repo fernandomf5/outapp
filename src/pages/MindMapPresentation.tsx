@@ -138,9 +138,6 @@ export default function MindMapPresentation() {
   const updateNode = (nodeId: string, updates: Partial<MindMapNode>) => {
     setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, ...updates } : n));
     setSelectedNode(prev => (prev && prev.id === nodeId ? { ...prev, ...updates } : prev));
-    if (selectedNode?.id === nodeId) {
-      setSelectedNode(prev => prev ? { ...prev, ...updates } : null);
-    }
   };
 
   const disconnectNode = (nodeId: string) => {
