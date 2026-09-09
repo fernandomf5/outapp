@@ -1302,7 +1302,7 @@ export const MindMapCreatorPanel = () => {
               const sizeClasses = getNodeSizeClasses(node.size, node.isRoot);
               return (
                 <div
-                  key={node.id}
+                  key={`${node.id}-${editingNode?.id === node.id ? editText : node.text}`}
                   className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-shadow duration-200 group ${
                     draggedNode === node.id ? 'z-50' : 'z-10'
                   } ${connectingFrom === node.id ? 'ring-4 ring-white ring-opacity-50' : ''}`}
