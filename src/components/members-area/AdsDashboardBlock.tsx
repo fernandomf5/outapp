@@ -16,8 +16,8 @@ interface Campaign {
   conversions: number;
   start_date: string;
   end_date: string | null;
-  daily_budget: number | null;
-  creatives: unknown;
+  daily_budget?: number | null;
+  creatives?: unknown;
 }
 
 interface AdClient {
