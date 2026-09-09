@@ -563,16 +563,13 @@ export function ScriptOrganizerPanel() {
                       )}
 
                       {/* Footer */}
-                      <div className="flex items-center justify-between pt-1 border-t border-border">
-                        <span className="text-[10px] text-muted-foreground">
-                          Usado {script.use_count}x
-                        </span>
-                        <div className="flex items-center gap-1">
+                      <div className="flex flex-col gap-1 pt-2 border-t border-border">
+                        <div className="flex flex-wrap items-center justify-end gap-1">
                           {script.media_url && (
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 text-xs gap-1"
+                              className="h-6 px-2 text-[10px] gap-1"
                               onClick={() => handleShareScript(script)}
                               aria-label="Enviar mensagem com mídia"
                             >
@@ -583,7 +580,7 @@ export function ScriptOrganizerPanel() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 text-xs gap-1"
+                              className="h-6 px-2 text-[10px] gap-1"
                               onClick={() => handleIncrementUse(script, 'media')}
                               aria-label="Copiar imagem"
                             >
@@ -594,7 +591,7 @@ export function ScriptOrganizerPanel() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 text-xs gap-1"
+                              className="h-6 px-2 text-[10px] gap-1"
                               onClick={() => handleIncrementUse(script, 'media')}
                               aria-label="Copiar link do vídeo"
                             >
@@ -604,13 +601,16 @@ export function ScriptOrganizerPanel() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 text-xs gap-1"
+                            className="h-6 px-2 text-[10px] gap-1"
                             onClick={() => handleIncrementUse(script, 'text')}
                             aria-label="Copiar texto"
                           >
                             <Copy className="h-3 w-3" /> Copiar texto
                           </Button>
                         </div>
+                        <span className="text-[10px] text-muted-foreground text-right">
+                          Usado {script.use_count}x
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
