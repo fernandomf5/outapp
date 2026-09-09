@@ -72,6 +72,7 @@ export default function MindMapFullEditor() {
   const [map, setMap] = useState<MindMap | null>(null);
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
   const nodesRef = useRef<MindMapNode[]>([]);
+  const [nodeTitleDrafts, setNodeTitleDrafts] = useState<Record<string, string>>({});
   const [savedNodes, setSavedNodes] = useState<MindMapNode[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(1);
@@ -108,6 +109,7 @@ export default function MindMapFullEditor() {
     const mapNodes = (data.nodes as any) || [];
     setMap({ ...data, nodes: mapNodes });
     nodesRef.current = mapNodes;
+    setNodeTitleDrafts({});
     setNodes(mapNodes);
     setSavedNodes(JSON.parse(JSON.stringify(mapNodes)));
     setCurrentTheme(data.theme || 'default');
@@ -126,7 +128,13 @@ export default function MindMapFullEditor() {
   const saveMap = async () => {
     if (!map || !user) return;
 
-    const nodesToSave = nodesRef.current;
+    const nodesToSave = nodesRef.current.map(node =>
+      Object.prototype.hasOwnProperty.call(nodeTitleDrafts, node.id)
+        ? { ...node, text: nodeTitleDrafts[node.id] }
+        : node
+    );
+    nodesRef.current = nodesToSave;
+    setNodes(nodesToSave);
     const { data, error } = await supabase
       .from('mind_maps')
       .update({ nodes: nodesToSave as any, theme: currentTheme, updated_at: new Date().toISOString() })
@@ -141,6 +149,7 @@ export default function MindMapFullEditor() {
       const persistedNodes = (data.nodes as unknown as MindMapNode[]) || nodesToSave;
       nodesRef.current = persistedNodes;
       setNodes(persistedNodes);
+      setNodeTitleDrafts({});
       setSavedNodes(JSON.parse(JSON.stringify(persistedNodes)));
       toast.success('Salvo com sucesso!');
     }
@@ -942,7 +951,9 @@ export default function MindMapFullEditor() {
                   >
                     <div className={`${sizeClasses.padding} text-center`}>
                       {node.icon && <span className={`${sizeClasses.iconSize} mb-1 block`}>{node.icon}</span>}
-                      <p className={`text-white font-semibold ${sizeClasses.textSize}`}>{node.text}</p>
+                      <p className={`text-white font-semibold ${sizeClasses.textSize}`}>
+                        {nodeTitleDrafts[node.id] ?? node.text}
+                      </p>
                       {node.description && <p className={`text-white/80 mt-1 ${sizeClasses.descSize} whitespace-pre-wrap break-words`}>{node.description}</p>}
                     </div>
                     {childCount > 0 && (
@@ -965,7 +976,15 @@ export default function MindMapFullEditor() {
             <div className="space-y-4">
               <div>
                 <Label className="text-white/80 text-xs">Texto</Label>
-                <Input value={selectedNode.text} onChange={(e) => updateNode(selectedNode.id, { text: e.target.value })} className="bg-white/10 border-white/20 text-white text-sm" />
+                <Input
+                  value={nodeTitleDrafts[selectedNode.id] ?? selectedNode.text}
+                  onInput={(e) => {
+                    const text = e.currentTarget.value;
+                    setNodeTitleDrafts(prev => ({ ...prev, [selectedNode.id]: text }));
+                    updateNode(selectedNode.id, { text });
+                  }}
+                  className="bg-white/10 border-white/20 text-white text-sm"
+                />
               </div>
               
               <div>
