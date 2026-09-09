@@ -76,6 +76,38 @@ export default function MindMapPresentation() {
     fetchMap();
   }, [id]);
 
+  // Mantém a apresentação sincronizada com edições feitas em outra aba/editor,
+  // sem exigir que o usuário atualize a página manualmente.
+  useEffect(() => {
+    if (!id) return;
+
+    const refreshIfIdle = () => {
+      if (isEditMode) return; // não sobrescreve edições em andamento
+      if (document.visibilityState !== 'visible') return;
+      void fetchMap();
+    };
+
+    window.addEventListener('focus', refreshIfIdle);
+    document.addEventListener('visibilitychange', refreshIfIdle);
+    const interval = window.setInterval(refreshIfIdle, 10000);
+
+    const channel = supabase
+      .channel(`mind-map-${id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'mind_maps', filter: `id=eq.${id}` },
+        () => refreshIfIdle(),
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener('focus', refreshIfIdle);
+      document.removeEventListener('visibilitychange', refreshIfIdle);
+      window.clearInterval(interval);
+      void supabase.removeChannel(channel);
+    };
+  }, [id, isEditMode]);
+
   const fetchMap = async () => {
     if (!id) {
       setError('ID do mapa não fornecido');
