@@ -14,6 +14,7 @@ import {
   Loader2,
   BarChart3
 } from "lucide-react";
+import { CampaignCreativesGallery, parseCreatives } from "@/components/ads/CampaignCreatives";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface AdCampaign {
@@ -46,6 +47,8 @@ interface AdCampaign {
   qualified_reach?: number;
   start_date?: string;
   end_date?: string;
+  daily_budget?: number;
+  creatives?: unknown;
 }
 
 interface AdClient {
@@ -220,6 +223,11 @@ const CampaignPublicView = () => {
               <p className="text-xs text-muted-foreground mt-1">
                 Orçamento: R$ {campaign.budget.toFixed(2)}
               </p>
+              {(campaign.daily_budget ?? 0) > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Orçamento diário: R$ {(campaign.daily_budget ?? 0).toFixed(2)}
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -490,6 +498,21 @@ const CampaignPublicView = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Criativos */}
+        {parseCreatives(campaign.creatives).length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Criativos usados no anúncio
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CampaignCreativesGallery creatives={parseCreatives(campaign.creatives)} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pt-4 border-t">

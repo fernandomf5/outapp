@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CampaignCreativesEditor, CampaignCreativesGallery, parseCreatives, type CampaignCreative } from "@/components/ads/CampaignCreatives";
 import { PlatformBadge } from "@/components/ads/PlatformLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -98,6 +99,8 @@ interface AdCampaign {
   client_id?: string;
   start_date?: string;
   end_date?: string;
+  daily_budget?: number;
+  creatives?: unknown;
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--success))'];
@@ -174,6 +177,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     platform: 'meta' as 'meta' | 'google' | 'tiktok',
     campaign_type: 'conversion',
     budget: '',
+    daily_budget: '',
     spent: '',
     impressions: '',
     clicks: '',
@@ -200,6 +204,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     end_date: '',
     client_id: ''
   });
+
+  // Criativos (imagem/vídeo + copy) da campanha em edição
+  const [campaignCreatives, setCampaignCreatives] = useState<CampaignCreative[]>([]);
 
   // Definir quais campos aparecem para cada tipo de campanha
   const campaignTypeFields: Record<string, string[]> = {
@@ -662,6 +669,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           platform: campaignFormData.platform,
           campaign_type: campaignFormData.campaign_type,
           budget: parseFloat(campaignFormData.budget),
+          daily_budget: parseFloat(campaignFormData.daily_budget) || 0,
+          creatives: campaignCreatives,
           spent: parseFloat(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
           clicks: parseInt(campaignFormData.clicks) || 0,
@@ -694,6 +703,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
 
       toast.success("Campanha adicionada com sucesso!");
       setIsAddCampaignDialogOpen(false);
+      setCampaignCreatives([]);
       loadData();
       
       setCampaignFormData({
@@ -701,6 +711,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
         platform: 'meta',
         campaign_type: 'conversion',
         budget: '',
+        daily_budget: '',
         spent: '',
         impressions: '',
         clicks: '',
@@ -761,6 +772,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       platform: campaign.platform,
       campaign_type: campaign.campaign_type || 'conversion',
       budget: campaign.budget.toString(),
+      daily_budget: campaign.daily_budget?.toString() || '',
       spent: campaign.spent.toString(),
       impressions: campaign.impressions.toString(),
       clicks: campaign.clicks.toString(),
@@ -787,6 +799,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       end_date: campaign.end_date || '',
       client_id: campaign.client_id || ''
     });
+    setCampaignCreatives(parseCreatives(campaign.creatives));
     setIsEditCampaignDialogOpen(true);
   };
 
@@ -809,6 +822,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           platform: campaignFormData.platform,
           campaign_type: campaignFormData.campaign_type,
           budget: parseFloat(campaignFormData.budget),
+          daily_budget: parseFloat(campaignFormData.daily_budget) || 0,
+          creatives: campaignCreatives,
           spent: parseFloat(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
           clicks: parseInt(campaignFormData.clicks) || 0,
@@ -842,6 +857,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       toast.success("Campanha atualizada com sucesso!");
       setIsEditCampaignDialogOpen(false);
       setEditingCampaign(null);
+      setCampaignCreatives([]);
       loadData();
       
       setCampaignFormData({
@@ -849,6 +865,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
         platform: 'meta',
         campaign_type: 'conversion',
         budget: '',
+        daily_budget: '',
         spent: '',
         impressions: '',
         clicks: '',
@@ -1966,6 +1983,11 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                         Período: {formatCampaignPeriod(selected.start_date, selected.end_date)}
                       </p>
                     )}
+                    {selected && (selected.daily_budget ?? 0) > 0 && (
+                      <p className="text-sm">
+                        Orçamento diário: R$ {(selected.daily_budget ?? 0).toFixed(2)}
+                      </p>
+                    )}
                   </div>
                 );
               })()}
@@ -2008,13 +2030,30 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               <Button 
                 className="gradient-primary shadow-glow" 
                 disabled={clients.length === 0}
-                onClick={() => setIsAddCampaignDialogOpen(true)}
+                onClick={() => { setCampaignCreatives([]); setIsAddCampaignDialogOpen(true); }}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Adicionar Campanha
               </Button>
             </div>
           </div>
+
+          {selectedCampaignId && (() => {
+            const selected = campaigns.find(c => c.id === selectedCampaignId);
+            const creatives = parseCreatives(selected?.creatives);
+            if (creatives.length === 0) return null;
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Criativos usados no anúncio</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CampaignCreativesGallery creatives={creatives} />
+                </CardContent>
+              </Card>
+            );
+          })()}
+
 
           {clients.length === 0 ? (
             <Card>
@@ -2031,7 +2070,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground mb-4">Nenhuma campanha adicionada ainda</p>
-                <Button onClick={() => setIsAddCampaignDialogOpen(true)}>
+                <Button onClick={() => { setCampaignCreatives([]); setIsAddCampaignDialogOpen(true); }}>
                   Adicionar Primeira Campanha
                 </Button>
               </CardContent>
@@ -3274,6 +3313,18 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 />
               </div>
             </div>
+            <div className="grid gap-2">
+              <Label>Orçamento diário (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={campaignFormData.daily_budget}
+                onChange={(e) => setCampaignFormData({...campaignFormData, daily_budget: e.target.value})}
+                placeholder="50.00"
+              />
+              <p className="text-xs text-muted-foreground">Valor investido por dia nessa campanha.</p>
+            </div>
+            <CampaignCreativesEditor creatives={campaignCreatives} onChange={setCampaignCreatives} />
             
             {/* Campos dinâmicos baseados no tipo de campanha */}
             {(campaignFormData.campaign_type === 'conversion' || campaignFormData.campaign_type === 'catalog' || campaignFormData.campaign_type === 'promotion') && (
@@ -3643,6 +3694,19 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 />
               </div>
             </div>
+            <div className="grid gap-2">
+              <Label>Orçamento diário (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={campaignFormData.daily_budget}
+                onChange={(e) => setCampaignFormData({...campaignFormData, daily_budget: e.target.value})}
+                placeholder="50.00"
+              />
+              <p className="text-xs text-muted-foreground">Valor investido por dia nessa campanha.</p>
+            </div>
+            <CampaignCreativesEditor creatives={campaignCreatives} onChange={setCampaignCreatives} />
+            
             
             {/* Campos dinâmicos baseados no tipo de campanha - mesma lógica do Add Dialog */}
             {(campaignFormData.campaign_type === 'conversion' || campaignFormData.campaign_type === 'catalog' || campaignFormData.campaign_type === 'promotion') && (
