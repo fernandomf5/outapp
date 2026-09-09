@@ -547,3 +547,36 @@ export const FONT_OPTIONS = [
   "Lato",
   "Nunito",
 ];
+
+/**
+ * Estilo individual de uma seção. Cada chave, quando definida,
+ * sobrepõe o tema global APENAS no bloco em que foi configurada.
+ */
+export interface BlockStyle {
+  primary?: string;
+  secondary?: string;
+  background?: string;
+  text?: string;
+  radius?: number;
+}
+
+export const BLOCK_STYLE_COLOR_FIELDS: { key: keyof BlockStyle; label: string }[] = [
+  { key: "primary", label: "Cor principal da seção" },
+  { key: "secondary", label: "Cor secundária da seção" },
+  { key: "background", label: "Fundo da seção" },
+  { key: "text", label: "Texto da seção" },
+];
+
+/** Remove valores vazios para que o tema global continue valendo onde não houve escolha. */
+export function mergeBlockStyle(style: unknown): Partial<SiteTheme> {
+  if (!style || typeof style !== "object") return {};
+  const s = style as Record<string, unknown>;
+  const out: Partial<SiteTheme> = {};
+  for (const key of ["primary", "secondary", "background", "text"] as const) {
+    const v = s[key];
+    if (typeof v === "string" && v.trim()) out[key] = v.trim();
+  }
+  if (typeof s.radius === "number" && Number.isFinite(s.radius)) out.radius = s.radius;
+  return out;
+}
+
