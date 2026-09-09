@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
 
-const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB (limite do storage)
 
 export interface VideoUploadFieldProps {
   /** URL atual do vídeo (link externo ou arquivo enviado) */
