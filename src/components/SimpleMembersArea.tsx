@@ -19,6 +19,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } 
 import { CSS } from '@dnd-kit/utilities';
 import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMembersAreaPreview";
 import { ManageQuestionsDialog } from "@/components/members-area/ManageQuestionsDialog";
+import { VideoUploadField } from "@/components/members-area/VideoUploadField";
 import { AccessCodesDialog } from "@/components/members-area/AccessCodesDialog";
 import { PendingOrdersDialog } from "@/components/members-area/PendingOrdersDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
