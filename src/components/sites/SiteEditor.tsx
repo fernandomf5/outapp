@@ -25,7 +25,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BLOCK_DEFS, SiteBlock, SiteTheme, createBlock, getBlockDef, FONT_OPTIONS } from "./siteTypes";
+import {
+  BLOCK_DEFS,
+  BLOCK_STYLE_COLOR_FIELDS,
+  BlockStyle,
+  SiteBlock,
+  SiteTheme,
+  createBlock,
+  getBlockDef,
+  FONT_OPTIONS,
+} from "./siteTypes";
 import { BlockRenderer } from "./BlockRenderer";
 import { FieldEditor } from "./BlockInspector";
 import { cn } from "@/lib/utils";
@@ -92,6 +101,8 @@ export function SiteEditor({ blocks, theme, onBlocksChange, onThemeChange }: Pro
 
   const selected = blocks.find((b) => b.id === selectedId) || null;
   const selectedDef = selected ? getBlockDef(selected.type) : null;
+  const blockStyle: BlockStyle = (selected?.props?.style ?? {}) as BlockStyle;
+  const blockStyleIsCustom = Object.values(blockStyle).some((v) => v !== undefined && v !== "");
 
   const grouped = useMemo(() => {
     const q = search.trim().toLowerCase();
