@@ -175,7 +175,11 @@ export default function MindMapFullEditor() {
       icon: '🎯',
       size: 'medium',
     };
-    setNodes(prev => [...prev, newNode]);
+    setNodes(prev => {
+      const nextNodes = [...prev, newNode];
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
     toast.success('Nó central criado!');
   };
 
@@ -192,7 +196,11 @@ export default function MindMapFullEditor() {
       isRoot: false,
       size: 'medium',
     };
-    setNodes(prev => [...prev, newNode]);
+    setNodes(prev => {
+      const nextNodes = [...prev, newNode];
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
   };
 
   const addIndependentNode = () => {
@@ -206,7 +214,11 @@ export default function MindMapFullEditor() {
       isRoot: false,
       size: 'medium',
     };
-    setNodes(prev => [...prev, newNode]);
+    setNodes(prev => {
+      const nextNodes = [...prev, newNode];
+      nodesRef.current = nextNodes;
+      return nextNodes;
+    });
     toast.success('Nó independente criado! Use "Conectar" para vinculá-lo.');
   };
 
