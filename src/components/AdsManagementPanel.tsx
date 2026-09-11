@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CampaignCreativesEditor, CampaignCreativesGallery, parseCreatives, type CampaignCreative } from "@/components/ads/CampaignCreatives";
+import { CurrencyInput } from "@/components/ads/CurrencyInput";
+import { parseMoneyBR } from "@/lib/money";
 import { PlatformBadge } from "@/components/ads/PlatformLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -1612,11 +1614,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
 
               <div className="grid gap-2 p-4 rounded-lg bg-muted/30 border border-border/50">
                 <Label className="text-base font-semibold">Caixa para Anúncios (R$) *</Label>
-                <Input
-                  type="number"
-                  step="0.01"
+                <CurrencyInput
                   value={clientFormData.cashbox}
-                  onChange={(e) => setClientFormData({ ...clientFormData, cashbox: e.target.value })}
+                  onChange={(v) => setClientFormData({ ...clientFormData, cashbox: v })}
                   placeholder="0,00"
                   className="text-lg font-semibold"
                 />
