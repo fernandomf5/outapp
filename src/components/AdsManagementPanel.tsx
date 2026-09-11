@@ -2306,23 +2306,25 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 };
 
                 return (
-                  <Card className={`glass ${statusColors[evaluation.status]} mb-6`}>
-                    <CardHeader>
-                      <CardTitle className="text-2xl flex items-center gap-3">
-                        <span className="text-4xl">{evaluation.icon}</span>
-                        {evaluation.message}
-                        <Badge variant={evaluation.status === 'excellent' || evaluation.status === 'good' ? 'default' : 'destructive'} className="ml-auto">
-                          {evaluation.percentage.toFixed(0)}% de performance
+                  <Card className={`glass ${statusColors[evaluation.status]} mb-4`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-2xl shrink-0">{evaluation.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-base font-semibold leading-tight truncate">
+                            {evaluation.message}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {campaign.name}
+                          </p>
+                        </div>
+                        <Badge variant={evaluation.status === 'excellent' || evaluation.status === 'good' ? 'default' : 'destructive'} className="shrink-0 text-xs">
+                          {evaluation.percentage.toFixed(0)}%
                         </Badge>
-                      </CardTitle>
-                      <CardDescription className="text-base">
-                        Análise detalhada da campanha {campaign.name}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid gap-2">
+                      </div>
+                      <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
                         {evaluation.metrics.map((metric, idx) => (
-                          <div key={idx} className="text-sm font-medium">
+                          <div key={idx} className="text-xs text-muted-foreground bg-background/40 rounded-md px-2 py-1.5">
                             {metric}
                           </div>
                         ))}
