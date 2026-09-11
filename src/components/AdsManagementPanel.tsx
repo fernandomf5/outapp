@@ -3026,7 +3026,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                             </TableCell>
                             <TableCell>
                               <TooltipProvider delayDuration={100}>
-                                <Tooltip>
+                                <ShadTooltip>
                                   <TooltipTrigger asChild>
                                     <Badge 
                                       variant={perf.status === 'excellent' ? 'default' : perf.status === 'good' ? 'secondary' : 'outline'}
@@ -3040,7 +3040,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                                     <p className="font-medium">{perf.icon} {perf.message}</p>
                                     <p className="text-xs text-muted-foreground">{perf.metrics.length} métrica(s) avaliada(s)</p>
                                   </TooltipContent>
-                                </Tooltip>
+                                </ShadTooltip>
                               </TooltipProvider>
                             </TableCell>
                             <TableCell>
