@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CampaignCreativesEditor, CampaignCreativesGallery, parseCreatives, type CampaignCreative } from "@/components/ads/CampaignCreatives";
+import { CurrencyInput } from "@/components/ads/CurrencyInput";
+import { parseMoneyBR } from "@/lib/money";
 import { PlatformBadge } from "@/components/ads/PlatformLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -371,7 +373,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           name: clientFormData.name,
           client_type: clientFormData.client_type,
           description: clientFormData.description || null,
-          cashbox: parseFloat(clientFormData.cashbox) || 0
+          cashbox: parseMoneyBR(clientFormData.cashbox) || 0
         }]);
 
       if (error) throw error;
@@ -406,7 +408,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           name: clientFormData.name,
           client_type: clientFormData.client_type,
           description: clientFormData.description || null,
-          cashbox: parseFloat(clientFormData.cashbox) || 0
+          cashbox: parseMoneyBR(clientFormData.cashbox) || 0
         })
         .eq('id', editingClient.id);
 
@@ -669,15 +671,15 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           name: campaignFormData.name,
           platform: campaignFormData.platform,
           campaign_type: campaignFormData.campaign_type,
-          budget: parseFloat(campaignFormData.budget),
-          daily_budget: parseFloat(campaignFormData.daily_budget) || 0,
+          budget: parseMoneyBR(campaignFormData.budget),
+          daily_budget: parseMoneyBR(campaignFormData.daily_budget) || 0,
           creatives: campaignCreatives as unknown as Json,
-          spent: parseFloat(campaignFormData.spent),
+          spent: parseMoneyBR(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
           clicks: parseInt(campaignFormData.clicks) || 0,
           conversions: parseInt(campaignFormData.conversions) || 0,
-          product_cost: parseFloat(campaignFormData.product_cost) || 0,
-          revenue: parseFloat(campaignFormData.revenue) || 0,
+          product_cost: parseMoneyBR(campaignFormData.product_cost) || 0,
+          revenue: parseMoneyBR(campaignFormData.revenue) || 0,
           engagement_count: parseInt(campaignFormData.engagement_count) || 0,
           reach: parseInt(campaignFormData.reach) || 0,
           frequency: parseFloat(campaignFormData.frequency) || 0,
@@ -814,7 +816,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       }
 
       // Calcular diferença de gasto para atualizar caixa do cliente
-      const spentDifference = parseFloat(campaignFormData.spent) - editingCampaign.spent;
+      const spentDifference = parseMoneyBR(campaignFormData.spent) - editingCampaign.spent;
 
       const { error } = await supabase
         .from('ad_campaigns')
@@ -822,15 +824,15 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           name: campaignFormData.name,
           platform: campaignFormData.platform,
           campaign_type: campaignFormData.campaign_type,
-          budget: parseFloat(campaignFormData.budget),
-          daily_budget: parseFloat(campaignFormData.daily_budget) || 0,
+          budget: parseMoneyBR(campaignFormData.budget),
+          daily_budget: parseMoneyBR(campaignFormData.daily_budget) || 0,
           creatives: campaignCreatives as unknown as Json,
-          spent: parseFloat(campaignFormData.spent),
+          spent: parseMoneyBR(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
           clicks: parseInt(campaignFormData.clicks) || 0,
           conversions: parseInt(campaignFormData.conversions) || 0,
-          product_cost: parseFloat(campaignFormData.product_cost) || 0,
-          revenue: parseFloat(campaignFormData.revenue) || 0,
+          product_cost: parseMoneyBR(campaignFormData.product_cost) || 0,
+          revenue: parseMoneyBR(campaignFormData.revenue) || 0,
           engagement_count: parseInt(campaignFormData.engagement_count) || 0,
           reach: parseInt(campaignFormData.reach) || 0,
           frequency: parseFloat(campaignFormData.frequency) || 0,
@@ -1612,11 +1614,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
 
               <div className="grid gap-2 p-4 rounded-lg bg-muted/30 border border-border/50">
                 <Label className="text-base font-semibold">Caixa para Anúncios (R$) *</Label>
-                <Input
-                  type="number"
-                  step="0.01"
+                <CurrencyInput
                   value={clientFormData.cashbox}
-                  onChange={(e) => setClientFormData({ ...clientFormData, cashbox: e.target.value })}
+                  onChange={(v) => setClientFormData({ ...clientFormData, cashbox: v })}
                   placeholder="0,00"
                   className="text-lg font-semibold"
                 />
@@ -1689,11 +1689,10 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               </div>
               <div className="grid gap-2">
                 <Label>Caixa para Anúncios (R$)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
+                <CurrencyInput
                   value={clientFormData.cashbox}
-                  onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
+                  onChange={(v) => setClientFormData({...clientFormData, cashbox: v})}
+                  
                 />
               </div>
             </div>
@@ -3162,13 +3161,11 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             </div>
             <div className="grid gap-2">
               <Label>Caixa para Anúncios (R$) *</Label>
-              <Input 
-                type="number"
-                step="0.01"
-                value={clientFormData.cashbox}
-                onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
-                placeholder="0.00"
-              />
+              <CurrencyInput
+                  value={clientFormData.cashbox}
+                  onChange={(v) => setClientFormData({...clientFormData, cashbox: v})}
+                  placeholder="0.00"
+                />
             </div>
           </div>
           <DialogFooter>
@@ -3295,34 +3292,28 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Orçamento (R$) *</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
+                <CurrencyInput
                   value={campaignFormData.budget}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, budget: e.target.value})}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, budget: v})}
                   placeholder="1000.00"
                 />
               </div>
               <div className="grid gap-2">
                 <Label>Quanto Gastei (R$) *</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
+                <CurrencyInput
                   value={campaignFormData.spent}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, spent: e.target.value})}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, spent: v})}
                   placeholder="850.00"
                 />
               </div>
             </div>
             <div className="grid gap-2">
               <Label>Orçamento diário (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={campaignFormData.daily_budget}
-                onChange={(e) => setCampaignFormData({...campaignFormData, daily_budget: e.target.value})}
-                placeholder="50.00"
-              />
+              <CurrencyInput
+                  value={campaignFormData.daily_budget}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, daily_budget: v})}
+                  placeholder="50.00"
+                />
               <p className="text-xs text-muted-foreground">Valor investido por dia nessa campanha.</p>
             </div>
             <CampaignCreativesEditor creatives={campaignCreatives} onChange={setCampaignCreatives} />
@@ -3332,23 +3323,19 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Quanto Faturei (R$)</Label>
-                  <Input 
-                    type="number"
-                    step="0.01"
-                    value={campaignFormData.revenue}
-                    onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
-                    placeholder="1500.00"
-                  />
+                  <CurrencyInput
+                  value={campaignFormData.revenue}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, revenue: v})}
+                  placeholder="1500.00"
+                />
                 </div>
                 <div className="grid gap-2">
                   <Label>Ticket do Produto (R$)</Label>
-                  <Input 
-                    type="number"
-                    step="0.01"
-                    value={campaignFormData.product_cost}
-                    onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
-                    placeholder="150.00"
-                  />
+                  <CurrencyInput
+                  value={campaignFormData.product_cost}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, product_cost: v})}
+                  placeholder="150.00"
+                />
                 </div>
               </div>
             )}
@@ -3678,32 +3665,28 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Orçamento (R$) *</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
+                <CurrencyInput
                   value={campaignFormData.budget}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, budget: e.target.value})}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, budget: v})}
+                  
                 />
               </div>
               <div className="grid gap-2">
                 <Label>Quanto Gastei (R$) *</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
+                <CurrencyInput
                   value={campaignFormData.spent}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, spent: e.target.value})}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, spent: v})}
+                  
                 />
               </div>
             </div>
             <div className="grid gap-2">
               <Label>Orçamento diário (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={campaignFormData.daily_budget}
-                onChange={(e) => setCampaignFormData({...campaignFormData, daily_budget: e.target.value})}
-                placeholder="50.00"
-              />
+              <CurrencyInput
+                  value={campaignFormData.daily_budget}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, daily_budget: v})}
+                  placeholder="50.00"
+                />
               <p className="text-xs text-muted-foreground">Valor investido por dia nessa campanha.</p>
             </div>
             <CampaignCreativesEditor creatives={campaignCreatives} onChange={setCampaignCreatives} />
@@ -3714,21 +3697,19 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Quanto Faturei (R$)</Label>
-                  <Input 
-                    type="number"
-                    step="0.01"
-                    value={campaignFormData.revenue}
-                    onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
-                  />
+                  <CurrencyInput
+                  value={campaignFormData.revenue}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, revenue: v})}
+                  
+                />
                 </div>
                 <div className="grid gap-2">
                   <Label>Ticket do Produto (R$)</Label>
-                  <Input 
-                    type="number"
-                    step="0.01"
-                    value={campaignFormData.product_cost}
-                    onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
-                  />
+                  <CurrencyInput
+                  value={campaignFormData.product_cost}
+                  onChange={(v) => setCampaignFormData({...campaignFormData, product_cost: v})}
+                  
+                />
                 </div>
               </div>
             )}
@@ -4004,13 +3985,11 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             </div>
             <div className="grid gap-2">
               <Label>Caixa para Anúncios (R$) *</Label>
-              <Input 
-                type="number"
-                step="0.01"
-                value={clientFormData.cashbox}
-                onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
-                placeholder="0.00"
-              />
+              <CurrencyInput
+                  value={clientFormData.cashbox}
+                  onChange={(v) => setClientFormData({...clientFormData, cashbox: v})}
+                  placeholder="0.00"
+                />
             </div>
           </div>
           <DialogFooter>
