@@ -45,6 +45,7 @@ import {
   Calendar
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip as ShadTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -3024,12 +3025,23 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge 
-                                variant={perf.status === 'excellent' ? 'default' : perf.status === 'good' ? 'secondary' : 'outline'}
-                                className={`text-xs ${perf.status === 'poor' ? 'border-destructive text-destructive' : perf.status === 'fair' ? 'border-yellow-500 text-yellow-600' : ''}`}
-                              >
-                                {perf.icon} {perf.message}
-                              </Badge>
+                              <TooltipProvider delayDuration={100}>
+                                <ShadTooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge 
+                                      variant={perf.status === 'excellent' ? 'default' : perf.status === 'good' ? 'secondary' : 'outline'}
+                                      className={`text-xs gap-1 px-2 py-0.5 ${perf.status === 'poor' ? 'border-destructive text-destructive' : perf.status === 'fair' ? 'border-yellow-500 text-yellow-600' : ''}`}
+                                    >
+                                      <span>{perf.icon}</span>
+                                      <span className="font-semibold">{perf.percentage.toFixed(0)}%</span>
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-xs">
+                                    <p className="font-medium">{perf.icon} {perf.message}</p>
+                                    <p className="text-xs text-muted-foreground">{perf.metrics.length} métrica(s) avaliada(s)</p>
+                                  </TooltipContent>
+                                </ShadTooltip>
+                              </TooltipProvider>
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
