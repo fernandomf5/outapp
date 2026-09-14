@@ -10,6 +10,8 @@ import { Settings, Video, Image as ImageIcon, Globe, Upload, X, Palette } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { applyThemeColor, isValidThemeColor, notifyThemeColorChange } from "@/hooks/useDynamicTheme";
+import { DEFAULT_LOGO_SIZE, MAX_LOGO_SIZE, MIN_LOGO_SIZE, parseLogoSize } from "@/hooks/useSiteSettings";
+import { Slider } from "@/components/ui/slider";
 
 interface FooterMenu {
   title: string;
@@ -43,6 +45,7 @@ export const SiteSettingsManager = () => {
   const [footerCode, setFooterCode] = useState("");
   const [checkoutBannerUrl, setCheckoutBannerUrl] = useState("");
   const [sitePrimaryColor, setSitePrimaryColor] = useState("#5ce951");
+  const [logoSize, setLogoSize] = useState<number>(DEFAULT_LOGO_SIZE);
 
   useEffect(() => {
     fetchSettings();
@@ -65,7 +68,8 @@ export const SiteSettingsManager = () => {
       'head_code',
       'footer_code',
       'checkout_banner_url',
-      'site_primary_color'
+      'site_primary_color',
+      'site_logo_size'
     ];
     
     const { data, error } = await supabase
@@ -138,6 +142,9 @@ export const SiteSettingsManager = () => {
               setSitePrimaryColor(item.value || "#5ce951");
             }
             break;
+          case 'site_logo_size':
+            setLogoSize(parseLogoSize(item.value));
+            break;
         }
       });
     }
@@ -186,7 +193,8 @@ export const SiteSettingsManager = () => {
       saveSetting('head_code', headCode),
       saveSetting('footer_code', footerCode),
       saveSetting('checkout_banner_url', checkoutBannerUrl),
-      saveSetting('site_primary_color', sitePrimaryColor.toLowerCase())
+      saveSetting('site_primary_color', sitePrimaryColor.toLowerCase()),
+      saveSetting('site_logo_size', String(logoSize))
     ]);
 
     notifyThemeColorChange(sitePrimaryColor);
@@ -391,6 +399,33 @@ export const SiteSettingsManager = () => {
               <p className="text-xs text-muted-foreground">
                 Aplicada na página inicial, painéis, menus, botões, links e destaques.
               </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="site-logo-size">Tamanho da logomarca</Label>
+                <span className="text-sm font-medium text-muted-foreground">{logoSize}px</span>
+              </div>
+              <Slider
+                id="site-logo-size"
+                value={[logoSize]}
+                min={MIN_LOGO_SIZE}
+                max={MAX_LOGO_SIZE}
+                step={2}
+                onValueChange={(values) => setLogoSize(parseLogoSize(String(values[0])))}
+                aria-label="Tamanho da logomarca"
+              />
+              <div className="flex items-center gap-3 rounded-md border bg-muted/40 p-3">
+                <img
+                  src={logoUrl || logoLightUrl || logoDarkUrl || "/logo.png"}
+                  alt="Prévia da logomarca"
+                  style={{ height: `${logoSize}px` }}
+                  className="w-auto object-contain"
+                />
+                <span className="text-sm text-muted-foreground">Prévia do tamanho no site e nos menus</span>
+              </div>
             </div>
 
             <Separator />

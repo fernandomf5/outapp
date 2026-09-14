@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/Logo_3D_Verde.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
 import {
@@ -60,7 +61,14 @@ export function UserSidebar() {
   const { theme, resolvedTheme } = useTheme();
   const { isTeamMember, canAccessModule } = useTeamMember();
   
-  const currentLogo = logoAsset.url;
+  const { settings: siteSettings } = useSiteSettings();
+  const currentLogo =
+    (resolvedTheme === "light"
+      ? siteSettings.siteLogoLightUrl || siteSettings.siteLogoUrl
+      : siteSettings.siteLogoDarkUrl || siteSettings.siteLogoUrl) ||
+    siteSettings.siteLogoUrl ||
+    logoAsset.url;
+  const logoSize = siteSettings.siteLogoSize;
   const currentPath = location.pathname;
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
@@ -309,13 +317,11 @@ export function UserSidebar() {
             collapsed && "justify-center w-full"
           )}
         >
-          <img 
-            src={currentLogo} 
-            alt="Out App" 
-            className={cn(
-              "transition-all duration-300",
-              collapsed ? "w-8 h-8" : "w-9 h-9"
-            )} 
+          <img
+            src={currentLogo}
+            alt={siteSettings.siteTitle || "Out App"}
+            style={{ height: `${collapsed ? Math.min(logoSize, 32) : Math.min(logoSize, 52)}px` }}
+            className="w-auto max-w-full object-contain transition-all duration-300"
           />
           {!collapsed && <span className="font-bold text-lg tracking-tight whitespace-nowrap">Out App</span>}
         </Link>

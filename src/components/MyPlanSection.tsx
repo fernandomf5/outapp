@@ -61,7 +61,9 @@ export const MyPlanSection = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .order('expires_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       if (subData) {
         setSubscription(subData);

@@ -189,20 +189,40 @@ serve(async (req) => {
         });
 
         console.log('[REGISTER] Creating free trial subscription...');
-        const { data: freePlan } = await supabase
+        // There may be more than one free_trial plan row: pick the most recent one.
+        const { data: freePlans, error: freePlanError } = await supabase
           .from('plans')
-          .select('id')
+          .select('id, duration_days, created_at')
           .eq('plan_type', 'free_trial')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (freePlanError) console.error('[REGISTER] Free plan lookup error:', freePlanError);
+
+        const { data: existingSub } = await supabase
+          .from('subscriptions')
+          .select('id')
+          .eq('user_id', authUser.user.id)
+          .limit(1)
           .maybeSingle();
-        if (freePlan?.id) {
+
+        const freePlan = freePlans?.[0];
+        if (existingSub?.id) {
+          console.log('[REGISTER] Trial subscription already exists, skipping insert');
+        } else if (freePlan?.id) {
+          const trialDays = Number(freePlan.duration_days) > 0 ? Number(freePlan.duration_days) : 3;
           const expiresAtSub = new Date();
-          expiresAtSub.setDate(expiresAtSub.getDate() + 3);
-          await supabase.from('subscriptions').insert({
+          expiresAtSub.setDate(expiresAtSub.getDate() + trialDays);
+          const { error: subError } = await supabase.from('subscriptions').insert({
             user_id: authUser.user.id,
             plan_id: freePlan.id,
             status: 'active',
+            started_at: new Date().toISOString(),
             expires_at: expiresAtSub.toISOString()
           });
+          if (subError) console.error('[REGISTER] Trial subscription error:', subError);
+        } else {
+          console.error('[REGISTER] No free_trial plan found - trial NOT created');
         }
 
         console.log('[REGISTER] Registration successful for:', email);

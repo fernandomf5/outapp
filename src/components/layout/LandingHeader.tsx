@@ -89,15 +89,12 @@ export const LandingHeader = () => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" onClick={(e) => { e.preventDefault(); navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-smooth">
-              {currentLogo() ? (
-                <img 
-                  src={currentLogo()!} 
-                  alt={settings.siteTitle || "Logo"} 
-                  className="h-8 sm:h-10 w-auto object-contain"
-                />
-              ) : (
-                <img src={logoLion} alt="Out App" className="h-8 sm:h-10 w-auto" />
-              )}
+              <img
+                src={currentLogo() || logoLion}
+                alt={settings.siteTitle || "Out App"}
+                style={{ height: `${settings.siteLogoSize}px` }}
+                className="w-auto object-contain"
+              />
             </Link>
 
             {/* Right Side Controls */}
@@ -175,10 +172,11 @@ export const LandingHeader = () => {
             <div className="flex justify-center py-4 border-b border-border/50">
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
-                <img 
-                  src={currentLogo() || logoLion} 
-                  alt="Logo" 
-                  className="h-10 w-auto object-contain relative z-10"
+                <img
+                  src={currentLogo() || logoLion}
+                  alt="Logo"
+                  style={{ height: `${settings.siteLogoSize}px` }}
+                  className="w-auto object-contain relative z-10"
                 />
               </div>
             </div>

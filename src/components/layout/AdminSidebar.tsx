@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import logoAsset from "@/assets/Logo_3D_Verde.png.asset.json";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Users, DollarSign, TrendingUp, Settings, Video, FileText, Package, Crown, MessageSquare, LifeBuoy, Globe, Shield, Ticket } from "lucide-react";
 import {
   Sidebar,
@@ -29,6 +31,10 @@ export function AdminSidebar() {
   const currentTab = searchParams.get('section') || 'overview';
   const collapsed = state === "collapsed";
   const [unreadTicketNotifications, setUnreadTicketNotifications] = useState(0);
+  const { settings: siteSettings } = useSiteSettings();
+  const adminLogo =
+    siteSettings.siteLogoDarkUrl || siteSettings.siteLogoUrl || siteSettings.siteLogoLightUrl || logoAsset.url;
+  const adminLogoSize = siteSettings.siteLogoSize;
 
   useEffect(() => {
     if (!user) return;
@@ -116,6 +122,17 @@ export function AdminSidebar() {
   return (
     <TooltipProvider>
       <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
+        <div className={`flex h-[60px] shrink-0 items-center overflow-hidden border-b border-border ${collapsed ? "justify-center p-0" : "px-4"}`}>
+          <Link to="/admin" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img
+              src={adminLogo}
+              alt={siteSettings.siteTitle || "Out App"}
+              style={{ height: `${collapsed ? Math.min(adminLogoSize, 32) : Math.min(adminLogoSize, 52)}px` }}
+              className="w-auto max-w-full object-contain"
+            />
+            {!collapsed && <span className="font-bold text-lg tracking-tight whitespace-nowrap">Master</span>}
+          </Link>
+        </div>
         <ScrollArea className="flex-1">
           <SidebarContent>
             <SidebarGroup>
