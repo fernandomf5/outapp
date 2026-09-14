@@ -429,13 +429,6 @@ const Index = () => {
               <span className="text-base sm:text-lg font-semibold">{t('pricing')}</span>
             </a>
             <a 
-              href="/blog" 
-              className="group flex items-center gap-3 px-4 py-3.5 rounded-xl text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all duration-200"
-            >
-              <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(var(--primary-rgb),0.7)] transition-all duration-200" />
-              <span className="text-base sm:text-lg font-semibold">Blog</span>
-            </a>
-            <a 
               href="#faq" 
               className="group flex items-center gap-3 px-4 py-3.5 rounded-xl text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all duration-200"
             >
