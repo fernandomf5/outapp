@@ -317,13 +317,11 @@ export function UserSidebar() {
             collapsed && "justify-center w-full"
           )}
         >
-          <img 
-            src={currentLogo} 
-            alt="Out App" 
-            className={cn(
-              "transition-all duration-300",
-              collapsed ? "w-8 h-8" : "w-9 h-9"
-            )} 
+          <img
+            src={currentLogo}
+            alt={siteSettings.siteTitle || "Out App"}
+            style={{ height: `${collapsed ? Math.min(logoSize, 32) : logoSize}px` }}
+            className="w-auto max-w-full object-contain transition-all duration-300"
           />
           {!collapsed && <span className="font-bold text-lg tracking-tight whitespace-nowrap">Out App</span>}
         </Link>
