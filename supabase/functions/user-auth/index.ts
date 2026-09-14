@@ -456,7 +456,7 @@ serve(async (req) => {
       if (now > expiresAt) {
         return new Response(
           JSON.stringify({ error: 'Código de verificação expirado. Solicite um novo código.' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
