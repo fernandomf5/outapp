@@ -92,6 +92,15 @@ export const applyThemeColor = (value: string): void => {
   root.style.setProperty("--sidebar-primary", hsl);
   root.style.setProperty("--sidebar-primary-foreground", foreground);
   root.style.setProperty("--sidebar-ring", hsl);
+  // Menu (sidebar) surfaces follow the chosen hue in both light and dark themes
+  root.style.setProperty("--sidebar-background", isDark ? `${color.hue} 24% 8%` : `${color.hue} 25% 97%`);
+  root.style.setProperty("--sidebar-foreground", isDark ? `${color.hue} 25% 97%` : `${color.hue} 30% 12%`);
+  root.style.setProperty("--sidebar-accent", isDark ? `${color.hue} 18% 15%` : `${color.hue} 35% 92%`);
+  root.style.setProperty(
+    "--sidebar-accent-foreground",
+    isDark ? `${color.hue} 25% 97%` : `${color.hue} ${Math.max(30, color.saturation)}% 22%`,
+  );
+  root.style.setProperty("--sidebar-border", isDark ? `${color.hue} 15% 18%` : `${color.hue} 20% 87%`);
   root.style.setProperty("--gradient-primary", `linear-gradient(135deg, hsl(${color.hue} ${color.saturation}% ${hoverLightness}%) 0%, hsl(${color.hue} ${color.saturation}% ${glowLightness}%) 100%)`);
   root.style.setProperty("--gradient-hero", `linear-gradient(135deg, hsl(${color.hue} ${color.saturation}% ${glowLightness}%) 0%, hsl(${color.hue} ${color.saturation}% ${Math.max(18, color.lightness - 15)}%) 42%, hsl(${color.hue} 28% 7%) 100%)`);
   root.style.setProperty("--shadow-glow", `0 0 40px hsl(${color.hue} ${color.saturation}% ${glowLightness}% / 0.4), 0 0 20px hsl(${color.hue} ${color.saturation}% ${glowLightness}% / 0.24)`);
