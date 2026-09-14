@@ -56,13 +56,24 @@ const hexToHsl = (hex: string): HslColor => {
   };
 };
 
+const getContrastForeground = ({ red, green, blue }: HslColor): string => {
+  const toLinear = (channel: number): number => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = 0.2126 * toLinear(red) + 0.7152 * toLinear(green) + 0.0722 * toLinear(blue);
+  return luminance > 0.42 ? "130 40% 8%" : "0 0% 100%";
+};
+
 export const isValidThemeColor = (value: string): boolean => normalizeHex(value) !== null;
 
 export const applyThemeColor = (value: string): void => {
   const color = hexToHsl(value);
   const root = document.documentElement;
   const hsl = `${color.hue} ${color.saturation}% ${color.lightness}%`;
-  const foreground = color.lightness > 62 ? "130 40% 8%" : "0 0% 100%";
+  const foreground = getContrastForeground(color);
   const hoverLightness = Math.max(18, color.lightness - 7);
   const glowLightness = Math.min(72, color.lightness + 10);
   const softLightness = color.lightness > 55 ? 18 : 92;
@@ -74,8 +85,6 @@ export const applyThemeColor = (value: string): void => {
   root.style.setProperty("--primary-light", `${color.hue} ${Math.max(25, color.saturation - 18)}% ${softLightness}%`);
   root.style.setProperty("--primary-glow", `${color.hue} ${color.saturation}% ${glowLightness}%`);
   root.style.setProperty("--ring", hsl);
-  root.style.setProperty("--accent", `${color.hue} ${Math.max(20, color.saturation - 25)}% ${softLightness}%`);
-  root.style.setProperty("--accent-foreground", `${color.hue} ${color.saturation}% ${Math.max(18, hoverLightness)}%`);
   root.style.setProperty("--sidebar-primary", hsl);
   root.style.setProperty("--sidebar-primary-foreground", foreground);
   root.style.setProperty("--sidebar-ring", hsl);
