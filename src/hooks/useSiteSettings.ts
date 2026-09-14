@@ -68,6 +68,9 @@ const fetchSettings = async (): Promise<SiteSettings> => {
         case 'site_logo_dark_url':
           settings.siteLogoDarkUrl = item.value || '';
           break;
+        case 'site_logo_size':
+          settings.siteLogoSize = parseLogoSize(item.value);
+          break;
         case 'footer_text':
           settings.footerText = item.value || '';
           break;
