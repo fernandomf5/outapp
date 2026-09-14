@@ -31,6 +31,10 @@ export function AdminSidebar() {
   const currentTab = searchParams.get('section') || 'overview';
   const collapsed = state === "collapsed";
   const [unreadTicketNotifications, setUnreadTicketNotifications] = useState(0);
+  const { settings: siteSettings } = useSiteSettings();
+  const adminLogo =
+    siteSettings.siteLogoDarkUrl || siteSettings.siteLogoUrl || siteSettings.siteLogoLightUrl || logoAsset.url;
+  const adminLogoSize = siteSettings.siteLogoSize;
 
   useEffect(() => {
     if (!user) return;
