@@ -10,6 +10,8 @@ import { Settings, Video, Image as ImageIcon, Globe, Upload, X, Palette } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { applyThemeColor, isValidThemeColor, notifyThemeColorChange } from "@/hooks/useDynamicTheme";
+import { DEFAULT_LOGO_SIZE, MAX_LOGO_SIZE, MIN_LOGO_SIZE, parseLogoSize } from "@/hooks/useSiteSettings";
+import { Slider } from "@/components/ui/slider";
 
 interface FooterMenu {
   title: string;
@@ -66,7 +68,8 @@ export const SiteSettingsManager = () => {
       'head_code',
       'footer_code',
       'checkout_banner_url',
-      'site_primary_color'
+      'site_primary_color',
+      'site_logo_size'
     ];
     
     const { data, error } = await supabase
