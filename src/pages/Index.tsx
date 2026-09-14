@@ -937,7 +937,7 @@ const Index = () => {
               Um Negócio do Grupo Liberdade Financeira Online - 21.233.977/0001-29
             </p>
             <a 
-              href="https://klicsmart.com/" 
+              href="https://klicsmart.top/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors"

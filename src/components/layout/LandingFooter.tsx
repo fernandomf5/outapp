@@ -125,7 +125,7 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
           </div>
 
           <a
-            href="https://klicsmart.com/"
+            href="https://klicsmart.top/"
             target="_blank"
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-3 rounded-full border border-border/60 bg-card/60 px-4 py-2 backdrop-blur-sm transition-all hover:border-primary/50 hover:bg-card"
