@@ -145,6 +145,7 @@ export const useDynamicTheme = (): void => {
       .subscribe();
 
     return () => {
+      observer.disconnect();
       window.removeEventListener(THEME_COLOR_EVENT, handleLocalChange);
       void supabase.removeChannel(channel);
     };
