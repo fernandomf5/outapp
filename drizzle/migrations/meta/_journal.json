@@ -43,6 +43,13 @@
       "when": 1789347619496,
       "tag": "0005_remove_temp_bootstrap_exec_helper",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789347770682,
+      "tag": "0006_secure_sessions_and_verification_tables",
+      "breakpoints": true
     }
   ]
 }
