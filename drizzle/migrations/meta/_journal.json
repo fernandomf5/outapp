@@ -1,5 +1,13 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789345775655,
+      "tag": "0000_cloud_setup_batch_00",
+      "breakpoints": true
+    }
+  ]
 }
