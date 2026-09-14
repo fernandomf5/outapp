@@ -208,7 +208,7 @@ serve(async (req) => {
             user_id: authUser.user.id,
             plan_id: freePlan.id,
             status: 'active',
-            starts_at: new Date().toISOString(),
+            started_at: new Date().toISOString(),
             expires_at: expiresAtSub.toISOString()
           });
           if (subError) console.error('[REGISTER] Trial subscription error:', subError);
