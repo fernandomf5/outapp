@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export const DEFAULT_LOGO_SIZE = 40;
+export const MIN_LOGO_SIZE = 20;
+export const MAX_LOGO_SIZE = 120;
+
+export const parseLogoSize = (value: string | null | undefined): number => {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (Number.isNaN(parsed)) return DEFAULT_LOGO_SIZE;
+  return Math.min(MAX_LOGO_SIZE, Math.max(MIN_LOGO_SIZE, parsed));
+};
+
 export interface SiteSettings {
   siteTitle: string;
   siteLogoUrl: string;
   siteLogoLightUrl: string;
   siteLogoDarkUrl: string;
+  siteLogoSize: number;
   footerText: string;
   footerMenus: any[];
   socialLinks: any[];
@@ -16,6 +27,7 @@ const defaultSettings: SiteSettings = {
   siteLogoUrl: "",
   siteLogoLightUrl: "",
   siteLogoDarkUrl: "",
+  siteLogoSize: DEFAULT_LOGO_SIZE,
   footerText: "",
   footerMenus: [],
   socialLinks: [],
