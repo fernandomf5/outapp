@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.__lov_bootstrap_exec(text);

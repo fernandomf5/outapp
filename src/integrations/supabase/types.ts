@@ -11058,7 +11058,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      __lov_bootstrap_exec: { Args: { sql: string }; Returns: undefined }
       admin_cleanup_storage_objects: {
         Args: { _bucket: string; _older_than: string }
         Returns: number
