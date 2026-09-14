@@ -211,14 +211,6 @@ export const LandingHeader = () => {
                   <span className="font-medium">{t('pricing')}</span>
                 </a>
                 <a 
-                  href="/blog" 
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all group"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
-                  <span className="font-medium">Blog</span>
-                </a>
-                <a 
                   href="/#faq" 
                   className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all group"
                   onClick={() => setMobileMenuOpen(false)}

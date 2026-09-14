@@ -28,7 +28,7 @@ export const TUTORIAL_FEATURES: TutorialFeature[] = [
   { key: "floating-button", label: "Botão Flutuante", group: "Recursos Básicos" },
   { key: "shortlinks", label: "Encurtador de Links", group: "Recursos Básicos" },
   { key: "qrcode", label: "Gerador de QR Code", group: "Recursos Básicos" },
-  { key: "scripts", label: "Organizador de Script e Postagem", group: "Recursos Básicos" },
+  { key: "scripts", label: "Organizador de Script", group: "Recursos Básicos" },
 
   // Recursos Avançados
   { key: "area-membros", label: "Criador de Área de Membros", group: "Recursos Avançados" },
@@ -45,7 +45,7 @@ export const TUTORIAL_FEATURES: TutorialFeature[] = [
   { key: "propostas", label: "Criador de Proposta Comercial", group: "Recursos Avançados" },
   { key: "contratos", label: "Criador de Contratos", group: "Recursos Avançados" },
   { key: "aprova-job", label: "Criador de Aprova Job", group: "Recursos Avançados" },
-  { key: "extrator-criativos", label: "Extrator de Criativos", group: "Recursos Avançados" },
+  
 
   // Suporte e Essenciais
   { key: "support", label: "Suporte / Tickets", group: "Suporte e Essenciais" },

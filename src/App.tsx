@@ -34,7 +34,7 @@ import AgentCustomerAuth from "./pages/AgentCustomerAuth";
 import AgentCustomerChat from "./pages/AgentCustomerChat";
 import ChatbotCustomerAuth from "./pages/ChatbotCustomerAuth";
 import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
-import Blog from "./pages/Blog";
+
 import CalculatorPage from "./pages/CalculatorPage";
 import QuickNotesPage from "./pages/QuickNotesPage";
 import BriefingPublicPage from "./pages/BriefingPublicPage";
@@ -109,8 +109,6 @@ const AppContent = () => {
               <Route path="/chatbot-chat/:chatbotId" element={<ChatbotCustomerChat />} />
               <Route path="/chatbot-reset-password/:token" element={<ChatbotResetPassword />} />
               <Route path="/agent-reset-password/:token" element={<AgentResetPassword />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
                <Route path="/anotacoes" element={<ProtectedRoute><QuickNotesPage /></ProtectedRoute>} />
           {/* MembersAreaView removed - only Simple Members Area is used */}

@@ -26,7 +26,7 @@ const EXCLUDED_PREFIXES = [
   "/chatbot-chat",
   "/chatbot-reset-password",
   "/agent-reset-password",
-  "/blog",
+  
   "/briefing/",
   "/q/",
   "/members/",

@@ -31,8 +31,6 @@ import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor"
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
 import { AdminSecurityPanel } from "@/components/admin/AdminSecurityPanel";
 import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
-import { BlogManager } from "@/components/admin/BlogManager";
-import { BlogSettingsManager } from "@/components/admin/BlogSettingsManager";
 import { FeaturesManager } from "@/components/admin/FeaturesManager";
 import { FeatureOverridesManager } from "@/components/admin/FeatureOverridesManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -829,11 +827,6 @@ const AdminDashboard = () => {
             {/* FAQ Section */}
             {currentSection === 'faq' && <FAQEditor />}
 
-            {/* Blog Section */}
-            {currentSection === 'blog' && <BlogManager />}
-
-            {/* Blog Settings Section */}
-            {currentSection === 'blog-settings' && <BlogSettingsManager />}
 
             {/* Messages Section */}
             {currentSection === 'messages' && <AdminMessagesManager />}

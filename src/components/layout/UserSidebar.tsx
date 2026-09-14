@@ -220,12 +220,10 @@ export function UserSidebar() {
     { title: t('proposal_creator'), icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
     { title: "Criador de Contratos", icon: Gavel, path: "/dashboard", tab: "contratos", hideForTeamMember: true },
     { title: "Criador de Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
-    { title: t('creative_extractor'), icon: Download, path: "/dashboard", tab: "extrator-criativos", hideForTeamMember: true },
   ];
 
   // Support items - all hidden for team members
   const supportItems: MenuItem[] = [
-    { title: t('blog'), icon: FileText, path: "/blog", hideForTeamMember: true },
     { title: t('support_ticket'), icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system", hideForTeamMember: true },
     { title: t('voucher'), icon: Gift, path: "/dashboard", tab: "voucher", hideForTeamMember: true },
     { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan", hideForTeamMember: true },
@@ -441,7 +439,6 @@ export function UserSidebar() {
                         <SidebarMenuButton
                           onClick={() => {
                             if (item.openInNewTab) window.open(`${path}${tab ? `?tab=${tab}` : ''}`, '_blank');
-                            else if (item.title === "Blog") window.open(item.path, '_blank');
                             else handleNavigation(path, tab, catId);
                           }}
                           className={cn(

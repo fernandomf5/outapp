@@ -52,7 +52,7 @@ import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 
 
 import { AdSpyPanel } from "@/components/AdSpyPanel";
-import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
+
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 // MembersAreaCreator removed - only Simple Members Area is used
@@ -856,14 +856,6 @@ const Dashboard = () => {
             icon={<ClipboardCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
             onClick={() => handleTabChange('aprova-job')}
           />
-
-          {/* 30. Extrator de Criativos */}
-          <ResourceCard
-            title="Extrator de Criativos"
-            description="Extraia criativos de anúncios"
-            icon={<Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />}
-            onClick={() => handleTabChange('extrator-criativos')}
-          />
         </div>
 
         {/* Meus Chats Section */}
@@ -1221,12 +1213,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="extrator-criativos">
-            <FeatureGate featureKey="creative_extractor">
-              <FeatureTutorialVideo featureKey="extrator-criativos" />
-              <CreativeExtractorPanel />
-            </FeatureGate>
-          </TabsContent>
 
 
           <TabsContent value="tarefas">
