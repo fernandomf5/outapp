@@ -643,11 +643,10 @@ export function ScriptOrganizerPanel() {
                       <div className="flex flex-col gap-1 pt-2 border-t border-border">
                         <div className="flex flex-wrap items-center justify-end gap-1">
                           <Button
-
                             size="sm"
                             variant="ghost"
                             className="h-6 px-2 text-[10px] gap-1"
-                            onClick={() => handleIncrementUse(script, 'text')}
+                            onClick={() => handleIncrementUse(script)}
                             aria-label="Copiar texto"
                           >
                             <Copy className="h-3 w-3" /> Copiar texto
