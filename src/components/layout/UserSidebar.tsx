@@ -307,7 +307,7 @@ export function UserSidebar() {
       } as React.CSSProperties}
     >
       <div className={cn(
-        "flex h-14 shrink-0 items-center overflow-hidden border-b border-sidebar-border",
+        "flex h-12 shrink-0 items-center overflow-hidden border-b border-sidebar-border",
         collapsed ? "justify-center p-0" : "px-3"
       )}>
         <Link 
@@ -329,7 +329,7 @@ export function UserSidebar() {
       
       {/* Search input - Hidden on mobile if collapsed or just generally more compact */}
       {!collapsed && (
-        <div className="relative shrink-0 border-b border-sidebar-border px-2.5 py-2">
+        <div className="relative shrink-0 border-b border-sidebar-border px-2.5 py-1.5">
           <div className="relative group">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
@@ -337,7 +337,7 @@ export function UserSidebar() {
               placeholder="Buscar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 rounded-md border-sidebar-border bg-sidebar-accent/40 pl-8 pr-8 text-xs focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+              className="h-7 rounded-md border-sidebar-border bg-sidebar-accent/40 pl-8 pr-8 text-xs focus-visible:ring-1 focus-visible:ring-sidebar-ring"
             />
             {searchQuery && (
               <button
@@ -357,7 +357,7 @@ export function UserSidebar() {
                   <button
                     key={`${item.path}-${item.tab}`}
                     onClick={() => handleSearchSelect(item)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent rounded-lg transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-xs hover:bg-accent rounded-lg transition-colors text-left"
                   >
                     <div className="p-1.5 rounded-md bg-primary/10 text-primary">
                       <item.icon className="h-4 w-4 shrink-0" />
@@ -379,7 +379,7 @@ export function UserSidebar() {
       )}
       
       <ScrollArea className="flex-1 min-h-0 overflow-x-hidden h-full">
-        <SidebarContent className={cn("gap-1 p-1.5 pb-16", collapsed && "items-center px-0")}>
+        <SidebarContent className={cn("gap-0.5 p-1 pb-16", collapsed && "items-center px-0")}>
           {/* Group Rendering Helper */}
           {Object.entries({
             main: { label: t('main'), items: mainItems, show: !isTeamMember },
@@ -403,9 +403,9 @@ export function UserSidebar() {
                       <SidebarMenuButton
                         onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
                         className={cn(
-                          "h-8 rounded-md px-2 text-[13px] transition-colors",
+                          "h-7 rounded-md px-2 text-xs transition-colors",
                           isActive("/dashboard", "cadastro-settings") ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                          collapsed && "h-9 w-9 justify-center !p-0"
+                          collapsed && "h-8 w-8 justify-center !p-0"
                         )}
                         tooltip={collapsed ? "Gerenciar" : undefined}
                       >
@@ -448,9 +448,9 @@ export function UserSidebar() {
                             else handleNavigation(path, tab, catId);
                           }}
                           className={cn(
-                            "h-8 min-w-0 rounded-md px-2 text-[13px] transition-colors",
-                            active ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                            collapsed && "h-9 w-9 justify-center !p-0"
+                          "h-7 min-w-0 rounded-md px-2 text-xs transition-colors",
+                          active ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                          collapsed && "h-8 w-8 justify-center !p-0"
                           )}
                           tooltip={collapsed ? title : undefined}
                         >
@@ -469,14 +469,14 @@ export function UserSidebar() {
 
             if (group.isCollapsible && !collapsed) {
               return (
-                <SidebarGroup key={key} className={cn("p-1.5", collapsed && "px-0")}>
+                <SidebarGroup key={key} className={cn("p-1", collapsed && "px-0")}>
                   <Collapsible
                     open={isCadastroOpen}
                     onOpenChange={setIsCadastroOpen}
                     className="w-full"
                   >
                     <CollapsibleTrigger asChild>
-                      <SidebarGroupLabel className="mb-1 flex h-7 w-full cursor-pointer items-center justify-between rounded-md border border-sidebar-primary/20 bg-sidebar-primary/10 px-2.5 text-xs font-semibold text-sidebar-primary transition-colors hover:bg-sidebar-primary/15">
+                      <SidebarGroupLabel className="mb-1 flex h-6 w-full cursor-pointer items-center justify-between rounded-md bg-sidebar-primary/10 px-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-primary transition-colors hover:bg-sidebar-primary/15">
                         <span>{group.label}</span>
                         <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isCadastroOpen ? "" : "-rotate-90")} />
                       </SidebarGroupLabel>
@@ -492,9 +492,9 @@ export function UserSidebar() {
             }
 
             return (
-              <SidebarGroup key={key} className={cn("p-1.5", collapsed && "px-0")}>
+              <SidebarGroup key={key} className={cn("p-1", collapsed && "px-0")}>
                 {!collapsed && (
-                  <SidebarGroupLabel className="mb-1 h-7 rounded-md border border-sidebar-primary/20 bg-sidebar-primary/10 px-2.5 text-xs font-semibold text-sidebar-primary">
+                  <SidebarGroupLabel className="mb-1 flex h-6 w-full items-center rounded-md bg-sidebar-primary/10 px-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-primary">
                     {group.label}
                   </SidebarGroupLabel>
                 )}
