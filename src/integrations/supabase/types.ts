@@ -808,7 +808,7 @@ export type Database = {
           id: string
           last_login_at: string | null
           name: string
-          password_hash: string
+          password_hash: string | null
           phone: string | null
           updated_at: string
           verification_token: string | null
@@ -823,7 +823,7 @@ export type Database = {
           id?: string
           last_login_at?: string | null
           name: string
-          password_hash: string
+          password_hash?: string | null
           phone?: string | null
           updated_at?: string
           verification_token?: string | null
@@ -838,7 +838,7 @@ export type Database = {
           id?: string
           last_login_at?: string | null
           name?: string
-          password_hash?: string
+          password_hash?: string | null
           phone?: string | null
           updated_at?: string
           verification_token?: string | null
@@ -3756,7 +3756,7 @@ export type Database = {
       }
       cloned_pages: {
         Row: {
-          affiliate_id: string
+          affiliate_id: string | null
           clicks: number | null
           cloned_url: string
           created_at: string
@@ -3773,7 +3773,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          affiliate_id: string
+          affiliate_id?: string | null
           clicks?: number | null
           cloned_url: string
           created_at?: string
@@ -3790,7 +3790,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          affiliate_id?: string
+          affiliate_id?: string | null
           clicks?: number | null
           cloned_url?: string
           created_at?: string
