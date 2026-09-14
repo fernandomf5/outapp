@@ -320,7 +320,7 @@ export function UserSidebar() {
           <img
             src={currentLogo}
             alt={siteSettings.siteTitle || "Out App"}
-            style={{ height: `${collapsed ? Math.min(logoSize, 32) : logoSize}px` }}
+            style={{ height: `${collapsed ? Math.min(logoSize, 32) : Math.min(logoSize, 52)}px` }}
             className="w-auto max-w-full object-contain transition-all duration-300"
           />
           {!collapsed && <span className="font-bold text-lg tracking-tight whitespace-nowrap">Out App</span>}
