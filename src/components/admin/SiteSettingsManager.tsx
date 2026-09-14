@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Video, Image as ImageIcon, Globe, Upload, X } from "lucide-react";
+import { Settings, Video, Image as ImageIcon, Globe, Upload, X, Palette } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { applyThemeColor, isValidThemeColor, notifyThemeColorChange } from "@/hooks/useDynamicTheme";
 
 interface FooterMenu {
   title: string;
@@ -41,6 +42,7 @@ export const SiteSettingsManager = () => {
   const [headCode, setHeadCode] = useState("");
   const [footerCode, setFooterCode] = useState("");
   const [checkoutBannerUrl, setCheckoutBannerUrl] = useState("");
+  const [sitePrimaryColor, setSitePrimaryColor] = useState("#5ce951");
 
   useEffect(() => {
     fetchSettings();
@@ -62,7 +64,8 @@ export const SiteSettingsManager = () => {
       'social_links',
       'head_code',
       'footer_code',
-      'checkout_banner_url'
+      'checkout_banner_url',
+      'site_primary_color'
     ];
     
     const { data, error } = await supabase
@@ -130,6 +133,11 @@ export const SiteSettingsManager = () => {
           case 'checkout_banner_url':
             setCheckoutBannerUrl(item.value || "");
             break;
+          case 'site_primary_color':
+            if (isValidThemeColor(item.value || "")) {
+              setSitePrimaryColor(item.value || "#5ce951");
+            }
+            break;
         }
       });
     }
@@ -155,6 +163,11 @@ export const SiteSettingsManager = () => {
   };
 
   const handleSaveAll = async () => {
+    if (!isValidThemeColor(sitePrimaryColor)) {
+      toast({ title: "Cor inválida", description: "Use o formato hexadecimal, por exemplo #5CE951.", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
     
     await Promise.all([
@@ -172,9 +185,11 @@ export const SiteSettingsManager = () => {
       saveSetting('social_links', JSON.stringify(socialLinks)),
       saveSetting('head_code', headCode),
       saveSetting('footer_code', footerCode),
-      saveSetting('checkout_banner_url', checkoutBannerUrl)
+      saveSetting('checkout_banner_url', checkoutBannerUrl),
+      saveSetting('site_primary_color', sitePrimaryColor.toLowerCase())
     ]);
 
+    notifyThemeColorChange(sitePrimaryColor);
     toast({ title: "Todas as configurações salvas com sucesso!" });
     setLoading(false);
   };
@@ -334,6 +349,47 @@ export const SiteSettingsManager = () => {
               />
               <p className="text-xs text-muted-foreground">
                 Aparece na aba do navegador e nos mecanismos de busca
+              </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Palette className="h-4 w-4 text-primary" />
+                <Label htmlFor="site-primary-color">Cor principal de todo o site</Label>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <input
+                  id="site-primary-color"
+                  type="color"
+                  value={isValidThemeColor(sitePrimaryColor) ? sitePrimaryColor : "#5ce951"}
+                  onChange={(event) => {
+                    setSitePrimaryColor(event.target.value);
+                    applyThemeColor(event.target.value);
+                  }}
+                  className="h-11 w-full cursor-pointer rounded-md border border-input bg-background p-1 sm:w-20"
+                  aria-label="Escolher cor principal"
+                />
+                <Input
+                  value={sitePrimaryColor}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setSitePrimaryColor(value);
+                    if (isValidThemeColor(value)) applyThemeColor(value);
+                  }}
+                  placeholder="#5CE951"
+                  className="font-mono uppercase sm:max-w-48"
+                  maxLength={7}
+                  aria-label="Cor principal em hexadecimal"
+                />
+                <div className="flex h-11 flex-1 items-center gap-3 rounded-md border bg-muted/40 px-3">
+                  <span className="h-6 w-6 rounded-full bg-primary shadow-glow" aria-hidden="true" />
+                  <span className="text-sm text-muted-foreground">Prévia da cor principal</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Aplicada na página inicial, painéis, menus, botões, links e destaques.
               </p>
             </div>
 
@@ -687,15 +743,13 @@ export const SiteSettingsManager = () => {
                 id="video-url"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/embed/..."
+                placeholder="YouTube, Vimeo, Google Drive ou arquivo MP4"
                 className="font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Cole a URL de embed do YouTube, Vimeo ou outro serviço.
+                Cole o link do YouTube, Vimeo, Google Drive ou de um arquivo de vídeo.
                 <br />
-                Exemplo YouTube: https://www.youtube.com/embed/VIDEO_ID
-                <br />
-                Deixe em branco para não exibir o vídeo na landing page.
+                O vídeo aparecerá entre o título e a descrição da primeira seção.
               </p>
             </div>
           </TabsContent>

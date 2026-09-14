@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Play } from 'lucide-react';
 import outAppLogo from '@/assets/out-app-logo.png';
+import { getVideoEmbedUrl } from '@/lib/videoEmbed';
 
 interface VideoCoverProps {
   videoUrl: string;
@@ -14,16 +15,29 @@ export const VideoCover = ({ videoUrl, logoUrl }: VideoCoverProps) => {
     setIsPlaying(true);
   };
 
-  const getEmbedUrl = (url: string) => {
-    return url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/') + '?autoplay=1';
-  };
+  const embedUrl = getVideoEmbedUrl(videoUrl, { autoplay: isPlaying });
+
+  if (!embedUrl) {
+    return (
+      <video
+        src={videoUrl}
+        controls
+        playsInline
+        preload="metadata"
+        className="aspect-video w-full rounded-lg bg-muted object-contain shadow-xl"
+        aria-label="Vídeo de apresentação da Out App"
+      >
+        Seu navegador não suporta a reprodução deste vídeo.
+      </video>
+    );
+  }
 
   if (isPlaying) {
     return (
       <div className="relative w-full aspect-[4/3] xs:aspect-[16/10] sm:aspect-video rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-muted mx-auto max-w-[95%] sm:max-w-full">
         <iframe
-          src={getEmbedUrl(videoUrl)}
-          title="Video demonstração"
+          src={embedUrl}
+          title="Vídeo de apresentação da Out App"
           className="absolute inset-0 w-full h-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -34,11 +48,20 @@ export const VideoCover = ({ videoUrl, logoUrl }: VideoCoverProps) => {
 
   return (
     <div 
-      className="relative w-full aspect-[4/3] xs:aspect-[16/10] sm:aspect-video rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl cursor-pointer group mx-auto max-w-[95%] sm:max-w-full"
+      className="relative mx-auto aspect-video w-full cursor-pointer overflow-hidden rounded-lg border border-primary/30 shadow-xl group"
       onClick={handlePlay}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handlePlay();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="Reproduzir vídeo de apresentação"
     >
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-secondary" />
+      <div className="absolute inset-0 gradient-primary" />
       
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">

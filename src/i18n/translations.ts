@@ -103,7 +103,6 @@ export const translations = {
     tutorial_videos: "Vídeos Tutoriais",
     quick_notes: "Notas Rápidas",
     access_as_team_member: "Acessar como Membro",
-    blog: "Blog",
     
     // Sidebar Admin
     admin_panel: "Painel Admin",
@@ -123,7 +122,6 @@ export const translations = {
     custom_pages: "Páginas Customizadas",
     integrations: "Integrações",
     site_settings: "Configurações do Site",
-    blog_settings: "Configurações do Blog",
     discount_coupons: "Cupons de Desconto",
     payment_integrations: "Integrações de Pagamento",
     online_users: "Usuários Online",
@@ -512,7 +510,6 @@ export const translations = {
     tutorial_videos: "Tutorial Videos",
     quick_notes: "Quick Notes",
     access_as_team_member: "Access as Member",
-    blog: "Blog",
     
     // Sidebar Admin
     admin_panel: "Admin Panel",
@@ -532,7 +529,6 @@ export const translations = {
     custom_pages: "Custom Pages",
     integrations: "Integrations",
     site_settings: "Site Settings",
-    blog_settings: "Blog Settings",
     discount_coupons: "Discount Coupons",
     payment_integrations: "Payment Integrations",
     online_users: "Online Users",
@@ -920,7 +916,6 @@ export const translations = {
     tutorial_videos: "Videos Tutoriales",
     quick_notes: "Notas Rápidas",
     access_as_team_member: "Acceder como Miembro",
-    blog: "Blog",
     
     // Sidebar Admin
     admin_panel: "Panel Admin",
@@ -940,7 +935,6 @@ export const translations = {
     custom_pages: "Páginas Personalizadas",
     integrations: "Integraciones",
     site_settings: "Configuración del Sitio",
-    blog_settings: "Configuración del Blog",
     discount_coupons: "Cupones de Descuento",
     payment_integrations: "Integraciones de Pago",
     online_users: "Usuarios en Línea",

@@ -174,7 +174,7 @@ export function UserSidebar() {
     navigate(url);
   };
 
-  // Main items - overview is always visible, Blog is external
+  // Main items - overview is always visible
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview", hideForTeamMember: true },
     { title: "Abrir nova aba", icon: ExternalLink, path: "/dashboard", tab: "overview", openInNewTab: true, hideForTeamMember: true },

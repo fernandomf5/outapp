@@ -11,6 +11,7 @@ import { TeamMemberProvider } from "./contexts/TeamMemberContext";
 import { useEffect, useState } from "react";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useFavicon } from "./hooks/useFavicon";
+import { useDynamicTheme } from "./hooks/useDynamicTheme";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CheckoutEditorPage from "./pages/CheckoutEditorPage";
@@ -71,6 +72,7 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   useFavicon(); // Aplica o favicon globalmente
+  useDynamicTheme();
   
   return (
     <BrowserRouter>
