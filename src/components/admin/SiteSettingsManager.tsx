@@ -404,6 +404,33 @@ export const SiteSettingsManager = () => {
             <Separator />
 
             <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="site-logo-size">Tamanho da logomarca</Label>
+                <span className="text-sm font-medium text-muted-foreground">{logoSize}px</span>
+              </div>
+              <Slider
+                id="site-logo-size"
+                value={[logoSize]}
+                min={MIN_LOGO_SIZE}
+                max={MAX_LOGO_SIZE}
+                step={2}
+                onValueChange={(values) => setLogoSize(parseLogoSize(String(values[0])))}
+                aria-label="Tamanho da logomarca"
+              />
+              <div className="flex items-center gap-3 rounded-md border bg-muted/40 p-3">
+                <img
+                  src={logoUrl || logoLightUrl || logoDarkUrl || "/logo.png"}
+                  alt="Prévia da logomarca"
+                  style={{ height: `${logoSize}px` }}
+                  className="w-auto object-contain"
+                />
+                <span className="text-sm text-muted-foreground">Prévia do tamanho no site e nos menus</span>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
               <Label>Logomarca do Site</Label>
               <div className="flex items-center gap-4">
                 <Input
