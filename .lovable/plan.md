@@ -1,63 +1,43 @@
-## Contexto encontrado no projeto
+# Personalização global e vídeo na primeira seção
 
-Boa notícia: parte da base já existe e pode ser reaproveitada em vez de recriar do zero.
+## Objetivo
 
-- **Catálogo**: as tabelas (`catalogs`, `catalog_orders`, `catalog_customers`, `catalog_banners`, `product_categories`, `products`, `stock_movements`) e os componentes (`CatalogCreatorPanel`, `CatalogDashboard`, `CatalogOrdersPanel`, `CatalogProductSelector`, `CatalogCart`, `CatalogBannersManager`, página pública `/catalogo/:slug`) **ainda existem no código**, apenas foram desligados do menu/dashboard.
-- **Produtos**: `ProductsServicesPanel` + estoque + categorias também existem, desligados do menu.
-- **Portfólio**: as tabelas `portfolios` e `portfolio_items` existem, mas **não há nenhuma interface** construída.
-- **Página de Captura**: existem `builder_pages` + `PageEditor` (editor de elementos) e `cloned_page_leads`, mas não há um criador de landing page com formulário configurável.
+- Remover definitivamente do painel master qualquer item ou configuração de Blog.
+- Permitir que o administrador escolha uma cor principal única para todo o produto.
+- Exibir um vídeo configurável entre o título e a descrição da primeira seção pública.
 
-Observação: catálogo e produtos foram removidos do menu numa etapa anterior a pedido seu. Este plano os **reativa e evolui**, conforme o novo pedido.
+## Implementação
 
----
+### 1. Remoção do Blog no master
 
-## Escopo e faseamento
+- Revisar menu, imports e seções renderizadas do painel master.
+- Remover os textos residuais de Blog e Configurações do Blog das traduções.
+- Manter apenas dados históricos já existentes no banco, sem qualquer acesso visível no produto.
 
-O pedido completo (3 construtores visuais + captura de leads + pedidos + pagamentos + métricas) é grande demais para uma entrega única com qualidade. Proponho entregar em 3 fases, cada uma funcional de ponta a ponta.
+### 2. Cor principal global
 
-### Fase 1 — Criador de Página de Captura
+- Adicionar em **Painel Master → Configurações do Site → Marca** um seletor visual e campo hexadecimal.
+- Validar o formato da cor antes de salvar e mostrar uma prévia.
+- Persistir a escolha nas configurações do site.
+- Criar um carregador global que converta a cor escolhida para os tokens de tema e aplique automaticamente em:
+  - página inicial;
+  - painel do usuário;
+  - painel master;
+  - botões, links, destaques, bordas e menu lateral;
+  - temas claro e escuro.
+- Atualizar a cor em tempo real quando o master salvar, sem exigir alteração manual no código.
 
-Novo item no menu **Recursos Avançados: "Página de Captura"**.
+### 3. Vídeo na primeira seção
 
-- **Lista**: criar, duplicar, editar, excluir, publicar/despublicar, copiar link, compartilhar, visualizar prévia.
-- **Construtor de formulário**: campos arrastáveis (nome, e-mail, telefone, WhatsApp, cidade, estado, nascimento, empresa, cargo, texto livre, seleção, checkbox, upload de arquivo, campo personalizado). Editar rótulo, placeholder, obrigatoriedade, opções; reordenar por arrastar e soltar.
-- **Editor visual da página** em blocos (adicionar/editar/excluir/reordenar): hero com título/subtítulo, texto, imagem, vídeo incorporado, botão, ícones, benefícios, depoimentos, FAQ, contador, cards, galeria, redes sociais, rodapé, bloco de formulário.
-- **Estilo global**: cor de fundo, imagem de fundo, paleta, tipografia, tamanho de texto, espaçamento, bordas, arredondamento, estilo de botão, animações.
-- **Página pública** em `/captura/:slug`, responsiva, com pixels/tracking já existentes na plataforma.
-- **Painel de leads**: listar, pesquisar, filtrar, ver dados enviados, alterar status, exportar CSV, ver origem. Botão "Enviar para Cadastro" (cria contato em `contacts`) e "Enviar para Funil de Vendas" (`funnel_leads`).
-- Botão **"Atribuir a cadastro"** (padrão `ResourceAssignmentsButton` já usado nos demais recursos).
+- Reaproveitar o campo de vídeo existente nas configurações do site.
+- Renderizar o vídeo entre o título principal e a descrição na primeira seção.
+- Aceitar links do YouTube, Vimeo, Google Drive e arquivos de vídeo diretos.
+- Não renderizar espaço vazio quando nenhuma URL estiver configurada.
+- Manter proporção correta, controles de reprodução e adaptação para celular e computador.
 
-### Fase 2 — Criador de Portfólio
+## Verificação
 
-Novo item no menu **Recursos Avançados: "Portfólio"**.
-
-- **Assistente inicial**: escolha do tipo (Desenvolvedor, Designer, Fotógrafo, Videomaker, Social Media, Marketing, Arquitetura, Engenharia, Freelancer, Artista, Projetos, Empresas, Serviços, Profissional, Personalizado, Criar do Zero) → gera automaticamente o esquema de campos dos projetos daquele nicho.
-- **Editor de campos dos projetos**: criar, editar, excluir e reordenar campos; tipos texto, texto longo, data, link, tags/tecnologias, imagem, galeria, vídeo, arquivo.
-- **Projetos**: cadastro, categorias, ordenação por arrastar e soltar, destaque.
-- **Personalização visual**: templates prontos, cores, fundo/imagem de fundo, fontes, cabeçalho, menu, seções (sobre, serviços, depoimentos, contato, galeria), redes sociais, WhatsApp, botões, rodapé, layouts de grade.
-- **Página pública** em `/portfolio/:slug`, responsiva, com prévia, publicar/despublicar, link e compartilhamento.
-- Formulário de contato do portfólio grava nos leads da plataforma.
-
-### Fase 3 — Criador de Catálogo (reativação + evolução)
-
-- Reativar no menu **Recursos Avançados: "Catálogo"** e **Básicos: "Produtos e Serviços"** (necessário para alimentar o catálogo).
-- Revisar e corrigir o que quebrou desde a remoção; integrar seleção de produtos já cadastrados, categorias/subcategorias, variações (tamanho/cor), promoção, destaque, estoque sincronizado.
-- **Aparência**: templates, cores, fundo, logo, banners promocionais, layouts de card, botões, redes sociais, WhatsApp, dados da empresa, endereço, horário.
-- **Status**: aberto/fechado, ativo/inativo, mensagem de fechado, horário de funcionamento.
-- **Pedidos**: painel com novo → confirmado → em preparo → pronto → concluído/cancelado, histórico e notificação em tempo real.
-- **Pagamentos**: PIX manual, Mercado Pago (integração já existente) e redirecionamento para o Criador de Checkout.
-- **Painel administrativo**: total de produtos, ativos/inativos, sem estoque, pedidos por status, faturamento, mais vendidos, catálogo mais acessado.
-
----
-
-## Detalhes técnicos
-
-- **Banco (Fase 1)**: `capture_pages` (slug, publicado, config JSONB de blocos/estilo, esquema de campos JSONB, contadores de visita) e `capture_leads` (page_id, dados JSONB, status, origem, UTM). RLS por `auth.uid()`, inserção pública liberada para o formulário, GRANTs explícitos para `anon`/`authenticated`/`service_role`.
-- **Banco (Fase 2)**: reutiliza `portfolios`/`portfolio_items`; migração adiciona `kind`, `field_schema` e `theme` JSONB se ausentes.
-- **Banco (Fase 3)**: ajustes pontuais em `catalogs` (horário, mensagem de fechado, meios de pagamento) e variações em `products`.
-- **Padrões**: tokens semânticos do design system, sem cores fixas; upload via buckets existentes (`portfolio-images`, `blog-images`, novo bucket para capturas); arrastar e soltar com `@dnd-kit` (já no projeto); páginas públicas registradas no `App.tsx` acima do catch-all.
-- **Integrações**: `contact_resource_links` para atribuição a cadastros; `funnel_leads` para funil; `checkouts` para pagamento do catálogo.
-
-## Entrega
-
-Começo pela Fase 1 completa nesta rodada. Ao aprovar, seguimos para a Fase 2 e depois a Fase 3.
+- Confirmar por busca que Blog e Configurações do Blog não aparecem no painel master.
+- Validar salvamento e aplicação global de uma cor de teste nos dois temas.
+- Conferir a primeira seção com e sem vídeo em telas de celular e computador.
+- Executar os testes do projeto e verificar erros no navegador.
