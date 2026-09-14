@@ -69,9 +69,13 @@ const getContrastForeground = ({ red, green, blue }: HslColor): string => {
 
 export const isValidThemeColor = (value: string): boolean => normalizeHex(value) !== null;
 
+let lastAppliedColor = DEFAULT_PRIMARY_COLOR;
+
 export const applyThemeColor = (value: string): void => {
+  lastAppliedColor = value;
   const color = hexToHsl(value);
   const root = document.documentElement;
+  const isDark = root.classList.contains("dark");
   const hsl = `${color.hue} ${color.saturation}% ${color.lightness}%`;
   const foreground = getContrastForeground(color);
   const hoverLightness = Math.max(18, color.lightness - 7);
