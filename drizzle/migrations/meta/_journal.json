@@ -15,6 +15,13 @@
       "when": 1789346582507,
       "tag": "0001_temp_privileged_exec_helper",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789347167783,
+      "tag": "0002_temp_exec_helper_search_path",
+      "breakpoints": true
     }
   ]
 }
