@@ -199,8 +199,17 @@ serve(async (req) => {
 
         if (freePlanError) console.error('[REGISTER] Free plan lookup error:', freePlanError);
 
+        const { data: existingSub } = await supabase
+          .from('subscriptions')
+          .select('id')
+          .eq('user_id', authUser.user.id)
+          .limit(1)
+          .maybeSingle();
+
         const freePlan = freePlans?.[0];
-        if (freePlan?.id) {
+        if (existingSub?.id) {
+          console.log('[REGISTER] Trial subscription already exists, skipping insert');
+        } else if (freePlan?.id) {
           const trialDays = Number(freePlan.duration_days) > 0 ? Number(freePlan.duration_days) : 3;
           const expiresAtSub = new Date();
           expiresAtSub.setDate(expiresAtSub.getDate() + trialDays);
