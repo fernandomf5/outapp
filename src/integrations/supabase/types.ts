@@ -33,7 +33,9 @@ export type Database = {
           cpm: number | null
           cpv: number | null
           created_at: string
+          creatives: Json
           custom_conversions: number | null
+          daily_budget: number
           end_date: string | null
           engagement_cost: number | null
           engagement_count: number | null
@@ -79,7 +81,9 @@ export type Database = {
           cpm?: number | null
           cpv?: number | null
           created_at?: string
+          creatives?: Json
           custom_conversions?: number | null
+          daily_budget?: number
           end_date?: string | null
           engagement_cost?: number | null
           engagement_count?: number | null
@@ -125,7 +129,9 @@ export type Database = {
           cpm?: number | null
           cpv?: number | null
           created_at?: string
+          creatives?: Json
           custom_conversions?: number | null
+          daily_budget?: number
           end_date?: string | null
           engagement_cost?: number | null
           engagement_count?: number | null
@@ -3764,6 +3770,7 @@ export type Database = {
           page_content: string | null
           slug: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           affiliate_id: string
@@ -3780,6 +3787,7 @@ export type Database = {
           page_content?: string | null
           slug?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           affiliate_id?: string
@@ -3796,6 +3804,7 @@ export type Database = {
           page_content?: string | null
           slug?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -4306,6 +4315,7 @@ export type Database = {
           client_name: string | null
           client_phone: string | null
           client_signature: string | null
+          client_signature_ip: string | null
           client_signed_at: string | null
           client_signer_ip: string | null
           client_signer_name: string | null
@@ -4332,6 +4342,7 @@ export type Database = {
           client_name?: string | null
           client_phone?: string | null
           client_signature?: string | null
+          client_signature_ip?: string | null
           client_signed_at?: string | null
           client_signer_ip?: string | null
           client_signer_name?: string | null
@@ -4358,6 +4369,7 @@ export type Database = {
           client_name?: string | null
           client_phone?: string | null
           client_signature?: string | null
+          client_signature_ip?: string | null
           client_signed_at?: string | null
           client_signer_ip?: string | null
           client_signer_name?: string | null
