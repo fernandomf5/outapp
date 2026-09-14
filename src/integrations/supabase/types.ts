@@ -1441,6 +1441,197 @@ export type Database = {
           },
         ]
       }
+      aprova_job_clients: {
+        Row: {
+          access_token: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_login_at: string | null
+          name: string
+          password_hash: string
+          primary_color: string | null
+          secondary_color: string | null
+          updated_at: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          access_token?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          name: string
+          password_hash: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          updated_at?: string | null
+          user_id: string
+          username: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          name?: string
+          password_hash?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          updated_at?: string | null
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      aprova_job_comments: {
+        Row: {
+          client_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_from_client: boolean | null
+          job_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_from_client?: boolean | null
+          job_id: string
+        }
+        Update: {
+          client_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_from_client?: boolean | null
+          job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aprova_job_comments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprova_job_comments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aprova_job_jobs: {
+        Row: {
+          approved_at: string | null
+          client_id: string
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          media_urls: Json | null
+          rejection_notes: string | null
+          revision_notes: string | null
+          status: Database["public"]["Enums"]["job_approval_status"] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          media_urls?: Json | null
+          rejection_notes?: string | null
+          revision_notes?: string | null
+          status?: Database["public"]["Enums"]["job_approval_status"] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          media_urls?: Json | null
+          rejection_notes?: string | null
+          revision_notes?: string | null
+          status?: Database["public"]["Enums"]["job_approval_status"] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aprova_job_jobs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aprova_job_notifications: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          job_id: string | null
+          message: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          job_id?: string | null
+          message: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          job_id?: string | null
+          message?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aprova_job_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprova_job_notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_name: string
@@ -3751,6 +3942,56 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_form_submissions: {
+        Row: {
+          agent_id: string | null
+          created_at: string
+          email: string
+          id: string
+          is_read: boolean
+          message: string
+          name: string
+          phone: string | null
+          replied_at: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          is_read?: boolean
+          message: string
+          name: string
+          phone?: string | null
+          replied_at?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          name?: string
+          phone?: string | null
+          replied_at?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_form_submissions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_history: {
         Row: {
           amount: number | null
@@ -5792,6 +6033,151 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          business_id: string | null
+          client_address: string | null
+          client_document: string | null
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          company_address: string | null
+          company_document: string | null
+          company_name: string | null
+          company_phone: string | null
+          created_at: string
+          customer_id: string | null
+          discount_amount: number
+          due_date: string
+          id: string
+          invoice_number: string
+          invoice_title: string
+          items: Json
+          last_reminder_sent_at: string | null
+          logo_url: string | null
+          mercadopago_checkout_url: string | null
+          mercadopago_payment_id: string | null
+          mercadopago_preference_id: string | null
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          pix_key: string | null
+          pix_key_type: string | null
+          primary_color: string | null
+          public_token: string
+          recurring_plan_id: string | null
+          reminder_sent: boolean | null
+          reminder_sent_at: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          client_address?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          company_address?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string
+          customer_id?: string | null
+          discount_amount?: number
+          due_date?: string
+          id?: string
+          invoice_number: string
+          invoice_title?: string
+          items?: Json
+          last_reminder_sent_at?: string | null
+          logo_url?: string | null
+          mercadopago_checkout_url?: string | null
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          primary_color?: string | null
+          public_token?: string
+          recurring_plan_id?: string | null
+          reminder_sent?: boolean | null
+          reminder_sent_at?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string | null
+          client_address?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          company_address?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string
+          customer_id?: string | null
+          discount_amount?: number
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          invoice_title?: string
+          items?: Json
+          last_reminder_sent_at?: string | null
+          logo_url?: string | null
+          mercadopago_checkout_url?: string | null
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          primary_color?: string | null
+          public_token?: string
+          recurring_plan_id?: string | null
+          reminder_sent?: boolean | null
+          reminder_sent_at?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_recurring_plan_id_fkey"
+            columns: ["recurring_plan_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_recurring_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_categories: {
         Row: {
           color: string
@@ -7487,6 +7873,56 @@ export type Database = {
           webhook_url?: string | null
         }
         Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          external_id: string | null
+          id: string
+          metadata: Json
+          plan_id: string | null
+          provider: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          external_id?: string | null
+          id?: string
+          metadata?: Json
+          plan_id?: string | null
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          external_id?: string | null
+          id?: string
+          metadata?: Json
+          plan_id?: string | null
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plan_features: {
         Row: {
@@ -9713,6 +10149,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "team_member_permissions_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_member_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          team_member_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          team_member_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          team_member_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_member_sessions_team_member_id_fkey"
             columns: ["team_member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
