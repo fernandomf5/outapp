@@ -131,6 +131,10 @@ export const useDynamicTheme = (): void => {
     void loadColor();
     window.addEventListener(THEME_COLOR_EVENT, handleLocalChange);
 
+    // Re-apply when the user toggles light/dark so menu surfaces stay tinted
+    const observer = new MutationObserver(() => applyThemeColor(lastAppliedColor));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
     const channel = supabase
       .channel("global_theme_color")
       .on(
