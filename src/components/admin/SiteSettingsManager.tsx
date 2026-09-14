@@ -43,6 +43,7 @@ export const SiteSettingsManager = () => {
   const [footerCode, setFooterCode] = useState("");
   const [checkoutBannerUrl, setCheckoutBannerUrl] = useState("");
   const [sitePrimaryColor, setSitePrimaryColor] = useState("#5ce951");
+  const [logoSize, setLogoSize] = useState<number>(DEFAULT_LOGO_SIZE);
 
   useEffect(() => {
     fetchSettings();
