@@ -142,6 +142,9 @@ export const SiteSettingsManager = () => {
               setSitePrimaryColor(item.value || "#5ce951");
             }
             break;
+          case 'site_logo_size':
+            setLogoSize(parseLogoSize(item.value));
+            break;
         }
       });
     }
@@ -190,7 +193,8 @@ export const SiteSettingsManager = () => {
       saveSetting('head_code', headCode),
       saveSetting('footer_code', footerCode),
       saveSetting('checkout_banner_url', checkoutBannerUrl),
-      saveSetting('site_primary_color', sitePrimaryColor.toLowerCase())
+      saveSetting('site_primary_color', sitePrimaryColor.toLowerCase()),
+      saveSetting('site_logo_size', String(logoSize))
     ]);
 
     notifyThemeColorChange(sitePrimaryColor);
