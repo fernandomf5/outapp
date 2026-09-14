@@ -420,19 +420,32 @@ serve(async (req) => {
     }
 
     if (action === 'verify') {
-      // Find valid verification code
-      const { data: verificationCode, error: codeError } = await supabase
+      // Normaliza o código (remove espaços/caracteres não numéricos colados do e-mail)
+      const normalizedCode = String(code ?? '').replace(/\D/g, '');
+
+      if (!userId || normalizedCode.length !== 6) {
+        return new Response(
+          JSON.stringify({ error: 'Código de verificação inválido' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Busca o código mais recente ainda não utilizado
+      const { data: codeRows, error: codeError } = await supabase
         .from('user_verification_codes')
         .select('*')
         .eq('user_id', userId)
-        .eq('code', code)
+        .eq('code', normalizedCode)
         .eq('verified', false)
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      const verificationCode = codeRows?.[0];
 
       if (codeError || !verificationCode) {
         return new Response(
           JSON.stringify({ error: 'Código de verificação inválido' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -443,7 +456,7 @@ serve(async (req) => {
       if (now > expiresAt) {
         return new Response(
           JSON.stringify({ error: 'Código de verificação expirado. Solicite um novo código.' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
