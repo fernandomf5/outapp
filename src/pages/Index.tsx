@@ -641,6 +641,12 @@ const Index = () => {
             className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl 3xl:text-7xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 animate-fade-in leading-tight px-1 xs:px-2 sm:px-4 md:px-8 lg:px-12"
             dangerouslySetInnerHTML={{ __html: landingSettings.landing_title }}
           />
+
+          {videoUrl && (
+            <div className="mx-auto mb-4 w-full max-w-3xl px-1 xs:mb-5 sm:mb-6 md:mb-8">
+              <VideoCover videoUrl={videoUrl} logoUrl={logoUrl || undefined} />
+            </div>
+          )}
           
           <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl mb-4 xs:mb-5 sm:mb-6 md:mb-8 text-white/90 max-w-xs xs:max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl 3xl:max-w-5xl mx-auto animate-fade-in leading-relaxed px-1">
             {landingSettings.hero_subtitle}

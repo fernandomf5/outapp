@@ -48,7 +48,7 @@ type PostStatus = 'idea' | 'scheduled' | 'published';
 type ViewFilter = 'all' | 'scheduled' | 'published';
 
 const PLATFORMS = [
-  "Instagram", "Facebook", "TikTok", "YouTube", "LinkedIn", "WhatsApp Status", "Blog", "Outro",
+  "Instagram", "Facebook", "TikTok", "YouTube", "LinkedIn", "WhatsApp Status", "Outro",
 ] as const;
 
 const REMINDER_OPTIONS = [
