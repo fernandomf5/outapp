@@ -45,6 +45,7 @@ const fetchSettings = async (): Promise<SiteSettings> => {
       'site_logo_url',
       'site_logo_light_url',
       'site_logo_dark_url',
+      'site_logo_size',
       'footer_text',
       'footer_menus',
       'social_links'
