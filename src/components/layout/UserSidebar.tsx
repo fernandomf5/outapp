@@ -298,38 +298,38 @@ export function UserSidebar() {
     <Sidebar 
       className={cn(
         "border-r border-border transition-all duration-300 ease-in-out",
-        collapsed ? "w-[60px]" : "w-72"
+        collapsed ? "w-14" : "w-64"
       )} 
       collapsible="icon"
       style={{
-        "--sidebar-width": "18rem",
-        "--sidebar-width-icon": "60px",
+        "--sidebar-width": "16rem",
+        "--sidebar-width-icon": "56px",
       } as React.CSSProperties}
     >
       <div className={cn(
-        "flex items-center border-b border-border overflow-hidden h-[60px] shrink-0",
-        collapsed ? "justify-center p-0" : "px-4"
+        "flex h-14 shrink-0 items-center overflow-hidden border-b border-sidebar-border",
+        collapsed ? "justify-center p-0" : "px-3"
       )}>
         <Link 
           to="/dashboard" 
           className={cn(
-            "flex items-center gap-3 hover:opacity-80 transition-opacity",
+            "flex min-w-0 items-center gap-2.5 transition-opacity hover:opacity-80",
             collapsed && "justify-center w-full"
           )}
         >
           <img
             src={currentLogo}
             alt={siteSettings.siteTitle || "Out App"}
-            style={{ height: `${collapsed ? Math.min(logoSize, 32) : Math.min(logoSize, 52)}px` }}
-            className="w-auto max-w-full object-contain transition-all duration-300"
+            style={{ height: `${collapsed ? Math.min(logoSize, 30) : Math.min(logoSize, 44)}px` }}
+            className="w-auto max-w-[160px] object-contain transition-all duration-300"
           />
-          {!collapsed && <span className="font-bold text-lg tracking-tight whitespace-nowrap">Out App</span>}
+          {!collapsed && <span className="truncate text-sm font-semibold">Out App</span>}
         </Link>
       </div>
       
       {/* Search input - Hidden on mobile if collapsed or just generally more compact */}
       {!collapsed && (
-        <div className="px-3 py-3 border-b border-border/50 relative shrink-0">
+        <div className="relative shrink-0 border-b border-sidebar-border px-2.5 py-2">
           <div className="relative group">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
@@ -337,7 +337,7 @@ export function UserSidebar() {
               placeholder="Buscar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-8 h-9 text-sm bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-xl"
+              className="h-8 rounded-md border-sidebar-border bg-sidebar-accent/40 pl-8 pr-8 text-xs focus-visible:ring-1 focus-visible:ring-sidebar-ring"
             />
             {searchQuery && (
               <button
@@ -379,7 +379,7 @@ export function UserSidebar() {
       )}
       
       <ScrollArea className="flex-1 min-h-0 overflow-x-hidden h-full">
-        <SidebarContent className={cn("p-2 pb-24", collapsed && "items-center px-0")}>
+        <SidebarContent className={cn("gap-1 p-1.5 pb-16", collapsed && "items-center px-0")}>
           {/* Group Rendering Helper */}
           {Object.entries({
             main: { label: t('main'), items: mainItems, show: !isTeamMember },
@@ -396,26 +396,26 @@ export function UserSidebar() {
               const allItems = [...items];
               
               return (
-                <SidebarMenu className={cn(collapsed && "items-center")}>
+                <SidebarMenu className={cn("gap-0.5", collapsed && "items-center")}>
                   {/* Always show "Gerenciar" as the first item in Cadastro group */}
                   {key === 'cadastro' && (
                     <SidebarMenuItem className={cn(collapsed && "w-full flex justify-center")}>
                       <SidebarMenuButton
                         onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
                         className={cn(
-                          "text-sm py-2.5 sm:py-2 transition-all duration-200 rounded-xl sm:rounded-lg",
-                          isActive("/dashboard", "cadastro-settings") ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "hover:bg-accent/70",
-                          collapsed && "justify-center !p-0 w-11 h-11 sm:w-10 sm:h-10"
+                          "h-8 rounded-md px-2 text-[13px] transition-colors",
+                          isActive("/dashboard", "cadastro-settings") ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                          collapsed && "h-9 w-9 justify-center !p-0"
                         )}
                         tooltip={collapsed ? "Gerenciar" : undefined}
                       >
-                        <Settings className="h-5 w-5 shrink-0" />
+                        <Settings className="h-4 w-4 shrink-0" />
                         {!collapsed && <span className="truncate font-medium">Gerenciar</span>}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
 
-                  {items.map((item, idx) => {
+                  {items.map((item) => {
                     const isCat = key === 'cadastro' && item.id;
                     if (!isCat && !canShowItem(item)) return null;
                     
@@ -441,21 +441,21 @@ export function UserSidebar() {
                     const color = isCat ? item.color : undefined;
 
                     return (
-                      <SidebarMenuItem key={title + idx} className={cn(collapsed && "w-full flex justify-center")}>
+                      <SidebarMenuItem key={isCat ? item.id : `${item.path}-${item.tab ?? "root"}`} className={cn(collapsed && "flex w-full justify-center")}>
                         <SidebarMenuButton
                           onClick={() => {
                             if (item.openInNewTab) window.open(`${path}${tab ? `?tab=${tab}` : ''}`, '_blank');
                             else handleNavigation(path, tab, catId);
                           }}
                           className={cn(
-                            "text-sm py-2.5 sm:py-2 transition-all duration-200 rounded-xl sm:rounded-lg",
-                            active ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "hover:bg-accent/70",
-                            collapsed && "justify-center !p-0 w-11 h-11 sm:w-10 sm:h-10"
+                            "h-8 min-w-0 rounded-md px-2 text-[13px] transition-colors",
+                            active ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                            collapsed && "h-9 w-9 justify-center !p-0"
                           )}
                           tooltip={collapsed ? title : undefined}
                         >
                           {React.createElement(IconComponent, { 
-                            className: "h-5 w-5 shrink-0", 
+                            className: "h-4 w-4 shrink-0", 
                             style: isCat && !active ? { color } : undefined 
                           })}
                           {!collapsed && <span className="truncate font-medium">{title}</span>}
@@ -469,20 +469,20 @@ export function UserSidebar() {
 
             if (group.isCollapsible && !collapsed) {
               return (
-                <SidebarGroup key={key} className={cn(collapsed && "px-0")}>
+                <SidebarGroup key={key} className={cn("p-1.5", collapsed && "px-0")}>
                   <Collapsible
                     open={isCadastroOpen}
                     onOpenChange={setIsCadastroOpen}
                     className="w-full"
                   >
                     <CollapsibleTrigger asChild>
-                      <SidebarGroupLabel className="text-green-600 dark:text-green-400 font-bold bg-green-500/10 dark:bg-green-500/20 rounded-xl px-3 py-2 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group mb-2 hover:bg-green-500/20 transition-all border border-green-500/20">
+                      <SidebarGroupLabel className="mb-1 flex h-7 w-full cursor-pointer items-center justify-between rounded-md border border-sidebar-primary/20 bg-sidebar-primary/10 px-2.5 text-xs font-semibold text-sidebar-primary transition-colors hover:bg-sidebar-primary/15">
                         <span>{group.label}</span>
                         <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isCadastroOpen ? "" : "-rotate-90")} />
                       </SidebarGroupLabel>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <SidebarGroupContent className="pt-1">
+                      <SidebarGroupContent>
                         {renderItems(group.items)}
                       </SidebarGroupContent>
                     </CollapsibleContent>
@@ -492,9 +492,9 @@ export function UserSidebar() {
             }
 
             return (
-              <SidebarGroup key={key} className={cn(collapsed && "px-0")}>
+              <SidebarGroup key={key} className={cn("p-1.5", collapsed && "px-0")}>
                 {!collapsed && (
-                  <SidebarGroupLabel className="text-green-600 dark:text-green-400 font-bold bg-green-500/10 dark:bg-green-500/20 rounded-xl px-3 py-2 text-xs sm:text-sm mb-2 border border-green-500/20">
+                  <SidebarGroupLabel className="mb-1 h-7 rounded-md border border-sidebar-primary/20 bg-sidebar-primary/10 px-2.5 text-xs font-semibold text-sidebar-primary">
                     {group.label}
                   </SidebarGroupLabel>
                 )}

@@ -5,7 +5,6 @@ import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditC
 import { Input } from "@/components/ui/input";
 
 import { useTheme } from "next-themes";
-import logoAsset from "@/assets/Logo_3D_Verde.png.asset.json";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +20,7 @@ import { UserSidebar } from "@/components/layout/UserSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { SubscriptionGate } from "@/components/SubscriptionGate";
@@ -105,6 +105,7 @@ const Dashboard = () => {
   const { t } = useLanguage();
   const { hasFeature, loading: featuresLoading } = useUserFeatures();
   const { resolvedTheme } = useTheme();
+  const { settings: siteSettings } = useSiteSettings();
   const [searchParams, setSearchParams] = useSearchParams();
   const [userFullName, setUserFullName] = useState<string>('');
   const [paymentProcessed, setPaymentProcessed] = useState(false);
@@ -167,7 +168,12 @@ const Dashboard = () => {
   // Track user presence for online status
   useUserPresence();
   
-  const currentLogo = logoAsset.url;
+  const currentLogo =
+    (resolvedTheme === "light"
+      ? siteSettings.siteLogoLightUrl || siteSettings.siteLogoUrl
+      : siteSettings.siteLogoDarkUrl || siteSettings.siteLogoUrl) ||
+    siteSettings.siteLogoLightUrl ||
+    "/logo.png";
   const [stats, setStats] = useState({
     totalAgents: 0,
     activeConnections: 0,
@@ -533,12 +539,13 @@ const Dashboard = () => {
                     <SidebarTrigger className="h-8 w-8 sm:h-9 sm:w-9" />
                     <Link
                       to="/dashboard"
-                      className="hidden xs:block bg-primary/10 p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth"
+                      className="hidden h-9 min-w-9 max-w-32 items-center justify-center rounded-md bg-primary/10 px-1.5 transition-colors hover:bg-primary/20 xs:flex"
                     >
                       <img
                         src={currentLogo}
-                        alt="Out App"
-                        className="w-5 h-5 sm:w-6 sm:h-6"
+                        alt={siteSettings.siteTitle || "Out App"}
+                        style={{ height: `${Math.min(siteSettings.siteLogoSize, 30)}px` }}
+                        className="w-auto max-w-full object-contain"
                       />
                     </Link>
                   </div>
