@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/Logo_3D_Verde.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
 import {
@@ -60,7 +61,14 @@ export function UserSidebar() {
   const { theme, resolvedTheme } = useTheme();
   const { isTeamMember, canAccessModule } = useTeamMember();
   
-  const currentLogo = logoAsset.url;
+  const { settings: siteSettings } = useSiteSettings();
+  const currentLogo =
+    (resolvedTheme === "light"
+      ? siteSettings.siteLogoLightUrl || siteSettings.siteLogoUrl
+      : siteSettings.siteLogoDarkUrl || siteSettings.siteLogoUrl) ||
+    siteSettings.siteLogoUrl ||
+    logoAsset.url;
+  const logoSize = siteSettings.siteLogoSize;
   const currentPath = location.pathname;
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
