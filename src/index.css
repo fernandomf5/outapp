@@ -8,7 +8,7 @@
     background-clip: padding-box;
     border: 3px solid transparent;
   }
-  
+
   .rgb-border::before {
     content: '';
     position: absolute;
@@ -22,7 +22,7 @@
     z-index: -1;
     animation: rgbBorder 3s linear infinite;
   }
-  
+
   @keyframes rgbBorder {
     0% {
       background-position: 0% 50%;
@@ -33,6 +33,87 @@
     100% {
       background-position: 0% 50%;
     }
+  }
+
+  /* Animated laser border that follows the configured primary color */
+  .laser-border {
+    position: relative;
+    background-clip: padding-box;
+    border-radius: var(--radius, 0.75rem);
+    --lb-inset: -4px;
+    --lb-radius: calc(var(--radius, 0.75rem) + 4px);
+  }
+
+  .laser-border::before {
+    content: '';
+    position: absolute;
+    inset: var(--lb-inset);
+    border-radius: var(--lb-radius);
+    background: conic-gradient(
+      from 0deg,
+      transparent 0%,
+      hsl(var(--primary-glow-hsl, 116 78% 62%)) 10%,
+      hsl(var(--primary-hsl, 116 62% 38%)) 26%,
+      hsl(var(--primary-glow-hsl, 116 78% 62%)) 44%,
+      transparent 62%,
+      transparent 100%
+    );
+    z-index: -1;
+    animation: laserRotate 2.5s linear infinite;
+    box-shadow:
+      0 0 14px hsl(var(--primary-hsl, 116 62% 38%) / 0.6),
+      0 0 28px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.45),
+      0 0 48px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.2),
+      inset 0 0 24px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.18);
+  }
+
+  .laser-border::after {
+    content: '';
+    position: absolute;
+    inset: calc(var(--lb-inset) - 2px);
+    border-radius: calc(var(--lb-radius) + 2px);
+    background: conic-gradient(
+      from 180deg,
+      transparent 0%,
+      hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.95) 16%,
+      transparent 48%,
+      transparent 100%
+    );
+    z-index: -2;
+    filter: blur(14px);
+    animation: laserRotate 2.5s linear infinite reverse;
+    opacity: 1;
+  }
+
+  @keyframes laserRotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .gradient-animated {
+    background: linear-gradient(-45deg, hsl(var(--primary-hsl, 116 62% 38%) / 0.35), hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.15), hsl(var(--primary-hsl, 116 62% 38%) / 0.25), hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.1));
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.6), 0 0 40px hsl(var(--primary-hsl, 116 62% 38%) / 0.3);
   }
 }
 

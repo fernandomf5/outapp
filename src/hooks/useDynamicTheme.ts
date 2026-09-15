@@ -88,6 +88,9 @@ export const applyThemeColor = (value: string): void => {
   root.style.setProperty("--primary-hover", `${color.hue} ${color.saturation}% ${hoverLightness}%`);
   root.style.setProperty("--primary-light", `${color.hue} ${Math.max(25, color.saturation - 18)}% ${softLightness}%`);
   root.style.setProperty("--primary-glow", `${color.hue} ${color.saturation}% ${glowLightness}%`);
+  // Extra HSL variables for laser/glow effects that need full HSL triplets
+  root.style.setProperty("--primary-hsl", `${color.hue} ${color.saturation}% ${color.lightness}%`);
+  root.style.setProperty("--primary-glow-hsl", `${color.hue} ${color.saturation}% ${glowLightness}%`);
   root.style.setProperty("--ring", hsl);
   root.style.setProperty("--sidebar-primary", hsl);
   root.style.setProperty("--sidebar-primary-foreground", foreground);
