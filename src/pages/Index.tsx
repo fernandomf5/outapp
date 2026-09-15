@@ -628,7 +628,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 xs:pt-28 sm:pt-32 md:pt-32 lg:pt-36 3xl:pt-44 pb-16 xs:pb-18 sm:pb-20 md:pb-22 lg:pb-24 3xl:pb-32 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
+      <section id="inicio" className="pt-24 xs:pt-28 sm:pt-32 md:pt-32 lg:pt-36 3xl:pt-44 pb-16 xs:pb-18 sm:pb-20 md:pb-22 lg:pb-24 3xl:pb-32 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
         {/* Subtle grain/noise overlay for elegance */}
         <div className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}></div>
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
