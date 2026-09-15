@@ -49,9 +49,13 @@ export const LandingFeaturesEditor = () => {
   };
 
   const iconOptions = [
-    "Workflow", "Brain", "Users", "UserPlus", "BarChart3", "Link2",
+    "Workflow", "Brain", "Users", "UserPlus", "BarChart3", "Link2", "Link",
     "Gift", "Ticket", "Video", "DollarSign", "Shield", "TrendingUp",
-    "Bot", "Zap", "MessageSquare", "Clock", "CheckCircle2", "Sparkles"
+    "Bot", "Zap", "MessageSquare", "MessageCircle", "Clock", "CheckCircle2", "Sparkles",
+    "Tags", "ListChecks", "CalendarDays", "Repeat", "Table2", "Wallet", "Receipt",
+    "MousePointerClick", "QrCode", "FileText", "GraduationCap", "ShoppingCart",
+    "Megaphone", "Copy", "Filter", "ClipboardList", "FileSignature", "FileCheck",
+    "ThumbsUp", "Image", "Globe", "Rocket", "Star", "Bell", "Lock", "Send"
   ];
 
   useEffect(() => {
