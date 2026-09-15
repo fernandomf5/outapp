@@ -66,6 +66,7 @@ import InvoicePublicPage from "./pages/InvoicePublicPage";
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { RoutePersistence } from "@/components/RoutePersistence";
+import { HashScroll } from "@/components/HashScroll";
 
 
 const queryClient = new QueryClient();
