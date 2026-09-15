@@ -8,7 +8,7 @@
     background-clip: padding-box;
     border: 3px solid transparent;
   }
-  
+
   .rgb-border::before {
     content: '';
     position: absolute;
@@ -22,7 +22,7 @@
     z-index: -1;
     animation: rgbBorder 3s linear infinite;
   }
-  
+
   @keyframes rgbBorder {
     0% {
       background-position: 0% 50%;
@@ -33,6 +33,66 @@
     100% {
       background-position: 0% 50%;
     }
+  }
+
+  /* Animated laser border that follows the configured primary color */
+  .laser-border {
+    position: relative;
+    background-clip: padding-box;
+    border-radius: var(--radius, 0.75rem);
+  }
+
+  .laser-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: calc(var(--radius, 0.75rem) + 2px);
+    background: conic-gradient(from 0deg, transparent 0%, hsl(var(--primary-hsl, 116 62% 38%)) 15%, hsl(var(--primary-glow-hsl, 116 78% 62%)) 35%, transparent 50%, transparent 100%);
+    z-index: -1;
+    animation: laserRotate 3s linear infinite;
+  }
+
+  .laser-border::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: calc(var(--radius, 0.75rem) + 2px);
+    background: conic-gradient(from 180deg, transparent 0%, hsl(var(--primary-hsl, 116 62% 38%) / 0.6) 20%, transparent 40%, transparent 100%);
+    z-index: -1;
+    filter: blur(8px);
+    animation: laserRotate 3s linear infinite reverse;
+    opacity: 0.7;
+  }
+
+  @keyframes laserRotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .gradient-animated {
+    background: linear-gradient(-45deg, hsl(var(--primary-hsl, 116 62% 38%) / 0.35), hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.15), hsl(var(--primary-hsl, 116 62% 38%) / 0.25), hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.1));
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.6), 0 0 40px hsl(var(--primary-hsl, 116 62% 38%) / 0.3);
   }
 }
 
