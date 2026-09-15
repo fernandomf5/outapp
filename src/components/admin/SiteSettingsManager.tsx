@@ -438,7 +438,7 @@ export const SiteSettingsManager = () => {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="site-logo-size">Tamanho da logomarca</Label>
+                <Label htmlFor="site-logo-size">Tamanho da logomarca no cabeçalho do site</Label>
                 <span className="text-sm font-medium text-muted-foreground">{logoSize}px</span>
               </div>
               <Slider
@@ -448,8 +448,11 @@ export const SiteSettingsManager = () => {
                 max={MAX_LOGO_SIZE}
                 step={2}
                 onValueChange={(values) => setLogoSize(parseLogoSize(String(values[0])))}
-                aria-label="Tamanho da logomarca"
+                aria-label="Tamanho da logomarca no cabeçalho do site"
               />
+              <p className="text-xs text-muted-foreground">
+                Ajusta o tamanho da logo no topo do site. No celular o valor é reduzido automaticamente para não quebrar o menu.
+              </p>
               <div className="flex items-center gap-3 rounded-md border bg-muted/40 p-3">
                 <img
                   src={logoUrl || logoLightUrl || logoDarkUrl || "/logo.png"}
@@ -457,7 +460,7 @@ export const SiteSettingsManager = () => {
                   style={{ height: `${logoSize}px` }}
                   className="w-auto object-contain"
                 />
-                <span className="text-sm text-muted-foreground">Prévia do tamanho no site e nos menus</span>
+                <span className="text-sm text-muted-foreground">Prévia do tamanho no cabeçalho</span>
               </div>
             </div>
 
