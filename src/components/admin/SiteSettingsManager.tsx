@@ -40,6 +40,10 @@ export const SiteSettingsManager = () => {
   const [footerImages, setFooterImages] = useState<string[]>([]);
   const [cookieNoticeText, setCookieNoticeText] = useState("");
   const [cookieNoticeEnabled, setCookieNoticeEnabled] = useState(true);
+  const [cookiePrivacyUrl, setCookiePrivacyUrl] = useState("");
+  const [cookieTermsUrl, setCookieTermsUrl] = useState("");
+  const [cookieLgpdUrl, setCookieLgpdUrl] = useState("");
+  const [availablePages, setAvailablePages] = useState<{ title: string; slug: string }[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [headCode, setHeadCode] = useState("");
   const [footerCode, setFooterCode] = useState("");
