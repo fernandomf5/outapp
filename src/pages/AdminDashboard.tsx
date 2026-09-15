@@ -315,7 +315,9 @@ const AdminDashboard = () => {
             countdown_enabled: editingPlan.countdown_enabled,
             countdown_ends_at: editingPlan.countdown_ends_at,
             limited_offer_banner: editingPlan.limited_offer_banner,
-            is_visible: editingPlan.is_visible !== false
+            is_visible: editingPlan.is_visible !== false,
+            show_on_landing: editingPlan.show_on_landing !== false,
+            show_in_dashboard: editingPlan.show_in_dashboard !== false
           }])
           .select()
           .single();
@@ -333,7 +335,9 @@ const AdminDashboard = () => {
             countdown_enabled: data.countdown_enabled || false,
             countdown_ends_at: data.countdown_ends_at || null,
             limited_offer_banner: data.limited_offer_banner || null,
-            is_visible: data.is_visible !== false
+            is_visible: data.is_visible !== false,
+            show_on_landing: data.show_on_landing !== false,
+            show_in_dashboard: data.show_in_dashboard !== false
           }]);
           toast({
             title: "Plano criado! ✅",
@@ -354,7 +358,9 @@ const AdminDashboard = () => {
             countdown_enabled: editingPlan.countdown_enabled,
             countdown_ends_at: editingPlan.countdown_ends_at,
             limited_offer_banner: editingPlan.limited_offer_banner,
-            is_visible: editingPlan.is_visible !== false
+            is_visible: editingPlan.is_visible !== false,
+            show_on_landing: editingPlan.show_on_landing !== false,
+            show_in_dashboard: editingPlan.show_in_dashboard !== false
           })
           .eq('id', editingPlan.id);
 
@@ -365,7 +371,9 @@ const AdminDashboard = () => {
             countdown_enabled: editingPlan.countdown_enabled || false,
             countdown_ends_at: editingPlan.countdown_ends_at || null,
             limited_offer_banner: editingPlan.limited_offer_banner || null,
-            is_visible: editingPlan.is_visible !== false
+            is_visible: editingPlan.is_visible !== false,
+            show_on_landing: editingPlan.show_on_landing !== false,
+            show_in_dashboard: editingPlan.show_in_dashboard !== false
           } : p));
           toast({
             title: "Plano atualizado! ✅",
@@ -406,7 +414,9 @@ const AdminDashboard = () => {
       countdown_enabled: false,
       countdown_ends_at: null,
       limited_offer_banner: null,
-      is_visible: true
+      is_visible: true,
+      show_on_landing: true,
+      show_in_dashboard: true
     });
     setIsDialogOpen(true);
   };
