@@ -53,7 +53,20 @@ export const SiteSettingsManager = () => {
 
   useEffect(() => {
     fetchSettings();
+    fetchAvailablePages();
   }, []);
+
+  const fetchAvailablePages = async () => {
+    const { data, error } = await supabase
+      .from('custom_pages')
+      .select('title, slug')
+      .eq('is_active', true)
+      .order('order_index', { ascending: true });
+
+    if (!error && data) {
+      setAvailablePages(data as { title: string; slug: string }[]);
+    }
+  };
 
   const fetchSettings = async () => {
     const keys = [
