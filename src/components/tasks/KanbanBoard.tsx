@@ -61,6 +61,7 @@ interface Task {
   due_date?: string;
   block_id: string;
   client_id?: string;
+  contact_id?: string;
   task_order: number;
   created_at: string;
   checklist?: ChecklistItem[] | null;
@@ -158,7 +159,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
         .from("task_blocks")
         .select("*")
         .eq("user_id", effectiveUserId)
-        .eq("client_id", userId)
+        .eq("contact_id", userId)
         .order("order_index");
 
       if (blocksError) {
@@ -169,9 +170,9 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
       let currentBlocks = blocksData || [];
       if (currentBlocks.length === 0) {
         const defaultBlocks = [
-          { name: "A fazer", color: "#94a3b8", order_index: 0, user_id: effectiveUserId, client_id: userId },
-          { name: "Em progresso", color: "#3b82f6", order_index: 1, user_id: effectiveUserId, client_id: userId },
-          { name: "Concluído", color: "#22c55e", order_index: 2, user_id: effectiveUserId, client_id: userId },
+          { name: "A fazer", color: "#94a3b8", order_index: 0, user_id: effectiveUserId, contact_id: userId },
+          { name: "Em progresso", color: "#3b82f6", order_index: 1, user_id: effectiveUserId, contact_id: userId },
+          { name: "Concluído", color: "#22c55e", order_index: 2, user_id: effectiveUserId, contact_id: userId },
         ];
         
         const { data: insertedBlocks, error: insertError } = await supabase
@@ -191,7 +192,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
         .from("tasks")
         .select("*")
         .eq("user_id", effectiveUserId)
-        .eq("client_id", userId)
+        .eq("contact_id", userId)
         .eq("archived", false)
         .order("task_order");
 

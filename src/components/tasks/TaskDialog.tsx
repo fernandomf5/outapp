@@ -186,7 +186,7 @@ export const TaskDialog = ({
             due_date: formData.due_date || null,
             block_id: formData.block_id,
             user_id: effectiveUserId,
-            client_id: userId,
+            contact_id: userId,
             task_order: nextOrder,
             status: "pending",
             checklist: checklist as any

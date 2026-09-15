@@ -91,7 +91,7 @@ export const BulkTaskDialog = ({
         priority,
         block_id: blockId,
         user_id: effectiveUserId,
-        client_id: userId,
+        contact_id: userId,
         task_order: startOrder + idx,
         status: "pending",
       }));

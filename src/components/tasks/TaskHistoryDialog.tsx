@@ -51,6 +51,7 @@ interface HistoryTask {
   created_at: string;
   updated_at: string;
   client_id: string | null;
+  contact_id: string | null;
   block_id: string | null;
   checklist: ChecklistItem[] | null;
   archived?: boolean | null;
@@ -147,7 +148,8 @@ export const TaskHistoryDialog = ({
   const clientList = useMemo(() => {
     const ids = new Set<string>();
     tasks.forEach((t) => {
-      if (t.client_id) ids.add(t.client_id);
+      const contactId = t.contact_id || t.client_id;
+      if (contactId) ids.add(contactId);
     });
     return Array.from(ids)
       .map((id) => contacts[id])
@@ -164,14 +166,15 @@ export const TaskHistoryDialog = ({
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return tasks.filter((t) => {
-      if (selectedClient !== "all" && t.client_id !== selectedClient)
+      const contactId = t.contact_id || t.client_id;
+      if (selectedClient !== "all" && contactId !== selectedClient)
         return false;
       const done = isTaskDone(t);
       if (statusFilter === "done" && !done) return false;
       if (statusFilter === "pending" && done) return false;
       if (!q) return true;
-      const contactName = t.client_id
-        ? contacts[t.client_id]?.name?.toLowerCase() || ""
+      const contactName = contactId
+        ? contacts[contactId]?.name?.toLowerCase() || ""
         : "";
       return (
         t.title.toLowerCase().includes(q) ||
@@ -193,9 +196,10 @@ export const TaskHistoryDialog = ({
   const grouped = useMemo(() => {
     const map = new Map<string, { name: string; items: HistoryTask[] }>();
     filtered.forEach((t) => {
-      const key = t.client_id || "__none__";
-      const name = t.client_id
-        ? contacts[t.client_id]?.name || "Cliente removido"
+      const contactId = t.contact_id || t.client_id;
+      const key = contactId || "__none__";
+      const name = contactId
+        ? contacts[contactId]?.name || "Cliente removido"
         : "Sem cliente";
       if (!map.has(key)) map.set(key, { name, items: [] });
       map.get(key)!.items.push(t);
