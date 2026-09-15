@@ -9832,6 +9832,7 @@ export type Database = {
           business_id: string | null
           client_id: string | null
           color: string
+          contact_id: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -9844,6 +9845,7 @@ export type Database = {
           business_id?: string | null
           client_id?: string | null
           color?: string
+          contact_id?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -9856,6 +9858,7 @@ export type Database = {
           business_id?: string | null
           client_id?: string | null
           color?: string
+          contact_id?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -9877,6 +9880,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_blocks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
@@ -9983,6 +9993,7 @@ export type Database = {
           category: string | null
           checklist: Json
           client_id: string | null
+          contact_id: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -10003,6 +10014,7 @@ export type Database = {
           category?: string | null
           checklist?: Json
           client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -10023,6 +10035,7 @@ export type Database = {
           category?: string | null
           checklist?: Json
           client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -10055,6 +10068,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]

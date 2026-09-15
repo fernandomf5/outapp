@@ -109,7 +109,7 @@ export const BlockDialog = ({
         const { data: lastBlock } = await supabase
           .from("task_blocks")
           .select("order_index")
-          .eq("client_id", userId)
+          .eq("contact_id", userId)
           .order("order_index", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -123,7 +123,7 @@ export const BlockDialog = ({
             color: formData.color,
             logo_url: formData.logo_url,
             user_id: effectiveUserId,
-            client_id: userId,
+            contact_id: userId,
             order_index: nextOrder
           } as any);
         
