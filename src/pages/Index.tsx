@@ -378,14 +378,16 @@ const Index = () => {
     setPageDialogOpen(true);
   };
 
-  const getIconComponent = (iconName: string) => {
-    const iconMap: Record<string, any> = {
-      Workflow, Brain, Users, UserPlus, BarChart3, Link2,
-      Gift, Ticket, Video, DollarSign, Shield, TrendingUp,
-      Zap, MessageSquare, Clock, CheckCircle2, Sparkles
-    };
-    const IconComponent = iconMap[iconName] || Sparkles;
-    return IconComponent;
+  /**
+   * Resolve o ícone pelo nome salvo no painel do master.
+   * Aceita qualquer ícone da biblioteca Lucide; usa Sparkles como reserva.
+   */
+  const getIconComponent = (iconName: string): LucideIcon => {
+    const iconLibrary = LucideIcons as unknown as Record<string, LucideIcon | undefined>;
+    const candidate = iconName ? iconLibrary[iconName] : undefined;
+    return typeof candidate === "object" || typeof candidate === "function"
+      ? (candidate as LucideIcon)
+      : Sparkles;
   };
 
   const headerPages = customPages;
