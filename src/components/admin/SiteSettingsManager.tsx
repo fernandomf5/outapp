@@ -10,7 +10,7 @@ import { Settings, Video, Image as ImageIcon, Globe, Upload, X, Palette } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { applyThemeColor, isValidThemeColor, notifyThemeColorChange } from "@/hooks/useDynamicTheme";
-import { DEFAULT_LOGO_SIZE, MAX_LOGO_SIZE, MIN_LOGO_SIZE, parseLogoSize } from "@/hooks/useSiteSettings";
+import { DEFAULT_LOGO_SIZE, MAX_LOGO_SIZE, MIN_LOGO_SIZE, notifySiteSettingsChange, parseLogoSize } from "@/hooks/useSiteSettings";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -231,6 +231,7 @@ export const SiteSettingsManager = () => {
     ]);
 
     notifyThemeColorChange(sitePrimaryColor);
+    notifySiteSettingsChange();
     toast({ title: "Todas as configurações salvas com sucesso!" });
     setLoading(false);
   };

@@ -95,7 +95,7 @@ export const LandingHeader = () => {
                 style={{
                   height: `${settings.siteLogoSize}px`,
                 }}
-                className="w-auto object-contain max-h-9 sm:max-h-11 md:max-h-none"
+                className="w-auto max-w-[38vw] object-contain transition-[height] duration-300 sm:max-w-[44vw]"
               />
             </Link>
 
