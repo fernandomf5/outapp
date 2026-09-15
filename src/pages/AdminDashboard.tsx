@@ -1568,10 +1568,39 @@ const AdminDashboard = () => {
                     }
                     className="w-4 h-4 rounded border-gray-300"
                   />
-                  <Label htmlFor="is-visible">Exibir na landing page e nos painéis dos usuários</Label>
+                  <Label htmlFor="is-visible">Plano ativo para exibição</Label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Quando desmarcado, o plano ficará oculto tanto na página inicial quanto no painel de upgrade dos usuários
+                  Quando desmarcado, o plano fica oculto em todos os lugares, mesmo com as opções abaixo marcadas.
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="show-on-landing"
+                    checked={editingPlan.show_on_landing !== false}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, show_on_landing: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="show-on-landing">Mostrar na landing page (site)</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="show-in-dashboard"
+                    checked={editingPlan.show_in_dashboard !== false}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, show_in_dashboard: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="show-in-dashboard">Mostrar no painel do usuário (upgrade)</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Ex.: um teste grátis de 3 dias pode ficar marcado só na landing page e não aparecer no painel.
                 </p>
               </div>
 
