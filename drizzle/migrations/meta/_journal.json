@@ -78,6 +78,13 @@
       "when": 1789438210938,
       "tag": "0010_grant_has_role_execute",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789496517116,
+      "tag": "0011_grant_data_api_privileges_all_public_tables",
+      "breakpoints": true
     }
   ]
 }
