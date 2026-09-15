@@ -171,6 +171,7 @@ const Index = () => {
       .select('*')
       .eq('is_active', true)
       .eq('is_visible', true)
+      .eq('show_on_landing', true)
       .order('order_index', { ascending: true });
     
     if (!error && data) {

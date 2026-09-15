@@ -7988,6 +7988,8 @@ export type Database = {
           order_index: number
           plan_type: Database["public"]["Enums"]["plan_type"]
           price: number
+          show_in_dashboard: boolean
+          show_on_landing: boolean
           updated_at: string
           visible_on_landing: boolean | null
         }
@@ -8006,6 +8008,8 @@ export type Database = {
           order_index?: number
           plan_type: Database["public"]["Enums"]["plan_type"]
           price: number
+          show_in_dashboard?: boolean
+          show_on_landing?: boolean
           updated_at?: string
           visible_on_landing?: boolean | null
         }
@@ -8024,6 +8028,8 @@ export type Database = {
           order_index?: number
           plan_type?: Database["public"]["Enums"]["plan_type"]
           price?: number
+          show_in_dashboard?: boolean
+          show_on_landing?: boolean
           updated_at?: string
           visible_on_landing?: boolean | null
         }

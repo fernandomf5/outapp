@@ -87,6 +87,8 @@ interface Plan {
   countdown_ends_at?: string | null;
   limited_offer_banner?: string | null;
   is_visible?: boolean;
+  show_on_landing?: boolean;
+  show_in_dashboard?: boolean;
 }
 
 interface Tutorial {
@@ -274,7 +276,9 @@ const AdminDashboard = () => {
           countdown_enabled: p.countdown_enabled || false,
           countdown_ends_at: p.countdown_ends_at || null,
           limited_offer_banner: p.limited_offer_banner || null,
-          is_visible: p.is_visible !== false
+          is_visible: p.is_visible !== false,
+          show_on_landing: p.show_on_landing !== false,
+          show_in_dashboard: p.show_in_dashboard !== false
         })));
       }
 
@@ -311,7 +315,9 @@ const AdminDashboard = () => {
             countdown_enabled: editingPlan.countdown_enabled,
             countdown_ends_at: editingPlan.countdown_ends_at,
             limited_offer_banner: editingPlan.limited_offer_banner,
-            is_visible: editingPlan.is_visible !== false
+            is_visible: editingPlan.is_visible !== false,
+            show_on_landing: editingPlan.show_on_landing !== false,
+            show_in_dashboard: editingPlan.show_in_dashboard !== false
           }])
           .select()
           .single();
@@ -329,7 +335,9 @@ const AdminDashboard = () => {
             countdown_enabled: data.countdown_enabled || false,
             countdown_ends_at: data.countdown_ends_at || null,
             limited_offer_banner: data.limited_offer_banner || null,
-            is_visible: data.is_visible !== false
+            is_visible: data.is_visible !== false,
+            show_on_landing: data.show_on_landing !== false,
+            show_in_dashboard: data.show_in_dashboard !== false
           }]);
           toast({
             title: "Plano criado! ✅",
@@ -350,7 +358,9 @@ const AdminDashboard = () => {
             countdown_enabled: editingPlan.countdown_enabled,
             countdown_ends_at: editingPlan.countdown_ends_at,
             limited_offer_banner: editingPlan.limited_offer_banner,
-            is_visible: editingPlan.is_visible !== false
+            is_visible: editingPlan.is_visible !== false,
+            show_on_landing: editingPlan.show_on_landing !== false,
+            show_in_dashboard: editingPlan.show_in_dashboard !== false
           })
           .eq('id', editingPlan.id);
 
@@ -361,7 +371,9 @@ const AdminDashboard = () => {
             countdown_enabled: editingPlan.countdown_enabled || false,
             countdown_ends_at: editingPlan.countdown_ends_at || null,
             limited_offer_banner: editingPlan.limited_offer_banner || null,
-            is_visible: editingPlan.is_visible !== false
+            is_visible: editingPlan.is_visible !== false,
+            show_on_landing: editingPlan.show_on_landing !== false,
+            show_in_dashboard: editingPlan.show_in_dashboard !== false
           } : p));
           toast({
             title: "Plano atualizado! ✅",
@@ -402,7 +414,9 @@ const AdminDashboard = () => {
       countdown_enabled: false,
       countdown_ends_at: null,
       limited_offer_banner: null,
-      is_visible: true
+      is_visible: true,
+      show_on_landing: true,
+      show_in_dashboard: true
     });
     setIsDialogOpen(true);
   };
@@ -1554,10 +1568,39 @@ const AdminDashboard = () => {
                     }
                     className="w-4 h-4 rounded border-gray-300"
                   />
-                  <Label htmlFor="is-visible">Exibir na landing page e nos painéis dos usuários</Label>
+                  <Label htmlFor="is-visible">Plano ativo para exibição</Label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Quando desmarcado, o plano ficará oculto tanto na página inicial quanto no painel de upgrade dos usuários
+                  Quando desmarcado, o plano fica oculto em todos os lugares, mesmo com as opções abaixo marcadas.
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="show-on-landing"
+                    checked={editingPlan.show_on_landing !== false}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, show_on_landing: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="show-on-landing">Mostrar na landing page (site)</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="show-in-dashboard"
+                    checked={editingPlan.show_in_dashboard !== false}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, show_in_dashboard: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="show-in-dashboard">Mostrar no painel do usuário (upgrade)</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Ex.: um teste grátis de 3 dias pode ficar marcado só na landing page e não aparecer no painel.
                 </p>
               </div>
 
