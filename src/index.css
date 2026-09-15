@@ -40,8 +40,8 @@
     position: relative;
     background-clip: padding-box;
     border-radius: var(--radius, 0.75rem);
-    --lb-inset: -3px;
-    --lb-radius: calc(var(--radius, 0.75rem) + 3px);
+    --lb-inset: -4px;
+    --lb-radius: calc(var(--radius, 0.75rem) + 4px);
   }
 
   .laser-border::before {
@@ -52,36 +52,37 @@
     background: conic-gradient(
       from 0deg,
       transparent 0%,
-      hsl(var(--primary-glow-hsl, 116 78% 62%)) 12%,
-      hsl(var(--primary-hsl, 116 62% 38%)) 28%,
-      hsl(var(--primary-glow-hsl, 116 78% 62%)) 42%,
-      transparent 58%,
+      hsl(var(--primary-glow-hsl, 116 78% 62%)) 10%,
+      hsl(var(--primary-hsl, 116 62% 38%)) 26%,
+      hsl(var(--primary-glow-hsl, 116 78% 62%)) 44%,
+      transparent 62%,
       transparent 100%
     );
     z-index: -1;
     animation: laserRotate 2.5s linear infinite;
     box-shadow:
-      0 0 16px hsl(var(--primary-hsl, 116 62% 38%) / 0.55),
-      0 0 32px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.35),
-      inset 0 0 20px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.15);
+      0 0 14px hsl(var(--primary-hsl, 116 62% 38%) / 0.6),
+      0 0 28px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.45),
+      0 0 48px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.2),
+      inset 0 0 24px hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.18);
   }
 
   .laser-border::after {
     content: '';
     position: absolute;
-    inset: var(--lb-inset);
-    border-radius: var(--lb-radius);
+    inset: calc(var(--lb-inset) - 2px);
+    border-radius: calc(var(--lb-radius) + 2px);
     background: conic-gradient(
       from 180deg,
       transparent 0%,
-      hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.8) 18%,
-      transparent 45%,
+      hsl(var(--primary-glow-hsl, 116 78% 62%) / 0.95) 16%,
+      transparent 48%,
       transparent 100%
     );
-    z-index: -1;
-    filter: blur(10px);
+    z-index: -2;
+    filter: blur(14px);
     animation: laserRotate 2.5s linear infinite reverse;
-    opacity: 0.9;
+    opacity: 1;
   }
 
   @keyframes laserRotate {
