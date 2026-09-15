@@ -36,6 +36,14 @@ const defaultSettings: SiteSettings = {
 let cachedSettings: SiteSettings | null = null;
 let fetchPromise: Promise<SiteSettings> | null = null;
 
+export const SITE_SETTINGS_UPDATED_EVENT = "site-settings-updated";
+
+export const notifySiteSettingsChange = (): void => {
+  cachedSettings = null;
+  fetchPromise = null;
+  window.dispatchEvent(new Event(SITE_SETTINGS_UPDATED_EVENT));
+};
+
 const fetchSettings = async (): Promise<SiteSettings> => {
   const { data } = await supabase
     .from('site_settings')
@@ -92,21 +100,44 @@ export const useSiteSettings = () => {
   const [isLoading, setIsLoading] = useState(!cachedSettings);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadSettings = async (forceRefresh = false) => {
+      if (forceRefresh) {
+        cachedSettings = null;
+        fetchPromise = null;
+      }
+
+      if (!fetchPromise) {
+        fetchPromise = fetchSettings();
+      }
+
+      const result = await fetchPromise;
+      cachedSettings = result;
+
+      if (isMounted) {
+        setSettings(result);
+        setIsLoading(false);
+      }
+    };
+
     if (cachedSettings) {
       setSettings(cachedSettings);
       setIsLoading(false);
-      return;
+    } else {
+      void loadSettings();
     }
 
-    if (!fetchPromise) {
-      fetchPromise = fetchSettings();
-    }
+    const handleSettingsUpdate = () => {
+      void loadSettings(true);
+    };
 
-    fetchPromise.then(result => {
-      cachedSettings = result;
-      setSettings(result);
-      setIsLoading(false);
-    });
+    window.addEventListener(SITE_SETTINGS_UPDATED_EVENT, handleSettingsUpdate);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener(SITE_SETTINGS_UPDATED_EVENT, handleSettingsUpdate);
+    };
   }, []);
 
   return { settings, isLoading };

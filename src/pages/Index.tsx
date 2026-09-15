@@ -595,16 +595,23 @@ const Index = () => {
                 <img 
                   src={theme === 'dark' ? (logoDarkUrl || logoUrl) : (logoLightUrl || logoUrl)} 
                   alt={siteTitle || "Logo"} 
-                  className="h-5 xs:h-6 sm:h-7 md:h-9 lg:h-11 3xl:h-14 w-auto object-contain flex-shrink-0"
+                  style={{ height: `${siteSettingsFromHook.siteLogoSize}px` }}
+                  className="w-auto max-w-[38vw] object-contain flex-shrink-0 transition-[height] duration-300 sm:max-w-[44vw]"
                 />
               ) : logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt={siteTitle || "Logo"} 
-                  className="h-5 xs:h-6 sm:h-7 md:h-9 lg:h-11 3xl:h-14 w-auto object-contain flex-shrink-0"
+                  style={{ height: `${siteSettingsFromHook.siteLogoSize}px` }}
+                  className="w-auto max-w-[38vw] object-contain flex-shrink-0 transition-[height] duration-300 sm:max-w-[44vw]"
                 />
               ) : (
-                <img src={outAppLogo} alt="Out App" className="h-5 xs:h-6 sm:h-7 md:h-9 lg:h-11 3xl:h-14 w-auto flex-shrink-0" />
+                <img
+                  src={outAppLogo}
+                  alt="Out App"
+                  style={{ height: `${siteSettingsFromHook.siteLogoSize}px` }}
+                  className="w-auto max-w-[38vw] object-contain flex-shrink-0 transition-[height] duration-300 sm:max-w-[44vw]"
+                />
               )}
             </div>
             
