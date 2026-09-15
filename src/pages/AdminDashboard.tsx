@@ -87,6 +87,8 @@ interface Plan {
   countdown_ends_at?: string | null;
   limited_offer_banner?: string | null;
   is_visible?: boolean;
+  show_on_landing?: boolean;
+  show_in_dashboard?: boolean;
 }
 
 interface Tutorial {
@@ -274,7 +276,9 @@ const AdminDashboard = () => {
           countdown_enabled: p.countdown_enabled || false,
           countdown_ends_at: p.countdown_ends_at || null,
           limited_offer_banner: p.limited_offer_banner || null,
-          is_visible: p.is_visible !== false
+          is_visible: p.is_visible !== false,
+          show_on_landing: p.show_on_landing !== false,
+          show_in_dashboard: p.show_in_dashboard !== false
         })));
       }
 
