@@ -1,4 +1,5 @@
 import { RichFeatureText } from "@/components/RichFeatureText";
+import { HeroBackground } from "@/components/HeroBackground";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
