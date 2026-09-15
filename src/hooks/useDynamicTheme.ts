@@ -101,6 +101,13 @@ export const applyThemeColor = (value: string): void => {
     isDark ? `${color.hue} 25% 97%` : `${color.hue} ${Math.max(30, color.saturation)}% 22%`,
   );
   root.style.setProperty("--sidebar-border", isDark ? `${color.hue} 15% 18%` : `${color.hue} 20% 87%`);
+  // Hover surfaces (ghost buttons, headers, menus) follow the chosen hue
+  root.style.setProperty("--accent", isDark ? `${color.hue} 20% 16%` : `${color.hue} 40% 92%`);
+  root.style.setProperty(
+    "--accent-foreground",
+    isDark ? `${color.hue} 30% 96%` : `${color.hue} ${Math.max(30, color.saturation)}% 24%`,
+  );
+  root.style.setProperty("--muted", isDark ? `${color.hue} 15% 14%` : `${color.hue} 25% 94%`);
   root.style.setProperty("--gradient-primary", `linear-gradient(135deg, hsl(${color.hue} ${color.saturation}% ${hoverLightness}%) 0%, hsl(${color.hue} ${color.saturation}% ${glowLightness}%) 100%)`);
   root.style.setProperty("--gradient-hero", `linear-gradient(135deg, hsl(${color.hue} ${color.saturation}% ${glowLightness}%) 0%, hsl(${color.hue} ${color.saturation}% ${Math.max(18, color.lightness - 15)}%) 42%, hsl(${color.hue} 28% 7%) 100%)`);
   root.style.setProperty("--shadow-glow", `0 0 40px hsl(${color.hue} ${color.saturation}% ${glowLightness}% / 0.4), 0 0 20px hsl(${color.hue} ${color.saturation}% ${glowLightness}% / 0.24)`);
