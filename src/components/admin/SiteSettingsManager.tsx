@@ -797,6 +797,52 @@ export const SiteSettingsManager = () => {
                 Aparece na parte inferior da página para usuários que ainda não aceitaram
               </p>
             </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div>
+                <Label>Links exibidos no aviso</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Escolha as páginas criadas em Páginas Personalizadas. Deixe em branco para ocultar o link.
+                </p>
+              </div>
+
+              {([
+                { key: 'privacy', label: 'Política de Privacidade', value: cookiePrivacyUrl, setValue: setCookiePrivacyUrl },
+                { key: 'terms', label: 'Termos de Uso', value: cookieTermsUrl, setValue: setCookieTermsUrl },
+                { key: 'lgpd', label: 'LGPD', value: cookieLgpdUrl, setValue: setCookieLgpdUrl },
+              ] as const).map((field) => (
+                <div key={field.key} className="space-y-2">
+                  <Label htmlFor={`cookie-link-${field.key}`}>{field.label}</Label>
+                  <Select
+                    value={field.value || "__none__"}
+                    onValueChange={(val) => field.setValue(val === "__none__" ? "" : val)}
+                  >
+                    <SelectTrigger id={`cookie-link-${field.key}`}>
+                      <SelectValue placeholder="Selecione uma página" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Não exibir</SelectItem>
+                      {availablePages.map((page) => (
+                        <SelectItem key={page.slug} value={`/${page.slug}`}>
+                          {page.title} (/{page.slug})
+                        </SelectItem>
+                      ))}
+                      {field.value && !availablePages.some((p) => `/${p.slug}` === field.value) && (
+                        <SelectItem value={field.value}>{field.value}</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    value={field.value}
+                    onChange={(e) => field.setValue(e.target.value)}
+                    placeholder="ou cole um endereço, ex: /politica-de-privacidade"
+                    className="font-mono text-xs"
+                  />
+                </div>
+              ))}
+            </div>
           </TabsContent>
 
           {/* Video Tab */}
