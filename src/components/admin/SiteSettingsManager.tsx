@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { applyThemeColor, isValidThemeColor, notifyThemeColorChange } from "@/hooks/useDynamicTheme";
 import { DEFAULT_LOGO_SIZE, MAX_LOGO_SIZE, MIN_LOGO_SIZE, parseLogoSize } from "@/hooks/useSiteSettings";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FooterMenu {
   title: string;
@@ -40,6 +41,10 @@ export const SiteSettingsManager = () => {
   const [footerImages, setFooterImages] = useState<string[]>([]);
   const [cookieNoticeText, setCookieNoticeText] = useState("");
   const [cookieNoticeEnabled, setCookieNoticeEnabled] = useState(true);
+  const [cookiePrivacyUrl, setCookiePrivacyUrl] = useState("");
+  const [cookieTermsUrl, setCookieTermsUrl] = useState("");
+  const [cookieLgpdUrl, setCookieLgpdUrl] = useState("");
+  const [availablePages, setAvailablePages] = useState<{ title: string; slug: string }[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [headCode, setHeadCode] = useState("");
   const [footerCode, setFooterCode] = useState("");
@@ -49,7 +54,20 @@ export const SiteSettingsManager = () => {
 
   useEffect(() => {
     fetchSettings();
+    fetchAvailablePages();
   }, []);
+
+  const fetchAvailablePages = async () => {
+    const { data, error } = await supabase
+      .from('custom_pages')
+      .select('title, slug')
+      .eq('is_active', true)
+      .order('order_index', { ascending: true });
+
+    if (!error && data) {
+      setAvailablePages(data as { title: string; slug: string }[]);
+    }
+  };
 
   const fetchSettings = async () => {
     const keys = [
@@ -64,6 +82,9 @@ export const SiteSettingsManager = () => {
       'footer_images',
       'cookie_notice_text',
       'cookie_notice_enabled',
+      'cookie_privacy_url',
+      'cookie_terms_url',
+      'cookie_lgpd_url',
       'social_links',
       'head_code',
       'footer_code',
@@ -120,6 +141,15 @@ export const SiteSettingsManager = () => {
             break;
           case 'cookie_notice_enabled':
             setCookieNoticeEnabled(item.value === 'true');
+            break;
+          case 'cookie_privacy_url':
+            setCookiePrivacyUrl(item.value || "");
+            break;
+          case 'cookie_terms_url':
+            setCookieTermsUrl(item.value || "");
+            break;
+          case 'cookie_lgpd_url':
+            setCookieLgpdUrl(item.value || "");
             break;
           case 'social_links':
             try {
@@ -189,6 +219,9 @@ export const SiteSettingsManager = () => {
       saveSetting('footer_images', JSON.stringify(footerImages)),
       saveSetting('cookie_notice_text', cookieNoticeText),
       saveSetting('cookie_notice_enabled', cookieNoticeEnabled.toString()),
+      saveSetting('cookie_privacy_url', cookiePrivacyUrl.trim()),
+      saveSetting('cookie_terms_url', cookieTermsUrl.trim()),
+      saveSetting('cookie_lgpd_url', cookieLgpdUrl.trim()),
       saveSetting('social_links', JSON.stringify(socialLinks)),
       saveSetting('head_code', headCode),
       saveSetting('footer_code', footerCode),
@@ -764,6 +797,52 @@ export const SiteSettingsManager = () => {
               <p className="text-xs text-muted-foreground">
                 Aparece na parte inferior da página para usuários que ainda não aceitaram
               </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div>
+                <Label>Links exibidos no aviso</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Escolha as páginas criadas em Páginas Personalizadas. Deixe em branco para ocultar o link.
+                </p>
+              </div>
+
+              {([
+                { key: 'privacy', label: 'Política de Privacidade', value: cookiePrivacyUrl, setValue: setCookiePrivacyUrl },
+                { key: 'terms', label: 'Termos de Uso', value: cookieTermsUrl, setValue: setCookieTermsUrl },
+                { key: 'lgpd', label: 'LGPD', value: cookieLgpdUrl, setValue: setCookieLgpdUrl },
+              ] as const).map((field) => (
+                <div key={field.key} className="space-y-2">
+                  <Label htmlFor={`cookie-link-${field.key}`}>{field.label}</Label>
+                  <Select
+                    value={field.value || "__none__"}
+                    onValueChange={(val) => field.setValue(val === "__none__" ? "" : val)}
+                  >
+                    <SelectTrigger id={`cookie-link-${field.key}`}>
+                      <SelectValue placeholder="Selecione uma página" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Não exibir</SelectItem>
+                      {availablePages.map((page) => (
+                        <SelectItem key={page.slug} value={`/${page.slug}`}>
+                          {page.title} (/{page.slug})
+                        </SelectItem>
+                      ))}
+                      {field.value && !availablePages.some((p) => `/${p.slug}` === field.value) && (
+                        <SelectItem value={field.value}>{field.value}</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    value={field.value}
+                    onChange={(e) => field.setValue(e.target.value)}
+                    placeholder="ou cole um endereço, ex: /politica-de-privacidade"
+                    className="font-mono text-xs"
+                  />
+                </div>
+              ))}
             </div>
           </TabsContent>
 

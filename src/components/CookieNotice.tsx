@@ -8,6 +8,7 @@ export const CookieNotice = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [cookieText, setCookieText] = useState("");
   const [isEnabled, setIsEnabled] = useState(true);
+  const [links, setLinks] = useState<{ label: string; url: string }[]>([]);
 
   useEffect(() => {
     // Don't show cookie notice inside iframes (embedded pages like briefings)
@@ -28,11 +29,24 @@ export const CookieNotice = () => {
       const { data } = await supabase
         .from('site_settings')
         .select('key, value')
-        .in('key', ['cookie_notice_text', 'cookie_notice_enabled']);
+        .in('key', [
+          'cookie_notice_text',
+          'cookie_notice_enabled',
+          'cookie_privacy_url',
+          'cookie_terms_url',
+          'cookie_lgpd_url',
+        ]);
 
       if (data) {
+        const valueOf = (key: string) => data.find(s => s.key === key)?.value?.trim() || "";
         const textSetting = data.find(s => s.key === 'cookie_notice_text');
         const enabledSetting = data.find(s => s.key === 'cookie_notice_enabled');
+
+        setLinks([
+          { label: "Política de Privacidade", url: valueOf('cookie_privacy_url') },
+          { label: "Termos de Uso", url: valueOf('cookie_terms_url') },
+          { label: "LGPD", url: valueOf('cookie_lgpd_url') },
+        ].filter(link => link.url.length > 0));
 
         setCookieText(textSetting?.value || "Usamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa Política de Privacidade.");
         setIsEnabled(enabledSetting?.value === 'true');
@@ -81,17 +95,19 @@ export const CookieNotice = () => {
                 {cookieText}
               </p>
 
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                <a href="/poltica-de-privacidade" className="text-primary hover:underline underline-offset-4">
-                  Política de Privacidade
-                </a>
-                <a href="/termos-de-uso" className="text-primary hover:underline underline-offset-4">
-                  Termos de Uso
-                </a>
-                <a href="/lgpd" className="text-primary hover:underline underline-offset-4">
-                  LGPD
-                </a>
-              </div>
+              {links.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                  {links.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.url}
+                      className="text-primary hover:underline underline-offset-4"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-4">
                 <Button onClick={handleAccept} size="sm" className="w-full sm:w-auto font-semibold">
