@@ -628,7 +628,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 xs:pt-28 sm:pt-32 md:pt-32 lg:pt-36 3xl:pt-44 pb-16 xs:pb-18 sm:pb-20 md:pb-22 lg:pb-24 3xl:pb-32 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
+      <section id="inicio" className="pt-24 xs:pt-28 sm:pt-32 md:pt-32 lg:pt-36 3xl:pt-44 pb-16 xs:pb-18 sm:pb-20 md:pb-22 lg:pb-24 3xl:pb-32 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
         {/* Subtle grain/noise overlay for elegance */}
         <div className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}></div>
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -693,7 +693,7 @@ const Index = () => {
       </section>
 
       {/* Showcase Section */}
-      <section className="py-16 xs:py-20 sm:py-24 md:py-28 lg:py-32 3xl:py-40 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30 flex items-center justify-center overflow-hidden">
+      <section id="sobre" className="py-16 xs:py-20 sm:py-24 md:py-28 lg:py-32 3xl:py-40 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30 flex items-center justify-center overflow-hidden">
         <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px] flex flex-col items-center justify-center w-full">
           <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-2">
             <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 leading-tight">
@@ -869,7 +869,7 @@ const Index = () => {
       <FAQSection hideSupportCTA />
 
       {/* CTA Section */}
-      <section className="py-6 xs:py-8 sm:py-10 md:py-14 lg:py-18 3xl:py-24 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
+      <section id="comecar" className="py-6 xs:py-8 sm:py-10 md:py-14 lg:py-18 3xl:py-24 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-5 xs:top-10 right-5 xs:right-10 w-24 xs:w-32 sm:w-40 md:w-56 lg:w-72 h-24 xs:h-32 sm:h-40 md:h-56 lg:h-72 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-5 xs:bottom-10 left-5 xs:left-10 w-32 xs:w-48 sm:w-56 md:w-72 lg:w-88 h-32 xs:h-48 sm:h-56 md:h-72 lg:h-88 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>

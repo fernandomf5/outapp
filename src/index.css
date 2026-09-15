@@ -1476,3 +1476,9 @@ html, body {
     padding-right: 0.5rem !important;
   }
 }
+
+/* Deslocamento para o cabeçalho fixo ao navegar por âncoras (#recursos, #planos, #faq...) */
+section[id],
+[id^="secao-"] {
+  scroll-margin-top: 96px;
+}
