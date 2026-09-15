@@ -48,26 +48,9 @@ function isExcluded(pathname: string) {
 
 export function RoutePersistence() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const restored = useRef(false);
 
-  // Restore once on first mount
-  useEffect(() => {
-    if (restored.current) return;
-    restored.current = true;
-    try {
-      const current = location.pathname + location.search + location.hash;
-      if (!ENTRY_PATHS.has(location.pathname)) return;
-      // Explicit opt-out: user clicked "Ver site" from panel
-      const params = new URLSearchParams(location.search);
-      if (params.has("site")) return;
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved && saved !== current && !isExcluded(saved.split("?")[0])) {
-        navigate(saved, { replace: true });
-      }
-    } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // A URL digitada pelo usuário é sempre respeitada: nenhuma rota é restaurada
+  // automaticamente. Mantemos apenas o registro da última rota visitada.
 
   // Persist every route change
   useEffect(() => {
