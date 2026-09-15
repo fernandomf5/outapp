@@ -46,8 +46,6 @@ export const SiteSettingsManager = () => {
   const [checkoutBannerUrl, setCheckoutBannerUrl] = useState("");
   const [sitePrimaryColor, setSitePrimaryColor] = useState("#5ce951");
   const [logoSize, setLogoSize] = useState<number>(DEFAULT_LOGO_SIZE);
-  const [secondSectionImageUrl, setSecondSectionImageUrl] = useState("");
-  const [uploadingSecondSectionImage, setUploadingSecondSectionImage] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -71,8 +69,7 @@ export const SiteSettingsManager = () => {
       'footer_code',
       'checkout_banner_url',
       'site_primary_color',
-      'site_logo_size',
-      'landing_second_section_image_url'
+      'site_logo_size'
     ];
     
     const { data, error } = await supabase
@@ -148,9 +145,6 @@ export const SiteSettingsManager = () => {
           case 'site_logo_size':
             setLogoSize(parseLogoSize(item.value));
             break;
-          case 'landing_second_section_image_url':
-            setSecondSectionImageUrl(item.value || "");
-            break;
         }
       });
     }
@@ -200,8 +194,7 @@ export const SiteSettingsManager = () => {
       saveSetting('footer_code', footerCode),
       saveSetting('checkout_banner_url', checkoutBannerUrl),
       saveSetting('site_primary_color', sitePrimaryColor.toLowerCase()),
-      saveSetting('site_logo_size', String(logoSize)),
-      saveSetting('landing_second_section_image_url', secondSectionImageUrl)
+      saveSetting('site_logo_size', String(logoSize))
     ]);
 
     notifyThemeColorChange(sitePrimaryColor);
@@ -276,44 +269,6 @@ export const SiteSettingsManager = () => {
       .getPublicUrl(fileName);
 
     setFooterImages([...footerImages, urlData.publicUrl]);
-  };
-
-  const handleSecondSectionImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({ title: "Arquivo inválido", description: "Selecione uma imagem.", variant: "destructive" });
-      event.target.value = "";
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Imagem muito grande", description: "O tamanho máximo é 5 MB.", variant: "destructive" });
-      event.target.value = "";
-      return;
-    }
-
-    setUploadingSecondSectionImage(true);
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'webp';
-    const fileName = `landing/second-section-${Date.now()}.${extension}`;
-    const { error } = await supabase.storage.from('avatars').upload(fileName, file, {
-      cacheControl: '3600',
-      upsert: false,
-    });
-
-    if (error) {
-      toast({ title: "Erro ao enviar imagem", description: error.message, variant: "destructive" });
-      setUploadingSecondSectionImage(false);
-      event.target.value = "";
-      return;
-    }
-
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
-    setSecondSectionImageUrl(urlData.publicUrl);
-    setUploadingSecondSectionImage(false);
-    event.target.value = "";
-    toast({ title: "Imagem enviada", description: "Clique em salvar para publicar a alteração." });
   };
 
   const removeFooterImage = (index: number) => {
@@ -443,51 +398,6 @@ export const SiteSettingsManager = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Aplicada na página inicial, painéis, menus, botões, links e destaques.
-              </p>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-primary" />
-                <Label htmlFor="second-section-image">Imagem da segunda seção do site</Label>
-              </div>
-              {secondSectionImageUrl && (
-                <div className="relative overflow-hidden rounded-md border bg-muted/30">
-                  <img
-                    src={secondSectionImageUrl}
-                    alt="Prévia da imagem da segunda seção"
-                    className="aspect-video w-full object-contain"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute right-2 top-2"
-                    onClick={() => setSecondSectionImageUrl("")}
-                    aria-label="Remover imagem personalizada da segunda seção"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-              <Input
-                id="second-section-image"
-                type="file"
-                accept="image/*"
-                onChange={handleSecondSectionImageUpload}
-                disabled={uploadingSecondSectionImage}
-              />
-              <Input
-                value={secondSectionImageUrl}
-                onChange={(event) => setSecondSectionImageUrl(event.target.value)}
-                placeholder="Ou cole a URL da imagem"
-              />
-              <p className="text-xs text-muted-foreground">
-                {uploadingSecondSectionImage
-                  ? "Enviando imagem..."
-                  : "Aparece abaixo do título e da descrição da segunda seção. Recomendado: formato horizontal."}
               </p>
             </div>
 
