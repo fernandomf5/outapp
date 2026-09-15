@@ -39,8 +39,6 @@ const EXCLUDED_PREFIXES = [
   "/calculadora",
 ];
 
-// Entry paths where we should try to restore the previous route.
-const ENTRY_PATHS = new Set<string>(["/", "/sidepanel.html", "/index.html"]);
 
 function isExcluded(pathname: string) {
   return EXCLUDED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
