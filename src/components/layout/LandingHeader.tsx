@@ -93,25 +93,9 @@ export const LandingHeader = () => {
                 src={currentLogo() || logoLion}
                 alt={settings.siteTitle || "Out App"}
                 style={{
-                  height: `${Math.min(settings.siteLogoSize, 36)}px`,
-                }}
-                className="w-auto object-contain sm:hidden"
-              />
-              <img
-                src={currentLogo() || logoLion}
-                alt={settings.siteTitle || "Out App"}
-                style={{
-                  height: `${Math.min(settings.siteLogoSize, 44)}px`,
-                }}
-                className="hidden w-auto object-contain sm:block md:hidden"
-              />
-              <img
-                src={currentLogo() || logoLion}
-                alt={settings.siteTitle || "Out App"}
-                style={{
                   height: `${settings.siteLogoSize}px`,
                 }}
-                className="hidden w-auto object-contain md:block"
+                className="w-auto object-contain max-h-9 sm:max-h-11 md:max-h-none"
               />
             </Link>
 
