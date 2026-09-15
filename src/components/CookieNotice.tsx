@@ -8,6 +8,7 @@ export const CookieNotice = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [cookieText, setCookieText] = useState("");
   const [isEnabled, setIsEnabled] = useState(true);
+  const [links, setLinks] = useState<{ label: string; url: string }[]>([]);
 
   useEffect(() => {
     // Don't show cookie notice inside iframes (embedded pages like briefings)
