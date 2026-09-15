@@ -307,7 +307,7 @@ export function UserSidebar() {
       } as React.CSSProperties}
     >
       <div className={cn(
-        "flex h-12 shrink-0 items-center overflow-hidden border-b border-sidebar-border",
+        "flex h-14 shrink-0 items-center overflow-hidden border-b border-sidebar-border sm:h-[72px]",
         collapsed ? "justify-center p-0" : "px-3"
       )}>
         <Link 
