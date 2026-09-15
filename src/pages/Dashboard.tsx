@@ -507,7 +507,9 @@ const Dashboard = () => {
       <PushNotificationPrompt />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
-        <div className="min-h-screen flex flex-col w-full bg-background overflow-hidden">
+        <div className="flex min-h-screen w-full bg-background overflow-hidden">
+          <UserSidebar />
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <TeamMemberBanner />
           
           {/* Header */}
@@ -614,7 +616,6 @@ const Dashboard = () => {
               </div>
             </header>
           <div className="flex flex-1 overflow-hidden">
-            <UserSidebar />
             <main className="flex-1 overflow-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 3xl:px-12 py-3 xs:py-4 sm:py-6 md:py-8 lg:py-10 3xl:py-12">
         {/* Subscription Banner */}
         <SubscriptionBanner />
@@ -1377,6 +1378,7 @@ const Dashboard = () => {
         description="Esta ação excluirá permanentemente este chat online e todas as suas configurações. Para confirmar, digite 'excluir' abaixo."
         itemName={agentToDelete?.name}
       />
+        </div>
         </div>
       </div>
     </SidebarProvider>
