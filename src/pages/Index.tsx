@@ -397,7 +397,7 @@ const Index = () => {
         {/* Header compacto com Logo pequeno */}
         <SheetHeader className="px-4 sm:px-5 py-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
           <div className="flex items-center gap-2.5">
-            <img src={logoLion} alt="Logo" className="h-8 w-8 object-contain" />
+            <img src={logoUrl || logoLightUrl || logoDarkUrl || logoLion} alt="Logo" className="h-8 w-8 object-contain" />
             <SheetTitle className="text-base sm:text-lg font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               {t('menu')}
             </SheetTitle>
