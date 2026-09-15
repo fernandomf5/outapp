@@ -78,6 +78,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
             <RoutePersistence />
+            <HashScroll />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
