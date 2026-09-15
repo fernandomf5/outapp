@@ -95,17 +95,19 @@ export const CookieNotice = () => {
                 {cookieText}
               </p>
 
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                <a href="/poltica-de-privacidade" className="text-primary hover:underline underline-offset-4">
-                  Política de Privacidade
-                </a>
-                <a href="/termos-de-uso" className="text-primary hover:underline underline-offset-4">
-                  Termos de Uso
-                </a>
-                <a href="/lgpd" className="text-primary hover:underline underline-offset-4">
-                  LGPD
-                </a>
-              </div>
+              {links.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                  {links.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.url}
+                      className="text-primary hover:underline underline-offset-4"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-4">
                 <Button onClick={handleAccept} size="sm" className="w-full sm:w-auto font-semibold">
