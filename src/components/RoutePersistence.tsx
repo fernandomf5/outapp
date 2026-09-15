@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 const STORAGE_KEY = "app:last-route";
 
@@ -39,8 +39,6 @@ const EXCLUDED_PREFIXES = [
   "/calculadora",
 ];
 
-// Entry paths where we should try to restore the previous route.
-const ENTRY_PATHS = new Set<string>(["/", "/sidepanel.html", "/index.html"]);
 
 function isExcluded(pathname: string) {
   return EXCLUDED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
@@ -48,26 +46,9 @@ function isExcluded(pathname: string) {
 
 export function RoutePersistence() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const restored = useRef(false);
 
-  // Restore once on first mount
-  useEffect(() => {
-    if (restored.current) return;
-    restored.current = true;
-    try {
-      const current = location.pathname + location.search + location.hash;
-      if (!ENTRY_PATHS.has(location.pathname)) return;
-      // Explicit opt-out: user clicked "Ver site" from panel
-      const params = new URLSearchParams(location.search);
-      if (params.has("site")) return;
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved && saved !== current && !isExcluded(saved.split("?")[0])) {
-        navigate(saved, { replace: true });
-      }
-    } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // A URL digitada pelo usuário é sempre respeitada: nenhuma rota é restaurada
+  // automaticamente. Mantemos apenas o registro da última rota visitada.
 
   // Persist every route change
   useEffect(() => {
