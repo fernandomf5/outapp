@@ -86,8 +86,10 @@ export const MyPlanSection = () => {
         .select('*')
         .eq('is_active', true)
         .eq('is_visible', true)
+        .eq('show_in_dashboard', true)
         .neq('plan_type', 'free_trial')
         .order('order_index', { ascending: true });
+
 
       if (plansData) {
         setAllPlans(plansData);
@@ -105,8 +107,10 @@ export const MyPlanSection = () => {
       .select('*')
       .eq('is_active', true)
       .eq('is_visible', true)
+      .eq('show_in_dashboard', true)
       .neq('plan_type', 'free_trial')
       .order('order_index', { ascending: true });
+
 
     if (plansData) {
       setAllPlans(plansData);
