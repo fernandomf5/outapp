@@ -64,6 +64,13 @@
       "when": 1789436245860,
       "tag": "0008_custom_pages_location_default",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789438192538,
+      "tag": "0009_grant_custom_pages_read",
+      "breakpoints": true
     }
   ]
 }
