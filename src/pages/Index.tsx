@@ -69,6 +69,7 @@ const Index = () => {
   const [logoUrl, setLogoUrl] = useState("");
   const [logoLightUrl, setLogoLightUrl] = useState("");
   const [logoDarkUrl, setLogoDarkUrl] = useState("");
+  const [secondSectionImageUrl, setSecondSectionImageUrl] = useState("");
   const [footerText, setFooterText] = useState("");
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [footerImages, setFooterImages] = useState<string[]>([]);
@@ -134,7 +135,7 @@ const Index = () => {
           event: '*',
           schema: 'public',
           table: 'site_settings',
-          filter: 'key=in.(site_title,site_logo_url,site_logo_light_url,site_logo_dark_url)'
+          filter: 'key=in.(site_title,site_logo_url,site_logo_light_url,site_logo_dark_url,landing_second_section_image_url)'
         },
         () => {
           fetchSiteSettings();
@@ -250,7 +251,7 @@ const Index = () => {
   };
 
   const fetchSiteSettings = async () => {
-    const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links', 'head_code', 'footer_code'];
+    const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'landing_second_section_image_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links', 'head_code', 'footer_code'];
     const { data } = await supabase
       .from('site_settings')
       .select('key, value')
@@ -270,6 +271,9 @@ const Index = () => {
             break;
           case 'site_logo_dark_url':
             setLogoDarkUrl(item.value || "");
+            break;
+          case 'landing_second_section_image_url':
+            setSecondSectionImageUrl(item.value || "");
             break;
           case 'footer_text':
             setFooterText(item.value || "");
@@ -701,7 +705,7 @@ const Index = () => {
           </div>
 
           <NeonImageFrame
-            src={showcaseAsset.url}
+            src={secondSectionImageUrl || showcaseAsset.url}
             alt="Painel da Out App com todos os recursos da plataforma em um só lugar"
             className="max-w-5xl 3xl:max-w-6xl"
           />
