@@ -25,6 +25,7 @@ export const HashScroll = (): null => {
     }
 
     let attempts = 0;
+    let corrections = 0;
     let timer: number | undefined;
 
     const tryScroll = (): void => {
@@ -33,7 +34,17 @@ export const HashScroll = (): null => {
         document.querySelector<HTMLElement>(`[name="${CSS.escape(rawId)}"]`);
 
       if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Reposiciona algumas vezes: o conteúdo acima da seção pode crescer
+        // enquanto imagens e dados terminam de carregar.
+        const offset = Math.abs(target.getBoundingClientRect().top - 96);
+        target.scrollIntoView({
+          behavior: corrections === 0 ? "smooth" : "auto",
+          block: "start",
+        });
+        corrections += 1;
+        if (corrections < 12 && (corrections < 4 || offset > 8)) {
+          timer = window.setTimeout(tryScroll, 400);
+        }
         return;
       }
 
