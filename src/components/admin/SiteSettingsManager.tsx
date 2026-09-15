@@ -128,6 +128,15 @@ export const SiteSettingsManager = () => {
           case 'cookie_notice_enabled':
             setCookieNoticeEnabled(item.value === 'true');
             break;
+          case 'cookie_privacy_url':
+            setCookiePrivacyUrl(item.value || "");
+            break;
+          case 'cookie_terms_url':
+            setCookieTermsUrl(item.value || "");
+            break;
+          case 'cookie_lgpd_url':
+            setCookieLgpdUrl(item.value || "");
+            break;
           case 'social_links':
             try {
               setSocialLinks(JSON.parse(item.value || '[]'));
