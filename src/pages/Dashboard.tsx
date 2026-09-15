@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code, UserCog, FileCheck, Filter, Download, ClipboardCheck, Briefcase, Search, X, Database, CalendarCheck, Table, Receipt, ShoppingCart, Target } from "lucide-react";
@@ -506,7 +506,7 @@ const Dashboard = () => {
       <RoutineReminders />
       <PushNotificationPrompt />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
-      <SidebarProvider>
+      <SidebarProvider style={{ "--sidebar-width-icon": "56px" } as CSSProperties}>
         <div className="flex min-h-screen w-full bg-background overflow-hidden">
           <UserSidebar />
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
