@@ -90,6 +90,7 @@ export const PageCreator = () => {
             is_active: true,
             order_index: orderIndex,
             show_in_menu: showInMenu,
+            location: 'footer',
           } as any,
         ])
         .select()
