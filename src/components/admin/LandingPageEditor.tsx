@@ -6,13 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Save, Eye, RefreshCw } from "lucide-react";
+import { FileText, Save, Eye, RefreshCw, Image as ImageIcon, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 
 export const LandingPageEditor = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploadingSecondSectionImage, setUploadingSecondSectionImage] = useState(false);
   const [settings, setSettings] = useState({
     landing_title: "",
     hero_title: "",
@@ -20,6 +21,7 @@ export const LandingPageEditor = () => {
     hero_cta_text: "",
     video_section_title: "",
     video_section_subtitle: "",
+    landing_second_section_image_url: "",
     features_title: "",
     features_subtitle: "",
     pricing_title: "",
@@ -86,6 +88,44 @@ export const LandingPageEditor = () => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleSecondSectionImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Arquivo inválido", description: "Selecione uma imagem.", variant: "destructive" });
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Imagem muito grande", description: "O tamanho máximo é 5 MB.", variant: "destructive" });
+      event.target.value = "";
+      return;
+    }
+
+    setUploadingSecondSectionImage(true);
+    const extension = file.name.split(".").pop()?.toLowerCase() || "webp";
+    const fileName = `landing/second-section-${Date.now()}.${extension}`;
+    const { error } = await supabase.storage.from("avatars").upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+    if (error) {
+      toast({ title: "Erro ao enviar imagem", description: error.message, variant: "destructive" });
+      setUploadingSecondSectionImage(false);
+      event.target.value = "";
+      return;
+    }
+
+    const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+    handleChange("landing_second_section_image_url", data.publicUrl);
+    setUploadingSecondSectionImage(false);
+    event.target.value = "";
+    toast({ title: "Imagem enviada", description: "Clique em salvar para publicar a alteração." });
+  };
+
   const handlePreview = () => {
     window.open('/', '_blank');
   };
@@ -119,7 +159,7 @@ export const LandingPageEditor = () => {
           <Tabs defaultValue="hero" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="hero">Hero</TabsTrigger>
-              <TabsTrigger value="video">Vídeo</TabsTrigger>
+              <TabsTrigger value="video">Segunda seção</TabsTrigger>
               <TabsTrigger value="features">Recursos</TabsTrigger>
               <TabsTrigger value="pricing">Preços & CTA</TabsTrigger>
             </TabsList>
@@ -183,7 +223,7 @@ export const LandingPageEditor = () => {
 
             <TabsContent value="video" className="space-y-4">
               <div className="space-y-3">
-                <Label htmlFor="video_section_title">Título da Seção de Vídeo</Label>
+                <Label htmlFor="video_section_title">Título da segunda seção</Label>
                 <Input
                   id="video_section_title"
                   value={settings.video_section_title}
@@ -195,7 +235,7 @@ export const LandingPageEditor = () => {
               <Separator />
 
               <div className="space-y-3">
-                <Label htmlFor="video_section_subtitle">Subtítulo da Seção de Vídeo</Label>
+                <Label htmlFor="video_section_subtitle">Texto da segunda seção</Label>
                 <Textarea
                   id="video_section_subtitle"
                   value={settings.video_section_subtitle}
@@ -204,6 +244,52 @@ export const LandingPageEditor = () => {
                   rows={2}
                   className="resize-none"
                 />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-primary" />
+                  <Label htmlFor="landing-second-section-image">Imagem da segunda seção</Label>
+                </div>
+                {settings.landing_second_section_image_url && (
+                  <div className="relative overflow-hidden rounded-md border bg-muted/30">
+                    <img
+                      src={settings.landing_second_section_image_url}
+                      alt="Prévia da imagem da segunda seção"
+                      className="aspect-video w-full object-contain"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute right-2 top-2"
+                      onClick={() => handleChange("landing_second_section_image_url", "")}
+                      aria-label="Remover imagem da segunda seção"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                <Input
+                  id="landing-second-section-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleSecondSectionImageUpload}
+                  disabled={uploadingSecondSectionImage}
+                />
+                <Input
+                  value={settings.landing_second_section_image_url}
+                  onChange={(event) => handleChange("landing_second_section_image_url", event.target.value)}
+                  placeholder="Ou cole a URL da imagem"
+                  aria-label="URL da imagem da segunda seção"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {uploadingSecondSectionImage
+                    ? "Enviando imagem..."
+                    : "A imagem aparece abaixo do título e do texto. Recomendado: formato horizontal."}
+                </p>
               </div>
             </TabsContent>
 
