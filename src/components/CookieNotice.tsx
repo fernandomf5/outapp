@@ -29,11 +29,24 @@ export const CookieNotice = () => {
       const { data } = await supabase
         .from('site_settings')
         .select('key, value')
-        .in('key', ['cookie_notice_text', 'cookie_notice_enabled']);
+        .in('key', [
+          'cookie_notice_text',
+          'cookie_notice_enabled',
+          'cookie_privacy_url',
+          'cookie_terms_url',
+          'cookie_lgpd_url',
+        ]);
 
       if (data) {
+        const valueOf = (key: string) => data.find(s => s.key === key)?.value?.trim() || "";
         const textSetting = data.find(s => s.key === 'cookie_notice_text');
         const enabledSetting = data.find(s => s.key === 'cookie_notice_enabled');
+
+        setLinks([
+          { label: "Política de Privacidade", url: valueOf('cookie_privacy_url') },
+          { label: "Termos de Uso", url: valueOf('cookie_terms_url') },
+          { label: "LGPD", url: valueOf('cookie_lgpd_url') },
+        ].filter(link => link.url.length > 0));
 
         setCookieText(textSetting?.value || "Usamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa Política de Privacidade.");
         setIsEnabled(enabledSetting?.value === 'true');
