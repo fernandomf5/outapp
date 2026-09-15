@@ -57,6 +57,13 @@
       "when": 1789431874793,
       "tag": "0007_plans_visibility_targets",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789436245860,
+      "tag": "0008_custom_pages_location_default",
+      "breakpoints": true
     }
   ]
 }
