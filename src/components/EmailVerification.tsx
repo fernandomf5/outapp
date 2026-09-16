@@ -63,9 +63,20 @@ export const EmailVerification = ({ userId, email, onVerified, onBack }: EmailVe
         return;
       }
 
+      // Entra direto na conta quando o servidor devolve uma sessão válida
+      if (data?.session?.access_token && data?.session?.refresh_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        if (sessionError) {
+          console.error('Erro ao iniciar sessão automática:', sessionError);
+        }
+      }
+
       toast({
         title: "Email verificado! ✅",
-        description: "Sua conta foi ativada com sucesso.",
+        description: "Sua conta foi ativada. Entrando...",
       });
 
       onVerified();
