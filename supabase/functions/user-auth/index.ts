@@ -254,9 +254,10 @@ serve(async (req) => {
         );
       } catch (e) {
         console.error('[REGISTER] Unexpected error:', e);
-        const message = e && typeof e === 'object' && 'message' in (e as any)
-          ? (e as any).message
-          : 'Erro ao criar conta. Tente novamente.';
+        const rawMessage = e && typeof e === 'object' && 'message' in (e as any)
+          ? String((e as any).message)
+          : '';
+        const message = translateAuthError(rawMessage);
         return new Response(
           JSON.stringify({ error: message }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
