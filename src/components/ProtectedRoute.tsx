@@ -36,9 +36,8 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
         <Card className="p-6 max-w-md w-full text-center">
           <h1 className="text-xl font-semibold mb-2">Sessão necessária</h1>
           <p className="text-muted-foreground mb-4">Faça login para acessar esta área.</p>
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center">
             <Button onClick={() => navigate('/auth')}>Ir para Login</Button>
-            <Button variant="outline" onClick={() => navigate('/team-login')}>Login Equipe</Button>
           </div>
         </Card>
       </div>
