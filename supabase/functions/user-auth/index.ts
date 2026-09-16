@@ -532,11 +532,41 @@ serve(async (req) => {
         .eq('user_id', userId)
         .single();
 
+      // Cria uma sessão automaticamente para o usuário recém-verificado,
+      // evitando que ele precise fazer login novamente.
+      let session: unknown = null;
+      try {
+        if (userProfile?.email) {
+          const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+            type: 'magiclink',
+            email: userProfile.email,
+          });
+
+          const tokenHash = linkData?.properties?.hashed_token;
+          if (linkError) {
+            console.error('[VERIFY] generateLink error:', linkError);
+          } else if (tokenHash) {
+            const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
+              token_hash: tokenHash,
+              type: 'email',
+            });
+            if (otpError) {
+              console.error('[VERIFY] verifyOtp error:', otpError);
+            } else {
+              session = otpData?.session ?? null;
+            }
+          }
+        }
+      } catch (sessionErr) {
+        console.error('[VERIFY] Failed to create session:', sessionErr);
+      }
+
       return new Response(
         JSON.stringify({ 
           profile, 
           verified: true,
-          email: userProfile?.email
+          email: userProfile?.email,
+          session
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
