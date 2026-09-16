@@ -6,6 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/** Traduz mensagens de erro do serviço de autenticação para português. */
+function translateAuthError(message?: string | null): string {
+  const raw = (message || '').toLowerCase();
+  if (!raw) return 'Não foi possível criar a conta. Tente novamente.';
+  if (raw.includes('weak') || raw.includes('easy to guess') || raw.includes('pwned')) {
+    return 'Senha muito fraca. Use pelo menos 8 caracteres, misturando letras maiúsculas, minúsculas, números e símbolos.';
+  }
+  if (raw.includes('password') && (raw.includes('at least') || raw.includes('should be'))) {
+    return 'A senha é muito curta. Use pelo menos 6 caracteres.';
+  }
+  if (raw.includes('already registered') || raw.includes('already been registered') || raw.includes('already exists')) {
+    return 'Este e-mail já possui uma conta. Faça login ou recupere sua senha.';
+  }
+  if (raw.includes('invalid email') || raw.includes('email address') && raw.includes('invalid')) {
+    return 'E-mail inválido. Verifique o endereço digitado.';
+  }
+  if (raw.includes('rate limit') || raw.includes('too many')) {
+    return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.';
+  }
+  return 'Não foi possível criar a conta. Tente novamente.';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -88,7 +110,7 @@ serve(async (req) => {
         });
 
         if (authError || !authUser?.user?.id) {
-          const msg = authError?.message || 'Não foi possível criar o usuário de autenticação.';
+          const msg = translateAuthError(authError?.message);
           console.error('[REGISTER] Auth error:', authError);
           return new Response(
             JSON.stringify({ error: msg }),
