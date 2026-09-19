@@ -1698,6 +1698,7 @@ export type Database = {
           created_at: string
           id: string
           responses: Json
+          visitor_company: string | null
           visitor_email: string | null
           visitor_name: string
           visitor_phone: string | null
@@ -1707,6 +1708,7 @@ export type Database = {
           created_at?: string
           id?: string
           responses?: Json
+          visitor_company?: string | null
           visitor_email?: string | null
           visitor_name: string
           visitor_phone?: string | null
@@ -1716,6 +1718,7 @@ export type Database = {
           created_at?: string
           id?: string
           responses?: Json
+          visitor_company?: string | null
           visitor_email?: string | null
           visitor_name?: string
           visitor_phone?: string | null
@@ -5277,6 +5280,7 @@ export type Database = {
           id: string
           is_blocked: boolean
           message: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -5285,6 +5289,7 @@ export type Database = {
           id?: string
           is_blocked?: boolean
           message?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -5293,6 +5298,7 @@ export type Database = {
           id?: string
           is_blocked?: boolean
           message?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -5646,6 +5652,7 @@ export type Database = {
           date: string
           description: string
           due_date: string | null
+          entity_type: string | null
           id: string
           is_recurring: boolean | null
           month: string | null
@@ -5665,17 +5672,18 @@ export type Database = {
           business_id?: string | null
           business_name?: string | null
           business_type?: string | null
-          category: string
+          category?: string
           created_at?: string
-          date: string
-          description: string
+          date?: string
+          description?: string
           due_date?: string | null
+          entity_type?: string | null
           id?: string
           is_recurring?: boolean | null
           month?: string | null
           monthly_status?: Json | null
           order_index?: number | null
-          payment_method: string
+          payment_method?: string
           reminder_enabled?: boolean | null
           status?: string
           status_history?: Json | null
@@ -5694,6 +5702,7 @@ export type Database = {
           date?: string
           description?: string
           due_date?: string | null
+          entity_type?: string | null
           id?: string
           is_recurring?: boolean | null
           month?: string | null
@@ -6716,8 +6725,10 @@ export type Database = {
         Row: {
           access_code: string | null
           area_id: string
+          created_at: string | null
           email: string
           id: string
+          name: string | null
           notes: string | null
           requested_at: string
           reviewed_at: string | null
@@ -6727,8 +6738,10 @@ export type Database = {
         Insert: {
           access_code?: string | null
           area_id: string
+          created_at?: string | null
           email: string
           id?: string
+          name?: string | null
           notes?: string | null
           requested_at?: string
           reviewed_at?: string | null
@@ -6738,8 +6751,10 @@ export type Database = {
         Update: {
           access_code?: string | null
           area_id?: string
+          created_at?: string | null
           email?: string
           id?: string
+          name?: string | null
           notes?: string | null
           requested_at?: string
           reviewed_at?: string | null
@@ -7161,6 +7176,7 @@ export type Database = {
           settings: Json | null
           slug: string | null
           theme_mode: string | null
+          title: string | null
           updated_at: string | null
           user_id: string
           welcome_message: string | null
@@ -7186,6 +7202,7 @@ export type Database = {
           settings?: Json | null
           slug?: string | null
           theme_mode?: string | null
+          title?: string | null
           updated_at?: string | null
           user_id: string
           welcome_message?: string | null
@@ -7211,6 +7228,7 @@ export type Database = {
           settings?: Json | null
           slug?: string | null
           theme_mode?: string | null
+          title?: string | null
           updated_at?: string | null
           user_id?: string
           welcome_message?: string | null
@@ -9222,12 +9240,16 @@ export type Database = {
       }
       saved_scripts: {
         Row: {
+          agenda_event_id: string | null
           business_id: string | null
           category_id: string | null
           content: string
           created_at: string | null
           id: string
           is_favorite: boolean | null
+          platform: string | null
+          post_status: string | null
+          scheduled_at: string | null
           sort_order: number | null
           tags: string[] | null
           title: string
@@ -9236,12 +9258,16 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agenda_event_id?: string | null
           business_id?: string | null
           category_id?: string | null
           content?: string
           created_at?: string | null
           id?: string
           is_favorite?: boolean | null
+          platform?: string | null
+          post_status?: string | null
+          scheduled_at?: string | null
           sort_order?: number | null
           tags?: string[] | null
           title: string
@@ -9250,12 +9276,16 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agenda_event_id?: string | null
           business_id?: string | null
           category_id?: string | null
           content?: string
           created_at?: string | null
           id?: string
           is_favorite?: boolean | null
+          platform?: string | null
+          post_status?: string | null
+          scheduled_at?: string | null
           sort_order?: number | null
           tags?: string[] | null
           title?: string
@@ -9264,6 +9294,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "saved_scripts_agenda_event_id_fkey"
+            columns: ["agenda_event_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "saved_scripts_business_id_fkey"
             columns: ["business_id"]
@@ -10199,6 +10236,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          revoked_at: string | null
           team_member_id: string
           token: string
         }
@@ -10206,6 +10244,7 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          revoked_at?: string | null
           team_member_id: string
           token: string
         }
@@ -10213,6 +10252,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          revoked_at?: string | null
           team_member_id?: string
           token?: string
         }
