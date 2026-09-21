@@ -16,6 +16,7 @@ interface AgendaEvent {
   all_day: boolean;
   color: string;
   reminder_minutes: number;
+  reminder_repeat_minutes: number | null;
   reminder_shown: boolean;
 }
 
@@ -23,6 +24,7 @@ export function AgendaReminders() {
   const { user } = useAuth();
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [activeReminders, setActiveReminders] = useState<AgendaEvent[]>([]);
+  const [snoozedAt, setSnoozedAt] = useState<Record<string, number>>({});
 
   const fetchEvents = useCallback(async () => {
     if (!user) return;
