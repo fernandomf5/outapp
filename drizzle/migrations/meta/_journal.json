@@ -127,6 +127,13 @@
       "when": 1789995713534,
       "tag": "0017_transaction_installments_priority_reminder",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790029924161,
+      "tag": "0018_admin_purge_user_data",
+      "breakpoints": true
     }
   ]
 }
