@@ -30,6 +30,7 @@ const markdownToHtml = (content: string) => {
   const lines = content.split(/\r?\n/);
   const html: string[] = [];
   let listOpen = false;
+  let skippedMainTitle = false;
 
   const closeList = () => {
     if (listOpen) {
@@ -53,7 +54,11 @@ const markdownToHtml = (content: string) => {
 
     if (line.startsWith("# ")) {
       closeList();
-      html.push(`<h1>${formatInlineMarkdown(line.slice(2))}</h1>`);
+      if (!skippedMainTitle) {
+        skippedMainTitle = true;
+        continue;
+      }
+      html.push(`<h2>${formatInlineMarkdown(line.slice(2))}</h2>`);
       continue;
     }
 
