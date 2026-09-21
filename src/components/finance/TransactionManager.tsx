@@ -1232,7 +1232,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       {showScrollHint && (
         <div className="flex items-center justify-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs text-primary">
           <MoveHorizontal className="h-3.5 w-3.5 animate-pulse" />
-          <span>Arraste para os lados para ver mais colunas</span>
+          <span>Arraste para os lados para visualizar a transação completa</span>
         </div>
       )}
 
@@ -1245,10 +1245,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               "cursor-grab",
               isScrollDragging && "cursor-grabbing select-none"
             )}
-            onMouseDown={handleScrollMouseDown}
-            onMouseMove={handleScrollMouseMove}
-            onMouseUp={handleScrollMouseUp}
-            onMouseLeave={handleScrollMouseUp}
+            style={{ touchAction: "pan-x pan-y" }}
+            onPointerDown={handleScrollPointerDown}
+            onPointerMove={handleScrollPointerMove}
+            onPointerUp={handleScrollPointerEnd}
+            onPointerCancel={handleScrollPointerEnd}
           >
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 
