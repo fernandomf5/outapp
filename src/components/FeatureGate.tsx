@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { useTeamMember } from '@/contexts/TeamMemberContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Construction } from 'lucide-react';
 
 interface FeatureGateProps {
