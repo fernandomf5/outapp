@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags, Landmark, AlertTriangle, BellRing } from "lucide-react";
+import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags, Landmark, AlertTriangle, BellRing, MoveHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -145,6 +145,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   /** Refs e estado para scroll horizontal arrastável com o mouse na lista. */
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isScrollDragging, setIsScrollDragging] = useState(false);
+  const [showScrollHint, setShowScrollHint] = useState(false);
   const scrollDragStart = useRef<{ x: number; scrollLeft: number } | null>(null);
 
   const isInteractiveTarget = (target: HTMLElement): boolean => {
@@ -184,6 +185,28 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     setIsScrollDragging(false);
     scrollDragStart.current = null;
   };
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const checkOverflow = () => {
+      setShowScrollHint(container.scrollWidth > container.clientWidth + 4);
+    };
+
+    checkOverflow();
+    container.addEventListener("scroll", checkOverflow, { passive: true });
+    window.addEventListener("resize", checkOverflow);
+
+    const observer = new ResizeObserver(checkOverflow);
+    observer.observe(container);
+
+    return () => {
+      container.removeEventListener("scroll", checkOverflow);
+      window.removeEventListener("resize", checkOverflow);
+      observer.disconnect();
+    };
+  }, [transactions.length]);
 
   const { categories, createCategory } = useFinancialCategories(businessId);
 
@@ -1103,6 +1126,13 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           </Dialog>
         </div>
       </div>
+
+      {showScrollHint && (
+        <div className="flex items-center justify-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs text-primary">
+          <MoveHorizontal className="h-3.5 w-3.5 animate-pulse" />
+          <span>Arraste para os lados para ver mais colunas</span>
+        </div>
+      )}
 
       <Card className="max-w-full overflow-hidden">
         <CardContent className="p-0">
