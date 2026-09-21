@@ -79,7 +79,7 @@ export default function AgentCustomerChat() {
   const [queueWaiting, setQueueWaiting] = useState(0);
   const [queueEta, setQueueEta] = useState(0);
   const prevQueuePositionRef = useRef<number | null | undefined>(undefined);
-  const [queueMessage, setQueueMessage] = useState<string>('Seu atendimento está na fila de espera. Em breve um atendente responderá.');
+  const [queueMessage, setQueueMessage] = useState<string>('Fila de espera — envie sua mensagem que logo logo vamos te atender.');
 
   const [statusColors, setStatusColors] = useState({
     online: '#22c55e',
@@ -385,11 +385,14 @@ export default function AgentCustomerChat() {
             // Atualiza a posição na fila em tempo real — somente da conversa deste cliente,
             // caso contrário a atualização de outro cliente apagaria o aviso de fila.
             if (conversationId && updatedConv.id === conversationId) {
-              setQueuePosition(
-                updatedConv.queue_position === null || updatedConv.queue_position === undefined
-                  ? null
-                  : Number(updatedConv.queue_position),
-              );
+              const rawPos = updatedConv.queue_position;
+              if (rawPos === null || rawPos === undefined) {
+                // O atendente chamou este cliente (tirou da fila) — vira "sua vez",
+                // nunca some da tela sem aviso.
+                setQueuePosition((prev) => (typeof prev === 'number' && prev > 0 ? 0 : prev));
+              } else {
+                setQueuePosition(Number(rawPos));
+              }
             }
             // Se a conversa atual foi arquivada e não temos uma nova ainda
             if (updatedConv.id === conversationId && updatedConv.status === 'archived') {
@@ -1170,7 +1173,7 @@ export default function AgentCustomerChat() {
                 )}
 
                 {/* Aviso de fila de espera */}
-                {(queuePosition !== null || (queueEnabled && attendantStatus !== 'online')) && (
+                {(queuePosition !== null || queueEnabled) && (
                   <Alert
                     className={`mt-2 py-1.5 sm:py-2 ${
                       queuePosition === 0
