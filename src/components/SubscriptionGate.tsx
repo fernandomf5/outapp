@@ -96,6 +96,11 @@ export const SubscriptionGate = ({ children, currentTab }: SubscriptionGateProps
     return <>{children}</>;
   }
 
+  // Admins bypass subscription gates entirely
+  if (user?.email === 'fernandomoraisgarcia2011@gmail.com') {
+    return <>{children}</>;
+  }
+
   // Always allow free tabs
   if (FREE_TABS.includes(currentTab)) {
     return <>{children}</>;
