@@ -348,7 +348,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
       const installmentCount = Number(formData.installment_count);
       const shouldCreateInstallments =
-        !editingTransactionId && formData.payment_method === 'credit_card' && installmentCount > 1;
+        !editingTransactionId && !editingProjected && formData.payment_method === 'credit_card' && installmentCount > 1;
 
       const transactionData = {
         user_id: user.id,
@@ -409,6 +409,40 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         }
 
         toast.success(`${installmentCount} parcelas criadas!`);
+        setIsAddOpen(false);
+        resetForm();
+        onRefresh();
+        return;
+      }
+
+      if (editingProjected) {
+        // Edição de uma repetição de conta fixa: vale apenas para o mês exibido.
+        const overrides: MonthlyOverrides = {
+          description: formData.description,
+          amount,
+          category: formData.category,
+          payment_method: formData.payment_method,
+          due_date: formData.due_date,
+          priority: formData.priority,
+          type: formData.type,
+        };
+        const previous = transactions.find(t => t.__projected && t.__periodKey === editingProjected.periodKey && sourceIdOf(t) === editingProjected.sourceId);
+
+        await patchMonthlyStatus(editingProjected.sourceId, editingProjected.periodKey, {
+          status: formData.status,
+          bank_account_id: formData.bank_account_id || null,
+          overrides,
+        });
+
+        if (previous?.status === 'paid' && previous.bank_account_id) {
+          const revert = previous.type === 'income' ? -previous.amount : previous.amount;
+          await updateAccountBalance(previous.bank_account_id, revert);
+        }
+        if (formData.status === 'paid' && formData.bank_account_id) {
+          await updateAccountBalance(formData.bank_account_id, formData.type === 'income' ? amount : -amount);
+        }
+
+        toast.success(`Alteração aplicada somente em ${periodLabel}`);
         setIsAddOpen(false);
         resetForm();
         onRefresh();
