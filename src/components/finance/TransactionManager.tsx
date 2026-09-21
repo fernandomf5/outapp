@@ -492,7 +492,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       resetForm();
       onRefresh();
     } catch (error) {
-      toast.error(editingTransactionId ? "Erro ao atualizar transação" : "Erro ao adicionar transação");
+      toast.error(editingTransactionId || editingProjected ? "Erro ao atualizar transação" : "Erro ao adicionar transação");
     } finally {
       setLoading(false);
     }
@@ -986,7 +986,18 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{editingTransactionId ? "Editar Transação" : "Adicionar Transação"}</DialogTitle>
+              <DialogTitle>
+                {editingProjected
+                  ? `Editar apenas ${periodLabel}`
+                  : editingTransactionId
+                    ? "Editar Transação"
+                    : "Adicionar Transação"}
+              </DialogTitle>
+              {editingProjected && (
+                <p className="text-xs text-muted-foreground">
+                  Esta é uma conta fixa repetida. As alterações valem somente para este mês; os outros meses continuam como estão.
+                </p>
+              )}
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
@@ -1151,7 +1162,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </div>
               </div>
 
-              {!editingTransactionId && formData.payment_method === 'credit_card' && (
+              {!editingTransactionId && !editingProjected && formData.payment_method === 'credit_card' && (
                 <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
                   <Label>Número de parcelas no cartão</Label>
                   <Select
@@ -1382,7 +1393,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDelete}
         title="Excluir Transação"
-        description="Esta ação excluirá permanentemente os dados desta transação e reverterá qualquer impacto no saldo da conta vinculada (se paga). Para confirmar, digite 'excluir' abaixo."
+        description={
+          transactionToDelete?.__projected
+            ? `Esta conta é fixa e se repete todo mês. A exclusão vale apenas para ${periodLabel}: os meses anteriores, o histórico e os próximos meses continuam intactos. Para confirmar, digite 'excluir' abaixo.`
+            : "Esta ação excluirá permanentemente os dados desta transação e reverterá qualquer impacto no saldo da conta vinculada (se paga). Para confirmar, digite 'excluir' abaixo."
+        }
         itemName={transactionToDelete?.description}
       />
 
