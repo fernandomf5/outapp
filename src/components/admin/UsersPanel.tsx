@@ -55,6 +55,13 @@ interface UserProfile {
   has_active_subscription?: boolean;
 }
 
+interface PlanOption {
+  id: string;
+  name: string;
+  price: number;
+  duration_days: number;
+}
+
 type DateFilterType = 'all' | '7days' | '15days' | '30days' | 'month' | 'year' | 'custom';
 
 export const UsersPanel = () => {
