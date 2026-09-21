@@ -555,10 +555,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       entity_type: entityType,
       priority: "normal",
       reminder_days_before: "none",
-      is_installment: !!(t.installment_total && t.installment_total > 1),
-      installment_count: String(t.installment_total || 1)
-
+      is_installment: false,
+      installment_count: "1"
     });
+
     setEditingTransactionId(null);
     setEditingProjected(null);
   };
