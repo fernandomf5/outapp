@@ -216,7 +216,11 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       return;
     }
 
-    await broadcastQueue();
+    await broadcastQueue({
+      queueEnabled: enabled,
+      queueMessage: message,
+      queueEtaMinutes: Math.max(0, Math.round(etaMinutes || 0)),
+    });
     if (!silent) {
       toast({ title: "Fila de espera atualizada", description: enabled ? "Clientes verão sua posição na fila." : "Fila de espera desativada." });
     }
