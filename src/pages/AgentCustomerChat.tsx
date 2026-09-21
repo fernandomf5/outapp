@@ -386,13 +386,9 @@ export default function AgentCustomerChat() {
             // caso contrário a atualização de outro cliente apagaria o aviso de fila.
             if (conversationId && updatedConv.id === conversationId) {
               const rawPos = updatedConv.queue_position;
-              if (rawPos === null || rawPos === undefined) {
-                // O atendente chamou este cliente (tirou da fila) — vira "sua vez",
-                // nunca some da tela sem aviso.
-                setQueuePosition((prev) => (typeof prev === 'number' && prev > 0 ? 0 : prev));
-              } else {
-                setQueuePosition(Number(rawPos));
-              }
+              // "É a sua vez" só quando o atendente define a posição 0 de verdade.
+              // Sem posição (null) significa apenas fora da fila — nunca vira chamada.
+              setQueuePosition(rawPos === null || rawPos === undefined ? null : Number(rawPos));
             }
             // Se a conversa atual foi arquivada e não temos uma nova ainda
             if (updatedConv.id === conversationId && updatedConv.status === 'archived') {
