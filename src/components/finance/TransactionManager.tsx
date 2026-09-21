@@ -1243,11 +1243,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                   <span className="text-xs text-muted-foreground">Sem conta</span>
                                 )}
                               </TableCell>
-                              <TableCell className="w-[130px] whitespace-nowrap">{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                              <TableCell className={cn('w-[140px] whitespace-nowrap text-right font-bold', t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
+                              <TableCell className="w-[110px] whitespace-nowrap">{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+                              <TableCell className={cn('w-[130px] whitespace-nowrap text-right font-bold', t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </TableCell>
-                              <TableCell className="w-[130px] text-center">
+                              <TableCell className="w-[110px] text-center">
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
@@ -1258,7 +1258,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                   {t.status === 'paid' ? 'Pago' : 'Pendente'}
                                 </Button>
                               </TableCell>
-                              <TableCell className="w-[100px] text-right">
+                              <TableCell className="w-[90px] text-right">
                                 <div className="flex justify-end gap-1">
                                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
                                     <Edit2 className="h-4 w-4" />
