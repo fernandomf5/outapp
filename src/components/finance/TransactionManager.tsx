@@ -283,7 +283,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
       const installmentCount = Number(formData.installment_count);
       const shouldCreateInstallments =
-        !editingTransactionId && !editingProjected && formData.payment_method === 'credit_card' && installmentCount > 1;
+        !editingProjected && formData.payment_method === 'credit_card' && installmentCount > 1;
+
 
       const transactionData = {
         user_id: user.id,
