@@ -11163,6 +11163,10 @@ export type Database = {
         Args: { _bucket: string; _older_than: string }
         Returns: number
       }
+      admin_purge_user_data: {
+        Args: { _keep_account?: boolean; _user_id: string }
+        Returns: Json
+      }
       create_checkout_order: {
         Args: {
           _additional_items?: Json

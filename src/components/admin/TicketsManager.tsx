@@ -269,20 +269,12 @@ export const TicketsManager = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('Sessão inválida');
 
-      const response = await fetch(
-        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/admin-delete-ticket',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ ticketId })
-        }
-      );
+      const { data: result, error } = await supabase.functions.invoke('admin-delete-ticket', {
+        body: { ticketId },
+      });
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result?.error || 'Falha ao excluir');
+      if (error) throw new Error(error.message || 'Falha ao excluir');
+      if (result?.error) throw new Error(result.error);
 
       // Remover imediatamente da UI para melhor UX
       setTickets(prev => prev.filter(t => t.id !== ticketId));
