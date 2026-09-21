@@ -81,7 +81,19 @@ export function AgendaReminders() {
         const eventDate = parseISO(event.start_date);
         const reminderTime = addMinutes(eventDate, -event.reminder_minutes);
 
-        if (isAfter(now, reminderTime)) {
+        if (!isAfter(now, reminderTime)) continue;
+
+        const repeat = event.reminder_repeat_minutes ?? 0;
+        const snoozed = snoozedAt[event.id];
+
+        // Sem repetição (ou evento já começou): mostra uma única vez
+        if (repeat <= 0 || !isBefore(now, eventDate)) {
+          if (!snoozed) newActiveReminders.push(event);
+          continue;
+        }
+
+        // Com repetição: reaparece a cada X minutos até a hora do evento
+        if (!snoozed || now.getTime() - snoozed >= repeat * 60000) {
           newActiveReminders.push(event);
         }
       }
@@ -99,7 +111,20 @@ export function AgendaReminders() {
     checkReminders();
 
     return () => clearInterval(interval);
-  }, [events]);
+  }, [events, snoozedAt]);
+
+  const dismissReminder = (event: AgendaEvent) => {
+    const repeat = event.reminder_repeat_minutes ?? 0;
+    const eventDate = parseISO(event.start_date);
+
+    if (repeat > 0 && isBefore(new Date(), eventDate)) {
+      setSnoozedAt(prev => ({ ...prev, [event.id]: Date.now() }));
+      setActiveReminders(prev => prev.filter(e => e.id !== event.id));
+      return;
+    }
+
+    void markReminderAsSeen(event.id);
+  };
 
   const markReminderAsSeen = async (eventId: string) => {
     setActiveReminders(prev => prev.filter(e => e.id !== eventId));
