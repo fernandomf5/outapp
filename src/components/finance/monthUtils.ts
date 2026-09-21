@@ -40,6 +40,13 @@ export interface PeriodTransaction {
   is_recurring: boolean;
   bank_account_id?: string | null;
   entity_type?: EntityType;
+  /** Grau de urgência escolhido pelo usuário */
+  priority?: "normal" | "alta" | "urgente";
+  /** Dias de antecedência do lembrete (0 = no dia do vencimento) */
+  reminder_days_before?: number | null;
+  /** Número da parcela e total de parcelas, quando a conta é parcelada */
+  installment_number?: number | null;
+  installment_total?: number | null;
   monthly_status?: Record<string, { status: string; bank_account_id?: string | null }> | null;
   /** true quando a linha é uma repetição projetada de uma conta recorrente */
   __projected?: boolean;
