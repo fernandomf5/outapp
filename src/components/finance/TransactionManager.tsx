@@ -21,7 +21,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useFinancialCategories } from "@/hooks/useFinancialCategories";
 import { CategoryManager } from "./CategoryManager";
 import { CategorySelect } from "./CategorySelect";
-import { EntityType } from "./monthUtils";
+import { EntityType, MonthlyStatusEntry, MonthlyOverrides } from "./monthUtils";
 
 
 export type TransactionPriority = 'normal' | 'alta' | 'urgente';
@@ -82,7 +82,7 @@ interface Transaction {
   reminder_days_before?: number | null;
   installment_number?: number | null;
   installment_total?: number | null;
-  monthly_status?: Record<string, { status: string; bank_account_id?: string | null }> | null;
+  monthly_status?: Record<string, MonthlyStatusEntry> | null;
   /** true quando a linha é uma repetição mensal projetada de uma conta fixa */
   __projected?: boolean;
   /** id real no banco (igual a `id` quando não é projetada) */
@@ -134,6 +134,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  /** Quando o usuário edita uma repetição de conta fixa, a alteração vale só para aquele mês. */
+  const [editingProjected, setEditingProjected] = useState<{ sourceId: string; periodKey: string } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
