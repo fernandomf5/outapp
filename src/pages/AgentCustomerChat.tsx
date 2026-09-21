@@ -377,8 +377,9 @@ export default function AgentCustomerChat() {
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedConv = payload.new as any;
-            // Atualiza a posição na fila em tempo real
-            if (updatedConv.agent_id === agentId && (!conversationId || updatedConv.id === conversationId)) {
+            // Atualiza a posição na fila em tempo real — somente da conversa deste cliente,
+            // caso contrário a atualização de outro cliente apagaria o aviso de fila.
+            if (conversationId && updatedConv.id === conversationId) {
               setQueuePosition(
                 updatedConv.queue_position === null || updatedConv.queue_position === undefined
                   ? null
