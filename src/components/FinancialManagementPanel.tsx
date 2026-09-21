@@ -112,6 +112,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       setBusinesses((data || []) as Business[]);
     } catch (error: any) {
       toast.error('Erro ao carregar negócios');
+    } finally {
+      setLoadingBusinesses(false);
     }
   };
 
