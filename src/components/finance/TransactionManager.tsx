@@ -948,16 +948,87 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </Select>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="recurring" 
-                  checked={formData.is_recurring} 
-                  onCheckedChange={(checked) => setFormData({...formData, is_recurring: !!checked})}
-                />
-                <Label htmlFor="recurring" className="text-sm font-medium leading-none cursor-pointer">
-                  Transação Recorrente (Mensal)
-                </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Prioridade</Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value as TransactionPriority })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                      <SelectItem value="urgente">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Lembrete</Label>
+                  <Select
+                    value={formData.reminder_days_before}
+                    onValueChange={(value) => setFormData({ ...formData, reminder_days_before: value })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {REMINDER_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {!editingTransactionId && (
+                <div className="space-y-3 rounded-lg border p-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="installment"
+                      checked={formData.is_installment}
+                      onCheckedChange={(checked) =>
+                        setFormData({ ...formData, is_installment: !!checked, is_recurring: checked ? false : formData.is_recurring })
+                      }
+                    />
+                    <Label htmlFor="installment" className="text-sm font-medium leading-none cursor-pointer">
+                      Parcelar esta conta
+                    </Label>
+                  </div>
+
+                  {formData.is_installment && (
+                    <div className="space-y-2">
+                      <Label>Em quantas parcelas?</Label>
+                      <Select
+                        value={formData.installment_count}
+                        onValueChange={(value) => setFormData({ ...formData, installment_count: value })}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent className="max-h-64">
+                          {Array.from({ length: 47 }, (_, i) => i + 2).map(n => (
+                            <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        O valor informado é dividido em {formData.installment_count} parcelas, uma por mês,
+                        a partir do vencimento escolhido.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!formData.is_installment && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="recurring" 
+                    checked={formData.is_recurring} 
+                    onCheckedChange={(checked) => setFormData({...formData, is_recurring: !!checked})}
+                  />
+                  <Label htmlFor="recurring" className="text-sm font-medium leading-none cursor-pointer">
+                    Transação Recorrente (Mensal)
+                  </Label>
+                </div>
+              )}
 
               <DialogFooter>
                 <Button type="submit" disabled={loading} className="w-full">
