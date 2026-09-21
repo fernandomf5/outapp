@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -142,7 +142,51 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [statusDraft, setStatusDraft] = useState<{ status: string; bank_account_id: string }>({ status: "pending", bank_account_id: "" });
   const [savingStatus, setSavingStatus] = useState(false);
 
+  /** Refs e estado para scroll horizontal arrastável com o mouse na lista. */
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isScrollDragging, setIsScrollDragging] = useState(false);
+  const scrollDragStart = useRef<{ x: number; scrollLeft: number } | null>(null);
+
+  const isInteractiveTarget = (target: HTMLElement): boolean => {
+    return !!(
+      target.closest("button") ||
+      target.closest("a") ||
+      target.closest("input") ||
+      target.closest("select") ||
+      target.closest("textarea") ||
+      target.closest('[role="button"]') ||
+      target.closest('[role="link"]') ||
+      target.closest('[data-no-scroll-drag]')
+    );
+  };
+
+  const handleScrollMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isScrollDragging) return;
+    const target = e.target as HTMLElement;
+    if (isInteractiveTarget(target)) return;
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    e.preventDefault();
+    setIsScrollDragging(true);
+    scrollDragStart.current = { x: e.clientX, scrollLeft: container.scrollLeft };
+  };
+
+  const handleScrollMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isScrollDragging || !scrollDragStart.current || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const dx = e.clientX - scrollDragStart.current.x;
+    scrollContainerRef.current.scrollLeft = scrollDragStart.current.scrollLeft - dx;
+  };
+
+  const handleScrollMouseUp = () => {
+    setIsScrollDragging(false);
+    scrollDragStart.current = null;
+  };
+
   const { categories, createCategory } = useFinancialCategories(businessId);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   /** Data padrão de vencimento: hoje quando estamos no mês atual, senão dia 1 do mês exibido. */
@@ -1062,8 +1106,20 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
       <Card className="max-w-full overflow-hidden">
         <CardContent className="p-0">
-          <div className="w-full overflow-x-auto">
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              "w-full overflow-x-auto",
+              "cursor-grab",
+              isScrollDragging && "cursor-grabbing select-none"
+            )}
+            onMouseDown={handleScrollMouseDown}
+            onMouseMove={handleScrollMouseMove}
+            onMouseUp={handleScrollMouseUp}
+            onMouseLeave={handleScrollMouseUp}
+          >
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+
               <Table className="min-w-[1040px] table-fixed">
                 <TableHeader>
                   <TableRow>
