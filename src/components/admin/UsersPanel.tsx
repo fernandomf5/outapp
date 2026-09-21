@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban, Crown, Filter, TrendingUp, TrendingDown, UserPlus, UserMinus, ChevronDown, Download, Phone } from "lucide-react";
+import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban, Crown, Filter, TrendingUp, TrendingDown, UserPlus, UserMinus, ChevronDown, Download, Phone, RotateCcw } from "lucide-react";
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
