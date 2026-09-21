@@ -30,6 +30,7 @@ interface Client {
   created_at: string;
   primary_color?: string;
   secondary_color?: string;
+  contact_id?: string | null;
 }
 
 interface Job {
@@ -77,7 +78,7 @@ export const AprovaJobPanel = () => {
   // Client form state
   const [showClientDialog, setShowClientDialog] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
-  const [clientForm, setClientForm] = useState({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
+  const [clientForm, setClientForm] = useState<{ name: string; username: string; password: string; primary_color: string; secondary_color: string; contact_id: string | null }>({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1', contact_id: null });
   
   // Job form state
   const [showJobDialog, setShowJobDialog] = useState(false);
@@ -190,9 +191,31 @@ export const AprovaJobPanel = () => {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   };
 
+  /** Seleciona um cadastro da Gestão Livre e preenche nome/usuário automaticamente. */
+  const handlePickContact = async (contactId: string | null) => {
+    setClientForm(prev => ({ ...prev, contact_id: contactId }));
+    if (!contactId) return;
+    const { data, error } = await supabase
+      .from('contacts')
+      .select('name')
+      .eq('id', contactId)
+      .maybeSingle();
+    if (error || !data?.name) return;
+    const suggestedUsername = data.name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '');
+    setClientForm(prev => ({
+      ...prev,
+      name: prev.name || data.name,
+      username: prev.username || suggestedUsername,
+    }));
+  };
+
   const openNewClient = () => {
     setEditingClient(null);
-    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
+    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1', contact_id: null });
     setShowClientDialog(true);
   };
 
@@ -203,7 +226,8 @@ export const AprovaJobPanel = () => {
       username: client.username,
       password: '',
       primary_color: client.primary_color || '#8B5CF6',
-      secondary_color: client.secondary_color || '#6366F1'
+      secondary_color: client.secondary_color || '#6366F1',
+      contact_id: client.contact_id ?? null
     });
     setShowClientDialog(true);
   };
@@ -224,7 +248,8 @@ export const AprovaJobPanel = () => {
         username: clientForm.username.toLowerCase().trim(),
         password_hash: passwordHash,
         primary_color: clientForm.primary_color,
-        secondary_color: clientForm.secondary_color
+        secondary_color: clientForm.secondary_color,
+        contact_id: clientForm.contact_id
       });
 
     if (error) {
@@ -239,7 +264,7 @@ export const AprovaJobPanel = () => {
     toast({ title: "Sucesso", description: "Cliente criado com sucesso!" });
     setShowClientDialog(false);
     setEditingClient(null);
-    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
+    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1', contact_id: null });
     fetchClients();
   };
 
@@ -253,7 +278,8 @@ export const AprovaJobPanel = () => {
       name: clientForm.name,
       username: clientForm.username.toLowerCase().trim(),
       primary_color: clientForm.primary_color,
-      secondary_color: clientForm.secondary_color
+      secondary_color: clientForm.secondary_color,
+      contact_id: clientForm.contact_id
     };
 
     // Only update password if provided
@@ -274,7 +300,7 @@ export const AprovaJobPanel = () => {
     toast({ title: "Sucesso", description: "Cliente atualizado!" });
     setShowClientDialog(false);
     setEditingClient(null);
-    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
+    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1', contact_id: null });
     fetchClients();
   };
 
@@ -751,7 +777,7 @@ export const AprovaJobPanel = () => {
               setShowClientDialog(open);
               if (!open) {
                 setEditingClient(null);
-                setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
+                setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1', contact_id: null });
               }
             }}>
               <DialogTrigger asChild>
@@ -765,6 +791,12 @@ export const AprovaJobPanel = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
+                  <ContactPicker
+                    value={clientForm.contact_id}
+                    onChange={handlePickContact}
+                    label="Cliente da Gestão Livre (opcional)"
+                    placeholder="Selecionar cadastro"
+                  />
                   <div>
                     <Label>Nome do Cliente *</Label>
                     <Input
