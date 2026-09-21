@@ -266,6 +266,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       if (!user) return;
 
       const amount = parseFloat(formData.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        toast.error("Informe um valor válido");
+        return;
+      }
+
+      const reminderDays =
+        formData.reminder_days_before === "none" ? null : Number(formData.reminder_days_before);
+
       const transactionData = {
         user_id: user.id,
         business_id: businessId,
@@ -279,9 +287,58 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         bank_account_id: formData.bank_account_id || null,
         is_recurring: formData.is_recurring,
         entity_type: formData.entity_type,
+        priority: formData.priority,
+        reminder_days_before: reminderDays,
+        reminder_sent: false,
         year: new Date(formData.due_date).getFullYear(),
         month: format(new Date(formData.due_date + 'T00:00:00'), 'MMMM', { locale: ptBR })
       };
+
+      // Parcelamento: gera uma conta por mês, com numeração (1/3, 2/3, ...).
+      const installmentCount = Number(formData.installment_count);
+      if (!editingTransactionId && formData.is_installment && installmentCount > 1) {
+        if (!Number.isInteger(installmentCount) || installmentCount < 2 || installmentCount > 120) {
+          toast.error("Informe um número de parcelas entre 2 e 120");
+          return;
+        }
+
+        const groupId = crypto.randomUUID();
+        const cents = Math.round(amount * 100);
+        const baseCents = Math.floor(cents / installmentCount);
+        const rest = cents - baseCents * installmentCount;
+
+        const rows = Array.from({ length: installmentCount }, (_, index) => {
+          const dueDate = addMonthsToDate(formData.due_date, index);
+          const parcelCents = baseCents + (index < rest ? 1 : 0);
+          return {
+            ...transactionData,
+            description: `${formData.description} (${index + 1}/${installmentCount})`,
+            amount: parcelCents / 100,
+            due_date: dueDate,
+            status: index === 0 ? formData.status : 'pending',
+            is_recurring: false,
+            installment_group_id: groupId,
+            installment_number: index + 1,
+            installment_total: installmentCount,
+            year: Number(dueDate.slice(0, 4)),
+            month: format(new Date(dueDate + 'T00:00:00'), 'MMMM', { locale: ptBR }),
+          };
+        });
+
+        const { error } = await supabase.from('financial_transactions').insert(rows as any);
+        if (error) throw error;
+
+        if (formData.status === 'paid' && formData.bank_account_id) {
+          const first = rows[0].amount;
+          await updateAccountBalance(formData.bank_account_id, formData.type === 'income' ? first : -first);
+        }
+
+        toast.success(`${installmentCount} parcelas criadas!`);
+        setIsAddOpen(false);
+        resetForm();
+        onRefresh();
+        return;
+      }
 
       if (editingTransactionId) {
         // Obter transação antiga para comparar saldo
