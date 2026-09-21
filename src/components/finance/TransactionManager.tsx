@@ -145,6 +145,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   /** Refs e estado para scroll horizontal arrastável com o mouse na lista. */
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isScrollDragging, setIsScrollDragging] = useState(false);
+  const [showScrollHint, setShowScrollHint] = useState(false);
   const scrollDragStart = useRef<{ x: number; scrollLeft: number } | null>(null);
 
   const isInteractiveTarget = (target: HTMLElement): boolean => {
