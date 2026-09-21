@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History, ChevronLeft, ChevronRight, Building2, User } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History, ChevronLeft, ChevronRight, Building2, User, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingBusinesses, setLoadingBusinesses] = useState(true);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [entityType, setEntityType] = useState<EntityType>('pf');
