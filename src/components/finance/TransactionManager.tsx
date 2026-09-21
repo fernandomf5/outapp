@@ -23,6 +23,39 @@ import { CategorySelect } from "./CategorySelect";
 import { EntityType } from "./monthUtils";
 
 
+export type TransactionPriority = 'normal' | 'alta' | 'urgente';
+
+/** Rótulo e estilo de cada grau de urgência exibido na lista. */
+export const PRIORITY_CONFIG: Record<TransactionPriority, { label: string; className: string }> = {
+  normal: { label: 'Normal', className: 'border-border text-muted-foreground' },
+  alta: { label: 'Alta', className: 'border-amber-500/60 bg-amber-500/10 text-amber-600' },
+  urgente: { label: 'Urgente', className: 'border-destructive/60 bg-destructive/10 text-destructive' },
+};
+
+/** Opções de antecedência do lembrete (em dias). 0 = no dia do vencimento. */
+const REMINDER_OPTIONS: { value: string; label: string }[] = [
+  { value: 'none', label: 'Sem lembrete' },
+  { value: '0', label: 'No dia do vencimento' },
+  { value: '1', label: '1 dia antes' },
+  { value: '2', label: '2 dias antes' },
+  { value: '3', label: '3 dias antes' },
+  { value: '5', label: '5 dias antes' },
+  { value: '7', label: '7 dias antes' },
+  { value: '15', label: '15 dias antes' },
+  { value: '30', label: '30 dias antes' },
+];
+
+/** Soma meses a uma data "YYYY-MM-DD" sem problemas de fuso, ajustando o último dia do mês. */
+const addMonthsToDate = (isoDate: string, monthsToAdd: number): string => {
+  const [y, m, d] = isoDate.slice(0, 10).split('-').map(Number);
+  const baseMonthIndex = (m - 1) + monthsToAdd;
+  const year = y + Math.floor(baseMonthIndex / 12);
+  const month = ((baseMonthIndex % 12) + 12) % 12;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(d, lastDay);
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
+
 const PAYMENT_METHODS: Record<string, string> = {
   pix: "PIX",
   credit_card: "Cartão de Crédito",
@@ -44,6 +77,10 @@ interface Transaction {
   is_recurring: boolean;
   bank_account_id?: string | null;
   entity_type?: EntityType;
+  priority?: TransactionPriority;
+  reminder_days_before?: number | null;
+  installment_number?: number | null;
+  installment_total?: number | null;
   monthly_status?: Record<string, { status: string; bank_account_id?: string | null }> | null;
   /** true quando a linha é uma repetição mensal projetada de uma conta fixa */
   __projected?: boolean;
