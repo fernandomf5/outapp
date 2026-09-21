@@ -184,15 +184,13 @@ export default function AgentCustomerChat() {
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
         if (cfg.queueEtaMinutes !== undefined) setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
         if (data?.queue) {
-          // Só atualiza a posição quando a consulta foi feita para a conversa atual,
-          // caso contrário a posição do cliente seria apagada indevidamente.
+          // Só atualiza a posição quando a consulta foi feita para a conversa atual
+          // e quando o servidor devolve um número — nunca apaga a posição por ausência de dado.
           if (conversationId) {
-            setQueuePosition(
-              data.queue.position === null || data.queue.position === undefined ? null : Number(data.queue.position),
-            );
+            const pos = data.queue.position;
+            if (pos !== null && pos !== undefined) setQueuePosition(Number(pos));
           }
           setQueueWaiting(Number(data.queue.waiting || 0));
-          if (data.queue.etaMinutes !== undefined) setQueueEta(Number(data.queue.etaMinutes || 0) || 0);
         }
         if (cfg.statusColors) {
           setStatusColors({
