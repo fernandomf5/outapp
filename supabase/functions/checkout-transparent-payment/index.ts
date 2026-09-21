@@ -61,7 +61,7 @@ serve(async (req) => {
 
     const { data: mpSettings } = await supabase
       .from('site_settings').select('value').eq('key', 'mercadopago_access_token').maybeSingle();
-    let accessToken = mpSettings?.value || checkout.mp_access_token;
+    let accessToken = checkout.mp_access_token || mpSettings?.value;
     if (!accessToken) throw new Error('Mercado Pago não configurado.');
 
     let paymentBody: any;
