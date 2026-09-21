@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Loader2, QrCode, Copy, CheckCircle2, AlertCircle, Smartphone } from "lucide-react";
+import { CreditCard, Loader2, QrCode, Copy, CheckCircle2, Lock, ShieldCheck, Smartphone } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
 import { generatePixBRCode } from "@/lib/pix";
@@ -284,7 +284,24 @@ export const TransparentCheckout = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-xl sm:p-5">
+      <div className="flex flex-col gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-bold" style={{ color: textColor }}>Checkout transparente e seguro</p>
+            <p className="mt-0.5 text-xs leading-relaxed" style={{ color: subtitleColor }}>
+              Cartão e PIX são processados pelo Mercado Pago sem tirar o cliente desta página.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide" style={{ color: subtitleColor }}>
+          <Lock className="h-3.5 w-3.5 text-primary" />
+          Dados protegidos
+        </div>
+      </div>
 
       <Tabs value={activeTab} onValueChange={(v) => {
         setActiveTab(v);
@@ -293,29 +310,32 @@ export const TransparentCheckout = ({
         setPixQrCodeBase64("");
       }}>
 
-        <TabsList className={`grid w-full ${tabCount === 3 ? 'grid-cols-3' : tabCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ backgroundColor: `${primaryColor}10` }}>
+        <TabsList className={`grid h-auto w-full gap-2 rounded-xl bg-muted/60 p-1.5 ${tabCount === 3 ? 'grid-cols-3' : tabCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
           {showCard && (
-            <TabsTrigger value="credit_card" className="flex items-center gap-2" style={{
+            <TabsTrigger value="credit_card" className="h-11 rounded-lg text-xs font-bold sm:text-sm data-[state=active]:shadow-sm" style={{
               color: activeTab === 'credit_card' ? primaryColor : textColor,
-              backgroundColor: activeTab === 'credit_card' ? 'white' : 'transparent'
+              backgroundColor: activeTab === 'credit_card' ? `${primaryColor}12` : 'transparent',
+              border: activeTab === 'credit_card' ? `1px solid ${primaryColor}35` : '1px solid transparent'
             }}>
               <CreditCard className="w-4 h-4" />
               Cartão
             </TabsTrigger>
           )}
           {showMpPix && (
-            <TabsTrigger value="pix" className="flex items-center gap-2" style={{
+            <TabsTrigger value="pix" className="h-11 rounded-lg text-xs font-bold sm:text-sm data-[state=active]:shadow-sm" style={{
               color: activeTab === 'pix' ? primaryColor : textColor,
-              backgroundColor: activeTab === 'pix' ? 'white' : 'transparent'
+              backgroundColor: activeTab === 'pix' ? `${primaryColor}12` : 'transparent',
+              border: activeTab === 'pix' ? `1px solid ${primaryColor}35` : '1px solid transparent'
             }}>
               <QrCode className="w-4 h-4" />
               PIX
             </TabsTrigger>
           )}
           {showManualPix && (
-            <TabsTrigger value="pix_manual" className="flex items-center gap-2" style={{
+            <TabsTrigger value="pix_manual" className="h-11 rounded-lg text-xs font-bold sm:text-sm data-[state=active]:shadow-sm" style={{
               color: activeTab === 'pix_manual' ? primaryColor : textColor,
-              backgroundColor: activeTab === 'pix_manual' ? 'white' : 'transparent'
+              backgroundColor: activeTab === 'pix_manual' ? `${primaryColor}12` : 'transparent',
+              border: activeTab === 'pix_manual' ? `1px solid ${primaryColor}35` : '1px solid transparent'
             }}>
               <QrCode className="w-4 h-4" />
               PIX Manual
@@ -326,61 +346,63 @@ export const TransparentCheckout = ({
 
 
         <TabsContent value="credit_card" className="space-y-4 mt-4">
-          <div className="space-y-3">
+          <div className="space-y-4 rounded-2xl border border-border/70 bg-background/70 p-4">
             <div>
-              <Label className="text-xs" style={{ color: subtitleColor }}>Número do Cartão</Label>
+              <Label className="text-xs font-bold uppercase tracking-wide" style={{ color: subtitleColor }}>Número do Cartão</Label>
               <Input
                 placeholder="0000 0000 0000 0000"
                 value={cardNumber}
                 onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 maxLength={19}
                  disabled={processing}
+                className="mt-1 h-12 rounded-xl border-border/70 text-base shadow-sm"
                 style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }}
               />
             </div>
             <div>
-              <Label className="text-xs" style={{ color: subtitleColor }}>Nome no Cartão</Label>
+              <Label className="text-xs font-bold uppercase tracking-wide" style={{ color: subtitleColor }}>Nome no Cartão</Label>
               <Input
                 placeholder="Nome como está no cartão"
                 value={cardHolder}
                 onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
                  disabled={processing}
+                className="mt-1 h-12 rounded-xl border-border/70 shadow-sm"
                 style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }}
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs" style={{ color: subtitleColor }}>Mês</Label>
+                <Label className="text-xs font-bold uppercase tracking-wide" style={{ color: subtitleColor }}>Mês</Label>
                 <Input placeholder="MM" value={expMonth}
                   onChange={(e) => setExpMonth(e.target.value.replace(/\D/g, '').substring(0, 2))}
                   maxLength={2} disabled={processing} 
-                  className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
+                  className="mt-1 h-12 rounded-xl bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
                   style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
               <div>
-                <Label className="text-xs" style={{ color: subtitleColor }}>Ano</Label>
+                <Label className="text-xs font-bold uppercase tracking-wide" style={{ color: subtitleColor }}>Ano</Label>
                 <Input placeholder="AA" value={expYear}
                   onChange={(e) => setExpYear(e.target.value.replace(/\D/g, '').substring(0, 4))}
                   maxLength={4} disabled={processing} 
-                  className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
+                  className="mt-1 h-12 rounded-xl bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
                   style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
               <div>
-                <Label className="text-xs" style={{ color: subtitleColor }}>CVV</Label>
+                <Label className="text-xs font-bold uppercase tracking-wide" style={{ color: subtitleColor }}>CVV</Label>
                 <Input placeholder="123" value={cvv} type="password"
                   onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').substring(0, 4))}
                   maxLength={4} disabled={processing} 
-                  className="bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
+                  className="mt-1 h-12 rounded-xl bg-white text-slate-900 border-slate-200 focus:ring-primary focus:border-primary"
                   style={{ color: fieldTextColor || '#0f172a', backgroundColor: fieldColor || '#ffffff', opacity: 1 }} />
               </div>
             </div>
 
-            {availableInstallments.length > 1 && (
+            {availableInstallments.length > 0 && (
               <div>
-                <Label className="text-xs" style={{ color: subtitleColor }}>Parcelas</Label>
+                <Label className="text-xs font-bold uppercase tracking-wide" style={{ color: subtitleColor }}>Parcelas</Label>
                 <select
-                 className="w-full rounded-md border border-input px-3 py-2 text-sm bg-white"
-                  style={{ color: textColor }}
+                  className="mt-1 h-12 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                  style={{ color: fieldTextColor || textColor, backgroundColor: fieldColor || '#ffffff' }}
                   value={installments}
                   onChange={(e) => setInstallments(Number(e.target.value))}
                   disabled={processing}
@@ -394,6 +416,12 @@ export const TransparentCheckout = ({
                 </select>
               </div>
             )}
+
+            <div className="grid grid-cols-1 gap-2 rounded-xl border border-border/70 bg-muted/40 p-3 text-[11px] font-medium sm:grid-cols-3" style={{ color: subtitleColor }}>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Pagamento na página</span>
+              <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5 text-primary" /> Cartão tokenizado</span>
+              <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> Mercado Pago</span>
+            </div>
 
             <Button
               className="w-full h-12 text-base font-semibold"
@@ -416,7 +444,7 @@ export const TransparentCheckout = ({
         <TabsContent value="pix" className="space-y-4 mt-4">
           {!pixPending ? (
             <div className="text-center space-y-6 py-4">
-              <div className="p-6 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20">
+                <div className="p-6 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20 shadow-sm">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <QrCode className="w-8 h-8 text-primary" />
                 </div>
@@ -443,7 +471,7 @@ export const TransparentCheckout = ({
             </div>
           ) : (
             <div className="text-center space-y-4">
-              <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
+              <div className="p-4 rounded-2xl border border-border/70 space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
                 {pixQrCodeBase64 ? (
                   <div className="flex justify-center">
                     <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>
@@ -484,7 +512,7 @@ export const TransparentCheckout = ({
         <TabsContent value="pix_manual" className="space-y-4 mt-4">
           {!pixPending ? (
             <div className="text-center space-y-6 py-4">
-              <div className="p-6 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20">
+                <div className="p-6 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20 shadow-sm">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <QrCode className="w-8 h-8 text-primary" />
                 </div>
@@ -506,7 +534,7 @@ export const TransparentCheckout = ({
             </div>
           ) : (
             <div className="text-center space-y-4">
-              <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
+              <div className="p-4 rounded-2xl border border-border/70 space-y-3" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
                 <div className="py-4 space-y-4">
                   <div className="flex justify-center mb-4">
                     <div className="p-4 bg-white rounded-2xl shadow-lg border-2" style={{ borderColor: `${primaryColor}30` }}>

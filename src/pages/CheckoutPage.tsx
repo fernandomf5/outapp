@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, Lock, Smartphone, Star, Package, TrendingUp, Clock, Gift } from "lucide-react";
+import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2, Lock, Smartphone, Star, Package, TrendingUp, Clock, Gift, FileText } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { TransparentCheckout } from "@/components/TransparentCheckout";
 import { SecurityFooterBar } from "@/components/checkout/SecurityFooterBar";
@@ -132,6 +132,18 @@ interface AdditionalItem {
   is_active: boolean;
 }
 
+interface CheckoutLegalLink {
+  label: string;
+  url: string;
+}
+
+const normalizeCheckoutLink = (url: string) => {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (/^(https?:|mailto:|tel:|#)/i.test(trimmed)) return trimmed;
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+};
+
 const CheckoutPage = () => {
   const { checkoutId } = useParams();
   const [checkout, setCheckout] = useState<CheckoutData | null>(null);
@@ -147,6 +159,7 @@ const CheckoutPage = () => {
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [isManualPix, setIsManualPix] = useState(false);
   const [emailInUseName, setEmailInUseName] = useState<string | null>(null);
+  const [legalLinks, setLegalLinks] = useState<CheckoutLegalLink[]>([]);
 
   const [customerData, setCustomerData] = useState({
     name: '', email: '', emailConfirm: '', phone: '', cpf: '',
@@ -225,12 +238,21 @@ const CheckoutPage = () => {
       const settings = data.custom_settings && typeof data.custom_settings === 'object' ? data.custom_settings : {};
       setCheckout({ ...data, ...settings } as any);
 
-      let pubKey = (data as any).mp_public_key;
-      if (!pubKey) {
-        const { data: mpSettings } = await supabase
-          .from('site_settings').select('value').eq('key', 'mercadopago_public_key').single();
-        pubKey = mpSettings?.value;
-      }
+      const { data: settingsRows } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['mercadopago_public_key', 'cookie_privacy_url', 'cookie_terms_url', 'cookie_lgpd_url']);
+
+      const settingsByKey = new Map((settingsRows || []).map((item) => [item.key, item.value || '']));
+      setLegalLinks([
+        { label: 'Privacidade', url: normalizeCheckoutLink(settingsByKey.get('cookie_privacy_url') || '/politica-de-privacidade') },
+        { label: 'Termos de Uso', url: normalizeCheckoutLink(settingsByKey.get('cookie_terms_url') || '/termos-de-uso') },
+        { label: 'LGPD', url: normalizeCheckoutLink(settingsByKey.get('cookie_lgpd_url') || '/lgpd') },
+        { label: 'Pagamentos', url: '/politica-de-pagamentos' },
+        { label: 'Reembolso', url: '/politica-de-reembolso' },
+      ]);
+
+      let pubKey = (data as any).mp_public_key || settingsByKey.get('mercadopago_public_key');
       setMpPublicKey(pubKey);
 
       const { data: items } = await supabase
@@ -391,6 +413,28 @@ const CheckoutPage = () => {
   const subtitleColor = checkout.custom_settings?.subtitle_color || checkout.subtitle_color || '#666666';
   const footerColor = checkout.custom_settings?.footer_text_color || checkout.footer_text_color || checkout.footer_color || '#64748b';
   const pColor = checkout.primary_color || '#8B5CF6';
+  const checkoutFooterLinks: CheckoutLegalLink[] = [
+    {
+      label: 'Privacidade',
+      url: normalizeCheckoutLink(checkout.custom_settings?.footer_privacy_url || legalLinks.find((link) => link.label === 'Privacidade')?.url || '/politica-de-privacidade'),
+    },
+    {
+      label: 'Termos de Uso',
+      url: normalizeCheckoutLink(checkout.custom_settings?.footer_terms_url || legalLinks.find((link) => link.label === 'Termos de Uso')?.url || '/termos-de-uso'),
+    },
+    {
+      label: 'LGPD',
+      url: normalizeCheckoutLink(checkout.custom_settings?.footer_lgpd_url || legalLinks.find((link) => link.label === 'LGPD')?.url || '/lgpd'),
+    },
+    {
+      label: 'Pagamentos',
+      url: normalizeCheckoutLink(checkout.custom_settings?.footer_payment_policy_url || '/politica-de-pagamentos'),
+    },
+    {
+      label: 'Reembolso',
+      url: normalizeCheckoutLink(checkout.custom_settings?.footer_refund_policy_url || '/politica-de-reembolso'),
+    },
+  ].filter((link) => link.url.length > 0);
   
   const innerBgColor = checkout.custom_settings?.inner_bg_color || 'rgba(0,0,0,0.03)';
   const borderColor = checkout.custom_settings?.border_color || '#e2e8f0';
@@ -818,10 +862,32 @@ const CheckoutPage = () => {
            <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em]" style={{ color: checkout.custom_settings?.footer_title_color || footerColor }}>
              {checkout.footer_text || 'Compra 100% Segura'}
            </p>
-           <div className="flex justify-center flex-wrap gap-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">
-             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_privacy_url && window.open(checkout.custom_settings.footer_privacy_url, '_blank')}>Privacidade</span>
-             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_terms_url && window.open(checkout.custom_settings.footer_terms_url, '_blank')}>Termos de Uso</span>
-             <span className="hover:opacity-100 cursor-pointer transition-opacity" style={{ color: footerColor }} onClick={() => checkout.custom_settings?.footer_contact_info && window.open(`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`, '_blank')}>Contato</span>
+            <div className="flex justify-center flex-wrap gap-3 text-[10px] font-bold uppercase tracking-widest">
+              {checkoutFooterLinks.map((link) => (
+                <a
+                  key={`${link.label}-${link.url}`}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border border-current/20 px-3 py-1.5 opacity-70 transition-opacity hover:opacity-100"
+                  style={{ color: footerColor }}
+                >
+                  <FileText className="h-3 w-3" />
+                  {link.label}
+                </a>
+              ))}
+              {checkout.custom_settings?.footer_contact_info && (
+                <a
+                  href={`https://wa.me/${checkout.custom_settings.footer_contact_info.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border border-current/20 px-3 py-1.5 opacity-70 transition-opacity hover:opacity-100"
+                  style={{ color: footerColor }}
+                >
+                  <Smartphone className="h-3 w-3" />
+                  Contato
+                </a>
+              )}
            </div>
         </div>
 

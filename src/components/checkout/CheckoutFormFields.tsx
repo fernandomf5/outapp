@@ -854,11 +854,28 @@ export const CheckoutFormFields = ({ formData, setFormData, formTab, setFormTab,
                <Label className="text-slate-700 font-semibold mb-1.5 block">WhatsApp de Contato (com DDD)</Label>
                <Input value={formData.custom_settings.footer_contact_info} onChange={(e) => updateSetting('footer_contact_info', e.target.value)} placeholder="5511999999999" className="bg-white border-slate-200 text-slate-900" />
                
-               <Label className="text-slate-700 font-semibold mb-1.5 block">Link Termos de Uso</Label>
-               <Input value={formData.custom_settings.footer_terms_url} onChange={(e) => updateSetting('footer_terms_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
-               
-                <Label className="text-slate-700 font-semibold mb-1.5 block">Link Política de Privacidade</Label>
-                <Input value={formData.custom_settings.footer_privacy_url} onChange={(e) => updateSetting('footer_privacy_url', e.target.value)} className="bg-white border-slate-200 text-slate-900" />
+               <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                 <div>
+                   <Label className="text-slate-700 font-semibold mb-1.5 block">Link Política de Privacidade</Label>
+                   <Input value={formData.custom_settings.footer_privacy_url || ''} onChange={(e) => updateSetting('footer_privacy_url', e.target.value)} placeholder="/politica-de-privacidade" className="bg-white border-slate-200 text-slate-900" />
+                 </div>
+                 <div>
+                   <Label className="text-slate-700 font-semibold mb-1.5 block">Link Termos de Uso</Label>
+                   <Input value={formData.custom_settings.footer_terms_url || ''} onChange={(e) => updateSetting('footer_terms_url', e.target.value)} placeholder="/termos-de-uso" className="bg-white border-slate-200 text-slate-900" />
+                 </div>
+                 <div>
+                   <Label className="text-slate-700 font-semibold mb-1.5 block">Link LGPD</Label>
+                   <Input value={formData.custom_settings.footer_lgpd_url || ''} onChange={(e) => updateSetting('footer_lgpd_url', e.target.value)} placeholder="/lgpd" className="bg-white border-slate-200 text-slate-900" />
+                 </div>
+                 <div>
+                   <Label className="text-slate-700 font-semibold mb-1.5 block">Link Política de Pagamentos</Label>
+                   <Input value={formData.custom_settings.footer_payment_policy_url || ''} onChange={(e) => updateSetting('footer_payment_policy_url', e.target.value)} placeholder="/politica-de-pagamentos" className="bg-white border-slate-200 text-slate-900" />
+                 </div>
+                 <div>
+                   <Label className="text-slate-700 font-semibold mb-1.5 block">Link Política de Reembolso</Label>
+                   <Input value={formData.custom_settings.footer_refund_policy_url || ''} onChange={(e) => updateSetting('footer_refund_policy_url', e.target.value)} placeholder="/politica-de-reembolso" className="bg-white border-slate-200 text-slate-900" />
+                 </div>
+               </div>
              </div>
 
              <div className="pt-5 mt-5 border-t border-slate-200 space-y-4">
