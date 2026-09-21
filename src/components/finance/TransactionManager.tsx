@@ -159,7 +159,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     payment_method: "pix",
     bank_account_id: "",
     is_recurring: false,
-    entity_type: entityType as EntityType
+    entity_type: entityType as EntityType,
+    priority: "normal" as TransactionPriority,
+    reminder_days_before: "none",
+    is_installment: false,
+    installment_count: "2"
   });
   
   const [bulkRows, setBulkRows] = useState<any[]>([
@@ -410,7 +414,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       payment_method: "pix",
       bank_account_id: "",
       is_recurring: false,
-      entity_type: entityType
+      entity_type: entityType,
+      priority: "normal",
+      reminder_days_before: "none",
+      is_installment: false,
+      installment_count: "2"
     });
     setEditingTransactionId(null);
   };
@@ -426,7 +434,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       payment_method: t.payment_method,
       bank_account_id: t.bank_account_id || "",
       is_recurring: t.is_recurring,
-      entity_type: (t.entity_type as EntityType) || entityType
+      entity_type: (t.entity_type as EntityType) || entityType,
+      priority: (t.priority as TransactionPriority) || "normal",
+      reminder_days_before:
+        t.reminder_days_before === null || t.reminder_days_before === undefined
+          ? "none"
+          : String(t.reminder_days_before),
+      is_installment: false,
+      installment_count: "2"
     });
     setEditingTransactionId(sourceIdOf(t));
     setIsAddOpen(true);
