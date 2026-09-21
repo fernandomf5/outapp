@@ -82,7 +82,9 @@ interface Transaction {
   reminder_days_before?: number | null;
   installment_number?: number | null;
   installment_total?: number | null;
+  installment_group_id?: string | null;
   monthly_status?: Record<string, MonthlyStatusEntry> | null;
+
   /** true quando a linha é uma repetição mensal projetada de uma conta fixa */
   __projected?: boolean;
   /** id real no banco (igual a `id` quando não é projetada) */
@@ -283,7 +285,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
       const installmentCount = Number(formData.installment_count);
       const shouldCreateInstallments =
-        !editingTransactionId && !editingProjected && formData.payment_method === 'credit_card' && installmentCount > 1;
+        !editingProjected && formData.payment_method === 'credit_card' && installmentCount > 1;
+
 
       const transactionData = {
         user_id: user.id,
@@ -312,7 +315,41 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           return;
         }
 
+        // Ao editar uma transação já existente e transformá-la em parcelas,
+        // remove a transação antiga (ou o grupo de parcelas antigo) antes de criar as novas.
+        if (editingTransactionId) {
+          const oldTransaction = transactions.find(t => t.id === editingTransactionId);
+          if (oldTransaction) {
+            const groupIdToRemove = oldTransaction.installment_group_id;
+            const transactionsToRemove = groupIdToRemove
+              ? transactions.filter(t => t.installment_group_id === groupIdToRemove)
+              : [oldTransaction];
+
+            for (const t of transactionsToRemove) {
+              if (t.status === 'paid' && t.bank_account_id) {
+                const revert = t.type === 'income' ? -t.amount : t.amount;
+                await updateAccountBalance(t.bank_account_id, revert);
+              }
+            }
+
+            if (groupIdToRemove) {
+              const { error: deleteError } = await supabase
+                .from('financial_transactions')
+                .delete()
+                .eq('installment_group_id', groupIdToRemove);
+              if (deleteError) throw deleteError;
+            } else {
+              const { error: deleteError } = await supabase
+                .from('financial_transactions')
+                .delete()
+                .eq('id', editingTransactionId);
+              if (deleteError) throw deleteError;
+            }
+          }
+        }
+
         const groupId = crypto.randomUUID();
+
         const cents = Math.round(amount * 100);
         const baseCents = Math.floor(cents / installmentCount);
         const rest = cents - baseCents * installmentCount;
@@ -521,6 +558,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       is_installment: false,
       installment_count: "1"
     });
+
     setEditingTransactionId(null);
     setEditingProjected(null);
   };
@@ -567,9 +605,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         t.reminder_days_before === null || t.reminder_days_before === undefined
           ? "none"
           : String(t.reminder_days_before),
-      is_installment: false,
-      installment_count: "1"
+      is_installment: !!(t.installment_total && t.installment_total > 1),
+      installment_count: String(t.installment_total || 1)
     });
+
     if (t.__projected) {
       // Repetição de conta fixa: editar afeta somente este mês.
       setEditingProjected({ sourceId: sourceIdOf(t), periodKey: t.__periodKey || periodKey });
@@ -1097,7 +1136,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </div>
               </div>
 
-              {!editingTransactionId && !editingProjected && formData.payment_method === 'credit_card' && (
+              {!editingProjected && formData.payment_method === 'credit_card' && (
                 <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
                   <Label>Número de parcelas no cartão</Label>
                   <Select
