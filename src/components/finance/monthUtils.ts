@@ -124,13 +124,19 @@ export function getMonthTransactions(
     // Repetição mensal das contas recorrentes (somente meses posteriores)
     const isAfterOrigin = year > parts.year || (year === parts.year && month > parts.month);
     if (isRecurring && isAfterOrigin) {
-      const monthlyStatus = (raw?.monthly_status || {}) as Record<string, any>;
-      const entry = monthlyStatus[key] || {};
+      const monthlyStatus = (raw?.monthly_status || {}) as Record<string, MonthlyStatusEntry>;
+      const entry: MonthlyStatusEntry = monthlyStatus[key] || {};
+
+      // Mês cancelado pelo usuário: some apenas deste mês, sem afetar os demais.
+      if (entry.deleted) return acc;
+
+      const overrides = entry.overrides || {};
       const day = Math.min(parts.day, daysInMonth(year, month));
       acc.push({
         ...raw,
+        ...overrides,
         id: `${raw.id}::${key}`,
-        due_date: `${key}-${String(day).padStart(2, "0")}`,
+        due_date: overrides.due_date || `${key}-${String(day).padStart(2, "0")}`,
         status: entry.status || "pending",
         bank_account_id: entry.bank_account_id ?? raw.bank_account_id ?? null,
         entity_type: tEntity,
