@@ -248,17 +248,8 @@ export default function AgentCustomerChat() {
     prevQueuePositionRef.current = queuePosition;
     if (prev === undefined || prev === queuePosition) return;
 
-    // Saiu da fila (foi chamado pelo atendente)
-    if (queuePosition === null) {
-      if (typeof prev === 'number' && prev > 0) {
-        chatSounds.playNotificationSound();
-        toast({
-          title: 'É a sua vez! 🎉',
-          description: 'O atendente chamou você. Pode enviar sua mensagem.',
-        });
-      }
-      return;
-    }
+    // Sem posição definida: não é chamada — apenas ignora (nunca avisa "sua vez" por falta de dado)
+    if (queuePosition === null) return;
 
     chatSounds.playNotificationSound();
 
