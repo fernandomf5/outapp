@@ -127,6 +127,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [bankFilter, setBankFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
@@ -191,9 +192,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         (t.category || "").trim().toLowerCase() === categoryFilter.trim().toLowerCase();
       const matchesBank = bankFilter === "all" ||
         (bankFilter === "none" ? !t.bank_account_id : t.bank_account_id === bankFilter);
-      return matchesSearch && matchesType && matchesStatus && matchesCategory && matchesBank;
+      const matchesPriority = priorityFilter === "all" || (t.priority || "normal") === priorityFilter;
+      return matchesSearch && matchesType && matchesStatus && matchesCategory && matchesBank && matchesPriority;
     });
-  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter, bankFilter]);
+  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter, bankFilter, priorityFilter]);
 
   const bankNameById = useMemo(
     () => new Map<string, string>(bankAccounts.map((a: any) => [a.id, a.bank_name])),
@@ -1074,14 +1076,38 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               <TableCell className="w-[40px]">{handle}</TableCell>
                               <TableCell>
                                 <div className="flex flex-col">
-                                  <span className="font-medium flex items-center gap-2">
+                                  <span className="font-medium flex flex-wrap items-center gap-2">
                                     {t.description}
                                     {t.__projected && (
                                       <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
                                     )}
+                                    {t.priority && t.priority !== 'normal' && (
+                                      <Badge
+                                        variant="outline"
+                                        className={cn("text-[10px] gap-1", PRIORITY_CONFIG[t.priority].className)}
+                                      >
+                                        <AlertTriangle className="h-3 w-3" />
+                                        {PRIORITY_CONFIG[t.priority].label}
+                                      </Badge>
+                                    )}
+                                    {t.installment_total && t.installment_total > 1 && (
+                                      <Badge variant="outline" className="text-[10px]">
+                                        {t.installment_number === t.installment_total
+                                          ? `Última parcela (${t.installment_number}/${t.installment_total})`
+                                          : `Parcela ${t.installment_number}/${t.installment_total}`}
+                                      </Badge>
+                                    )}
                                   </span>
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground flex items-center gap-2">
                                     {PAYMENT_METHODS[t.payment_method] || t.payment_method}
+                                    {typeof t.reminder_days_before === 'number' && (
+                                      <span className="inline-flex items-center gap-1">
+                                        <BellRing className="h-3 w-3" />
+                                        {t.reminder_days_before === 0
+                                          ? 'Lembrete no dia'
+                                          : `Lembrete ${t.reminder_days_before}d antes`}
+                                      </span>
+                                    )}
                                   </span>
                                 </div>
                               </TableCell>
