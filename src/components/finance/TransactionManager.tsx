@@ -605,9 +605,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         t.reminder_days_before === null || t.reminder_days_before === undefined
           ? "none"
           : String(t.reminder_days_before),
-      is_installment: false,
-      installment_count: "1"
+      is_installment: !!(t.installment_total && t.installment_total > 1),
+      installment_count: String(t.installment_total || 1)
     });
+
     if (t.__projected) {
       // Repetição de conta fixa: editar afeta somente este mês.
       setEditingProjected({ sourceId: sourceIdOf(t), periodKey: t.__periodKey || periodKey });
