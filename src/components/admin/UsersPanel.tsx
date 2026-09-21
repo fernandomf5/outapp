@@ -319,33 +319,40 @@ export const UsersPanel = () => {
     setBanDialogOpen(true);
   };
 
+  const openPlanDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setSelectedPlanId("");
+    setPlanDays("");
+    setPlanDialogOpen(true);
+  };
+
+  const openResetDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setResetPassword("");
+    setResetDialogOpen(true);
+  };
+
   const handleBanUser = async () => {
     if (!selectedUser) return;
 
-    try {
-      const newBannedStatus = !selectedUser.is_banned;
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_banned: newBannedStatus })
-        .eq('user_id', selectedUser.user_id);
+    const blocked = !selectedUser.is_banned;
+    setActionLoading(true);
+    const { ok, error } = await callManageUser('set_block', selectedUser.user_id, { blocked });
+    setActionLoading(false);
 
-      if (error) throw error;
-
-      toast({
-        title: newBannedStatus ? "Usuário banido" : "Ban removido",
-        description: newBannedStatus 
-          ? "O usuário não poderá mais fazer login."
-          : "O usuário pode fazer login novamente.",
-      });
-      setBanDialogOpen(false);
-      fetchUsers();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar status",
-        description: error.message,
-        variant: "destructive",
-      });
+    if (!ok) {
+      toast({ title: "Erro ao atualizar status", description: error, variant: "destructive" });
+      return;
     }
+
+    toast({
+      title: blocked ? "Usuário bloqueado" : "Bloqueio removido",
+      description: blocked
+        ? "O usuário não poderá mais fazer login."
+        : "O usuário pode fazer login novamente.",
+    });
+    setBanDialogOpen(false);
+    fetchUsers();
   };
 
   const handleEditUser = async () => {
