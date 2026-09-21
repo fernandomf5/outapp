@@ -34,7 +34,6 @@ const heroIcon = heroIconAsset.url;
 import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
 import klicLogoAsset from "@/assets/klic-smart-logo-v3.png.asset.json";
 const logoLion = logoAsset.url;
-import { AIAgentFloatingChat } from "@/components/AIAgentFloatingChat";
 
 interface Plan {
   id: string;
@@ -985,7 +984,6 @@ const Index = () => {
         </DialogContent>
       </Dialog>
       <CookieNotice />
-      <AIAgentFloatingChat />
     </div>
   );
 };
