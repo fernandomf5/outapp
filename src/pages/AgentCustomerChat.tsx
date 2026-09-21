@@ -248,17 +248,33 @@ export default function AgentCustomerChat() {
   useEffect(() => {
     const prev = prevQueuePositionRef.current;
     prevQueuePositionRef.current = queuePosition;
-    if (prev === undefined || prev === queuePosition || queuePosition === null) return;
+    if (prev === undefined || prev === queuePosition) return;
 
+    // Saiu da fila (foi chamado pelo atendente)
+    if (queuePosition === null) {
+      if (typeof prev === 'number' && prev > 0) {
+        chatSounds.playNotificationSound();
+        toast({
+          title: 'É a sua vez! 🎉',
+          description: 'O atendente chamou você. Pode enviar sua mensagem.',
+        });
+      }
+      return;
+    }
+
+    chatSounds.playNotificationSound();
 
     if (queuePosition === 0) {
-      chatSounds.playNotificationSound();
       toast({
         title: 'É a sua vez! 🎉',
         description: 'O atendente está pronto para falar com você.',
       });
+    } else if (queuePosition === 1) {
+      toast({
+        title: 'Você é o próximo! ⏳',
+        description: 'Fique por aqui, o atendente vai chamar você em instantes.',
+      });
     } else {
-      chatSounds.playNotificationSound();
       toast({
         title: `Você é o nº ${queuePosition} da fila`,
         description:
@@ -377,8 +393,9 @@ export default function AgentCustomerChat() {
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedConv = payload.new as any;
-            // Atualiza a posição na fila em tempo real
-            if (updatedConv.agent_id === agentId && (!conversationId || updatedConv.id === conversationId)) {
+            // Atualiza a posição na fila em tempo real — somente da conversa deste cliente,
+            // caso contrário a atualização de outro cliente apagaria o aviso de fila.
+            if (conversationId && updatedConv.id === conversationId) {
               setQueuePosition(
                 updatedConv.queue_position === null || updatedConv.queue_position === undefined
                   ? null
@@ -1167,7 +1184,11 @@ export default function AgentCustomerChat() {
                 {(queuePosition !== null || (queueEnabled && attendantStatus !== 'online')) && (
                   <Alert
                     className={`mt-2 py-1.5 sm:py-2 ${
-                      queuePosition === 0 ? 'border-green-500/60' : 'border-yellow-500/60'
+                      queuePosition === 0
+                        ? 'border-green-500/60'
+                        : queuePosition === 1
+                          ? 'border-orange-500/70'
+                          : 'border-yellow-500/60'
                     }`}
                   >
                     <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -1179,7 +1200,9 @@ export default function AgentCustomerChat() {
                           <Badge variant="secondary" className="text-[11px]">
                             Fila • nº {queuePosition}
                           </Badge>
-                          <span className="font-semibold">Você está na fila de espera.</span>
+                          <span className="font-semibold">
+                            {queuePosition === 1 ? 'Você é o próximo a ser atendido!' : 'Você está na fila de espera.'}
+                          </span>
                           {queuePosition > 1 && (
                             <span className="text-muted-foreground">
                               Há {queuePosition - 1} pessoa(s) na sua frente.
