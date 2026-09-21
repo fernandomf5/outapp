@@ -160,11 +160,24 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   };
 
   // Notifica os chats abertos que a fila mudou
-  const broadcastQueue = async () => {
+  const broadcastQueue = async (overrides?: {
+    queueEnabled?: boolean;
+    queueMessage?: string;
+    queueEtaMinutes?: number;
+  }) => {
     try {
       const channel = supabase.channel(`chat-queue-${agentId}`);
       await channel.subscribe();
-      await channel.send({ type: 'broadcast', event: 'queue', payload: { updatedAt: Date.now() } });
+      await channel.send({
+        type: 'broadcast',
+        event: 'queue',
+        payload: {
+          updatedAt: Date.now(),
+          queueEnabled: overrides?.queueEnabled ?? queueEnabled,
+          queueMessage: overrides?.queueMessage ?? queueMessage,
+          queueEtaMinutes: overrides?.queueEtaMinutes ?? queueEtaMinutes,
+        },
+      });
       await supabase.removeChannel(channel);
     } catch (e) {
       console.error('broadcast queue error', e);
@@ -203,7 +216,11 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       return;
     }
 
-    await broadcastQueue();
+    await broadcastQueue({
+      queueEnabled: enabled,
+      queueMessage: message,
+      queueEtaMinutes: Math.max(0, Math.round(etaMinutes || 0)),
+    });
     if (!silent) {
       toast({ title: "Fila de espera atualizada", description: enabled ? "Clientes verão sua posição na fila." : "Fila de espera desativada." });
     }
