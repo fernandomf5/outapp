@@ -1032,6 +1032,101 @@ export const UsersPanel = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Change Plan Dialog */}
+      <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Plano</DialogTitle>
+            <DialogDescription>
+              Defina manualmente o plano de {selectedUser?.full_name}. Plano atual:{" "}
+              <strong>{selectedUser?.plan_name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="plan_select">Plano</Label>
+              <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                <SelectTrigger id="plan_select">
+                  <SelectValue placeholder="Selecione um plano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.id}>
+                      {plan.name} — {plan.duration_days} dias
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="plan_days">Duração personalizada (dias)</Label>
+              <Input
+                id="plan_days"
+                type="number"
+                min={1}
+                value={planDays}
+                onChange={(e) => setPlanDays(e.target.value)}
+                placeholder="Deixe vazio para usar a duração do plano"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={handleRemovePlan}
+              disabled={actionLoading}
+              className="sm:mr-auto"
+            >
+              Remover plano atual
+            </Button>
+            <Button variant="outline" onClick={() => setPlanDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleChangePlan} disabled={actionLoading || !selectedPlanId}>
+              Aplicar plano
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Account Dialog */}
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resetar Conta</DialogTitle>
+            <DialogDescription>
+              Todos os dados criados por <strong>{selectedUser?.full_name}</strong> serão apagados
+              (negócios, finanças, contatos, páginas, chats, planos e demais registros). O login e o
+              cadastro continuam existindo. Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reset_password">Nova senha (opcional)</Label>
+              <Input
+                id="reset_password"
+                type="password"
+                value={resetPassword}
+                onChange={(e) => setResetPassword(e.target.value)}
+                placeholder="Deixe vazio para manter a senha atual"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleResetAccount}
+              disabled={actionLoading}
+            >
+              Resetar conta
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
