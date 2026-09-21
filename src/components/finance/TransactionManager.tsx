@@ -313,7 +313,41 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           return;
         }
 
+        // Ao editar uma transação já existente e transformá-la em parcelas,
+        // remove a transação antiga (ou o grupo de parcelas antigo) antes de criar as novas.
+        if (editingTransactionId) {
+          const oldTransaction = transactions.find(t => t.id === editingTransactionId);
+          if (oldTransaction) {
+            const groupIdToRemove = oldTransaction.installment_group_id;
+            const transactionsToRemove = groupIdToRemove
+              ? transactions.filter(t => t.installment_group_id === groupIdToRemove)
+              : [oldTransaction];
+
+            for (const t of transactionsToRemove) {
+              if (t.status === 'paid' && t.bank_account_id) {
+                const revert = t.type === 'income' ? -t.amount : t.amount;
+                await updateAccountBalance(t.bank_account_id, revert);
+              }
+            }
+
+            if (groupIdToRemove) {
+              const { error: deleteError } = await supabase
+                .from('financial_transactions')
+                .delete()
+                .eq('installment_group_id', groupIdToRemove);
+              if (deleteError) throw deleteError;
+            } else {
+              const { error: deleteError } = await supabase
+                .from('financial_transactions')
+                .delete()
+                .eq('id', editingTransactionId);
+              if (deleteError) throw deleteError;
+            }
+          }
+        }
+
         const groupId = crypto.randomUUID();
+
         const cents = Math.round(amount * 100);
         const baseCents = Math.floor(cents / installmentCount);
         const rest = cents - baseCents * installmentCount;
