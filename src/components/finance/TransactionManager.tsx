@@ -277,6 +277,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       const reminderDays =
         formData.reminder_days_before === "none" ? null : Number(formData.reminder_days_before);
 
+      const installmentCount = Number(formData.installment_count);
+      const shouldCreateInstallments =
+        !editingTransactionId && formData.payment_method === 'credit_card' && installmentCount > 1;
+
       const transactionData = {
         user_id: user.id,
         business_id: businessId,
@@ -288,7 +292,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         status: formData.status,
         payment_method: formData.payment_method,
         bank_account_id: formData.bank_account_id || null,
-        is_recurring: formData.is_recurring,
+        is_recurring: shouldCreateInstallments ? false : formData.is_recurring,
         entity_type: formData.entity_type,
         priority: formData.priority,
         reminder_days_before: reminderDays,
@@ -297,9 +301,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         month: format(new Date(formData.due_date + 'T00:00:00'), 'MMMM', { locale: ptBR })
       };
 
-      // Parcelamento: gera uma conta por mês, com numeração (1/3, 2/3, ...).
-      const installmentCount = Number(formData.installment_count);
-      if (!editingTransactionId && formData.is_installment && installmentCount > 1) {
+      // Parcelamento: cartão de crédito gera uma conta por mês, com numeração (1/3, 2/3, ...).
+      if (shouldCreateInstallments) {
         if (!Number.isInteger(installmentCount) || installmentCount < 2 || installmentCount > 120) {
           toast.error("Informe um número de parcelas entre 2 e 120");
           return;
@@ -478,7 +481,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       priority: "normal",
       reminder_days_before: "none",
       is_installment: false,
-      installment_count: "2"
+      installment_count: "1"
     });
     setEditingTransactionId(null);
   };
@@ -501,7 +504,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           ? "none"
           : String(t.reminder_days_before),
       is_installment: false,
-      installment_count: "2"
+      installment_count: "1"
     });
     setEditingTransactionId(sourceIdOf(t));
     setIsAddOpen(true);
@@ -916,7 +919,17 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </div>
                 <div className="space-y-2">
                   <Label>Forma de Pagamento</Label>
-                  <Select value={formData.payment_method} onValueChange={(v) => setFormData({...formData, payment_method: v})}>
+                  <Select
+                    value={formData.payment_method}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        payment_method: value,
+                        installment_count: value === 'credit_card' ? formData.installment_count : '1',
+                        is_installment: value === 'credit_card' ? formData.is_installment : false,
+                      })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -994,45 +1007,36 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </div>
               </div>
 
-              {!editingTransactionId && (
-                <div className="space-y-3 rounded-lg border p-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="installment"
-                      checked={formData.is_installment}
-                      onCheckedChange={(checked) =>
-                        setFormData({ ...formData, is_installment: !!checked, is_recurring: checked ? false : formData.is_recurring })
-                      }
-                    />
-                    <Label htmlFor="installment" className="text-sm font-medium leading-none cursor-pointer">
-                      Parcelar esta conta
-                    </Label>
-                  </div>
-
-                  {formData.is_installment && (
-                    <div className="space-y-2">
-                      <Label>Em quantas parcelas?</Label>
-                      <Select
-                        value={formData.installment_count}
-                        onValueChange={(value) => setFormData({ ...formData, installment_count: value })}
-                      >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent className="max-h-64">
-                          {Array.from({ length: 47 }, (_, i) => i + 2).map(n => (
-                            <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        O valor informado é dividido em {formData.installment_count} parcelas, uma por mês,
-                        a partir do vencimento escolhido.
-                      </p>
-                    </div>
+              {!editingTransactionId && formData.payment_method === 'credit_card' && (
+                <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
+                  <Label>Número de parcelas no cartão</Label>
+                  <Select
+                    value={formData.installment_count}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        installment_count: value,
+                        is_recurring: Number(value) > 1 ? false : formData.is_recurring,
+                      })
+                    }
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      <SelectItem value="1">1x à vista</SelectItem>
+                      {Array.from({ length: 47 }, (_, i) => i + 2).map(n => (
+                        <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {Number(formData.installment_count) > 1 && (
+                    <p className="text-xs text-muted-foreground">
+                      O valor informado será dividido em {formData.installment_count} parcelas mensais.
+                    </p>
                   )}
                 </div>
               )}
 
-              {!formData.is_installment && (
+              {Number(formData.installment_count) <= 1 && (
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="recurring" 
@@ -1065,6 +1069,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   <TableRow>
                     <TableHead className="w-[40px]"></TableHead>
                     <TableHead>Descrição</TableHead>
+                    <TableHead>Detalhes</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Conta</TableHead>
                     <TableHead>Vencimento</TableHead>
@@ -1076,7 +1081,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         Nenhuma transação em {periodLabel}.
                       </TableCell>
                     </TableRow>
@@ -1087,53 +1092,67 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                           {(handle) => (
                             <>
                               <TableCell className="w-[40px]">{handle}</TableCell>
-                              <TableCell>
-                                <div className="flex flex-col">
-                                  <span className="font-medium flex flex-wrap items-center gap-2">
+                              <TableCell className="min-w-[220px]">
+                                <div className="flex flex-col gap-1">
+                                  <span className="font-medium leading-tight">
                                     {t.description}
-                                    {t.__projected && (
-                                      <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
-                                    )}
-                                    {t.priority && t.priority !== 'normal' && (
-                                      <Badge
-                                        variant="outline"
-                                        className={cn("text-[10px] gap-1", PRIORITY_CONFIG[t.priority].className)}
-                                      >
-                                        <AlertTriangle className="h-3 w-3" />
-                                        {PRIORITY_CONFIG[t.priority].label}
-                                      </Badge>
-                                    )}
-                                    {t.installment_total && t.installment_total > 1 && (
-                                      <Badge variant="outline" className="text-[10px]">
-                                        {t.installment_number === t.installment_total
-                                          ? `Última parcela (${t.installment_number}/${t.installment_total})`
-                                          : `Parcela ${t.installment_number}/${t.installment_total}`}
-                                      </Badge>
-                                    )}
                                   </span>
-                                  <span className="text-xs text-muted-foreground flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">
                                     {PAYMENT_METHODS[t.payment_method] || t.payment_method}
-                                    {typeof t.reminder_days_before === 'number' && (
-                                      <span className="inline-flex items-center gap-1">
-                                        <BellRing className="h-3 w-3" />
-                                        {t.reminder_days_before === 0
-                                          ? 'Lembrete no dia'
-                                          : `Lembrete ${t.reminder_days_before}d antes`}
-                                      </span>
-                                    )}
                                   </span>
                                 </div>
                               </TableCell>
+                              <TableCell className="min-w-[220px]">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {t.__projected && (
+                                    <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
+                                  )}
+                                  {t.priority && t.priority !== 'normal' && (
+                                    <Badge
+                                      variant="outline"
+                                      className={cn("text-[10px] gap-1", PRIORITY_CONFIG[t.priority].className)}
+                                    >
+                                      <AlertTriangle className="h-3 w-3" />
+                                      {PRIORITY_CONFIG[t.priority].label}
+                                    </Badge>
+                                  )}
+                                  {t.installment_total && t.installment_total > 1 && (
+                                    <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/40">
+                                      {t.installment_number === t.installment_total
+                                        ? `Última parcela (${t.installment_number}/${t.installment_total})`
+                                        : `Parcela ${t.installment_number}/${t.installment_total}`}
+                                    </Badge>
+                                  )}
+                                  {typeof t.reminder_days_before === 'number' && (
+                                    <Badge variant="outline" className="text-[10px] gap-1">
+                                      <BellRing className="h-3 w-3" />
+                                      {t.reminder_days_before === 0
+                                        ? 'Lembrete no dia'
+                                        : `${t.reminder_days_before}d antes`}
+                                    </Badge>
+                                  )}
+                                  {!t.__projected &&
+                                    (!t.priority || t.priority === 'normal') &&
+                                    !(t.installment_total && t.installment_total > 1) &&
+                                    typeof t.reminder_days_before !== 'number' && (
+                                      <span className="text-xs text-muted-foreground">—</span>
+                                    )}
+                                </div>
+                              </TableCell>
                               <TableCell>
-                                <Badge
-                                  variant="secondary"
-                                  style={(() => {
-                                    const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
-                                    return cat?.color ? { backgroundColor: `${cat.color}22`, color: cat.color } : undefined;
-                                  })()}
-                                >
-                                  {t.category}
-                                </Badge>
+                                {t.category ? (
+                                  <Badge
+                                    variant="secondary"
+                                    style={(() => {
+                                      const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
+                                      return cat?.color ? { backgroundColor: `${cat.color}22`, color: cat.color } : undefined;
+                                    })()}
+                                  >
+                                    {t.category}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">Sem categoria</span>
+                                )}
                               </TableCell>
                               <TableCell>
                                 {t.bank_account_id ? (
@@ -1145,15 +1164,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                   <span className="text-xs text-muted-foreground">Sem conta</span>
                                 )}
                               </TableCell>
-                              <TableCell>{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                              <TableCell className={t.type === 'income' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                              <TableCell className="whitespace-nowrap">{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+                              <TableCell className={cn('whitespace-nowrap font-bold', t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </TableCell>
                               <TableCell>
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
-                                  className={t.status === 'paid' ? 'text-green-600' : 'text-orange-600'}
+                                  className={cn('whitespace-nowrap', t.status === 'paid' ? 'text-green-600' : 'text-orange-600')}
                                   onClick={() => openStatusDialog(t)}
                                 >
                                   {t.status === 'paid' ? <CheckCircle className="h-4 w-4 mr-1" /> : <Clock className="h-4 w-4 mr-1" />}
