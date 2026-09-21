@@ -569,7 +569,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                       <TableRow>
                         <TableHead className="w-[140px]">Tipo</TableHead>
                         <TableHead className="min-w-[300px]">Descrição</TableHead>
-                        <TableHead className="w-[240px]">Valor (R$)</TableHead>
+                        <TableHead className="min-w-[280px] w-[280px]">Valor (R$)</TableHead>
                         <TableHead className="w-[180px]">Categoria</TableHead>
                         <TableHead className="w-[160px]">Vencimento</TableHead>
                         <TableHead className="w-[180px]">Conta</TableHead>
@@ -601,7 +601,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                             />
                           </TableCell>
                           <TableCell className="px-1 py-2">
-                            <div className="relative">
+                            <div className="relative min-w-[220px]">
                               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px] font-bold">R$</span>
                               <Input 
                                 type="number" 
@@ -609,7 +609,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                 value={row.amount} 
                                 onChange={e => updateBulkRow(index, 'amount', e.target.value)}
                                 placeholder="0,00"
-                                className="h-10 w-full pl-7 font-bold text-right text-base border-primary/40 focus:border-primary bg-background"
+                                className="h-10 w-full min-w-[220px] pl-7 font-bold text-right text-base border-primary/40 focus:border-primary bg-background"
                               />
                             </div>
                           </TableCell>
