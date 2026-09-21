@@ -18,6 +18,7 @@ import { isVideoUrl } from "@/lib/media";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ResourceAssignmentsButton } from "@/components/registration/ResourceAssignmentsButton";
+import { ContactPicker } from "@/components/registration/ContactPicker";
 
 interface Client {
   id: string;
