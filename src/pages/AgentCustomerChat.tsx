@@ -248,17 +248,33 @@ export default function AgentCustomerChat() {
   useEffect(() => {
     const prev = prevQueuePositionRef.current;
     prevQueuePositionRef.current = queuePosition;
-    if (prev === undefined || prev === queuePosition || queuePosition === null) return;
+    if (prev === undefined || prev === queuePosition) return;
 
+    // Saiu da fila (foi chamado pelo atendente)
+    if (queuePosition === null) {
+      if (typeof prev === 'number' && prev > 0) {
+        chatSounds.playNotificationSound();
+        toast({
+          title: 'É a sua vez! 🎉',
+          description: 'O atendente chamou você. Pode enviar sua mensagem.',
+        });
+      }
+      return;
+    }
+
+    chatSounds.playNotificationSound();
 
     if (queuePosition === 0) {
-      chatSounds.playNotificationSound();
       toast({
         title: 'É a sua vez! 🎉',
         description: 'O atendente está pronto para falar com você.',
       });
+    } else if (queuePosition === 1) {
+      toast({
+        title: 'Você é o próximo! ⏳',
+        description: 'Fique por aqui, o atendente vai chamar você em instantes.',
+      });
     } else {
-      chatSounds.playNotificationSound();
       toast({
         title: `Você é o nº ${queuePosition} da fila`,
         description:
