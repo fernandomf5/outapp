@@ -1229,42 +1229,21 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         </div>
       </div>
 
-      {showScrollHint && (
-        <div className="flex items-center justify-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs text-primary">
-          <MoveHorizontal className="h-3.5 w-3.5 animate-pulse" />
-          <span>Arraste para os lados para visualizar a transação completa</span>
-        </div>
-      )}
-
       <Card className="max-w-full overflow-hidden">
         <CardContent className="p-0">
-          <div
-            ref={scrollContainerRef}
-            className={cn(
-              "w-full overflow-x-auto",
-              "cursor-grab",
-              isScrollDragging && "cursor-grabbing select-none"
-            )}
-            style={{ touchAction: "pan-x pan-y" }}
-            onPointerDown={handleScrollPointerDown}
-            onPointerMove={handleScrollPointerMove}
-            onPointerUp={handleScrollPointerEnd}
-            onPointerCancel={handleScrollPointerEnd}
-          >
+          <div className="w-full">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 
-              <Table className="min-w-[1040px] table-fixed">
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40px]"></TableHead>
-                    <TableHead className="w-[250px]">Descrição</TableHead>
-                    <TableHead className="w-[190px]">Detalhes</TableHead>
-                    <TableHead className="w-[170px]">Categoria</TableHead>
-                    <TableHead className="w-[140px]">Conta</TableHead>
-                    <TableHead className="w-[130px]">Vencimento</TableHead>
-                    <TableHead className="w-[140px] text-right">Valor</TableHead>
-                    <TableHead className="w-[130px] text-center">Status</TableHead>
-                    <TableHead className="w-[100px] text-right">Ações</TableHead>
+                    <TableHead className="w-[32px]"></TableHead>
+                    <TableHead>Transação</TableHead>
+                    <TableHead className="w-[120px]">Conta</TableHead>
+                    <TableHead className="w-[110px]">Vencimento</TableHead>
+                    <TableHead className="w-[130px] text-right">Valor</TableHead>
+                    <TableHead className="w-[110px] text-center">Status</TableHead>
+                    <TableHead className="w-[90px] text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
