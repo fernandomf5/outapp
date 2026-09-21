@@ -46,7 +46,10 @@ export const useAIAgent = () => {
         is_active: agent.is_active ?? true,
         description: agent.description,
         user_id: userId,
-        access_type: ((agent as any).access_type === 'restricted' ? 'private' : (agent as any).access_type) || 'public',
+        // O banco só aceita 'public' ou 'private'; qualquer outro valor vira 'public'.
+        access_type: (agent as any).access_type === 'private' || (agent as any).access_type === 'restricted'
+          ? 'private'
+          : 'public',
         updated_at: new Date().toISOString(),
       };
       
