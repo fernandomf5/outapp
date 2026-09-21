@@ -163,7 +163,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     );
   };
 
-  const handleScrollMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleScrollPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Só botão esquerdo do mouse (ou toque/caneta já têm scroll nativo).
+    if (e.pointerType === "mouse" && e.button !== 0) return;
     if (isScrollDragging) return;
     const target = e.target as HTMLElement;
     if (isInteractiveTarget(target)) return;
@@ -171,19 +173,31 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    e.preventDefault();
-    setIsScrollDragging(true);
     scrollDragStart.current = { x: e.clientX, scrollLeft: container.scrollLeft };
+    // Captura o ponteiro: o arraste continua funcionando mesmo sobre as linhas/células.
+    try {
+      container.setPointerCapture(e.pointerId);
+    } catch {
+      // Ignora: navegadores que não suportam captura ainda funcionam parcialmente.
+    }
+    setIsScrollDragging(true);
   };
 
-  const handleScrollMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleScrollPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isScrollDragging || !scrollDragStart.current || !scrollContainerRef.current) return;
     e.preventDefault();
     const dx = e.clientX - scrollDragStart.current.x;
     scrollContainerRef.current.scrollLeft = scrollDragStart.current.scrollLeft - dx;
   };
 
-  const handleScrollMouseUp = () => {
+  const handleScrollPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (scrollContainerRef.current) {
+      try {
+        scrollContainerRef.current.releasePointerCapture(e.pointerId);
+      } catch {
+        // Ignora: captura pode já ter sido liberada.
+      }
+    }
     setIsScrollDragging(false);
     scrollDragStart.current = null;
   };
