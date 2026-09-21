@@ -1064,18 +1064,18 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         <CardContent className="p-0">
           <div className="w-full overflow-x-auto">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <Table>
+              <Table className="min-w-[1040px] table-fixed">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]"></TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Detalhes</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Conta</TableHead>
-                    <TableHead>Vencimento</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="w-[250px]">Descrição</TableHead>
+                    <TableHead className="w-[190px]">Detalhes</TableHead>
+                    <TableHead className="w-[170px]">Categoria</TableHead>
+                    <TableHead className="w-[140px]">Conta</TableHead>
+                    <TableHead className="w-[130px]">Vencimento</TableHead>
+                    <TableHead className="w-[140px] text-right">Valor</TableHead>
+                    <TableHead className="w-[130px] text-center">Status</TableHead>
+                    <TableHead className="w-[100px] text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1088,13 +1088,13 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   ) : (
                     <SortableContext items={filteredTransactions.map(t => t.id)} strategy={verticalListSortingStrategy}>
                       {filteredTransactions.map(t => (
-                        <SortableTransactionRow key={t.id} id={t.id} className={t.status === 'paid' ? 'bg-muted/30' : ''}>
+                        <SortableTransactionRow key={t.id} id={t.id} className={cn("border-border/60 transition-colors hover:bg-muted/30", t.status === 'paid' ? 'bg-muted/20' : '')}>
                           {(handle) => (
                             <>
                               <TableCell className="w-[40px]">{handle}</TableCell>
-                              <TableCell className="min-w-[220px]">
+                              <TableCell className="w-[250px]">
                                 <div className="flex flex-col gap-1">
-                                  <span className="font-medium leading-tight">
+                                  <span className="truncate font-medium leading-tight" title={t.description}>
                                     {t.description}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
@@ -1102,7 +1102,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                   </span>
                                 </div>
                               </TableCell>
-                              <TableCell className="min-w-[220px]">
+                              <TableCell className="w-[190px]">
                                 <div className="flex flex-wrap items-center gap-1.5">
                                   {t.__projected && (
                                     <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
@@ -1139,48 +1139,52 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                     )}
                                 </div>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="w-[170px]">
                                 {t.category ? (
-                                  <Badge
-                                    variant="secondary"
-                                    style={(() => {
-                                      const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
-                                      return cat?.color ? { backgroundColor: `${cat.color}22`, color: cat.color } : undefined;
-                                    })()}
+                                  <span
+                                    title={t.category}
+                                    className="inline-flex max-w-[150px] items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm"
                                   >
-                                    {t.category}
-                                  </Badge>
+                                    <span
+                                      className="h-2 w-2 shrink-0 rounded-full bg-primary"
+                                      style={(() => {
+                                      const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
+                                      return cat?.color ? { backgroundColor: cat.color } : undefined;
+                                    })()}
+                                    />
+                                    <span className="truncate leading-none">{t.category}</span>
+                                  </span>
                                 ) : (
                                   <span className="text-xs text-muted-foreground">Sem categoria</span>
                                 )}
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="w-[140px]">
                                 {t.bank_account_id ? (
-                                  <span className="inline-flex items-center gap-1 text-sm">
+                                  <span className="inline-flex max-w-[120px] items-center gap-1 text-sm">
                                     <Landmark className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {bankNameById.get(t.bank_account_id) || '—'}
+                                    <span className="truncate">{bankNameById.get(t.bank_account_id) || '—'}</span>
                                   </span>
                                 ) : (
                                   <span className="text-xs text-muted-foreground">Sem conta</span>
                                 )}
                               </TableCell>
-                              <TableCell className="whitespace-nowrap">{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                              <TableCell className={cn('whitespace-nowrap font-bold', t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
+                              <TableCell className="w-[130px] whitespace-nowrap">{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+                              <TableCell className={cn('w-[140px] whitespace-nowrap text-right font-bold', t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="w-[130px] text-center">
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
-                                  className={cn('whitespace-nowrap', t.status === 'paid' ? 'text-green-600' : 'text-orange-600')}
+                                  className={cn('h-8 whitespace-nowrap px-2 text-xs', t.status === 'paid' ? 'text-green-600' : 'text-orange-600')}
                                   onClick={() => openStatusDialog(t)}
                                 >
                                   {t.status === 'paid' ? <CheckCircle className="h-4 w-4 mr-1" /> : <Clock className="h-4 w-4 mr-1" />}
                                   {t.status === 'paid' ? 'Pago' : 'Pendente'}
                                 </Button>
                               </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
+                              <TableCell className="w-[100px] text-right">
+                                <div className="flex justify-end gap-1">
                                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
