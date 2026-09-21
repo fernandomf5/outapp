@@ -160,11 +160,24 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   };
 
   // Notifica os chats abertos que a fila mudou
-  const broadcastQueue = async () => {
+  const broadcastQueue = async (overrides?: {
+    queueEnabled?: boolean;
+    queueMessage?: string;
+    queueEtaMinutes?: number;
+  }) => {
     try {
       const channel = supabase.channel(`chat-queue-${agentId}`);
       await channel.subscribe();
-      await channel.send({ type: 'broadcast', event: 'queue', payload: { updatedAt: Date.now() } });
+      await channel.send({
+        type: 'broadcast',
+        event: 'queue',
+        payload: {
+          updatedAt: Date.now(),
+          queueEnabled: overrides?.queueEnabled ?? queueEnabled,
+          queueMessage: overrides?.queueMessage ?? queueMessage,
+          queueEtaMinutes: overrides?.queueEtaMinutes ?? queueEtaMinutes,
+        },
+      });
       await supabase.removeChannel(channel);
     } catch (e) {
       console.error('broadcast queue error', e);
