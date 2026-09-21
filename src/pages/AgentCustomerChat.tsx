@@ -184,15 +184,13 @@ export default function AgentCustomerChat() {
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
         if (cfg.queueEtaMinutes !== undefined) setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
         if (data?.queue) {
-          // Só atualiza a posição quando a consulta foi feita para a conversa atual,
-          // caso contrário a posição do cliente seria apagada indevidamente.
+          // Só atualiza a posição quando a consulta foi feita para a conversa atual
+          // e quando o servidor devolve um número — nunca apaga a posição por ausência de dado.
           if (conversationId) {
-            setQueuePosition(
-              data.queue.position === null || data.queue.position === undefined ? null : Number(data.queue.position),
-            );
+            const pos = data.queue.position;
+            if (pos !== null && pos !== undefined) setQueuePosition(Number(pos));
           }
           setQueueWaiting(Number(data.queue.waiting || 0));
-          if (data.queue.etaMinutes !== undefined) setQueueEta(Number(data.queue.etaMinutes || 0) || 0);
         }
         if (cfg.statusColors) {
           setStatusColors({
@@ -250,17 +248,8 @@ export default function AgentCustomerChat() {
     prevQueuePositionRef.current = queuePosition;
     if (prev === undefined || prev === queuePosition) return;
 
-    // Saiu da fila (foi chamado pelo atendente)
-    if (queuePosition === null) {
-      if (typeof prev === 'number' && prev > 0) {
-        chatSounds.playNotificationSound();
-        toast({
-          title: 'É a sua vez! 🎉',
-          description: 'O atendente chamou você. Pode enviar sua mensagem.',
-        });
-      }
-      return;
-    }
+    // Sem posição definida: não é chamada — apenas ignora (nunca avisa "sua vez" por falta de dado)
+    if (queuePosition === null) return;
 
     chatSounds.playNotificationSound();
 
@@ -1209,11 +1198,6 @@ export default function AgentCustomerChat() {
                             </span>
                           )}
                           <span className="text-muted-foreground">{queueMessage}</span>
-                          {queueEta > 0 && (
-                            <span className="text-muted-foreground">
-                              Tempo estimado: ~{queueEta * Math.max(1, queuePosition)} min.
-                            </span>
-                          )}
                         </span>
                       ) : (
                         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -1223,7 +1207,6 @@ export default function AgentCustomerChat() {
                             </Badge>
                           )}
                           <span>{queueMessage}</span>
-                          {queueEta > 0 && <span className="text-muted-foreground">Tempo estimado: ~{queueEta} min.</span>}
                         </span>
                       )}
                     </AlertDescription>
