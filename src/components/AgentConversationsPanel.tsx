@@ -1023,9 +1023,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
 
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3 w-full min-w-0">
         {/* Lista de conversas */}
-        <div className="md:col-span-1 space-y-4">
+        <div className="md:col-span-1 space-y-4 min-w-0">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -1050,15 +1050,15 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   }}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
                         <div className="relative">
                           <User className="w-4 h-4" />
                           {onlineCustomers.has(conv.agent_customers.id) && (
                             <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-background rounded-full" />
                           )}
                         </div>
-                        <div>
+                        <div className="min-w-0 flex-1">
                           {/* Status indicator above name */}
                           <div className="mb-0.5">
                             {onlineCustomers.has(conv.agent_customers.id) ? (
@@ -1071,10 +1071,10 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                               </Badge>
                             )}
                           </div>
-                          <div className="font-medium text-sm">
+                          <div className="font-medium text-sm truncate">
                             {conv.agent_customers.name}
                           </div>
-                          <div className="text-xs text-muted-foreground">{conv.agent_customers.email}</div>
+                          <div className="text-xs text-muted-foreground truncate">{conv.agent_customers.email}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1145,35 +1145,35 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         </div>
 
         {/* Área de mensagens */}
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 min-w-0">
           {selectedConversation ? (
             <Card className="h-[600px] flex flex-col">
               <CardHeader className="border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="relative">
                       <User className="w-5 h-5" />
                       {onlineCustomers.has(selectedConversation.agent_customers.id) && (
                         <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full animate-pulse" />
                       )}
                     </div>
-                    <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        {selectedConversation.agent_customers.name}
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-lg flex items-center gap-2 min-w-0">
+                        <span className="truncate">{selectedConversation.agent_customers.name}</span>
                         {onlineCustomers.has(selectedConversation.agent_customers.id) && (
-                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 shrink-0">
                             Online
                           </Badge>
                         )}
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground">{selectedConversation.agent_customers.email}</p>
+                      <p className="text-sm text-muted-foreground truncate">{selectedConversation.agent_customers.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
 
 
                     <Select value={selectedConversation.status} onValueChange={updateStatus}>
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-[130px] shrink-0">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
