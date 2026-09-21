@@ -28,6 +28,28 @@ export const MONTH_NAMES = [
   "Dezembro",
 ] as const;
 
+/** Campos que podem ser sobrescritos em um único mês de uma conta fixa. */
+export interface MonthlyOverrides {
+  description?: string;
+  amount?: number;
+  category?: string;
+  payment_method?: string;
+  due_date?: string;
+  priority?: "normal" | "alta" | "urgente";
+  type?: "income" | "expense";
+}
+
+/**
+ * Estado de um mês específico de uma conta fixa, guardado na transação original.
+ * `deleted` marca que aquele mês foi cancelado, sem apagar o histórico dos demais.
+ */
+export interface MonthlyStatusEntry {
+  status?: string;
+  bank_account_id?: string | null;
+  deleted?: boolean;
+  overrides?: MonthlyOverrides;
+}
+
 export interface PeriodTransaction {
   id: string;
   description: string;
@@ -47,7 +69,7 @@ export interface PeriodTransaction {
   /** Número da parcela e total de parcelas, quando a conta é parcelada */
   installment_number?: number | null;
   installment_total?: number | null;
-  monthly_status?: Record<string, { status: string; bank_account_id?: string | null }> | null;
+  monthly_status?: Record<string, MonthlyStatusEntry> | null;
   /** true quando a linha é uma repetição projetada de uma conta recorrente */
   __projected?: boolean;
   /** id real da transação no banco */
