@@ -15,6 +15,65 @@ interface CustomPageData {
   slug: string;
 }
 
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+const formatInlineMarkdown = (value: string) =>
+  escapeHtml(value).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+const markdownToHtml = (content: string) => {
+  const lines = content.split(/\r?\n/);
+  const html: string[] = [];
+  let listOpen = false;
+
+  const closeList = () => {
+    if (listOpen) {
+      html.push("</ul>");
+      listOpen = false;
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      closeList();
+      continue;
+    }
+
+    if (line.startsWith("## ")) {
+      closeList();
+      html.push(`<h2>${formatInlineMarkdown(line.slice(3))}</h2>`);
+      continue;
+    }
+
+    if (line.startsWith("# ")) {
+      closeList();
+      html.push(`<h1>${formatInlineMarkdown(line.slice(2))}</h1>`);
+      continue;
+    }
+
+    if (line.startsWith("- ")) {
+      if (!listOpen) {
+        html.push("<ul>");
+        listOpen = true;
+      }
+      html.push(`<li>${formatInlineMarkdown(line.slice(2))}</li>`);
+      continue;
+    }
+
+    closeList();
+    html.push(`<p>${formatInlineMarkdown(line)}</p>`);
+  }
+
+  closeList();
+  return html.join("\n");
+};
+
 const CustomPage = () => {
   const { slug } = useParams();
   const [page, setPage] = useState<CustomPageData | null>(null);
@@ -70,6 +129,7 @@ const CustomPage = () => {
   }
 
   const isHtml = /<\/?(p|h[1-6]|ul|ol|li|div|br|strong)\b/i.test(page.content || '');
+  const contentHtml = isHtml ? page.content || '' : markdownToHtml(page.content || '');
   const updatedAt = (page as any).updated_at
     ? new Date((page as any).updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
     : null;
@@ -116,8 +176,8 @@ const CustomPage = () => {
           <div className="container mx-auto px-4">
             <article className="max-w-4xl mx-auto rounded-2xl border border-border/70 bg-card/70 backdrop-blur-sm shadow-xl p-5 sm:p-8 md:p-12">
               <div
-                className={`legal-content prose prose-base sm:prose-lg dark:prose-invert max-w-none text-foreground ${isHtml ? '' : 'whitespace-pre-wrap'}`}
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content || '', {
+                className="legal-content prose prose-base sm:prose-lg dark:prose-invert max-w-none text-foreground"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentHtml, {
                   ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'],
                   ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'style', 'target', 'rel']
                 }) }}
