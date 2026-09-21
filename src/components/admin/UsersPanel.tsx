@@ -855,9 +855,30 @@ export const UsersPanel = () => {
                     size="sm"
                     onClick={() => openPasswordDialog(user)}
                     className="flex-1 sm:flex-none"
+                    title="Alterar senha"
                   >
                     <Key className="w-4 h-4" />
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openPlanDialog(user)}
+                    className="flex-1 sm:flex-none"
+                    title="Alterar plano do usuário"
+                  >
+                    <Crown className="w-4 h-4" />
+                  </Button>
+                  {user.email !== 'fernandomoraisgarcia2011@gmail.com' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openResetDialog(user)}
+                      className="flex-1 sm:flex-none"
+                      title="Resetar conta (apaga os dados do usuário)"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </Button>
+                  )}
                   {user.email !== 'fernandomoraisgarcia2011@gmail.com' && (
                     <>
                       <Button
