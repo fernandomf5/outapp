@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Search, User, Send, Trash2, Smile, ImagePlus, FileText, X } from "lucide-react";
+import { MessageSquare, Search, User, Send, Trash2, Smile, ImagePlus, FileText, X, ChevronDown, ChevronUp, Settings2 } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -56,6 +56,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
   const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
   const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState("Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
@@ -840,7 +841,32 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
         {/* Painel do atendente */}
         <Card>
-          <CardContent className="p-4 grid gap-4 md:grid-cols-3">
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <Settings2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">Configurações do atendimento</p>
+                {!settingsOpen && (
+                  <p className="truncate text-xs text-muted-foreground">
+                    {senderName || "Atendente"} • {attendantStatus === "online" ? "Online" : attendantStatus === "busy" ? "Ocupado" : "Offline"} • Fila {queueEnabled ? "ativa" : "desativada"}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 shrink-0 gap-1.5 px-2"
+              onClick={() => setSettingsOpen((open) => !open)}
+              aria-expanded={settingsOpen}
+              aria-label={settingsOpen ? "Recolher configurações" : "Abrir configurações"}
+            >
+              <span className="hidden sm:inline">{settingsOpen ? "Recolher" : "Abrir"}</span>
+              {settingsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </div>
+          {settingsOpen && <CardContent className="grid gap-4 border-t p-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label className="text-xs">Nome do atendente</Label>
               <Input
@@ -1018,14 +1044,14 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                 </div>
               </div>
             </div>
-          </CardContent>
+          </CardContent>}
         </Card>
 
 
 
-      <div className="grid gap-4 md:grid-cols-3 w-full min-w-0">
+      <div className="grid w-full min-w-0 gap-4 lg:grid-cols-[minmax(250px,300px)_minmax(0,1fr)]">
         {/* Lista de conversas */}
-        <div className="md:col-span-1 space-y-4 min-w-0">
+        <div className="min-w-0 space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -1049,9 +1075,22 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     await loadUnreadCount();
                   }}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <CardContent className="relative p-3">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute right-2 top-2 z-10 h-7 w-7 text-muted-foreground hover:text-destructive"
+                      aria-label={`Excluir conversa de ${conv.agent_customers.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConversationToDelete(conv.id);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <div className="flex min-w-0 items-start gap-2 pr-8">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
                         <div className="relative">
                           <User className="w-4 h-4" />
                           {onlineCustomers.has(conv.agent_customers.id) && (
@@ -1060,48 +1099,36 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                         </div>
                         <div className="min-w-0 flex-1">
                           {/* Status indicator above name */}
-                          <div className="mb-0.5">
+                          <div className="mb-1 flex min-w-0 items-center gap-1.5">
                             {onlineCustomers.has(conv.agent_customers.id) ? (
-                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                              <Badge variant="outline" className="h-5 shrink-0 px-1.5 text-[10px] bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
                                 ● Online
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400">
+                              <Badge variant="outline" className="h-5 shrink-0 px-1.5 text-[10px] bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400">
                                 ○ Offline
                               </Badge>
                             )}
                           </div>
-                          <div className="font-medium text-sm truncate">
+                          <div className="truncate text-sm font-medium">
                             {conv.agent_customers.name}
                           </div>
                           <div className="text-xs text-muted-foreground truncate">{conv.agent_customers.email}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={conv.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                          {conv.status === 'active' ? 'Ativa' : conv.status === 'closed' ? 'Fechada' : conv.status}
-                        </Badge>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 w-6 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setConversationToDelete(conv.id);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      {format(new Date(conv.last_message_at), "dd/MM HH:mm", { locale: ptBR })}
+                    <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2">
+                      <span className="text-[11px] text-muted-foreground">
+                        {format(new Date(conv.last_message_at), "dd/MM HH:mm", { locale: ptBR })}
+                      </span>
+                      <Badge variant={conv.status === 'active' ? 'default' : 'secondary'} className="h-5 shrink-0 px-1.5 text-[10px]">
+                        {conv.status === 'active' ? 'Ativa' : conv.status === 'closed' ? 'Fechada' : conv.status}
+                      </Badge>
                     </div>
 
                     {queueEnabled && (
                       <div
-                        className="mt-2 flex items-center gap-1.5 border-t border-border pt-2"
+                        className="mt-2 flex min-w-0 flex-wrap items-center gap-1.5"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <span className="text-[11px] text-muted-foreground shrink-0">Fila nº</span>
@@ -1145,7 +1172,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         </div>
 
         {/* Área de mensagens */}
-        <div className="md:col-span-2 min-w-0">
+        <div className="min-w-0">
           {selectedConversation ? (
             <Card className="h-[600px] flex flex-col">
               <CardHeader className="border-b">
