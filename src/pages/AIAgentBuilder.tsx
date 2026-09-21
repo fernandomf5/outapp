@@ -139,7 +139,7 @@ const AIAgentBuilder = () => {
         },
         training_data: {},
         is_active: true,
-        access_type: 'anonymous',
+        access_type: 'public',
       };
 
       const result = await saveAgent(agentData, user.id);
