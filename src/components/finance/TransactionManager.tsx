@@ -1136,7 +1136,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </div>
               </div>
 
-              {!editingTransactionId && !editingProjected && formData.payment_method === 'credit_card' && (
+              {!editingProjected && formData.payment_method === 'credit_card' && (
                 <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
                   <Label>Número de parcelas no cartão</Label>
                   <Select
