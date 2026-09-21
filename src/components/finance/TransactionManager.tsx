@@ -611,9 +611,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-        <div className="flex flex-1 w-full gap-2">
+    <div className="w-full max-w-full space-y-4 overflow-hidden">
+      <div className="flex w-full min-w-0 flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:flex xl:flex-1">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -624,7 +624,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             />
           </div>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-full xl:w-[130px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
@@ -635,7 +635,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             </SelectContent>
           </Select>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[170px]">
+            <SelectTrigger className="w-full xl:w-[170px]">
               <Tags className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
@@ -647,7 +647,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             </SelectContent>
           </Select>
           <Select value={bankFilter} onValueChange={setBankFilter}>
-            <SelectTrigger className="w-[170px]">
+            <SelectTrigger className="w-full xl:w-[170px]">
               <Landmark className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Conta" />
             </SelectTrigger>
@@ -660,7 +660,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full xl:w-[160px]">
               <AlertTriangle className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Prioridade" />
             </SelectTrigger>
@@ -674,13 +674,13 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         </div>
 
 
-        <div className="flex gap-2 w-full md:w-auto">
-          <Button variant="outline" className="flex-1 md:flex-none" onClick={() => setIsCategoryManagerOpen(true)}>
+        <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:shrink-0">
+          <Button variant="outline" className="w-full xl:w-auto" onClick={() => setIsCategoryManagerOpen(true)}>
             <Tags className="h-4 w-4 mr-2" /> Categorias
           </Button>
           <Dialog open={isBulkAddOpen} onOpenChange={setIsBulkAddOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="flex-1 md:flex-none">
+              <Button variant="outline" className="w-full xl:w-auto">
 
                 <ListPlus className="h-4 w-4 mr-2" /> Adicionar Múltiplas
               </Button>
@@ -836,7 +836,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             if (!open) resetForm();
           }}>
             <DialogTrigger asChild>
-              <Button className="flex-1 md:flex-none">
+              <Button className="w-full xl:w-auto">
                 <Plus className="h-4 w-4 mr-2" /> Nova Transação
               </Button>
             </DialogTrigger>
@@ -1060,9 +1060,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         </div>
       </div>
 
-      <Card>
+      <Card className="max-w-full overflow-hidden">
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <Table>
                 <TableHeader>
