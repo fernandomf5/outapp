@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags, Landmark } from "lucide-react";
+import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags, Landmark, AlertTriangle, BellRing } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,39 @@ import { CategoryManager } from "./CategoryManager";
 import { CategorySelect } from "./CategorySelect";
 import { EntityType } from "./monthUtils";
 
+
+export type TransactionPriority = 'normal' | 'alta' | 'urgente';
+
+/** Rótulo e estilo de cada grau de urgência exibido na lista. */
+export const PRIORITY_CONFIG: Record<TransactionPriority, { label: string; className: string }> = {
+  normal: { label: 'Normal', className: 'border-border text-muted-foreground' },
+  alta: { label: 'Alta', className: 'border-amber-500/60 bg-amber-500/10 text-amber-600' },
+  urgente: { label: 'Urgente', className: 'border-destructive/60 bg-destructive/10 text-destructive' },
+};
+
+/** Opções de antecedência do lembrete (em dias). 0 = no dia do vencimento. */
+const REMINDER_OPTIONS: { value: string; label: string }[] = [
+  { value: 'none', label: 'Sem lembrete' },
+  { value: '0', label: 'No dia do vencimento' },
+  { value: '1', label: '1 dia antes' },
+  { value: '2', label: '2 dias antes' },
+  { value: '3', label: '3 dias antes' },
+  { value: '5', label: '5 dias antes' },
+  { value: '7', label: '7 dias antes' },
+  { value: '15', label: '15 dias antes' },
+  { value: '30', label: '30 dias antes' },
+];
+
+/** Soma meses a uma data "YYYY-MM-DD" sem problemas de fuso, ajustando o último dia do mês. */
+const addMonthsToDate = (isoDate: string, monthsToAdd: number): string => {
+  const [y, m, d] = isoDate.slice(0, 10).split('-').map(Number);
+  const baseMonthIndex = (m - 1) + monthsToAdd;
+  const year = y + Math.floor(baseMonthIndex / 12);
+  const month = ((baseMonthIndex % 12) + 12) % 12;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(d, lastDay);
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
 
 const PAYMENT_METHODS: Record<string, string> = {
   pix: "PIX",
@@ -44,6 +78,10 @@ interface Transaction {
   is_recurring: boolean;
   bank_account_id?: string | null;
   entity_type?: EntityType;
+  priority?: TransactionPriority;
+  reminder_days_before?: number | null;
+  installment_number?: number | null;
+  installment_total?: number | null;
   monthly_status?: Record<string, { status: string; bank_account_id?: string | null }> | null;
   /** true quando a linha é uma repetição mensal projetada de uma conta fixa */
   __projected?: boolean;
@@ -90,6 +128,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [bankFilter, setBankFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
@@ -122,7 +161,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     payment_method: "pix",
     bank_account_id: "",
     is_recurring: false,
-    entity_type: entityType as EntityType
+    entity_type: entityType as EntityType,
+    priority: "normal" as TransactionPriority,
+    reminder_days_before: "none",
+    is_installment: false,
+    installment_count: "2"
   });
   
   const [bulkRows, setBulkRows] = useState<any[]>([
@@ -150,9 +193,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         (t.category || "").trim().toLowerCase() === categoryFilter.trim().toLowerCase();
       const matchesBank = bankFilter === "all" ||
         (bankFilter === "none" ? !t.bank_account_id : t.bank_account_id === bankFilter);
-      return matchesSearch && matchesType && matchesStatus && matchesCategory && matchesBank;
+      const matchesPriority = priorityFilter === "all" || (t.priority || "normal") === priorityFilter;
+      return matchesSearch && matchesType && matchesStatus && matchesCategory && matchesBank && matchesPriority;
     });
-  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter, bankFilter]);
+  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter, bankFilter, priorityFilter]);
 
   const bankNameById = useMemo(
     () => new Map<string, string>(bankAccounts.map((a: any) => [a.id, a.bank_name])),
@@ -225,6 +269,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       if (!user) return;
 
       const amount = parseFloat(formData.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        toast.error("Informe um valor válido");
+        return;
+      }
+
+      const reminderDays =
+        formData.reminder_days_before === "none" ? null : Number(formData.reminder_days_before);
+
       const transactionData = {
         user_id: user.id,
         business_id: businessId,
@@ -238,9 +290,58 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         bank_account_id: formData.bank_account_id || null,
         is_recurring: formData.is_recurring,
         entity_type: formData.entity_type,
+        priority: formData.priority,
+        reminder_days_before: reminderDays,
+        reminder_sent: false,
         year: new Date(formData.due_date).getFullYear(),
         month: format(new Date(formData.due_date + 'T00:00:00'), 'MMMM', { locale: ptBR })
       };
+
+      // Parcelamento: gera uma conta por mês, com numeração (1/3, 2/3, ...).
+      const installmentCount = Number(formData.installment_count);
+      if (!editingTransactionId && formData.is_installment && installmentCount > 1) {
+        if (!Number.isInteger(installmentCount) || installmentCount < 2 || installmentCount > 120) {
+          toast.error("Informe um número de parcelas entre 2 e 120");
+          return;
+        }
+
+        const groupId = crypto.randomUUID();
+        const cents = Math.round(amount * 100);
+        const baseCents = Math.floor(cents / installmentCount);
+        const rest = cents - baseCents * installmentCount;
+
+        const rows = Array.from({ length: installmentCount }, (_, index) => {
+          const dueDate = addMonthsToDate(formData.due_date, index);
+          const parcelCents = baseCents + (index < rest ? 1 : 0);
+          return {
+            ...transactionData,
+            description: `${formData.description} (${index + 1}/${installmentCount})`,
+            amount: parcelCents / 100,
+            due_date: dueDate,
+            status: index === 0 ? formData.status : 'pending',
+            is_recurring: false,
+            installment_group_id: groupId,
+            installment_number: index + 1,
+            installment_total: installmentCount,
+            year: Number(dueDate.slice(0, 4)),
+            month: format(new Date(dueDate + 'T00:00:00'), 'MMMM', { locale: ptBR }),
+          };
+        });
+
+        const { error } = await supabase.from('financial_transactions').insert(rows as any);
+        if (error) throw error;
+
+        if (formData.status === 'paid' && formData.bank_account_id) {
+          const first = rows[0].amount;
+          await updateAccountBalance(formData.bank_account_id, formData.type === 'income' ? first : -first);
+        }
+
+        toast.success(`${installmentCount} parcelas criadas!`);
+        setIsAddOpen(false);
+        resetForm();
+        onRefresh();
+        return;
+      }
 
       if (editingTransactionId) {
         // Obter transação antiga para comparar saldo
@@ -373,7 +474,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       payment_method: "pix",
       bank_account_id: "",
       is_recurring: false,
-      entity_type: entityType
+      entity_type: entityType,
+      priority: "normal",
+      reminder_days_before: "none",
+      is_installment: false,
+      installment_count: "2"
     });
     setEditingTransactionId(null);
   };
@@ -389,7 +494,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       payment_method: t.payment_method,
       bank_account_id: t.bank_account_id || "",
       is_recurring: t.is_recurring,
-      entity_type: (t.entity_type as EntityType) || entityType
+      entity_type: (t.entity_type as EntityType) || entityType,
+      priority: (t.priority as TransactionPriority) || "normal",
+      reminder_days_before:
+        t.reminder_days_before === null || t.reminder_days_before === undefined
+          ? "none"
+          : String(t.reminder_days_before),
+      is_installment: false,
+      installment_count: "2"
     });
     setEditingTransactionId(sourceIdOf(t));
     setIsAddOpen(true);
@@ -542,6 +654,18 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               {bankAccounts.map(acc => (
                 <SelectItem key={acc.id} value={acc.id}>{acc.bank_name}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-[160px]">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Prioridade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas prioridades</SelectItem>
+              <SelectItem value="urgente">Urgente</SelectItem>
+              <SelectItem value="alta">Alta</SelectItem>
+              <SelectItem value="normal">Normal</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -839,16 +963,87 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </Select>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="recurring" 
-                  checked={formData.is_recurring} 
-                  onCheckedChange={(checked) => setFormData({...formData, is_recurring: !!checked})}
-                />
-                <Label htmlFor="recurring" className="text-sm font-medium leading-none cursor-pointer">
-                  Transação Recorrente (Mensal)
-                </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Prioridade</Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value as TransactionPriority })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                      <SelectItem value="urgente">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Lembrete</Label>
+                  <Select
+                    value={formData.reminder_days_before}
+                    onValueChange={(value) => setFormData({ ...formData, reminder_days_before: value })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {REMINDER_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {!editingTransactionId && (
+                <div className="space-y-3 rounded-lg border p-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="installment"
+                      checked={formData.is_installment}
+                      onCheckedChange={(checked) =>
+                        setFormData({ ...formData, is_installment: !!checked, is_recurring: checked ? false : formData.is_recurring })
+                      }
+                    />
+                    <Label htmlFor="installment" className="text-sm font-medium leading-none cursor-pointer">
+                      Parcelar esta conta
+                    </Label>
+                  </div>
+
+                  {formData.is_installment && (
+                    <div className="space-y-2">
+                      <Label>Em quantas parcelas?</Label>
+                      <Select
+                        value={formData.installment_count}
+                        onValueChange={(value) => setFormData({ ...formData, installment_count: value })}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent className="max-h-64">
+                          {Array.from({ length: 47 }, (_, i) => i + 2).map(n => (
+                            <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        O valor informado é dividido em {formData.installment_count} parcelas, uma por mês,
+                        a partir do vencimento escolhido.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!formData.is_installment && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="recurring" 
+                    checked={formData.is_recurring} 
+                    onCheckedChange={(checked) => setFormData({...formData, is_recurring: !!checked})}
+                  />
+                  <Label htmlFor="recurring" className="text-sm font-medium leading-none cursor-pointer">
+                    Transação Recorrente (Mensal)
+                  </Label>
+                </div>
+              )}
 
               <DialogFooter>
                 <Button type="submit" disabled={loading} className="w-full">
@@ -894,14 +1089,38 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               <TableCell className="w-[40px]">{handle}</TableCell>
                               <TableCell>
                                 <div className="flex flex-col">
-                                  <span className="font-medium flex items-center gap-2">
+                                  <span className="font-medium flex flex-wrap items-center gap-2">
                                     {t.description}
                                     {t.__projected && (
                                       <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
                                     )}
+                                    {t.priority && t.priority !== 'normal' && (
+                                      <Badge
+                                        variant="outline"
+                                        className={cn("text-[10px] gap-1", PRIORITY_CONFIG[t.priority].className)}
+                                      >
+                                        <AlertTriangle className="h-3 w-3" />
+                                        {PRIORITY_CONFIG[t.priority].label}
+                                      </Badge>
+                                    )}
+                                    {t.installment_total && t.installment_total > 1 && (
+                                      <Badge variant="outline" className="text-[10px]">
+                                        {t.installment_number === t.installment_total
+                                          ? `Última parcela (${t.installment_number}/${t.installment_total})`
+                                          : `Parcela ${t.installment_number}/${t.installment_total}`}
+                                      </Badge>
+                                    )}
                                   </span>
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground flex items-center gap-2">
                                     {PAYMENT_METHODS[t.payment_method] || t.payment_method}
+                                    {typeof t.reminder_days_before === 'number' && (
+                                      <span className="inline-flex items-center gap-1">
+                                        <BellRing className="h-3 w-3" />
+                                        {t.reminder_days_before === 0
+                                          ? 'Lembrete no dia'
+                                          : `Lembrete ${t.reminder_days_before}d antes`}
+                                      </span>
+                                    )}
                                   </span>
                                 </div>
                               </TableCell>

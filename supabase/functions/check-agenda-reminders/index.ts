@@ -152,11 +152,82 @@ serve(async (req) => {
       }
     }
 
+    console.log("Checking for financial transaction reminders...");
+
+    let transactionsProcessed = 0;
+    let transactionsSent = 0;
+
+    const { data: financialTransactions, error: transactionsError } = await supabase
+      .from("financial_transactions")
+      .select("id, user_id, description, amount, type, due_date, reminder_days_before, priority, installment_number, installment_total")
+      .eq("status", "pending")
+      .eq("reminder_sent", false)
+      .not("reminder_days_before", "is", null);
+
+    if (transactionsError) {
+      console.error("Error fetching transaction reminders:", transactionsError);
+    }
+
+    for (const transaction of financialTransactions ?? []) {
+      transactionsProcessed++;
+
+      const daysBefore = Math.max(0, Number(transaction.reminder_days_before ?? 0));
+      const dueDate = parseDateAtNoon(transaction.due_date);
+      const reminderDate = new Date(dueDate);
+      reminderDate.setDate(reminderDate.getDate() - daysBefore);
+
+      if (now < reminderDate) continue;
+
+      const amount = Number(transaction.amount ?? 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      });
+      const priorityPrefix =
+        transaction.priority === "urgente" ? "🚨 URGENTE — " : transaction.priority === "alta" ? "⚠️ " : "";
+      const installmentSuffix =
+        transaction.installment_total && transaction.installment_total > 1
+          ? transaction.installment_number === transaction.installment_total
+            ? ` (última parcela ${transaction.installment_number}/${transaction.installment_total})`
+            : ` (parcela ${transaction.installment_number}/${transaction.installment_total})`
+          : "";
+
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({
+            userId: transaction.user_id,
+            title: `${priorityPrefix}💰 Conta a ${transaction.type === "income" ? "receber" : "pagar"}`,
+            body: `${transaction.description}${installmentSuffix} - ${amount} • vence em ${dueDate.toLocaleDateString("pt-BR")}`,
+            tag: `transaction-${transaction.id}`,
+            data: { transactionId: transaction.id },
+          }),
+        });
+
+        if (response.ok) {
+          transactionsSent++;
+        } else {
+          console.error(`Failed to send transaction reminder for ${transaction.id}:`, await response.text());
+        }
+      } catch (sendError) {
+        console.error(`Error sending transaction reminder for ${transaction.id}:`, sendError);
+      }
+
+      await supabase
+        .from("financial_transactions")
+        .update({ reminder_sent: true })
+        .eq("id", transaction.id);
+    }
+
     return new Response(
       JSON.stringify({
         message: "Reminders processed",
         agenda: { processed: agendaProcessed, sent: agendaSent },
         invoices: { processed: invoicesProcessed, sent: invoicesSent },
+        transactions: { processed: transactionsProcessed, sent: transactionsSent },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

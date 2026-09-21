@@ -5671,12 +5671,18 @@ export type Database = {
           due_date: string | null
           entity_type: string | null
           id: string
+          installment_group_id: string | null
+          installment_number: number | null
+          installment_total: number | null
           is_recurring: boolean | null
           month: string | null
           monthly_status: Json | null
           order_index: number | null
           payment_method: string
+          priority: string
+          reminder_days_before: number | null
           reminder_enabled: boolean | null
+          reminder_sent: boolean
           status: string
           status_history: Json | null
           type: string
@@ -5696,12 +5702,18 @@ export type Database = {
           due_date?: string | null
           entity_type?: string | null
           id?: string
+          installment_group_id?: string | null
+          installment_number?: number | null
+          installment_total?: number | null
           is_recurring?: boolean | null
           month?: string | null
           monthly_status?: Json | null
           order_index?: number | null
           payment_method?: string
+          priority?: string
+          reminder_days_before?: number | null
           reminder_enabled?: boolean | null
+          reminder_sent?: boolean
           status?: string
           status_history?: Json | null
           type: string
@@ -5721,12 +5733,18 @@ export type Database = {
           due_date?: string | null
           entity_type?: string | null
           id?: string
+          installment_group_id?: string | null
+          installment_number?: number | null
+          installment_total?: number | null
           is_recurring?: boolean | null
           month?: string | null
           monthly_status?: Json | null
           order_index?: number | null
           payment_method?: string
+          priority?: string
+          reminder_days_before?: number | null
           reminder_enabled?: boolean | null
+          reminder_sent?: boolean
           status?: string
           status_history?: Json | null
           type?: string
