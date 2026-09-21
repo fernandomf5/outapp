@@ -569,7 +569,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                       <TableRow>
                         <TableHead className="w-[140px]">Tipo</TableHead>
                         <TableHead className="min-w-[300px]">Descrição</TableHead>
-                        <TableHead className="w-[240px]">Valor (R$)</TableHead>
+                        <TableHead className="min-w-[280px] w-[280px]">Valor (R$)</TableHead>
                         <TableHead className="w-[180px]">Categoria</TableHead>
                         <TableHead className="w-[160px]">Vencimento</TableHead>
                         <TableHead className="w-[180px]">Conta</TableHead>
