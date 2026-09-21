@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags, Landmark, AlertTriangle, BellRing, MoveHorizontal } from "lucide-react";
+import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags, Landmark, AlertTriangle, BellRing } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -144,85 +144,6 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [statusDraft, setStatusDraft] = useState<{ status: string; bank_account_id: string }>({ status: "pending", bank_account_id: "" });
   const [savingStatus, setSavingStatus] = useState(false);
 
-  /** Refs e estado para scroll horizontal arrastável com o mouse na lista. */
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isScrollDragging, setIsScrollDragging] = useState(false);
-  const [showScrollHint, setShowScrollHint] = useState(false);
-  const scrollDragStart = useRef<{ x: number; scrollLeft: number } | null>(null);
-
-  const isInteractiveTarget = (target: HTMLElement): boolean => {
-    return !!(
-      target.closest("button") ||
-      target.closest("a") ||
-      target.closest("input") ||
-      target.closest("select") ||
-      target.closest("textarea") ||
-      target.closest('[role="button"]') ||
-      target.closest('[role="link"]') ||
-      target.closest('[data-no-scroll-drag]')
-    );
-  };
-
-  const handleScrollPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Só botão esquerdo do mouse (ou toque/caneta já têm scroll nativo).
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    if (isScrollDragging) return;
-    const target = e.target as HTMLElement;
-    if (isInteractiveTarget(target)) return;
-
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    scrollDragStart.current = { x: e.clientX, scrollLeft: container.scrollLeft };
-    // Captura o ponteiro: o arraste continua funcionando mesmo sobre as linhas/células.
-    try {
-      container.setPointerCapture(e.pointerId);
-    } catch {
-      // Ignora: navegadores que não suportam captura ainda funcionam parcialmente.
-    }
-    setIsScrollDragging(true);
-  };
-
-  const handleScrollPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isScrollDragging || !scrollDragStart.current || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const dx = e.clientX - scrollDragStart.current.x;
-    scrollContainerRef.current.scrollLeft = scrollDragStart.current.scrollLeft - dx;
-  };
-
-  const handleScrollPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (scrollContainerRef.current) {
-      try {
-        scrollContainerRef.current.releasePointerCapture(e.pointerId);
-      } catch {
-        // Ignora: captura pode já ter sido liberada.
-      }
-    }
-    setIsScrollDragging(false);
-    scrollDragStart.current = null;
-  };
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const checkOverflow = () => {
-      setShowScrollHint(container.scrollWidth > container.clientWidth + 4);
-    };
-
-    checkOverflow();
-    container.addEventListener("scroll", checkOverflow, { passive: true });
-    window.addEventListener("resize", checkOverflow);
-
-    const observer = new ResizeObserver(checkOverflow);
-    observer.observe(container);
-
-    return () => {
-      container.removeEventListener("scroll", checkOverflow);
-      window.removeEventListener("resize", checkOverflow);
-      observer.disconnect();
-    };
-  }, [transactions.length]);
 
   const { categories, createCategory } = useFinancialCategories(businessId);
 
@@ -1229,48 +1150,27 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         </div>
       </div>
 
-      {showScrollHint && (
-        <div className="flex items-center justify-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs text-primary">
-          <MoveHorizontal className="h-3.5 w-3.5 animate-pulse" />
-          <span>Arraste para os lados para visualizar a transação completa</span>
-        </div>
-      )}
-
       <Card className="max-w-full overflow-hidden">
         <CardContent className="p-0">
-          <div
-            ref={scrollContainerRef}
-            className={cn(
-              "w-full overflow-x-auto",
-              "cursor-grab",
-              isScrollDragging && "cursor-grabbing select-none"
-            )}
-            style={{ touchAction: "pan-x pan-y" }}
-            onPointerDown={handleScrollPointerDown}
-            onPointerMove={handleScrollPointerMove}
-            onPointerUp={handleScrollPointerEnd}
-            onPointerCancel={handleScrollPointerEnd}
-          >
+          <div className="w-full">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 
-              <Table className="min-w-[1040px] table-fixed">
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40px]"></TableHead>
-                    <TableHead className="w-[250px]">Descrição</TableHead>
-                    <TableHead className="w-[190px]">Detalhes</TableHead>
-                    <TableHead className="w-[170px]">Categoria</TableHead>
-                    <TableHead className="w-[140px]">Conta</TableHead>
-                    <TableHead className="w-[130px]">Vencimento</TableHead>
-                    <TableHead className="w-[140px] text-right">Valor</TableHead>
-                    <TableHead className="w-[130px] text-center">Status</TableHead>
-                    <TableHead className="w-[100px] text-right">Ações</TableHead>
+                    <TableHead className="w-[32px]"></TableHead>
+                    <TableHead>Transação</TableHead>
+                    <TableHead className="w-[120px]">Conta</TableHead>
+                    <TableHead className="w-[110px]">Vencimento</TableHead>
+                    <TableHead className="w-[130px] text-right">Valor</TableHead>
+                    <TableHead className="w-[110px] text-center">Status</TableHead>
+                    <TableHead className="w-[90px] text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         Nenhuma transação em {periodLabel}.
                       </TableCell>
                     </TableRow>
@@ -1280,74 +1180,60 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                         <SortableTransactionRow key={t.id} id={t.id} className={cn("border-border/60 transition-colors hover:bg-muted/30", t.status === 'paid' ? 'bg-muted/20' : '')}>
                           {(handle) => (
                             <>
-                              <TableCell className="w-[40px]">{handle}</TableCell>
-                              <TableCell className="w-[250px]">
+                              <TableCell className="w-[32px] pr-0">{handle}</TableCell>
+                              <TableCell>
                                 <div className="flex flex-col gap-1">
+                                  {t.category && (
+                                    <span
+                                      title={t.category}
+                                      className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                                    >
+                                      <span
+                                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                                        style={(() => {
+                                          const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
+                                          return cat?.color ? { backgroundColor: cat.color } : undefined;
+                                        })()}
+                                      />
+                                      <span className="truncate leading-none">{t.category}</span>
+                                    </span>
+                                  )}
                                   <span className="truncate font-medium leading-tight" title={t.description}>
                                     {t.description}
                                   </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {PAYMENT_METHODS[t.payment_method] || t.payment_method}
-                                  </span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="w-[190px]">
-                                <div className="flex flex-wrap items-center gap-1.5">
-                                  {t.__projected && (
-                                    <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
-                                  )}
-                                  {t.priority && t.priority !== 'normal' && (
-                                    <Badge
-                                      variant="outline"
-                                      className={cn("text-[10px] gap-1", PRIORITY_CONFIG[t.priority].className)}
-                                    >
-                                      <AlertTriangle className="h-3 w-3" />
-                                      {PRIORITY_CONFIG[t.priority].label}
-                                    </Badge>
-                                  )}
-                                  {t.installment_total && t.installment_total > 1 && (
-                                    <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/40">
-                                      {t.installment_number === t.installment_total
-                                        ? `Última parcela (${t.installment_number}/${t.installment_total})`
-                                        : `Parcela ${t.installment_number}/${t.installment_total}`}
-                                    </Badge>
-                                  )}
-                                  {typeof t.reminder_days_before === 'number' && (
-                                    <Badge variant="outline" className="text-[10px] gap-1">
-                                      <BellRing className="h-3 w-3" />
-                                      {t.reminder_days_before === 0
-                                        ? 'Lembrete no dia'
-                                        : `${t.reminder_days_before}d antes`}
-                                    </Badge>
-                                  )}
-                                  {!t.__projected &&
-                                    (!t.priority || t.priority === 'normal') &&
-                                    !(t.installment_total && t.installment_total > 1) &&
-                                    typeof t.reminder_days_before !== 'number' && (
-                                      <span className="text-xs text-muted-foreground">—</span>
+                                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                                    <span>{PAYMENT_METHODS[t.payment_method] || t.payment_method}</span>
+                                    {t.__projected && (
+                                      <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
                                     )}
+                                    {t.priority && t.priority !== 'normal' && (
+                                      <Badge
+                                        variant="outline"
+                                        className={cn("text-[10px] gap-1", PRIORITY_CONFIG[t.priority].className)}
+                                      >
+                                        <AlertTriangle className="h-3 w-3" />
+                                        {PRIORITY_CONFIG[t.priority].label}
+                                      </Badge>
+                                    )}
+                                    {t.installment_total && t.installment_total > 1 && (
+                                      <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/40">
+                                        {t.installment_number === t.installment_total
+                                          ? `Última parcela (${t.installment_number}/${t.installment_total})`
+                                          : `Parcela ${t.installment_number}/${t.installment_total}`}
+                                      </Badge>
+                                    )}
+                                    {typeof t.reminder_days_before === 'number' && (
+                                      <Badge variant="outline" className="text-[10px] gap-1">
+                                        <BellRing className="h-3 w-3" />
+                                        {t.reminder_days_before === 0
+                                          ? 'Lembrete no dia'
+                                          : `${t.reminder_days_before}d antes`}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               </TableCell>
-                              <TableCell className="w-[170px]">
-                                {t.category ? (
-                                  <span
-                                    title={t.category}
-                                    className="inline-flex max-w-[150px] items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm"
-                                  >
-                                    <span
-                                      className="h-2 w-2 shrink-0 rounded-full bg-primary"
-                                      style={(() => {
-                                      const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
-                                      return cat?.color ? { backgroundColor: cat.color } : undefined;
-                                    })()}
-                                    />
-                                    <span className="truncate leading-none">{t.category}</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-muted-foreground">Sem categoria</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="w-[140px]">
+                              <TableCell className="w-[120px]">
                                 {t.bank_account_id ? (
                                   <span className="inline-flex max-w-[120px] items-center gap-1 text-sm">
                                     <Landmark className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1357,11 +1243,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                   <span className="text-xs text-muted-foreground">Sem conta</span>
                                 )}
                               </TableCell>
-                              <TableCell className="w-[130px] whitespace-nowrap">{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                              <TableCell className={cn('w-[140px] whitespace-nowrap text-right font-bold', t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
+                              <TableCell className="w-[110px] whitespace-nowrap">{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+                              <TableCell className={cn('w-[130px] whitespace-nowrap text-right font-bold', t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
                                 {t.type === 'income' ? '+' : '-'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </TableCell>
-                              <TableCell className="w-[130px] text-center">
+                              <TableCell className="w-[110px] text-center">
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
@@ -1372,7 +1258,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                   {t.status === 'paid' ? 'Pago' : 'Pendente'}
                                 </Button>
                               </TableCell>
-                              <TableCell className="w-[100px] text-right">
+                              <TableCell className="w-[90px] text-right">
                                 <div className="flex justify-end gap-1">
                                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
                                     <Edit2 className="h-4 w-4" />
