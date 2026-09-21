@@ -1249,7 +1249,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         Nenhuma transação em {periodLabel}.
                       </TableCell>
                     </TableRow>
@@ -1259,74 +1259,60 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                         <SortableTransactionRow key={t.id} id={t.id} className={cn("border-border/60 transition-colors hover:bg-muted/30", t.status === 'paid' ? 'bg-muted/20' : '')}>
                           {(handle) => (
                             <>
-                              <TableCell className="w-[40px]">{handle}</TableCell>
-                              <TableCell className="w-[250px]">
+                              <TableCell className="w-[32px] pr-0">{handle}</TableCell>
+                              <TableCell>
                                 <div className="flex flex-col gap-1">
+                                  {t.category && (
+                                    <span
+                                      title={t.category}
+                                      className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                                    >
+                                      <span
+                                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                                        style={(() => {
+                                          const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
+                                          return cat?.color ? { backgroundColor: cat.color } : undefined;
+                                        })()}
+                                      />
+                                      <span className="truncate leading-none">{t.category}</span>
+                                    </span>
+                                  )}
                                   <span className="truncate font-medium leading-tight" title={t.description}>
                                     {t.description}
                                   </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {PAYMENT_METHODS[t.payment_method] || t.payment_method}
-                                  </span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="w-[190px]">
-                                <div className="flex flex-wrap items-center gap-1.5">
-                                  {t.__projected && (
-                                    <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
-                                  )}
-                                  {t.priority && t.priority !== 'normal' && (
-                                    <Badge
-                                      variant="outline"
-                                      className={cn("text-[10px] gap-1", PRIORITY_CONFIG[t.priority].className)}
-                                    >
-                                      <AlertTriangle className="h-3 w-3" />
-                                      {PRIORITY_CONFIG[t.priority].label}
-                                    </Badge>
-                                  )}
-                                  {t.installment_total && t.installment_total > 1 && (
-                                    <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/40">
-                                      {t.installment_number === t.installment_total
-                                        ? `Última parcela (${t.installment_number}/${t.installment_total})`
-                                        : `Parcela ${t.installment_number}/${t.installment_total}`}
-                                    </Badge>
-                                  )}
-                                  {typeof t.reminder_days_before === 'number' && (
-                                    <Badge variant="outline" className="text-[10px] gap-1">
-                                      <BellRing className="h-3 w-3" />
-                                      {t.reminder_days_before === 0
-                                        ? 'Lembrete no dia'
-                                        : `${t.reminder_days_before}d antes`}
-                                    </Badge>
-                                  )}
-                                  {!t.__projected &&
-                                    (!t.priority || t.priority === 'normal') &&
-                                    !(t.installment_total && t.installment_total > 1) &&
-                                    typeof t.reminder_days_before !== 'number' && (
-                                      <span className="text-xs text-muted-foreground">—</span>
+                                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                                    <span>{PAYMENT_METHODS[t.payment_method] || t.payment_method}</span>
+                                    {t.__projected && (
+                                      <Badge variant="outline" className="text-[10px]">Conta fixa</Badge>
                                     )}
+                                    {t.priority && t.priority !== 'normal' && (
+                                      <Badge
+                                        variant="outline"
+                                        className={cn("text-[10px] gap-1", PRIORITY_CONFIG[t.priority].className)}
+                                      >
+                                        <AlertTriangle className="h-3 w-3" />
+                                        {PRIORITY_CONFIG[t.priority].label}
+                                      </Badge>
+                                    )}
+                                    {t.installment_total && t.installment_total > 1 && (
+                                      <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/40">
+                                        {t.installment_number === t.installment_total
+                                          ? `Última parcela (${t.installment_number}/${t.installment_total})`
+                                          : `Parcela ${t.installment_number}/${t.installment_total}`}
+                                      </Badge>
+                                    )}
+                                    {typeof t.reminder_days_before === 'number' && (
+                                      <Badge variant="outline" className="text-[10px] gap-1">
+                                        <BellRing className="h-3 w-3" />
+                                        {t.reminder_days_before === 0
+                                          ? 'Lembrete no dia'
+                                          : `${t.reminder_days_before}d antes`}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               </TableCell>
-                              <TableCell className="w-[170px]">
-                                {t.category ? (
-                                  <span
-                                    title={t.category}
-                                    className="inline-flex max-w-[150px] items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm"
-                                  >
-                                    <span
-                                      className="h-2 w-2 shrink-0 rounded-full bg-primary"
-                                      style={(() => {
-                                      const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
-                                      return cat?.color ? { backgroundColor: cat.color } : undefined;
-                                    })()}
-                                    />
-                                    <span className="truncate leading-none">{t.category}</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-muted-foreground">Sem categoria</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="w-[140px]">
+                              <TableCell className="w-[120px]">
                                 {t.bank_account_id ? (
                                   <span className="inline-flex max-w-[120px] items-center gap-1 text-sm">
                                     <Landmark className="h-3.5 w-3.5 text-muted-foreground" />
