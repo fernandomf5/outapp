@@ -181,7 +181,7 @@ export function AgendaReminders() {
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 flex-shrink-0"
-                      onClick={() => markReminderAsSeen(event.id)}
+                      onClick={() => dismissReminder(event)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -204,15 +204,32 @@ export function AgendaReminders() {
                     </span>
                   </div>
                   
+                  {(event.reminder_repeat_minutes ?? 0) > 0 && !isPast && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Repetindo a cada {event.reminder_repeat_minutes} min até o evento
+                    </p>
+                  )}
+
                   <Button
                     size="sm"
                     className="w-full mt-3"
                     style={{ backgroundColor: event.color }}
-                    onClick={() => markReminderAsSeen(event.id)}
+                    onClick={() => dismissReminder(event)}
                   >
                     <Check className="w-4 h-4 mr-2" />
                     Marcar como visto
                   </Button>
+
+                  {(event.reminder_repeat_minutes ?? 0) > 0 && !isPast && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={() => markReminderAsSeen(event.id)}
+                    >
+                      Parar de repetir
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
