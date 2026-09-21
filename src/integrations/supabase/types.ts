@@ -1450,6 +1450,7 @@ export type Database = {
       aprova_job_clients: {
         Row: {
           access_token: string
+          contact_id: string | null
           created_at: string | null
           id: string
           is_active: boolean | null
@@ -1464,6 +1465,7 @@ export type Database = {
         }
         Insert: {
           access_token?: string
+          contact_id?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -1478,6 +1480,7 @@ export type Database = {
         }
         Update: {
           access_token?: string
+          contact_id?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -1490,7 +1493,15 @@ export type Database = {
           user_id?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "aprova_job_clients_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       aprova_job_comments: {
         Row: {
@@ -5475,6 +5486,7 @@ export type Database = {
           color: string | null
           created_at: string
           id: string
+          is_recurring: boolean
           name: string
           order_index: number | null
           updated_at: string
@@ -5485,6 +5497,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           id?: string
+          is_recurring?: boolean
           name: string
           order_index?: number | null
           updated_at?: string
@@ -5495,6 +5508,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           id?: string
+          is_recurring?: boolean
           name?: string
           order_index?: number | null
           updated_at?: string
