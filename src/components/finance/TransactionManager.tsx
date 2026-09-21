@@ -1127,6 +1127,13 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         </div>
       </div>
 
+      {showScrollHint && (
+        <div className="flex items-center justify-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs text-primary">
+          <MoveHorizontal className="h-3.5 w-3.5 animate-pulse" />
+          <span>Arraste para os lados para ver mais colunas</span>
+        </div>
+      )}
+
       <Card className="max-w-full overflow-hidden">
         <CardContent className="p-0">
           <div
