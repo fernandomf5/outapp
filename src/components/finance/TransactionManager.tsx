@@ -553,6 +553,32 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       installment_count: "1"
     });
     setEditingTransactionId(null);
+    setEditingProjected(null);
+  };
+
+  /**
+   * Grava o estado de um único mês de uma conta fixa dentro da transação original,
+   * preservando os demais meses (histórico de pagamentos).
+   */
+  const patchMonthlyStatus = async (sourceId: string, key: string, patch: Partial<MonthlyStatusEntry>) => {
+    const { data: original, error: fetchError } = await supabase
+      .from('financial_transactions')
+      .select('monthly_status')
+      .eq('id', sourceId)
+      .maybeSingle();
+    if (fetchError) throw fetchError;
+
+    const current = (((original as any)?.monthly_status || {}) as Record<string, MonthlyStatusEntry>);
+    const nextMonthlyStatus = {
+      ...current,
+      [key]: { ...(current[key] || {}), ...patch },
+    };
+
+    const { error } = await supabase
+      .from('financial_transactions')
+      .update({ monthly_status: nextMonthlyStatus } as any)
+      .eq('id', sourceId);
+    if (error) throw error;
   };
 
   const handleEdit = (t: Transaction) => {
@@ -575,7 +601,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       is_installment: false,
       installment_count: "1"
     });
-    setEditingTransactionId(sourceIdOf(t));
+    if (t.__projected) {
+      // Repetição de conta fixa: editar afeta somente este mês.
+      setEditingProjected({ sourceId: sourceIdOf(t), periodKey: t.__periodKey || periodKey });
+      setEditingTransactionId(null);
+    } else {
+      setEditingProjected(null);
+      setEditingTransactionId(sourceIdOf(t));
+    }
     setIsAddOpen(true);
   };
 
@@ -588,8 +621,16 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     if (!transactionToDelete) return;
     const t = transactionToDelete;
     try {
-      const { error } = await supabase.from('financial_transactions').delete().eq('id', sourceIdOf(t));
-      if (error) throw error;
+      if (t.__projected) {
+        // Cancela apenas este mês da conta fixa, mantendo os meses anteriores e o histórico.
+        await patchMonthlyStatus(sourceIdOf(t), t.__periodKey || periodKey, {
+          deleted: true,
+          status: 'cancelled',
+        });
+      } else {
+        const { error } = await supabase.from('financial_transactions').delete().eq('id', sourceIdOf(t));
+        if (error) throw error;
+      }
 
       // Reverter saldo se estava paga
       if (t.status === 'paid' && t.bank_account_id) {
@@ -597,7 +638,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         await updateAccountBalance(t.bank_account_id, amountChange);
       }
 
-      toast.success("Transação excluída");
+      toast.success(t.__projected ? `Conta removida de ${periodLabel}` : "Transação excluída");
       onRefresh();
     } catch (error) {
       toast.error("Erro ao excluir");
