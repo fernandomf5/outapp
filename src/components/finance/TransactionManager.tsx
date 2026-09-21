@@ -1106,8 +1106,20 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
       <Card className="max-w-full overflow-hidden">
         <CardContent className="p-0">
-          <div className="w-full overflow-x-auto">
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              "w-full overflow-x-auto",
+              "cursor-grab",
+              isScrollDragging && "cursor-grabbing select-none"
+            )}
+            onMouseDown={handleScrollMouseDown}
+            onMouseMove={handleScrollMouseMove}
+            onMouseUp={handleScrollMouseUp}
+            onMouseLeave={handleScrollMouseUp}
+          >
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+
               <Table className="min-w-[1040px] table-fixed">
                 <TableHeader>
                   <TableRow>
