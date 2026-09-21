@@ -46,7 +46,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [queueEnabled, setQueueEnabled] = useState(false);
   const [queueAhead, setQueueAhead] = useState(0);
   const [queueEtaMinutes, setQueueEtaMinutes] = useState(0);
-  const [queueMessage, setQueueMessage] = useState("Seu atendimento está na fila de espera. Em breve um atendente responderá.");
+  const [queueMessage, setQueueMessage] = useState("Fila de espera — envie sua mensagem que logo logo vamos te atender.");
 
   const [statusColors, setStatusColors] = useState({
     online: '#22c55e',
