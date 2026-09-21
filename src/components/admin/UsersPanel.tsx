@@ -69,7 +69,42 @@ export const UsersPanel = () => {
   const [editForm, setEditForm] = useState({ full_name: "", email: "" });
   const [newPassword, setNewPassword] = useState("");
   const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [planDialogOpen, setPlanDialogOpen] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [plans, setPlans] = useState<PlanOption[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
+  const [planDays, setPlanDays] = useState<string>("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
+
+  const callManageUser = async (
+    action: string,
+    userId: string,
+    payload?: Record<string, unknown>
+  ): Promise<{ ok: boolean; error?: string; result?: any }> => {
+    const { data, error } = await supabase.functions.invoke('manage-user', {
+      body: { action, userId, data: payload },
+    });
+
+    if (error) {
+      // Edge functions return the message inside the response body on non-2xx
+      let message = error.message || 'Erro ao executar ação';
+      try {
+        const ctx: any = (error as any).context;
+        if (ctx && typeof ctx.json === 'function') {
+          const parsed = await ctx.json();
+          if (parsed?.error) message = parsed.error;
+        }
+      } catch {
+        // keep default message
+      }
+      return { ok: false, error: message };
+    }
+
+    if (data?.error) return { ok: false, error: data.error };
+    return { ok: true, result: data };
+  };
 
   // Filtros de data
   const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
