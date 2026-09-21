@@ -46,6 +46,12 @@ export const FeatureGate = ({ featureKey, children }: FeatureGateProps) => {
     return <>{children}</>;
   }
 
+  // Admins bypass feature gates entirely
+  const { user } = useAuth();
+  if (user?.email === 'fernandomoraisgarcia2011@gmail.com') {
+    return <>{children}</>;
+  }
+
   // Check if user has feature in their plan
   if (!hasFeature(featureKey)) {
     return (
