@@ -28,6 +28,28 @@ export const MONTH_NAMES = [
   "Dezembro",
 ] as const;
 
+/** Campos que podem ser sobrescritos em um único mês de uma conta fixa. */
+export interface MonthlyOverrides {
+  description?: string;
+  amount?: number;
+  category?: string;
+  payment_method?: string;
+  due_date?: string;
+  priority?: "normal" | "alta" | "urgente";
+  type?: "income" | "expense";
+}
+
+/**
+ * Estado de um mês específico de uma conta fixa, guardado na transação original.
+ * `deleted` marca que aquele mês foi cancelado, sem apagar o histórico dos demais.
+ */
+export interface MonthlyStatusEntry {
+  status?: string;
+  bank_account_id?: string | null;
+  deleted?: boolean;
+  overrides?: MonthlyOverrides;
+}
+
 export interface PeriodTransaction {
   id: string;
   description: string;
@@ -47,7 +69,7 @@ export interface PeriodTransaction {
   /** Número da parcela e total de parcelas, quando a conta é parcelada */
   installment_number?: number | null;
   installment_total?: number | null;
-  monthly_status?: Record<string, { status: string; bank_account_id?: string | null }> | null;
+  monthly_status?: Record<string, MonthlyStatusEntry> | null;
   /** true quando a linha é uma repetição projetada de uma conta recorrente */
   __projected?: boolean;
   /** id real da transação no banco */
@@ -102,13 +124,19 @@ export function getMonthTransactions(
     // Repetição mensal das contas recorrentes (somente meses posteriores)
     const isAfterOrigin = year > parts.year || (year === parts.year && month > parts.month);
     if (isRecurring && isAfterOrigin) {
-      const monthlyStatus = (raw?.monthly_status || {}) as Record<string, any>;
-      const entry = monthlyStatus[key] || {};
+      const monthlyStatus = (raw?.monthly_status || {}) as Record<string, MonthlyStatusEntry>;
+      const entry: MonthlyStatusEntry = monthlyStatus[key] || {};
+
+      // Mês cancelado pelo usuário: some apenas deste mês, sem afetar os demais.
+      if (entry.deleted) return acc;
+
+      const overrides = entry.overrides || {};
       const day = Math.min(parts.day, daysInMonth(year, month));
       acc.push({
         ...raw,
+        ...overrides,
         id: `${raw.id}::${key}`,
-        due_date: `${key}-${String(day).padStart(2, "0")}`,
+        due_date: overrides.due_date || `${key}-${String(day).padStart(2, "0")}`,
         status: entry.status || "pending",
         bank_account_id: entry.bank_account_id ?? raw.bank_account_id ?? null,
         entity_type: tEntity,

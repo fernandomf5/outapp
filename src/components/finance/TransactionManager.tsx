@@ -21,7 +21,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useFinancialCategories } from "@/hooks/useFinancialCategories";
 import { CategoryManager } from "./CategoryManager";
 import { CategorySelect } from "./CategorySelect";
-import { EntityType } from "./monthUtils";
+import { EntityType, MonthlyStatusEntry, MonthlyOverrides } from "./monthUtils";
 
 
 export type TransactionPriority = 'normal' | 'alta' | 'urgente';
@@ -82,7 +82,7 @@ interface Transaction {
   reminder_days_before?: number | null;
   installment_number?: number | null;
   installment_total?: number | null;
-  monthly_status?: Record<string, { status: string; bank_account_id?: string | null }> | null;
+  monthly_status?: Record<string, MonthlyStatusEntry> | null;
   /** true quando a linha é uma repetição mensal projetada de uma conta fixa */
   __projected?: boolean;
   /** id real no banco (igual a `id` quando não é projetada) */
@@ -134,6 +134,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  /** Quando o usuário edita uma repetição de conta fixa, a alteração vale só para aquele mês. */
+  const [editingProjected, setEditingProjected] = useState<{ sourceId: string; periodKey: string } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
@@ -346,7 +348,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
       const installmentCount = Number(formData.installment_count);
       const shouldCreateInstallments =
-        !editingTransactionId && formData.payment_method === 'credit_card' && installmentCount > 1;
+        !editingTransactionId && !editingProjected && formData.payment_method === 'credit_card' && installmentCount > 1;
 
       const transactionData = {
         user_id: user.id,
@@ -413,6 +415,40 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         return;
       }
 
+      if (editingProjected) {
+        // Edição de uma repetição de conta fixa: vale apenas para o mês exibido.
+        const overrides: MonthlyOverrides = {
+          description: formData.description,
+          amount,
+          category: formData.category,
+          payment_method: formData.payment_method,
+          due_date: formData.due_date,
+          priority: formData.priority,
+          type: formData.type,
+        };
+        const previous = transactions.find(t => t.__projected && t.__periodKey === editingProjected.periodKey && sourceIdOf(t) === editingProjected.sourceId);
+
+        await patchMonthlyStatus(editingProjected.sourceId, editingProjected.periodKey, {
+          status: formData.status,
+          bank_account_id: formData.bank_account_id || null,
+          overrides,
+        });
+
+        if (previous?.status === 'paid' && previous.bank_account_id) {
+          const revert = previous.type === 'income' ? -previous.amount : previous.amount;
+          await updateAccountBalance(previous.bank_account_id, revert);
+        }
+        if (formData.status === 'paid' && formData.bank_account_id) {
+          await updateAccountBalance(formData.bank_account_id, formData.type === 'income' ? amount : -amount);
+        }
+
+        toast.success(`Alteração aplicada somente em ${periodLabel}`);
+        setIsAddOpen(false);
+        resetForm();
+        onRefresh();
+        return;
+      }
+
       if (editingTransactionId) {
         // Obter transação antiga para comparar saldo
         const oldTransaction = transactions.find(t => t.id === editingTransactionId);
@@ -456,7 +492,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       resetForm();
       onRefresh();
     } catch (error) {
-      toast.error(editingTransactionId ? "Erro ao atualizar transação" : "Erro ao adicionar transação");
+      toast.error(editingTransactionId || editingProjected ? "Erro ao atualizar transação" : "Erro ao adicionar transação");
     } finally {
       setLoading(false);
     }
@@ -551,6 +587,32 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       installment_count: "1"
     });
     setEditingTransactionId(null);
+    setEditingProjected(null);
+  };
+
+  /**
+   * Grava o estado de um único mês de uma conta fixa dentro da transação original,
+   * preservando os demais meses (histórico de pagamentos).
+   */
+  const patchMonthlyStatus = async (sourceId: string, key: string, patch: Partial<MonthlyStatusEntry>) => {
+    const { data: original, error: fetchError } = await supabase
+      .from('financial_transactions')
+      .select('monthly_status')
+      .eq('id', sourceId)
+      .maybeSingle();
+    if (fetchError) throw fetchError;
+
+    const current = (((original as any)?.monthly_status || {}) as Record<string, MonthlyStatusEntry>);
+    const nextMonthlyStatus = {
+      ...current,
+      [key]: { ...(current[key] || {}), ...patch },
+    };
+
+    const { error } = await supabase
+      .from('financial_transactions')
+      .update({ monthly_status: nextMonthlyStatus } as any)
+      .eq('id', sourceId);
+    if (error) throw error;
   };
 
   const handleEdit = (t: Transaction) => {
@@ -573,7 +635,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       is_installment: false,
       installment_count: "1"
     });
-    setEditingTransactionId(sourceIdOf(t));
+    if (t.__projected) {
+      // Repetição de conta fixa: editar afeta somente este mês.
+      setEditingProjected({ sourceId: sourceIdOf(t), periodKey: t.__periodKey || periodKey });
+      setEditingTransactionId(null);
+    } else {
+      setEditingProjected(null);
+      setEditingTransactionId(sourceIdOf(t));
+    }
     setIsAddOpen(true);
   };
 
@@ -586,8 +655,16 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     if (!transactionToDelete) return;
     const t = transactionToDelete;
     try {
-      const { error } = await supabase.from('financial_transactions').delete().eq('id', sourceIdOf(t));
-      if (error) throw error;
+      if (t.__projected) {
+        // Cancela apenas este mês da conta fixa, mantendo os meses anteriores e o histórico.
+        await patchMonthlyStatus(sourceIdOf(t), t.__periodKey || periodKey, {
+          deleted: true,
+          status: 'cancelled',
+        });
+      } else {
+        const { error } = await supabase.from('financial_transactions').delete().eq('id', sourceIdOf(t));
+        if (error) throw error;
+      }
 
       // Reverter saldo se estava paga
       if (t.status === 'paid' && t.bank_account_id) {
@@ -595,7 +672,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         await updateAccountBalance(t.bank_account_id, amountChange);
       }
 
-      toast.success("Transação excluída");
+      toast.success(t.__projected ? `Conta removida de ${periodLabel}` : "Transação excluída");
       onRefresh();
     } catch (error) {
       toast.error("Erro ao excluir");
@@ -909,7 +986,18 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{editingTransactionId ? "Editar Transação" : "Adicionar Transação"}</DialogTitle>
+              <DialogTitle>
+                {editingProjected
+                  ? `Editar apenas ${periodLabel}`
+                  : editingTransactionId
+                    ? "Editar Transação"
+                    : "Adicionar Transação"}
+              </DialogTitle>
+              {editingProjected && (
+                <p className="text-xs text-muted-foreground">
+                  Esta é uma conta fixa repetida. As alterações valem somente para este mês; os outros meses continuam como estão.
+                </p>
+              )}
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
@@ -1074,7 +1162,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 </div>
               </div>
 
-              {!editingTransactionId && formData.payment_method === 'credit_card' && (
+              {!editingTransactionId && !editingProjected && formData.payment_method === 'credit_card' && (
                 <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
                   <Label>Número de parcelas no cartão</Label>
                   <Select
@@ -1305,7 +1393,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDelete}
         title="Excluir Transação"
-        description="Esta ação excluirá permanentemente os dados desta transação e reverterá qualquer impacto no saldo da conta vinculada (se paga). Para confirmar, digite 'excluir' abaixo."
+        description={
+          transactionToDelete?.__projected
+            ? `Esta conta é fixa e se repete todo mês. A exclusão vale apenas para ${periodLabel}: os meses anteriores, o histórico e os próximos meses continuam intactos. Para confirmar, digite 'excluir' abaixo.`
+            : "Esta ação excluirá permanentemente os dados desta transação e reverterá qualquer impacto no saldo da conta vinculada (se paga). Para confirmar, digite 'excluir' abaixo."
+        }
         itemName={transactionToDelete?.description}
       />
 

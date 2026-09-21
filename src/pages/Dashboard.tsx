@@ -1110,7 +1110,7 @@ const Dashboard = () => {
           <TabsContent value="cloner">
             <FeatureGate featureKey="page_cloner">
               <FeatureTutorialVideo featureKey="cloner" />
-              <PageCloner teamContext={getTeamContext('cloner')} />
+              <PageCloner />
             </FeatureGate>
           </TabsContent>
 

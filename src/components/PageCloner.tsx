@@ -41,16 +41,7 @@ const AVAILABLE_PAGE_PATHS = [
   "page5"
 ];
 
-interface TeamContext {
-  adminUserId: string;
-  allowedIds: string[];
-}
-
-interface PageClonerProps {
-  teamContext?: TeamContext;
-}
-
-export const PageCloner = ({ teamContext }: PageClonerProps) => {
+export const PageCloner = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -120,20 +111,15 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
   });
   const [totalClicks, setTotalClicks] = useState(0);
 
-  // Helper to get the correct user ID (admin's ID when team member)
-  const getTargetUserId = (): string | null => {
-    if (teamContext?.adminUserId) {
-      return teamContext.adminUserId;
-    }
-    return user?.id || null;
-  };
+  // A página clonada sempre pertence ao usuário autenticado (recurso de equipe removido).
+  const getTargetUserId = (): string | null => user?.id || null;
 
   useEffect(() => {
     const targetUserId = getTargetUserId();
     if (targetUserId) {
       fetchClonedPages();
     }
-  }, [user, teamContext]);
+  }, [user]);
 
   const fetchClonedPages = async () => {
     const targetUserId = getTargetUserId();
@@ -144,11 +130,6 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
       .select('*')
       .eq('user_id', targetUserId)
       .order('created_at', { ascending: false });
-
-    // If team member with restrictions, filter by allowed page IDs
-    if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
-      query = query.in('id', teamContext.allowedIds);
-    }
 
     const { data, error } = await query;
 
