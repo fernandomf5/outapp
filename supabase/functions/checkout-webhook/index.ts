@@ -32,20 +32,36 @@ serve(async (req) => {
       .from('site_settings')
       .select('value')
       .eq('key', 'mercadopago_access_token')
-      .single();
+      .maybeSingle();
 
-    let accessToken = mpSettings?.value;
+    const accessTokens = new Set<string>();
+    if (mpSettings?.value) accessTokens.add(mpSettings.value);
 
-    const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-      headers: { 'Authorization': `Bearer ${accessToken}` },
-    });
+    const { data: checkoutTokens } = await supabase
+      .from('checkouts')
+      .select('mp_access_token')
+      .not('mp_access_token', 'is', null);
 
-    if (!paymentResponse.ok) {
-      console.error('Error fetching payment');
-      throw new Error('Error fetching payment');
+    for (const tokenRow of checkoutTokens || []) {
+      if (tokenRow.mp_access_token) accessTokens.add(tokenRow.mp_access_token);
     }
 
-    const payment = await paymentResponse.json();
+    let payment: any = null;
+    for (const token of accessTokens) {
+      const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (paymentResponse.ok) {
+        payment = await paymentResponse.json();
+        break;
+      }
+    }
+
+    if (!payment) {
+      console.error('Error fetching payment with configured Mercado Pago credentials');
+      throw new Error('Error fetching payment');
+    }
     console.log('Payment details:', JSON.stringify(payment));
 
     const externalRef = payment.external_reference;
