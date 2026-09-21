@@ -609,7 +609,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                 value={row.amount} 
                                 onChange={e => updateBulkRow(index, 'amount', e.target.value)}
                                 placeholder="0,00"
-                                className="h-10 pl-7 font-bold text-right text-base border-primary/40 focus:border-primary bg-background"
+                                className="h-10 w-full pl-7 font-bold text-right text-base border-primary/40 focus:border-primary bg-background"
                               />
                             </div>
                           </TableCell>

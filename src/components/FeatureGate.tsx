@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { useTeamMember } from '@/contexts/TeamMemberContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Construction } from 'lucide-react';
 
 interface FeatureGateProps {
@@ -43,6 +44,12 @@ export const FeatureGate = ({ featureKey, children }: FeatureGateProps) => {
 
   // Team members: do NOT show plan upgrade screens (they only see delegated resources)
   if (isTeamMember) {
+    return <>{children}</>;
+  }
+
+  // Admins bypass feature gates entirely
+  const { user } = useAuth();
+  if (user?.email === 'fernandomoraisgarcia2011@gmail.com') {
     return <>{children}</>;
   }
 
