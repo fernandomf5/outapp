@@ -165,7 +165,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     priority: "normal" as TransactionPriority,
     reminder_days_before: "none",
     is_installment: false,
-    installment_count: "2"
+    installment_count: "1"
   });
   
   const [bulkRows, setBulkRows] = useState<any[]>([
