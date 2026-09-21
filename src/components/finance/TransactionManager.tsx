@@ -186,6 +186,28 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     scrollDragStart.current = null;
   };
 
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const checkOverflow = () => {
+      setShowScrollHint(container.scrollWidth > container.clientWidth + 4);
+    };
+
+    checkOverflow();
+    container.addEventListener("scroll", checkOverflow, { passive: true });
+    window.addEventListener("resize", checkOverflow);
+
+    const observer = new ResizeObserver(checkOverflow);
+    observer.observe(container);
+
+    return () => {
+      container.removeEventListener("scroll", checkOverflow);
+      window.removeEventListener("resize", checkOverflow);
+      observer.disconnect();
+    };
+  }, [filteredTransactions.length]);
+
   const { categories, createCategory } = useFinancialCategories(businessId);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
