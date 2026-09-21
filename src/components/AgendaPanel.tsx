@@ -586,6 +586,33 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {formReminderMinutes > 0 && (
+                <div>
+                  <Label>Repetir lembrete</Label>
+                  <Select
+                    value={formReminderRepeatMinutes.toString()}
+                    onValueChange={(v) => setFormReminderRepeatMinutes(parseInt(v))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Não repetir</SelectItem>
+                      <SelectItem value="1">A cada 1 minuto</SelectItem>
+                      <SelectItem value="2">A cada 2 minutos</SelectItem>
+                      <SelectItem value="5">A cada 5 minutos</SelectItem>
+                      <SelectItem value="10">A cada 10 minutos</SelectItem>
+                      <SelectItem value="15">A cada 15 minutos</SelectItem>
+                      <SelectItem value="30">A cada 30 minutos</SelectItem>
+                      <SelectItem value="60">A cada 1 hora</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O aviso reaparece nesse intervalo até a hora do evento.
+                  </p>
+                </div>
+              )}
               
               <div>
                 <Label>Cor</Label>
