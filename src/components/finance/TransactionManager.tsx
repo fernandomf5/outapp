@@ -206,7 +206,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       window.removeEventListener("resize", checkOverflow);
       observer.disconnect();
     };
-  }, [filteredTransactions.length]);
+  }, [transactions.length]);
 
   const { categories, createCategory } = useFinancialCategories(businessId);
 
