@@ -141,6 +141,18 @@ export const UsersPanel = () => {
     };
   }, []);
 
+  const fetchPlans = async () => {
+    const { data, error } = await supabase
+      .from('plans')
+      .select('id, name, price, duration_days')
+      .eq('is_active', true)
+      .order('order_index', { ascending: true });
+
+    if (!error && data) {
+      setPlans(data as PlanOption[]);
+    }
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     const { data, error } = await supabase
