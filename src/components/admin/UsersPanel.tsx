@@ -123,6 +123,7 @@ export const UsersPanel = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchPlans();
     // Realtime updates for profiles table
     const channel = supabase
       .channel('schema-db-changes')
