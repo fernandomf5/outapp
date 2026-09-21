@@ -120,6 +120,13 @@
       "when": 1789991379971,
       "tag": "0016_agenda_reminder_repeat",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789995713534,
+      "tag": "0017_transaction_installments_priority_reminder",
+      "breakpoints": true
     }
   ]
 }
