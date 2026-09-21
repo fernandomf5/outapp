@@ -486,6 +486,7 @@ export type Database = {
           end_date: string | null
           id: string
           reminder_minutes: number | null
+          reminder_repeat_minutes: number
           reminder_shown: boolean | null
           start_date: string
           title: string
@@ -500,6 +501,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           reminder_minutes?: number | null
+          reminder_repeat_minutes?: number
           reminder_shown?: boolean | null
           start_date: string
           title: string
@@ -514,6 +516,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           reminder_minutes?: number | null
+          reminder_repeat_minutes?: number
           reminder_shown?: boolean | null
           start_date?: string
           title?: string

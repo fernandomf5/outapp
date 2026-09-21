@@ -16,6 +16,7 @@ interface AgendaEvent {
   all_day: boolean;
   color: string;
   reminder_minutes: number;
+  reminder_repeat_minutes: number | null;
   reminder_shown: boolean;
 }
 
@@ -23,6 +24,7 @@ export function AgendaReminders() {
   const { user } = useAuth();
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [activeReminders, setActiveReminders] = useState<AgendaEvent[]>([]);
+  const [snoozedAt, setSnoozedAt] = useState<Record<string, number>>({});
 
   const fetchEvents = useCallback(async () => {
     if (!user) return;
@@ -79,7 +81,19 @@ export function AgendaReminders() {
         const eventDate = parseISO(event.start_date);
         const reminderTime = addMinutes(eventDate, -event.reminder_minutes);
 
-        if (isAfter(now, reminderTime)) {
+        if (!isAfter(now, reminderTime)) continue;
+
+        const repeat = event.reminder_repeat_minutes ?? 0;
+        const snoozed = snoozedAt[event.id];
+
+        // Sem repetição (ou evento já começou): mostra uma única vez
+        if (repeat <= 0 || !isBefore(now, eventDate)) {
+          if (!snoozed) newActiveReminders.push(event);
+          continue;
+        }
+
+        // Com repetição: reaparece a cada X minutos até a hora do evento
+        if (!snoozed || now.getTime() - snoozed >= repeat * 60000) {
           newActiveReminders.push(event);
         }
       }
@@ -97,7 +111,20 @@ export function AgendaReminders() {
     checkReminders();
 
     return () => clearInterval(interval);
-  }, [events]);
+  }, [events, snoozedAt]);
+
+  const dismissReminder = (event: AgendaEvent) => {
+    const repeat = event.reminder_repeat_minutes ?? 0;
+    const eventDate = parseISO(event.start_date);
+
+    if (repeat > 0 && isBefore(new Date(), eventDate)) {
+      setSnoozedAt(prev => ({ ...prev, [event.id]: Date.now() }));
+      setActiveReminders(prev => prev.filter(e => e.id !== event.id));
+      return;
+    }
+
+    void markReminderAsSeen(event.id);
+  };
 
   const markReminderAsSeen = async (eventId: string) => {
     setActiveReminders(prev => prev.filter(e => e.id !== eventId));
@@ -154,7 +181,7 @@ export function AgendaReminders() {
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 flex-shrink-0"
-                      onClick={() => markReminderAsSeen(event.id)}
+                      onClick={() => dismissReminder(event)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -177,15 +204,32 @@ export function AgendaReminders() {
                     </span>
                   </div>
                   
+                  {(event.reminder_repeat_minutes ?? 0) > 0 && !isPast && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Repetindo a cada {event.reminder_repeat_minutes} min até o evento
+                    </p>
+                  )}
+
                   <Button
                     size="sm"
                     className="w-full mt-3"
                     style={{ backgroundColor: event.color }}
-                    onClick={() => markReminderAsSeen(event.id)}
+                    onClick={() => dismissReminder(event)}
                   >
                     <Check className="w-4 h-4 mr-2" />
                     Marcar como visto
                   </Button>
+
+                  {(event.reminder_repeat_minutes ?? 0) > 0 && !isPast && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={() => markReminderAsSeen(event.id)}
+                    >
+                      Parar de repetir
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

@@ -28,6 +28,7 @@ interface AgendaEvent {
   all_day: boolean;
   color: string;
   reminder_minutes: number;
+  reminder_repeat_minutes: number;
   reminder_shown: boolean;
   created_at: string;
   updated_at: string;
@@ -68,6 +69,7 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
   const [formAllDay, setFormAllDay] = useState(false);
   const [formColor, setFormColor] = useState('#6366f1');
   const [formReminderMinutes, setFormReminderMinutes] = useState(15);
+  const [formReminderRepeatMinutes, setFormReminderRepeatMinutes] = useState(0);
 
   const fetchEvents = useCallback(async () => {
     if (!user) return;
@@ -106,6 +108,7 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
     setFormAllDay(false);
     setFormColor('#6366f1');
     setFormReminderMinutes(15);
+    setFormReminderRepeatMinutes(0);
     setIsDialogOpen(true);
   };
 
@@ -123,6 +126,7 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
     setFormAllDay(event.all_day);
     setFormColor(event.color);
     setFormReminderMinutes(event.reminder_minutes);
+    setFormReminderRepeatMinutes(event.reminder_repeat_minutes ?? 0);
     setIsDialogOpen(true);
   };
 
@@ -162,6 +166,7 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
       all_day: formAllDay,
       color: formColor,
       reminder_minutes: formReminderMinutes,
+      reminder_repeat_minutes: formReminderMinutes > 0 ? formReminderRepeatMinutes : 0,
       reminder_shown: false,
     };
 
@@ -581,6 +586,33 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {formReminderMinutes > 0 && (
+                <div>
+                  <Label>Repetir lembrete</Label>
+                  <Select
+                    value={formReminderRepeatMinutes.toString()}
+                    onValueChange={(v) => setFormReminderRepeatMinutes(parseInt(v))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Não repetir</SelectItem>
+                      <SelectItem value="1">A cada 1 minuto</SelectItem>
+                      <SelectItem value="2">A cada 2 minutos</SelectItem>
+                      <SelectItem value="5">A cada 5 minutos</SelectItem>
+                      <SelectItem value="10">A cada 10 minutos</SelectItem>
+                      <SelectItem value="15">A cada 15 minutos</SelectItem>
+                      <SelectItem value="30">A cada 30 minutos</SelectItem>
+                      <SelectItem value="60">A cada 1 hora</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O aviso reaparece nesse intervalo até a hora do evento.
+                  </p>
+                </div>
+              )}
               
               <div>
                 <Label>Cor</Label>
