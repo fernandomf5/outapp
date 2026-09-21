@@ -82,7 +82,9 @@ interface Transaction {
   reminder_days_before?: number | null;
   installment_number?: number | null;
   installment_total?: number | null;
+  installment_group_id?: string | null;
   monthly_status?: Record<string, MonthlyStatusEntry> | null;
+
   /** true quando a linha é uma repetição mensal projetada de uma conta fixa */
   __projected?: boolean;
   /** id real no banco (igual a `id` quando não é projetada) */
