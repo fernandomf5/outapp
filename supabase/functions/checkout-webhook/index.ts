@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface MercadoPagoPayment {
+  external_reference?: string;
+  status?: string;
+  payment_method_id?: string;
+  transaction_amount?: number;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -46,7 +53,7 @@ serve(async (req) => {
       if (tokenRow.mp_access_token) accessTokens.add(tokenRow.mp_access_token);
     }
 
-    let payment: any = null;
+    let payment: MercadoPagoPayment | null = null;
     for (const token of accessTokens) {
       const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
