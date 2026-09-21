@@ -350,48 +350,21 @@ export const UsersPanel = () => {
 
   const handleEditUser = async () => {
     if (!selectedUser) return;
+    setActionLoading(true);
+    const { ok, error } = await callManageUser('update_profile', selectedUser.user_id, {
+      full_name: editForm.full_name,
+      email: editForm.email,
+    });
+    setActionLoading(false);
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/manage-user',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'update_profile',
-            userId: selectedUser.user_id,
-            data: {
-              full_name: editForm.full_name,
-              email: editForm.email
-            }
-          })
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao atualizar usuário');
-      }
-
-      toast({
-        title: "Usuário atualizado",
-        description: "As informações do usuário foram atualizadas com sucesso.",
-      });
-      setEditDialogOpen(false);
-      fetchUsers();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar usuário",
-        description: error.message,
-        variant: "destructive",
-      });
+    if (!ok) {
+      toast({ title: "Erro ao atualizar usuário", description: error, variant: "destructive" });
+      return;
     }
+
+    toast({ title: "Usuário atualizado", description: "As informações foram salvas com sucesso." });
+    setEditDialogOpen(false);
+    fetchUsers();
   };
 
   const handleResetPassword = async () => {
@@ -406,155 +379,134 @@ export const UsersPanel = () => {
       return;
     }
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/manage-user',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'update_password',
-            userId: selectedUser.user_id,
-            data: { password: newPassword }
-          })
-        }
-      );
+    setActionLoading(true);
+    const { ok, error } = await callManageUser('update_password', selectedUser.user_id, {
+      password: newPassword,
+    });
+    setActionLoading(false);
 
-      const result = await response.json();
+    if (!ok) {
+      toast({ title: "Erro ao resetar senha", description: error, variant: "destructive" });
+      return;
+    }
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao resetar senha');
-      }
+    toast({ title: "Senha resetada", description: "A senha do usuário foi alterada com sucesso." });
+    setPasswordDialogOpen(false);
+    setNewPassword("");
+  };
 
+  const handleChangePlan = async () => {
+    if (!selectedUser || !selectedPlanId) return;
+
+    setActionLoading(true);
+    const days = parseInt(planDays, 10);
+    const { ok, error, result } = await callManageUser('set_plan', selectedUser.user_id, {
+      plan_id: selectedPlanId,
+      duration_days: Number.isFinite(days) && days > 0 ? days : undefined,
+    });
+    setActionLoading(false);
+
+    if (!ok) {
+      toast({ title: "Erro ao alterar plano", description: error, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Plano atualizado", description: result?.message });
+    setPlanDialogOpen(false);
+    setPlanDays("");
+    fetchUsers();
+  };
+
+  const handleRemovePlan = async () => {
+    if (!selectedUser) return;
+
+    setActionLoading(true);
+    const { ok, error } = await callManageUser('remove_plan', selectedUser.user_id);
+    setActionLoading(false);
+
+    if (!ok) {
+      toast({ title: "Erro ao remover plano", description: error, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Plano removido", description: "O usuário ficou sem plano ativo." });
+    setPlanDialogOpen(false);
+    fetchUsers();
+  };
+
+  const handleResetAccount = async () => {
+    if (!selectedUser) return;
+
+    if (resetPassword && resetPassword.length < 8) {
       toast({
-        title: "Senha resetada",
-        description: "A senha do usuário foi alterada com sucesso.",
-      });
-      setPasswordDialogOpen(false);
-      setNewPassword("");
-    } catch (error: any) {
-      toast({
-        title: "Erro ao resetar senha",
-        description: error.message,
+        title: "Senha muito curta",
+        description: "A nova senha deve ter pelo menos 8 caracteres.",
         variant: "destructive",
       });
+      return;
     }
+
+    setActionLoading(true);
+    const { ok, error } = await callManageUser('reset_account', selectedUser.user_id, {
+      password: resetPassword || undefined,
+    });
+    setActionLoading(false);
+
+    if (!ok) {
+      toast({ title: "Erro ao resetar conta", description: error, variant: "destructive" });
+      return;
+    }
+
+    toast({
+      title: "Conta resetada",
+      description: "Todos os dados criados pelo usuário foram apagados. O login continua ativo.",
+    });
+    setResetDialogOpen(false);
+    setResetPassword("");
+    fetchUsers();
   };
 
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
-    try {
-      const userId = selectedUser.user_id;
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // Deletar dados relacionados antes de deletar o usuário (em sequência)
-      await supabase.from('chatbot_conversations' as any).delete().eq('user_id', userId);
-      await supabase.from('agent_conversations' as any).delete().eq('customer_id', userId);
-      await supabase.from('subscriptions' as any).delete().eq('user_id', userId);
-      await supabase.from('chatbots' as any).delete().eq('user_id', userId);
-      await supabase.from('ai_agents' as any).delete().eq('user_id', userId);
-      await supabase.from('websites' as any).delete().eq('user_id', userId);
-      await supabase.from('cloned_pages' as any).delete().eq('user_id', userId);
-      await supabase.from('link_bios' as any).delete().eq('user_id', userId);
-      await supabase.from('short_links' as any).delete().eq('user_id', userId);
-      await supabase.from('profiles' as any).delete().eq('user_id', userId);
-      
-      // Deletar usuário da autenticação
-      const response = await fetch(
-        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/manage-user',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'delete',
-            userId: userId
-          })
-        }
-      );
+    setActionLoading(true);
+    const { ok, error } = await callManageUser('delete', selectedUser.user_id);
+    setActionLoading(false);
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao excluir usuário');
-      }
-
-      toast({
-        title: "Usuário excluído",
-        description: "O usuário e todos os seus dados foram removidos do sistema.",
-      });
-      setDeleteDialogOpen(false);
-      fetchUsers();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao excluir usuário",
-        description: error.message,
-        variant: "destructive",
-      });
+    if (!ok) {
+      toast({ title: "Erro ao excluir usuário", description: error, variant: "destructive" });
+      return;
     }
+
+    toast({
+      title: "Usuário excluído",
+      description: "O usuário e todos os seus dados foram removidos do sistema.",
+    });
+    setDeleteDialogOpen(false);
+    fetchUsers();
   };
 
   const handleLoginAsUser = async (user: UserProfile) => {
-    console.log('Iniciando login como usuário:', user.email);
-    
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.access_token) {
         throw new Error('Você precisa estar autenticado para fazer login como outro usuário');
       }
 
-      console.log('Token de admin obtido, fazendo chamada para edge function...');
-      
-      const response = await fetch(
-        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/impersonate-user',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-            'origin': window.location.origin
-          },
-          body: JSON.stringify({
-            userId: user.user_id
-          })
-        }
-      );
-
-      console.log('Status da resposta:', response.status);
-
-      const result = await response.json();
-      console.log('Resultado da API:', result);
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao fazer login como usuário');
-      }
-
-      // Redireciona para o magic link para concluir a sessão como o usuário alvo
-      const { action_link } = result;
-
-      if (!action_link) {
-        console.error('Magic link não encontrado:', result);
-        throw new Error('Link de autenticação não encontrado na resposta');
-      }
-
-      toast({
-        title: "Abrindo sessão...",
-        description: `Entrando como ${user.full_name}`,
+      const { data: result, error } = await supabase.functions.invoke('impersonate-user', {
+        body: { userId: user.user_id },
       });
 
-      window.location.href = action_link;
+      if (error) throw new Error(error.message || 'Erro ao fazer login como usuário');
+      if (result?.error) throw new Error(result.error);
 
+      const actionLink = result?.action_link;
+      if (!actionLink) throw new Error('Link de autenticação não encontrado na resposta');
+
+      toast({ title: "Abrindo sessão...", description: `Entrando como ${user.full_name}` });
+      window.location.href = actionLink;
     } catch (error: any) {
-      console.error('Erro completo ao fazer login:', error);
       toast({
         title: "Erro ao fazer login",
         description: error.message || 'Erro desconhecido ao fazer login',
@@ -562,6 +514,7 @@ export const UsersPanel = () => {
       });
     }
   };
+
 
   return (
     <Card className="p-4 sm:p-6 glass">
