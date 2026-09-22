@@ -68,6 +68,7 @@ const Index = () => {
   const [selectedPage, setSelectedPage] = useState<CustomPage | null>(null);
   const [pageDialogOpen, setPageDialogOpen] = useState(false);
   const [features, setFeatures] = useState<any[]>([]);
+  const [iconLibrary, setIconLibrary] = useState<Record<string, LucideIcon | undefined> | null>(null);
   const [siteTitle, setSiteTitle] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [logoLightUrl, setLogoLightUrl] = useState("");
