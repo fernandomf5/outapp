@@ -181,6 +181,32 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
       .in('agent_id', agentIds)
       .eq('is_read', false);
 
+    // Buscar mensagens de clientes ainda não lidas pelo dono do chat
+    const { data: conversationsData } = await supabase
+      .from('agent_conversations')
+      .select('id, agent_id, last_read_by_owner_at')
+      .in('agent_id', agentIds)
+      .eq('status', 'active');
+
+    const conversationById = new Map<string, { agent_id: string; last_read_by_owner_at: string | null }>(
+      (conversationsData || []).map((c) => [
+        c.id as string,
+        { agent_id: c.agent_id as string, last_read_by_owner_at: (c as any).last_read_by_owner_at ?? null },
+      ])
+    );
+
+    let unreadCustomerMessages: { conversation_id: string; created_at: string }[] = [];
+    if (conversationById.size > 0) {
+      const { data: msgs } = await supabase
+        .from('agent_messages')
+        .select('conversation_id, created_at')
+        .in('conversation_id', Array.from(conversationById.keys()))
+        .eq('role', 'customer')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      unreadCustomerMessages = (msgs || []) as { conversation_id: string; created_at: string }[];
+    }
+
     // Contar notificações por agente
     const notifCounts: Record<string, { appointments: number; orders: number; messages: number }> = {};
     
