@@ -3,82 +3,84 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
 import { TeamMemberProvider } from "./contexts/TeamMemberContext";
-import { useEffect, useState } from "react";
+import { lazy, Suspense } from "react";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useFavicon } from "./hooks/useFavicon";
 import { useDynamicTheme } from "./hooks/useDynamicTheme";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import CheckoutEditorPage from "./pages/CheckoutEditorPage";
-import Dashboard from "./pages/Dashboard";
 
-import FullOrganizationTable from "./pages/FullOrganizationTable";
-import AIAgentBuilder from "./pages/AIAgentBuilder";
-import FunnelBuilder from "./pages/FunnelBuilder";
-import AdminDashboard from "./pages/AdminDashboard";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-import EmailConfirmed from "./pages/EmailConfirmed";
-import PublicChat from "./pages/PublicChat";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import ShortLinkRedirect from "./pages/ShortLinkRedirect";
-import ClonedPage from "./pages/ClonedPage";
-import ClonedOrCustomPage from "./pages/ClonedOrCustomPage";
-import LinkBioPage from "./pages/LinkBioPage";
-import AgentCustomerAuth from "./pages/AgentCustomerAuth";
-import AgentCustomerChat from "./pages/AgentCustomerChat";
-import ChatbotCustomerAuth from "./pages/ChatbotCustomerAuth";
-import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
-
-import CalculatorPage from "./pages/CalculatorPage";
-import QuickNotesPage from "./pages/QuickNotesPage";
-import BriefingPublicPage from "./pages/BriefingPublicPage";
-import CustomPage from "./pages/CustomPage";
-// MembersAreaView removed - only Simple Members Area is used
-// MembersAreaAuth removed - only Simple Members Area is used (MembersAreaPublic has its own auth)
-import MembersAreaPublic from "./pages/MembersAreaPublic";
-import ChatbotResetPassword from "./pages/ChatbotResetPassword";
-import AgentResetPassword from "./pages/AgentResetPassword";
-import MindMapPresentation from "./pages/MindMapPresentation";
-import MindMapFullEditor from "./pages/MindMapFullEditor";
-import ProposalPublicView from "./pages/ProposalPublicView";
-import ContractPublicView from "./pages/ContractPublicView";
-import AprovaJobClient from "./pages/AprovaJobClient";
-
-import InstallApp from "./pages/InstallApp";
-import CampaignPublicView from "./pages/CampaignPublicView";
-import ClientCampaignsPublicView from "./pages/ClientCampaignsPublicView";
-import CheckoutPage from "./pages/CheckoutPage";
-import CheckoutThankYouPage from "./pages/CheckoutThankYouPage";
-import PaymentThankYou from "./pages/PaymentThankYou";
-import TeamMemberAuth from "./pages/TeamMemberAuth";
-import TeamMemberDashboard from "./pages/TeamMemberDashboard";
-import AcceptInvitation from "./pages/AcceptInvitation";
-import PageEditor from "./pages/PageEditor";
-import InvoicePublicPage from "./pages/InvoicePublicPage";
-
+// Todas as demais páginas são carregadas sob demanda (code splitting por rota),
+// para que o primeiro acesso não precise baixar o aplicativo inteiro.
+const Auth = lazy(() => import("./pages/Auth"));
+const CheckoutEditorPage = lazy(() => import("./pages/CheckoutEditorPage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const FullOrganizationTable = lazy(() => import("./pages/FullOrganizationTable"));
+const AIAgentBuilder = lazy(() => import("./pages/AIAgentBuilder"));
+const FunnelBuilder = lazy(() => import("./pages/FunnelBuilder"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const Settings = lazy(() => import("./pages/Settings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const EmailConfirmed = lazy(() => import("./pages/EmailConfirmed"));
+const PublicChat = lazy(() => import("./pages/PublicChat"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ShortLinkRedirect = lazy(() => import("./pages/ShortLinkRedirect"));
+const ClonedPage = lazy(() => import("./pages/ClonedPage"));
+const ClonedOrCustomPage = lazy(() => import("./pages/ClonedOrCustomPage"));
+const LinkBioPage = lazy(() => import("./pages/LinkBioPage"));
+const AgentCustomerAuth = lazy(() => import("./pages/AgentCustomerAuth"));
+const AgentCustomerChat = lazy(() => import("./pages/AgentCustomerChat"));
+const ChatbotCustomerAuth = lazy(() => import("./pages/ChatbotCustomerAuth"));
+const ChatbotCustomerChat = lazy(() => import("./pages/ChatbotCustomerChat"));
+const CalculatorPage = lazy(() => import("./pages/CalculatorPage"));
+const QuickNotesPage = lazy(() => import("./pages/QuickNotesPage"));
+const BriefingPublicPage = lazy(() => import("./pages/BriefingPublicPage"));
+const MembersAreaPublic = lazy(() => import("./pages/MembersAreaPublic"));
+const ChatbotResetPassword = lazy(() => import("./pages/ChatbotResetPassword"));
+const AgentResetPassword = lazy(() => import("./pages/AgentResetPassword"));
+const MindMapPresentation = lazy(() => import("./pages/MindMapPresentation"));
+const MindMapFullEditor = lazy(() => import("./pages/MindMapFullEditor"));
+const ProposalPublicView = lazy(() => import("./pages/ProposalPublicView"));
+const ContractPublicView = lazy(() => import("./pages/ContractPublicView"));
+const AprovaJobClient = lazy(() => import("./pages/AprovaJobClient"));
+const InstallApp = lazy(() => import("./pages/InstallApp"));
+const CampaignPublicView = lazy(() => import("./pages/CampaignPublicView"));
+const ClientCampaignsPublicView = lazy(() => import("./pages/ClientCampaignsPublicView"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const CheckoutThankYouPage = lazy(() => import("./pages/CheckoutThankYouPage"));
+const PaymentThankYou = lazy(() => import("./pages/PaymentThankYou"));
+const TeamMemberAuth = lazy(() => import("./pages/TeamMemberAuth"));
+const TeamMemberDashboard = lazy(() => import("./pages/TeamMemberDashboard"));
+const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation"));
+const PageEditor = lazy(() => import("./pages/PageEditor"));
+const InvoicePublicPage = lazy(() => import("./pages/InvoicePublicPage"));
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { RoutePersistence } from "@/components/RoutePersistence";
 import { HashScroll } from "@/components/HashScroll";
 
-
 const queryClient = new QueryClient();
+
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
+  </div>
+);
 
 const AppContent = () => {
   useFavicon(); // Aplica o favicon globalmente
   useDynamicTheme();
-  
+
   return (
     <BrowserRouter>
             <RoutePersistence />
             <HashScroll />
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -115,8 +117,6 @@ const AppContent = () => {
               <Route path="/agent-reset-password/:token" element={<AgentResetPassword />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
                <Route path="/anotacoes" element={<ProtectedRoute><QuickNotesPage /></ProtectedRoute>} />
-          {/* MembersAreaView removed - only Simple Members Area is used */}
-          {/* MembersAreaAuth removed - using simple members area with password */}
           <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
           <Route path="/mindmap/:id" element={<MindMapPresentation />} />
@@ -151,7 +151,7 @@ const AppContent = () => {
                   <PageEditor />
                 </ProtectedRoute>
               } />
-               
+
               <Route path="/chat-online" element={
                 <ProtectedRoute>
                   <AIAgentBuilder />
@@ -181,6 +181,7 @@ const AppContent = () => {
                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </BrowserRouter>
   );
 };
@@ -197,7 +198,7 @@ const App = () => (
               <ErrorBoundary>
                 <AppContent />
               </ErrorBoundary>
-              
+
             </TooltipProvider>
           </TeamMemberProvider>
         </AuthProvider>
