@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   customSignUp: (email: string, password: string, fullName: string) => Promise<{ error?: string; userId?: string; needsVerification?: boolean }>;
-  customSignIn: (email: string, password: string) => Promise<{ error?: string; needsVerification?: boolean; userId?: string; requires2FA?: boolean; deviceFingerprint?: string; sessionData?: any }>;
+  customSignIn: (email: string, password: string) => Promise<{ error?: string; needsVerification?: boolean; userId?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -120,20 +120,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
       }
 
-      // Check if 2FA is required (returned directly from edge function now)
-      if (data.requires2FA) {
-        return { 
-          requires2FA: true,
-          userId: data.userId,
-          deviceFingerprint: data.deviceFingerprint,
-          sessionData: data.sessionData
-        };
-      }
-
-      // Only set session if 2FA is not required
       if (data.session) {
         await supabase.auth.setSession(data.session);
       }
+
 
       return {};
     } catch (error: any) {
