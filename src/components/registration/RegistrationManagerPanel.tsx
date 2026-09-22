@@ -119,7 +119,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   };
 
   const updateStatus = async (id: string, status: string) => {
-    const newStatus = status === '__clear__' ? null : status;
+    const newStatus = status === '__clear__' ? 'lead' : status;
     const previous = items;
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: newStatus } : it)));
     const { error } = await supabase

@@ -152,16 +152,14 @@ export function UnifiedRegistrationForm({
         .filter((u) => u.url.trim())
         .map((u) => ({ label: u.label.trim(), url: normalizeUrl(u.url.trim()) }));
 
-      // Campos obrigatórios no banco (status, name) não podem ir vazios/nulos:
-      // remover chaves sem valor deixa o padrão do banco assumir.
-      const requiredKeys = ['status', 'name'];
       const payload: Record<string, unknown> = { ...data };
-      for (const key of requiredKeys) {
-        const value = payload[key];
-        if (value === null || value === undefined || (typeof value === 'string' && !value.trim())) {
-          delete payload[key];
-        }
-      }
+      const rawStatus = payload.status;
+      payload.status = typeof rawStatus === 'string' && rawStatus.trim()
+        ? rawStatus.trim()
+        : 'lead';
+
+      const rawName = payload.name;
+      if (typeof rawName === 'string') payload.name = rawName.trim();
 
       if (initialData?.id) {
         const { error } = await supabase
