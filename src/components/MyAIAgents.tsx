@@ -532,7 +532,16 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
             <DialogTitle>Notificações do Chat</DialogTitle>
           </DialogHeader>
           {selectedAgentForNotifications && (
-            <AgentNotificationsPanel agentId={selectedAgentForNotifications} />
+            <AgentNotificationsPanel
+              agentId={selectedAgentForNotifications}
+              onNavigate={() => {
+                const agent = agents.find((a) => a.id === selectedAgentForNotifications);
+                setSelectedAgentForNotifications(null);
+                if (agent && onManage) {
+                  onManage({ id: agent.id, name: agent.name, niche: agent.niche });
+                }
+              }}
+            />
           )}
         </DialogContent>
       </Dialog>
