@@ -9,7 +9,8 @@ import {
   Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu,
   Users, Ticket, Link2, Gift, BarChart3, Workflow, Brain, Video, UserPlus, DollarSign, Loader2
 } from "lucide-react";
-import * as LucideIcons from "lucide-react";
+// A biblioteca completa de ícones é carregada sob demanda (ver useEffect abaixo),
+// para não pesar no primeiro carregamento da página inicial.
 import type { LucideIcon } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -385,8 +386,7 @@ const Index = () => {
    * Aceita qualquer ícone da biblioteca Lucide; usa Sparkles como reserva.
    */
   const getIconComponent = (iconName: string): LucideIcon => {
-    const iconLibrary = LucideIcons as unknown as Record<string, LucideIcon | undefined>;
-    const candidate = iconName ? iconLibrary[iconName] : undefined;
+    const candidate = iconName && iconLibrary ? iconLibrary[iconName] : undefined;
     return typeof candidate === "object" || typeof candidate === "function"
       ? (candidate as LucideIcon)
       : Sparkles;
