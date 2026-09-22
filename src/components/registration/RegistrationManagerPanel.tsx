@@ -609,6 +609,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                             const opt = statusOptions.find((o) => o.value === item.status);
                             return (
                               <Select
+                                 key={`${item.id}-${item.status || 'sem-status'}`}
                                 value={item.status || ''}
                                 onValueChange={(v) => updateStatus(item.id, v)}
                               >
