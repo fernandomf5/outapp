@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImageUpload } from "../ImageUpload";
 import { toast } from "sonner";
-import { EntityKind, KindField, getEntityKind } from "./entityKinds";
+import { EntityKind, KindField, getEntityKind, ensureSchema } from "./entityKinds";
 
 
 interface EntityRegistrationFormProps {
@@ -57,10 +57,11 @@ export function EntityRegistrationForm({
   
   const [loading, setLoading] = useState(false);
 
+  /** ordem definida pelo usuário na configuração da categoria */
   const fields = useMemo<KindField[]>(() => {
-    const merged = [...kind.fields, ...(Array.isArray(customSchema) ? customSchema : [])];
+    const ordered = ensureSchema(kind, customSchema);
     const seen = new Map<string, KindField>();
-    merged.forEach((f) => f?.key && seen.set(f.key, f));
+    ordered.forEach((f) => f?.key && seen.set(f.key, f));
     return Array.from(seen.values());
   }, [kind, customSchema]);
 
