@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
-import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Globe } from "lucide-react";
+import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Globe, Music, Pause } from "lucide-react";
 
 interface SocialLink {
   platform: string;
@@ -90,6 +90,63 @@ export default function LinkBioPage() {
   const [bio, setBio] = useState<LinkBio | null>(null);
   const [links, setLinks] = useState<BioLink[]>([]);
   const [loading, setLoading] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+
+  // Tenta tocar a música automaticamente. Navegadores mobile bloqueiam
+  // autoplay com som; nesse caso, iniciamos no primeiro toque do usuário.
+  useEffect(() => {
+    if (!bio?.music_url) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    let cancelled = false;
+
+    const tryPlay = () => {
+      audio
+        .play()
+        .then(() => {
+          if (!cancelled) setIsMusicPlaying(true);
+        })
+        .catch(() => {
+          if (!cancelled) setIsMusicPlaying(false);
+        });
+    };
+
+    if (bio.music_autoplay) {
+      tryPlay();
+      const unlock = () => {
+        tryPlay();
+        document.removeEventListener("pointerdown", unlock);
+        document.removeEventListener("touchstart", unlock);
+      };
+      document.addEventListener("pointerdown", unlock, { once: true });
+      document.addEventListener("touchstart", unlock, { once: true });
+      return () => {
+        cancelled = true;
+        document.removeEventListener("pointerdown", unlock);
+        document.removeEventListener("touchstart", unlock);
+      };
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bio?.music_url, bio?.music_autoplay]);
+
+  const toggleMusic = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio
+        .play()
+        .then(() => setIsMusicPlaying(true))
+        .catch(() => setIsMusicPlaying(false));
+    } else {
+      audio.pause();
+      setIsMusicPlaying(false);
+    }
+  };
 
   useEffect(() => {
     if (username || slug) {
