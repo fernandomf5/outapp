@@ -67,6 +67,7 @@ serve(async (req) => {
     // Only expose the public presentation settings of the chat.
     const publicConfig = {
       primaryColor: cfg.primaryColor ?? '#6366f1',
+      secondaryColor: cfg.secondaryColor ?? '#8b5cf6',
       logoUrl: cfg.logoUrl ?? null,
       welcomeMessage: cfg.welcomeMessage ?? null,
       queueEnabled: cfg.queueEnabled === true,
