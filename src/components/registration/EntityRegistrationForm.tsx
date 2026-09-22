@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImageUpload } from "../ImageUpload";
 import { toast } from "sonner";
-import { EntityKind, KindField, getEntityKind } from "./entityKinds";
+import { EntityKind, KindField, getEntityKind, ensureSchema } from "./entityKinds";
 
 
 interface EntityRegistrationFormProps {
@@ -57,10 +57,11 @@ export function EntityRegistrationForm({
   
   const [loading, setLoading] = useState(false);
 
+  /** ordem definida pelo usuário na configuração da categoria */
   const fields = useMemo<KindField[]>(() => {
-    const merged = [...kind.fields, ...(Array.isArray(customSchema) ? customSchema : [])];
+    const ordered = ensureSchema(kind, customSchema);
     const seen = new Map<string, KindField>();
-    merged.forEach((f) => f?.key && seen.set(f.key, f));
+    ordered.forEach((f) => f?.key && seen.set(f.key, f));
     return Array.from(seen.values());
   }, [kind, customSchema]);
 
@@ -235,6 +236,7 @@ export function EntityRegistrationForm({
           step={f.type === "currency" ? "0.01" : undefined}
           value={value}
           placeholder={f.placeholder}
+          required={f.required && !isViewOnly}
           onChange={(e) => set(f.key, e.target.value)}
         />
       </div>
@@ -267,44 +269,8 @@ export function EntityRegistrationForm({
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {!hasCustom && (
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="name">{kind.nameLabel}</Label>
-                <Input
-                  id="name"
-                  value={values.name}
-                  placeholder={kind.namePlaceholder}
-                  onChange={(e) => set("name", e.target.value)}
-                  disabled={isViewOnly}
-                  required
-                />
-              </div>
-            )}
-
-
-            {kind.showContactBlock && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" value={values.email} onChange={(e) => set("email", e.target.value)} disabled={isViewOnly} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone / WhatsApp</Label>
-                  <Input id="phone" value={values.phone} onChange={(e) => set("phone", e.target.value)} disabled={isViewOnly} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="document">CNPJ / Documento</Label>
-                  <Input id="document" value={values.document} onChange={(e) => set("document", e.target.value)} disabled={isViewOnly} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Endereço</Label>
-                  <Input id="address" value={values.address} onChange={(e) => set("address", e.target.value)} disabled={isViewOnly} />
-                </div>
-              </>
-            )}
-
             {itemGroups.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="__group">Subcategoria</Label>
                 <Select
                   value={values.__group || "__none__"}
@@ -324,15 +290,8 @@ export function EntityRegistrationForm({
               </div>
             )}
 
-            {fields.filter((f) => f.type !== "textarea").map(renderField)}
-
-
-            {fields.filter((f) => f.type === "textarea").map(renderField)}
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="notes">Observações gerais</Label>
-              <Textarea id="notes" value={values.notes} onChange={(e) => set("notes", e.target.value)} disabled={isViewOnly} />
-            </div>
+            {/* ordem exatamente como o usuário configurou na categoria */}
+            {fields.map(renderField)}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

@@ -14,7 +14,7 @@ import { ImageUpload } from "../ImageUpload";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ENTITY_KINDS, getEntityKind, KindField } from "./entityKinds";
+import { SELECTABLE_ENTITY_KINDS, getEntityKind, KindField, buildDefaultSchema, ensureSchema } from "./entityKinds";
 import { KindFieldsBuilder } from "./KindFieldsBuilder";
 import { ItemGroupsEditor } from "./ItemGroupsEditor";
 
@@ -246,7 +246,10 @@ export function RegistrationCategoriesSettings() {
       system_type: category.system_type || "client",
       logo_url: (category as any).logo_url || "",
       entity_kind: (category as any).entity_kind || "people",
-      custom_schema: Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : [],
+      custom_schema: ensureSchema(
+        getEntityKind((category as any).entity_kind),
+        Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : []
+      ),
       item_groups: Array.isArray((category as any).item_groups) ? (category as any).item_groups : [],
       item_group_images: ((category as any).item_group_images && typeof (category as any).item_group_images === "object")
         ? (category as any).item_group_images
@@ -384,7 +387,7 @@ export function RegistrationCategoriesSettings() {
 
           {pickingKind ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              {ENTITY_KINDS.map((k) => {
+              {SELECTABLE_ENTITY_KINDS.map((k) => {
                 const KIcon = k.icon;
                 return (
                   <button
@@ -396,8 +399,8 @@ export function RegistrationCategoriesSettings() {
                         entity_kind: k.key,
                         icon: formData.icon,
                         custom_schema: editingId && formData.entity_kind === k.key
-                          ? formData.custom_schema
-                          : [...k.fields],
+                          ? ensureSchema(k, formData.custom_schema)
+                          : buildDefaultSchema(k),
                       });
 
                       setPickingKind(false);
@@ -493,14 +496,12 @@ export function RegistrationCategoriesSettings() {
             </div>
             )}
 
-            {formData.entity_kind !== "people" && (
-              <div className="rounded-lg border p-3">
-                <KindFieldsBuilder
-                  fields={formData.custom_schema}
-                  onChange={(fields) => setFormData({ ...formData, custom_schema: fields })}
-                />
-              </div>
-            )}
+            <div className="rounded-lg border p-3">
+              <KindFieldsBuilder
+                fields={formData.custom_schema}
+                onChange={(fields) => setFormData({ ...formData, custom_schema: fields })}
+              />
+            </div>
 
             {(formData.entity_kind === "product" || formData.entity_kind === "service") && (
               <div className="rounded-lg border p-3">
