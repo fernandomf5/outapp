@@ -152,11 +152,22 @@ export function UnifiedRegistrationForm({
         .filter((u) => u.url.trim())
         .map((u) => ({ label: u.label.trim(), url: normalizeUrl(u.url.trim()) }));
 
+      // Campos obrigatórios no banco (status, name) não podem ir vazios/nulos:
+      // remover chaves sem valor deixa o padrão do banco assumir.
+      const requiredKeys = ['status', 'name'];
+      const payload: Record<string, unknown> = { ...data };
+      for (const key of requiredKeys) {
+        const value = payload[key];
+        if (value === null || value === undefined || (typeof value === 'string' && !value.trim())) {
+          delete payload[key];
+        }
+      }
+
       if (initialData?.id) {
         const { error } = await supabase
           .from('contacts')
           .update({
-            ...data,
+            ...payload,
             urls: cleanUrls as any,
             registration_category_id: categoryId,
           })
@@ -168,11 +179,11 @@ export function UnifiedRegistrationForm({
         const { error } = await supabase
           .from('contacts')
           .insert([{
-            ...data,
+            ...payload,
             urls: cleanUrls as any,
             user_id: user.id,
             registration_category_id: categoryId,
-          }]);
+          } as any]);
 
         if (error) throw error;
         toast.success(`${categoryName} cadastrado com sucesso!`);
