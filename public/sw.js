@@ -93,6 +93,9 @@ self.addEventListener('install', function(event) {
 self.addEventListener('activate', function(event) {
   console.log('[SW] Service worker activated');
   event.waitUntil((async function() {
+    // Remove apenas caches antigos do Workbox. Nunca recarregamos as janelas
+    // abertas aqui: isso provocava recarregamentos em cadeia (tela em branco
+    // / "carregando para sempre") sempre que o worker reativava.
     const cacheNames = await caches.keys();
     const legacyCaches = cacheNames.filter(isLegacyAppCache);
     await Promise.allSettled(legacyCaches.map(function(name) {
@@ -100,12 +103,5 @@ self.addEventListener('activate', function(event) {
     }));
 
     await clients.claim();
-
-    // A previous Workbox worker may have loaded a stale checkout bundle.
-    // Reload every open window once under this network-only push worker.
-    const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    await Promise.allSettled(windowClients.map(function(client) {
-      return client.navigate(client.url);
-    }));
   })());
 });
