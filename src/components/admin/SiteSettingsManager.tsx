@@ -389,6 +389,51 @@ export const SiteSettingsManager = () => {
     setSocialLinks(updated);
   };
 
+  const addTestimonial = () => {
+    if (testimonials.length >= 10) {
+      toast({ title: "Limite atingido", description: "Você pode adicionar até 10 depoimentos.", variant: "destructive" });
+      return;
+    }
+    setTestimonials([
+      ...testimonials,
+      {
+        id: crypto.randomUUID(),
+        name: "",
+        role: "",
+        company: "",
+        text: "",
+        avatar_url: "",
+        rating: 5,
+      },
+    ]);
+  };
+
+  const removeTestimonial = (index: number) => {
+    setTestimonials(testimonials.filter((_, i) => i !== index));
+  };
+
+  const updateTestimonial = (index: number, field: keyof Testimonial, value: string | number) => {
+    const updated = [...testimonials];
+    updated[index] = { ...updated[index], [field]: value };
+    setTestimonials(updated);
+  };
+
+  const handleTestimonialImageUpload = async (index: number, file: File | undefined) => {
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `testimonial-${Date.now()}-${index}.${fileExt}`;
+
+    const { error } = await supabase.storage.from('avatars').upload(fileName, file);
+    if (error) {
+      toast({ title: "Erro ao fazer upload", variant: "destructive" });
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+    updateTestimonial(index, 'avatar_url', urlData.publicUrl);
+  };
+
   return (
     <Card>
       <CardHeader>
