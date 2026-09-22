@@ -104,15 +104,35 @@ export function EntityRegistrationForm({
     ? `entity-draft:${user?.id || "anon"}:${categoryId}:${initialData?.id || "new"}`
     : null;
 
-  const [values, setValues] = useState<Record<string, any>>(() => {
-    if (draftKey) {
-      try {
-        const raw = localStorage.getItem(draftKey);
-        if (raw) return { ...buildInitialValues(), ...JSON.parse(raw) };
-      } catch {}
+  const loadDraft = (): { fields?: Record<string, any>; urls?: UrlEntry[] } | null => {
+    if (!draftKey) return null;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // compatibilidade: rascunhos antigos salvavam os campos direto na raiz
+      if (parsed && (parsed.fields || parsed.urls)) return parsed;
+      return { fields: parsed };
+    } catch {
+      return null;
     }
-    return buildInitialValues();
-  });
+  };
+
+  const [draft] = useState(loadDraft);
+
+  const [values, setValues] = useState<Record<string, any>>(() => ({
+    ...buildInitialValues(),
+    ...(draft?.fields || {}),
+  }));
+
+  const [urls, setUrls] = useState<UrlEntry[]>(() =>
+    draft?.urls && Array.isArray(draft.urls) ? draft.urls : parseInitialUrls(initialData?.urls)
+  );
+
+  const addUrl = () => setUrls((p) => [...p, { label: "", url: "" }]);
+  const removeUrl = (i: number) => setUrls((p) => p.filter((_, idx) => idx !== i));
+  const updateUrl = (i: number, field: "label" | "url", val: string) =>
+    setUrls((p) => p.map((u, idx) => (idx === i ? { ...u, [field]: val } : u)));
 
   const skipFirst = useRef(true);
   useEffect(() => {
@@ -122,9 +142,9 @@ export function EntityRegistrationForm({
       return;
     }
     try {
-      localStorage.setItem(draftKey, JSON.stringify(values));
+      localStorage.setItem(draftKey, JSON.stringify({ fields: values, urls }));
     } catch {}
-  }, [values, draftKey]);
+  }, [values, urls, draftKey]);
 
   const set = (key: string, val: any) => setValues((p) => ({ ...p, [key]: val }));
 
