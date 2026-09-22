@@ -113,6 +113,24 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
+    // O provedor pode responder 200 na chamada e ainda assim recusar o envio.
+    // Nesse caso precisamos falhar de forma explícita, e não fingir sucesso.
+    if ((emailResponse as { error?: { message?: string } } | null)?.error) {
+      const providerError = (emailResponse as { error: { message?: string } }).error;
+      console.error("Provider refused the email:", providerError);
+      return new Response(
+        JSON.stringify({
+          error:
+            "Não foi possível enviar o e-mail de verificação. O domínio de envio ainda não está verificado.",
+          providerMessage: providerError?.message ?? null,
+        }),
+        {
+          status: 502,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
+
     console.log("Email sent successfully:", emailResponse);
 
     return new Response(JSON.stringify(emailResponse), {
