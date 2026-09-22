@@ -81,6 +81,9 @@ const Index = () => {
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [headCode, setHeadCode] = useState("");
   const [footerCode, setFooterCode] = useState("");
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonialsTitle, setTestimonialsTitle] = useState("O que dizem nossos clientes");
+  const [testimonialsSubtitle, setTestimonialsSubtitle] = useState("");
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [landingSettings, setLandingSettings] = useState({
     landing_title: "A Solução Tudo em Um<br />para Empreendedores Digitais.",
@@ -91,6 +94,8 @@ const Index = () => {
     video_section_subtitle: "Descubra como é fácil automatizar seu negócio com nossa plataforma completa",
     features_title: "Tudo que Você Precisa em Uma Plataforma",
     features_subtitle: "Automação, CRM, Afiliados, Analytics e muito mais para fazer seu negócio crescer",
+    testimonials_title: "O que dizem nossos clientes",
+    testimonials_subtitle: "",
     pricing_title: "Planos para Todos os Tamanhos",
     pricing_subtitle: "Comece com 3 dias grátis e escolha o melhor plano para seu negócio crescer",
     cta_title: "Pronto para Transformar seu Negócio?",
