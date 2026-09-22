@@ -163,6 +163,41 @@
     if (isOpen) closeChat(); else openChat();
   });
 
+  // ---------------------------------------------------------------------------
+  // 4.1 Cores do chat (primária e secundária definidas na configuração)
+  // ---------------------------------------------------------------------------
+  var CONFIG_URL =
+    'https://hpwwzdbxexwmgevmqfkj.supabase.co/functions/v1/get-chat-online-config?agentId=' +
+    encodeURIComponent(agentId);
+  var CONFIG_KEY = 'sb_publishable_2xS2MQsz-1qqjh7wEJ5dHw_WB1uSyLZ';
+
+  function sanitizeColor(value, fallback) {
+    if (typeof value === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(value.trim())) {
+      return value.trim();
+    }
+    return fallback;
+  }
+
+  function applyChatColors() {
+    try {
+      fetch(CONFIG_URL, { headers: { apikey: CONFIG_KEY } })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (!data || !data.agent || !data.agent.config) return;
+          var primary = sanitizeColor(data.agent.config.primaryColor, '#2563eb');
+          var secondary = sanitizeColor(data.agent.config.secondaryColor, primary);
+          var gradient = 'linear-gradient(135deg, ' + primary + ', ' + secondary + ')';
+          button.style.background = gradient;
+          panel.style.borderColor = primary + '55';
+        })
+        .catch(function () { /* mantém as cores padrão */ });
+    } catch (e) {
+      /* mantém as cores padrão */
+    }
+  }
+
+  applyChatColors();
+
   function handleKeydown(event) {
     if (event.key === 'Escape' && isOpen) closeChat();
   }
