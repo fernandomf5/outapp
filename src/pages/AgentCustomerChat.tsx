@@ -41,6 +41,8 @@ export default function AgentCustomerChat() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const isEmbedded = new URLSearchParams(window.location.search).get('embedded') === '1';
+  const useStackedComposer = isMobile || isEmbedded;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1613,7 +1615,7 @@ export default function AgentCustomerChat() {
                   handleSendMessage();
                 }
               }}
-              className={isMobile ? "flex flex-col gap-2" : "flex items-end gap-2"}
+              className={useStackedComposer ? "flex flex-col gap-2" : "flex items-end gap-2"}
             >
               <input
                 ref={fileInputRef}
@@ -1633,7 +1635,7 @@ export default function AgentCustomerChat() {
               {/* Linha de ícones: emoji, imagem, documento */}
               <div
                 className={
-                  isMobile
+                  useStackedComposer
                     ? `flex items-center gap-2 ${inputToolbarPosition === 'top' ? 'order-2' : 'order-1'}`
                     : 'contents'
                 }
@@ -1700,7 +1702,7 @@ export default function AgentCustomerChat() {
               {/* Linha de digitação em largura total no chat incorporado */}
               <div
                 className={
-                  isMobile
+                  useStackedComposer
                     ? `flex w-full ${inputToolbarPosition === 'top' ? 'order-1' : 'order-2'}`
                     : 'contents'
                 }
