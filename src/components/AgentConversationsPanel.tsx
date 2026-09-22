@@ -988,6 +988,28 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
               </Button>
             </div>
 
+            <div className="space-y-2">
+              <Label className="text-xs">Campo de digitação</Label>
+              <Select
+                value={inputToolbarPosition}
+                onValueChange={(v) => {
+                  const position = v === 'top' ? 'top' : 'bottom';
+                  setInputToolbarPosition(position);
+                  saveChatConfig({ inputToolbarPosition: position });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Posição do campo de digitação" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bottom">Ícones em cima · campo embaixo</SelectItem>
+                  <SelectItem value="top">Campo em cima · ícones embaixo</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Aplica-se à visualização mobile do chat incorporado.
+              </p>
+            </div>
 
             <div className="space-y-2 md:col-span-3">
               <Label className="text-xs">Cores dos status no chat</Label>
