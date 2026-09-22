@@ -200,6 +200,9 @@ export function EntityRegistrationForm({
       custom.__group = values.__group || null;
       payload.custom_fields = custom;
       payload.registration_category_id = categoryId;
+      payload.urls = urls
+        .filter((u) => u.url.trim())
+        .map((u) => ({ label: u.label.trim(), url: normalizeUrl(u.url.trim()) }));
 
       if (initialData?.id) {
         const { error } = await supabase.from("contacts").update(payload as any).eq("id", initialData.id);
