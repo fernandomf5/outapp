@@ -136,9 +136,8 @@ export const TwoFactorVerification = ({
         description: "Verifique seu email novamente.",
       });
 
-      // Reset timer
-      setResendTimer(30);
-      setCanResend(false);
+      // Reinicia a contagem de 30s
+      startCooldown();
     } catch (error: any) {
       toast({
         title: "Erro",
