@@ -24,6 +24,8 @@ export interface KindField {
   native?: "name" | "email" | "phone" | "company" | "position" | "document" | "address" | "website" | "market_area" | "contact_person" | "notes";
   required?: boolean;
   half?: boolean;
+  /** campo padrão do tipo: pode ser reordenado, mas não excluído */
+  locked?: boolean;
 }
 
 export interface EntityKind {
@@ -291,6 +293,49 @@ export const ENTITY_KINDS: EntityKind[] = [
 
 export const getEntityKind = (key?: string | null): EntityKind =>
   ENTITY_KINDS.find((k) => k.key === key) || ENTITY_KINDS[0];
+
+/** Tipos disponíveis para o usuário escolher ao criar uma categoria */
+export const SELECTABLE_KIND_KEYS = ["people", "business", "supplier"] as const;
+
+export const SELECTABLE_ENTITY_KINDS: EntityKind[] = ENTITY_KINDS.filter((k) =>
+  (SELECTABLE_KIND_KEYS as readonly string[]).includes(k.key)
+);
+
+/** Campos nativos padrão (nome, contato) do tipo escolhido */
+export const getBaseFields = (kind: EntityKind): KindField[] => {
+  const base: KindField[] = [
+    { key: "name", label: kind.nameLabel, type: "text", native: "name", placeholder: kind.namePlaceholder, required: true, half: false, locked: true },
+  ];
+  if (kind.showContactBlock) {
+    base.push(
+      { key: "email", label: "E-mail", type: "email", native: "email", locked: true },
+      { key: "phone", label: "Telefone / WhatsApp", type: "phone", native: "phone", locked: true },
+      { key: "document", label: "CNPJ / Documento", type: "text", native: "document", locked: true },
+      { key: "address", label: "Endereço", type: "text", native: "address", locked: true },
+    );
+  }
+  return base;
+};
+
+const NOTES_FIELD: KindField = { key: "notes", label: "Observações gerais", type: "textarea", native: "notes", locked: true };
+
+/** Esquema completo e ordenável do formulário do tipo */
+export const buildDefaultSchema = (kind: EntityKind): KindField[] => [
+  ...getBaseFields(kind),
+  ...kind.fields.map((f) => ({ ...f, locked: true })),
+  NOTES_FIELD,
+];
+
+/** Garante que os campos obrigatórios existam no esquema salvo (compatibilidade) */
+export const ensureSchema = (kind: EntityKind, schema?: KindField[] | null): KindField[] => {
+  const list = Array.isArray(schema) ? schema.filter((f) => f && f.key) : [];
+  if (list.length === 0) return buildDefaultSchema(kind);
+  const keys = new Set(list.map((f) => f.key));
+  const missingBase = getBaseFields(kind).filter((f) => !keys.has(f.key));
+  const result = [...missingBase, ...list];
+  if (!keys.has("notes")) result.push(NOTES_FIELD);
+  return result;
+};
 
 export const FIELD_TYPE_LABELS: Record<FieldType, string> = {
   text: "Texto",
