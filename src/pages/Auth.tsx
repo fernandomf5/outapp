@@ -10,7 +10,7 @@ import { Eye, EyeOff, Bot, ArrowLeft, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { z } from "zod";
-import { EmailVerification } from "@/components/EmailVerification";
+import { EmailConfirmPending } from "@/components/EmailConfirmPending";
 import { TwoFactorVerification } from "@/components/TwoFactorVerification";
 import {
   AlertDialog,
@@ -132,11 +132,11 @@ const Auth = () => {
         return;
       }
 
-      if (needsVerification && userId) {
-        setVerificationUserId(userId);
+      if (needsVerification) {
+        setVerificationUserId(userId ?? "");
         setVerificationEmail(email);
         setShowVerification(true);
-        showMessage("Conta criada com sucesso! 📧", "Um código de verificação foi enviado para seu email. Verifique sua caixa de entrada e spam.", "success");
+        showMessage("Conta criada com sucesso! 📧", "Enviamos um link de confirmação para seu e-mail. Clique nele para ativar sua conta (confira também o spam).", "success");
       }
       
       setIsLoading(false);
@@ -145,11 +145,11 @@ const Auth = () => {
       const { error, needsVerification, userId, requires2FA, deviceFingerprint: fingerprint, sessionData: sessData } = await customSignIn(email, password);
       
       if (error) {
-        if (needsVerification && userId) {
-          setVerificationUserId(userId);
+        if (needsVerification) {
+          setVerificationUserId(userId ?? "");
           setVerificationEmail(email);
           setShowVerification(true);
-          showMessage("Email não verificado ✉️", "Por favor, verifique seu email para continuar. Confira sua caixa de entrada e spam.", "error");
+          showMessage("Email não confirmado ✉️", "Clique no link de confirmação que enviamos para seu e-mail. Confira a caixa de entrada e o spam.", "error");
         } else if (error.includes("banido") || error.includes("banned")) {
           showMessage("Acesso negado 🚫", "Sua conta foi suspensa. Entre em contato com o suporte para mais informações.", "error");
         } else {
@@ -175,14 +175,12 @@ const Auth = () => {
 
   if (showVerification) {
     return (
-      <EmailVerification
-        userId={verificationUserId}
+      <EmailConfirmPending
         email={verificationEmail}
-        onVerified={() => {
+        onBack={() => {
           setShowVerification(false);
-          navigate("/dashboard");
+          setIsLogin(true);
         }}
-        onBack={() => setShowVerification(false)}
       />
     );
   }
