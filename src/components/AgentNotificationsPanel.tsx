@@ -52,8 +52,17 @@ const notificationTypeColors: Record<string, string> = {
   appointment_reminder: "bg-orange-500"
 };
 
+interface UnreadCustomerMessage {
+  conversation_id: string;
+  customer_name: string;
+  content: string;
+  created_at: string;
+  count: number;
+}
+
 export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNotificationsPanelProps & { onNavigate?: (tab: string, referenceId?: string) => void }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState<UnreadCustomerMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("unread");
   const [selectionMode, setSelectionMode] = useState(false);
@@ -63,6 +72,7 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
 
   useEffect(() => {
     fetchNotifications();
+    fetchUnreadMessages();
 
     const channel = supabase
       .channel('agent-notifications-changes')
@@ -80,10 +90,109 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
       )
       .subscribe();
 
+    const messagesChannel = supabase
+      .channel(`agent-unread-messages-${agentId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'agent_messages' },
+        () => {
+          fetchUnreadMessages();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
     };
   }, [agentId]);
+
+  const fetchUnreadMessages = async () => {
+    try {
+      const { data: conversations } = await supabase
+        .from('agent_conversations')
+        .select('id, customer_id, last_read_by_owner_at')
+        .eq('agent_id', agentId)
+        .eq('status', 'active');
+
+      if (!conversations || conversations.length === 0) {
+        setUnreadMessages([]);
+        return;
+      }
+
+      const conversationIds = conversations.map((c) => c.id as string);
+
+      const { data: customers } = await supabase
+        .from('agent_customers')
+        .select('id, name')
+        .eq('agent_id', agentId);
+      const customerNameById = new Map<string, string>(
+        (customers || []).map((c) => [c.id as string, (c.name as string) || 'Cliente'])
+      );
+
+      const { data: messages } = await supabase
+        .from('agent_messages')
+        .select('conversation_id, content, created_at')
+        .in('conversation_id', conversationIds)
+        .eq('role', 'customer')
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      const lastReadByConversation = new Map<string, number>(
+        conversations.map((c) => [
+          c.id as string,
+          c.last_read_by_owner_at ? new Date(c.last_read_by_owner_at as string).getTime() : 0,
+        ])
+      );
+      const customerByConversation = new Map<string, string>(
+        conversations.map((c) => [c.id as string, c.customer_id as string])
+      );
+
+      const grouped = new Map<string, UnreadCustomerMessage>();
+      (messages || []).forEach((msg) => {
+        const convId = msg.conversation_id as string;
+        const createdAt = msg.created_at as string;
+        const lastRead = lastReadByConversation.get(convId) ?? 0;
+        if (new Date(createdAt).getTime() <= lastRead) return;
+
+        const existing = grouped.get(convId);
+        if (existing) {
+          existing.count++;
+          return;
+        }
+        grouped.set(convId, {
+          conversation_id: convId,
+          customer_name: customerNameById.get(customerByConversation.get(convId) || '') || 'Cliente',
+          content: (msg.content as string) || '',
+          created_at: createdAt,
+          count: 1,
+        });
+      });
+
+      setUnreadMessages(
+        Array.from(grouped.values()).sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
+    } catch (error) {
+      console.error('Error fetching unread messages:', error);
+    }
+  };
+
+  const handleUnreadMessageClick = async (item: UnreadCustomerMessage) => {
+    try {
+      await supabase
+        .from('agent_conversations')
+        .update({ last_read_by_owner_at: new Date().toISOString() })
+        .eq('id', item.conversation_id);
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
+    }
+    setUnreadMessages((prev) => prev.filter((m) => m.conversation_id !== item.conversation_id));
+    if (onNavigate) {
+      onNavigate('conversations', item.conversation_id);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -278,11 +387,42 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
           </div>
         </CardHeader>
         <CardContent>
+          {unreadMessages.length > 0 && (
+            <div className="space-y-2 mb-6">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                Mensagens de clientes
+                <Badge className="bg-red-500">{unreadMessages.reduce((sum, m) => sum + m.count, 0)}</Badge>
+              </h3>
+              {unreadMessages.map((item) => (
+                <Card
+                  key={item.conversation_id}
+                  className="border-l-4 border-l-purple-500 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handleUnreadMessageClick(item)}
+                >
+                  <CardContent className="py-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge className="bg-purple-500">Nova Mensagem</Badge>
+                      <span className="text-xs font-medium">{item.customer_name}</span>
+                      {item.count > 1 && (
+                        <Badge variant="outline">{item.count} mensagens</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{item.content}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
           <div className="space-y-3">
             {filteredNotifications.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
-              </div>
+              unreadMessages.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
+                </div>
+              )
             ) : (
               filteredNotifications.map((notification) => (
                 <Card
