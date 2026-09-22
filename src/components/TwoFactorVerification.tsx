@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,22 +24,33 @@ export const TwoFactorVerification = ({
   const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [resendTimer, setResendTimer] = useState(30);
-  const [canResend, setCanResend] = useState(false);
+  const RESEND_COOLDOWN_SECONDS = 30;
+  // Guarda o instante final da contagem: imune a re-renderizações e a abas em segundo plano
+  const deadlineRef = useRef<number>(Date.now() + RESEND_COOLDOWN_SECONDS * 1000);
+  const [resendTimer, setResendTimer] = useState<number>(RESEND_COOLDOWN_SECONDS);
   const { toast } = useToast();
 
-  // Timer para habilitar botão de reenviar — intervalo único e estável
+  const canResend = resendTimer <= 0;
+
+  const startCooldown = useCallback(() => {
+    deadlineRef.current = Date.now() + RESEND_COOLDOWN_SECONDS * 1000;
+    setResendTimer(RESEND_COOLDOWN_SECONDS);
+  }, []);
+
+  // Um único intervalo, sempre ativo, recalculando pelo relógio real
   useEffect(() => {
-    if (resendTimer <= 0) {
-      setCanResend(true);
-      return;
-    }
-    setCanResend(false);
-    const interval = setInterval(() => {
-      setResendTimer((prev) => (prev > 1 ? prev - 1 : 0));
-    }, 1000);
+    const tick = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((deadlineRef.current - Date.now()) / 1000),
+      );
+      setResendTimer((prev) => (prev === remaining ? prev : remaining));
+    };
+
+    tick();
+    const interval = setInterval(tick, 500);
     return () => clearInterval(interval);
-  }, [resendTimer <= 0]);
+  }, []);
 
   const handleVerify = async () => {
     if (code.length !== 6) {
