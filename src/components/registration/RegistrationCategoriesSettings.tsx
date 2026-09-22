@@ -246,7 +246,10 @@ export function RegistrationCategoriesSettings() {
       system_type: category.system_type || "client",
       logo_url: (category as any).logo_url || "",
       entity_kind: (category as any).entity_kind || "people",
-      custom_schema: Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : [],
+      custom_schema: ensureSchema(
+        getEntityKind((category as any).entity_kind),
+        Array.isArray((category as any).custom_schema) ? (category as any).custom_schema : []
+      ),
       item_groups: Array.isArray((category as any).item_groups) ? (category as any).item_groups : [],
       item_group_images: ((category as any).item_group_images && typeof (category as any).item_group_images === "object")
         ? (category as any).item_group_images
@@ -493,14 +496,12 @@ export function RegistrationCategoriesSettings() {
             </div>
             )}
 
-            {formData.entity_kind !== "people" && (
-              <div className="rounded-lg border p-3">
-                <KindFieldsBuilder
-                  fields={formData.custom_schema}
-                  onChange={(fields) => setFormData({ ...formData, custom_schema: fields })}
-                />
-              </div>
-            )}
+            <div className="rounded-lg border p-3">
+              <KindFieldsBuilder
+                fields={formData.custom_schema}
+                onChange={(fields) => setFormData({ ...formData, custom_schema: fields })}
+              />
+            </div>
 
             {(formData.entity_kind === "product" || formData.entity_kind === "service") && (
               <div className="rounded-lg border p-3">
