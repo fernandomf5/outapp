@@ -10,7 +10,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImageUpload } from "../ImageUpload";
 import { toast } from "sonner";
+import { Plus, Trash2, ExternalLink } from "lucide-react";
 import { EntityKind, KindField, getEntityKind, ensureSchema } from "./entityKinds";
+
+interface UrlEntry {
+  label: string;
+  url: string;
+}
+
+const normalizeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
+
+const parseInitialUrls = (raw: any): UrlEntry[] => {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((u: any) =>
+    typeof u === "string" ? { label: "", url: u } : { label: u?.label || "", url: u?.url || "" }
+  );
+};
 
 
 interface EntityRegistrationFormProps {
