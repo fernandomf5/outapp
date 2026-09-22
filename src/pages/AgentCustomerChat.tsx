@@ -326,6 +326,7 @@ export default function AgentCustomerChat() {
             if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
             if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
           if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
+            setInputToolbarPosition(cfg.inputToolbarPosition === 'top' ? 'top' : 'bottom');
           }
         }
       )
