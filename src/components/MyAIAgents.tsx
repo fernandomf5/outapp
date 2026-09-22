@@ -126,6 +126,27 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
     };
   }, [effectiveUserId, isTeamMember]);
 
+  // Atualiza os contadores do sininho quando chegam mensagens de clientes
+  useEffect(() => {
+    if (agents.length === 0) return;
+    const ids = agents.map((a) => a.id);
+
+    const channel = supabase
+      .channel(`my-agents-unread-${ids[0]}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agent_messages' }, () => {
+        fetchNotifications(ids);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agent_conversations' }, () => {
+        fetchNotifications(ids);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agents]);
+
   const fetchAgents = async () => {
     if (!effectiveUserId) return;
 
