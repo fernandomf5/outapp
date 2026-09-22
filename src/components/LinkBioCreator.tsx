@@ -2022,11 +2022,9 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
                                   <img 
                                     src={link.image_url} 
                                     alt={link.title}
-                                    className="max-w-full h-auto object-contain"
+                                    className="w-full h-auto object-contain"
                                     style={{
                                       borderRadius: borderStyle === 'none' ? '0px' : `${borderRadius}px`,
-                                      width: 'auto',
-                                      maxWidth: '100%',
                                     }}
                                   />
                                 </div>
