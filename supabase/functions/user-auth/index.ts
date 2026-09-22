@@ -99,14 +99,22 @@ serve(async (req) => {
           );
         }
 
-        console.log('[REGISTER] Creating auth user...');
+        console.log('[REGISTER] Creating auth user via signUp (native confirmation email)...');
 
-        // Create user in Supabase Auth
-        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+        // Cria o usuário pelo fluxo nativo de cadastro: o Supabase envia
+        // automaticamente o e-mail de confirmação com o link de ativação.
+        const redirectTo =
+          typeof requestData?.redirectTo === 'string' && requestData.redirectTo.startsWith('http')
+            ? requestData.redirectTo
+            : undefined;
+
+        const { data: authUser, error: authError } = await authClient.auth.signUp({
           email,
           password,
-          email_confirm: false, // We'll verify manually
-          user_metadata: { full_name: name }
+          options: {
+            emailRedirectTo: redirectTo,
+            data: { full_name: name },
+          },
         });
 
         if (authError || !authUser?.user?.id) {
@@ -152,7 +160,6 @@ serve(async (req) => {
           }
 
           if (!insertedProfile) {
-            // If upsert returned nothing due to conflict, fetch the existing row
             const { data: fetched } = await supabase
               .from('profiles')
               .select('*')
@@ -164,45 +171,7 @@ serve(async (req) => {
           }
         }
 
-        console.log('[REGISTER] Profile created, generating verification code...');
-
-        // Generate 6-digit verification code
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-        // Store verification code
-        const { error: codeError } = await supabase
-          .from('user_verification_codes')
-          .insert({
-            user_id: authUser.user.id,
-            code: verificationCode,
-            expires_at: expiresAt.toISOString(),
-          });
-
-        if (codeError) {
-          console.error('[REGISTER] Code error:', codeError);
-          return new Response(
-            JSON.stringify({ error: 'Erro ao gerar código de verificação.' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        console.log('[REGISTER] Verification code created, sending email...');
-
-        // Send verification email (best-effort)
-        try {
-          const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
-            body: {
-              email: profile.email,
-              name: profile.full_name,
-              code: verificationCode,
-            chatbotName: 'Out App',
-            }
-          });
-          if (emailError) console.error('[REGISTER] Email error:', emailError);
-        } catch (emailError) {
-          console.error('[REGISTER] Failed to send verification email:', emailError);
-        }
+        console.log('[REGISTER] Confirmation email handled natively by Supabase Auth');
 
         console.log('[REGISTER] Assigning user role...');
         await supabase.from('user_roles').insert({

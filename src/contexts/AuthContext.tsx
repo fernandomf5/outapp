@@ -73,6 +73,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email,
           password,
           name: fullName,
+          // Link de confirmação nativo volta para a página de sucesso do app
+          redirectTo: `${window.location.origin}/email-confirmed`,
         }
       });
 
