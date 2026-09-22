@@ -11,7 +11,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { z } from "zod";
 import { EmailConfirmPending } from "@/components/EmailConfirmPending";
-import { TwoFactorVerification } from "@/components/TwoFactorVerification";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,9 +37,6 @@ const Auth = () => {
   const [showVerification, setShowVerification] = useState(false);
   const [verificationUserId, setVerificationUserId] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
-  const [show2FA, setShow2FA] = useState(false);
-  const [deviceFingerprint, setDeviceFingerprint] = useState("");
-  const [sessionData, setSessionData] = useState<any>(null);
   const [messageDialog, setMessageDialog] = useState<{
     open: boolean;
     title: string;
@@ -142,8 +138,8 @@ const Auth = () => {
       setIsLoading(false);
     } else {
       // Sign In
-      const { error, needsVerification, userId, requires2FA, deviceFingerprint: fingerprint, sessionData: sessData } = await customSignIn(email, password);
-      
+      const { error, needsVerification, userId } = await customSignIn(email, password);
+
       if (error) {
         if (needsVerification) {
           setVerificationUserId(userId ?? "");
@@ -159,15 +155,6 @@ const Auth = () => {
         return;
       }
 
-      if (requires2FA && userId && fingerprint) {
-        setVerificationUserId(userId);
-        setDeviceFingerprint(fingerprint);
-        setSessionData(sessData);
-        setShow2FA(true);
-        setIsLoading(false);
-        showMessage("Verificação necessária 🔒", "Um código de segurança foi enviado para seu email.", "success");
-        return;
-      }
 
       showMessage("Login realizado! ✅", "Bem-vindo de volta ao Out App.", "success");
     }
@@ -185,24 +172,6 @@ const Auth = () => {
     );
   }
 
-  if (show2FA) {
-    return (
-      <TwoFactorVerification
-        userId={verificationUserId}
-        deviceFingerprint={deviceFingerprint}
-        sessionData={sessionData}
-        onSuccess={() => {
-          setShow2FA(false);
-          toast({
-            title: "Login realizado com sucesso! 🎉",
-            description: "Bem-vindo ao Out App.",
-          });
-          navigate("/dashboard");
-        }}
-        onBack={() => setShow2FA(false)}
-      />
-    );
-  }
 
   // Show loading screen while settings are loading to prevent flash
   if (settingsLoading) {
