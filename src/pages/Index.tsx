@@ -97,6 +97,20 @@ const Index = () => {
     cta_button_text: "Começar Agora - 3 Dias Grátis"
   });
 
+  // Carrega a biblioteca de ícones apenas depois da primeira renderização.
+  useEffect(() => {
+    let active = true;
+    import("lucide-react")
+      .then((mod) => {
+        if (active) setIconLibrary(mod as unknown as Record<string, LucideIcon | undefined>);
+      })
+      .catch((error) => console.error("Falha ao carregar ícones:", error));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+
   // Sync from shared hook when loaded
   useEffect(() => {
     if (!siteSettingsLoading && siteSettingsFromHook) {
