@@ -275,6 +275,35 @@ const Index = () => {
     }
   };
 
+  const fetchTestimonials = async () => {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', ['landing_testimonials', 'testimonials_title', 'testimonials_subtitle']);
+
+    if (data) {
+      data.forEach((item) => {
+        switch (item.key) {
+          case 'landing_testimonials':
+            try {
+              const parsed = JSON.parse(item.value || '[]');
+              setTestimonials(Array.isArray(parsed) ? parsed : []);
+            } catch (e) {
+              console.error('Error parsing testimonials:', e);
+              setTestimonials([]);
+            }
+            break;
+          case 'testimonials_title':
+            setTestimonialsTitle(item.value || "O que dizem nossos clientes");
+            break;
+          case 'testimonials_subtitle':
+            setTestimonialsSubtitle(item.value || "");
+            break;
+        }
+      });
+    }
+  };
+
   const fetchSiteSettings = async () => {
     const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'landing_second_section_image_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links', 'head_code', 'footer_code'];
     const { data } = await supabase
