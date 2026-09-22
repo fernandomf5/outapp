@@ -138,6 +138,7 @@ const Index = () => {
         fetchVideoUrl(),
         fetchLandingSettings(),
         fetchFeatures(),
+        fetchTestimonials(),
         fetchSiteSettings()
       ]);
       setInitialLoadComplete(true);
