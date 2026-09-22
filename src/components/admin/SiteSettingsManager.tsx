@@ -449,12 +449,13 @@ export const SiteSettingsManager = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="branding" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="branding">Marca</TabsTrigger>
             <TabsTrigger value="social">Redes Sociais</TabsTrigger>
             <TabsTrigger value="footer">Rodapé</TabsTrigger>
             <TabsTrigger value="cookie">Cookie Notice</TabsTrigger>
             <TabsTrigger value="video">Vídeo</TabsTrigger>
+            <TabsTrigger value="testimonials">Depoimentos</TabsTrigger>
             <TabsTrigger value="codes">Códigos</TabsTrigger>
           </TabsList>
 
