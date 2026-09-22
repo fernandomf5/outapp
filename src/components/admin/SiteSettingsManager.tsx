@@ -61,6 +61,9 @@ export const SiteSettingsManager = () => {
   const [checkoutBannerUrl, setCheckoutBannerUrl] = useState("");
   const [sitePrimaryColor, setSitePrimaryColor] = useState("#5ce951");
   const [logoSize, setLogoSize] = useState<number>(DEFAULT_LOGO_SIZE);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonialsTitle, setTestimonialsTitle] = useState("O que dizem nossos clientes");
+  const [testimonialsSubtitle, setTestimonialsSubtitle] = useState("");
 
   useEffect(() => {
     fetchSettings();
