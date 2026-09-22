@@ -387,11 +387,42 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
           </div>
         </CardHeader>
         <CardContent>
+          {unreadMessages.length > 0 && (
+            <div className="space-y-2 mb-6">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                Mensagens de clientes
+                <Badge className="bg-red-500">{unreadMessages.reduce((sum, m) => sum + m.count, 0)}</Badge>
+              </h3>
+              {unreadMessages.map((item) => (
+                <Card
+                  key={item.conversation_id}
+                  className="border-l-4 border-l-purple-500 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handleUnreadMessageClick(item)}
+                >
+                  <CardContent className="py-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge className="bg-purple-500">Nova Mensagem</Badge>
+                      <span className="text-xs font-medium">{item.customer_name}</span>
+                      {item.count > 1 && (
+                        <Badge variant="outline">{item.count} mensagens</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{item.content}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
           <div className="space-y-3">
             {filteredNotifications.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
-              </div>
+              unreadMessages.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
+                </div>
+              )
             ) : (
               filteredNotifications.map((notification) => (
                 <Card
