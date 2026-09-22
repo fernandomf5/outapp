@@ -82,6 +82,7 @@ serve(async (req) => {
       contactEmailSuccessMessage: cfg.contactEmailSuccessMessage ?? null,
       queueEtaMinutes: Number(cfg.queueEtaMinutes ?? 0) || 0,
       isFloating: cfg.isFloating === true,
+      inputToolbarPosition: cfg.inputToolbarPosition === 'top' ? 'top' : 'bottom',
     };
 
     // Queue info

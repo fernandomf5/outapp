@@ -89,6 +89,7 @@ export default function AgentCustomerChat() {
   const [contactEmailMessage, setContactEmailMessage] = useState('Fale conosco por e-mail. Atendimento em até 24h.');
   const [contactEmailButtonText, setContactEmailButtonText] = useState('Fale conosco por e-mail');
   const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState('Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.');
+  const [inputToolbarPosition, setInputToolbarPosition] = useState<'top' | 'bottom'>('bottom');
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -123,6 +124,7 @@ export default function AgentCustomerChat() {
           if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
           if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
           if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
+          setInputToolbarPosition(cfg.inputToolbarPosition === 'top' ? 'top' : 'bottom');
         }
         if (agent?.attendant_status) setAttendantStatus(agent.attendant_status);
         if (agent?.attendant_name !== undefined) setAttendantName(agent.attendant_name);
@@ -202,6 +204,7 @@ export default function AgentCustomerChat() {
         if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
         if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
           if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
+          setInputToolbarPosition(cfg.inputToolbarPosition === 'top' ? 'top' : 'bottom');
       } catch {
         /* silencioso */
       }
@@ -323,6 +326,7 @@ export default function AgentCustomerChat() {
             if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
             if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
           if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
+            setInputToolbarPosition(cfg.inputToolbarPosition === 'top' ? 'top' : 'bottom');
           }
         }
       )
@@ -583,6 +587,7 @@ export default function AgentCustomerChat() {
         if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
         if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
           if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
+          setInputToolbarPosition(cfg.inputToolbarPosition === 'top' ? 'top' : 'bottom');
       }
 
       // Set attendant status from agent data
@@ -1596,9 +1601,15 @@ export default function AgentCustomerChat() {
                 className="hidden"
                 onChange={handleDocumentSelect}
               />
-              
-              {/* Primeira linha no mobile: Emoji, Imagem, Documento */}
-              <div className={isMobile ? "flex gap-2" : "contents"}>
+
+              {/* Linha de ícones: emoji, imagem, documento */}
+              <div
+                className={
+                  isMobile
+                    ? `flex gap-2 ${inputToolbarPosition === 'top' ? 'order-2' : 'order-1'}`
+                    : 'contents'
+                }
+              >
                 <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="icon" type="button" className="h-11 w-11 md:h-10 md:w-10">
@@ -1638,8 +1649,14 @@ export default function AgentCustomerChat() {
                 </Button>
               </div>
 
-              {/* Segunda linha no mobile: Textarea e Botão Enviar */}
-              <div className={isMobile ? "flex items-end gap-2" : "contents"}>
+              {/* Linha de digitação: textarea, e-mail e enviar */}
+              <div
+                className={
+                  isMobile
+                    ? `flex items-end gap-2 ${inputToolbarPosition === 'top' ? 'order-1' : 'order-2'}`
+                    : 'contents'
+                }
+              >
                 <textarea
                   value={input}
                   onChange={(e) => {
@@ -1684,7 +1701,6 @@ export default function AgentCustomerChat() {
                 >
                   <Send className="w-5 h-5" />
                 </Button>
-
               </div>
             </form>
           </div>

@@ -56,6 +56,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
   const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
   const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState("Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.");
+  const [inputToolbarPosition, setInputToolbarPosition] = useState<'top' | 'bottom'>('bottom');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -113,6 +114,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
         if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
         if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
+        setInputToolbarPosition(cfg.inputToolbarPosition === 'top' ? 'top' : 'bottom');
       }
     };
     
@@ -986,6 +988,28 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
               </Button>
             </div>
 
+            <div className="space-y-2">
+              <Label className="text-xs">Campo de digitação</Label>
+              <Select
+                value={inputToolbarPosition}
+                onValueChange={(v) => {
+                  const position = v === 'top' ? 'top' : 'bottom';
+                  setInputToolbarPosition(position);
+                  saveChatConfig({ inputToolbarPosition: position });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Posição do campo de digitação" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bottom">Ícones em cima · campo embaixo</SelectItem>
+                  <SelectItem value="top">Campo em cima · ícones embaixo</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Aplica-se à visualização mobile do chat incorporado.
+              </p>
+            </div>
 
             <div className="space-y-2 md:col-span-3">
               <Label className="text-xs">Cores dos status no chat</Label>
