@@ -191,6 +191,21 @@ export const SiteSettingsManager = () => {
           case 'site_logo_size':
             setLogoSize(parseLogoSize(item.value));
             break;
+          case 'landing_testimonials':
+            try {
+              const parsed = JSON.parse(item.value || '[]');
+              setTestimonials(Array.isArray(parsed) ? parsed : []);
+            } catch (e) {
+              console.error('Error parsing testimonials:', e);
+              setTestimonials([]);
+            }
+            break;
+          case 'testimonials_title':
+            setTestimonialsTitle(item.value || "O que dizem nossos clientes");
+            break;
+          case 'testimonials_subtitle':
+            setTestimonialsSubtitle(item.value || "");
+            break;
         }
       });
     }
