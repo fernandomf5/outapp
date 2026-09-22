@@ -651,8 +651,10 @@ serve(async (req) => {
         .single();
 
       // Send 2FA code via email
+      let emailSent = false;
+      let emailError: string | null = null;
       try {
-        await supabase.functions.invoke('send-verification-email', {
+        const { error: sendError } = await supabase.functions.invoke('send-verification-email', {
           body: {
             email: profile?.email,
             name: profile?.full_name,
@@ -660,14 +662,22 @@ serve(async (req) => {
             chatbotName: 'Out App - Verificação de Duas Etapas',
           }
         });
-      } catch (emailError) {
+        if (sendError) {
+          emailError = sendError.message ?? 'Falha ao enviar e-mail';
+          console.error('Failed to send 2FA code:', emailError);
+        } else {
+          emailSent = true;
+        }
+      } catch (err) {
+        emailError = err instanceof Error ? err.message : 'Falha ao enviar e-mail';
         console.error('Failed to send 2FA code:', emailError);
       }
 
       return new Response(
-        JSON.stringify({ requires2FA: true }),
+        JSON.stringify({ requires2FA: true, emailSent, emailError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+
     }
 
     if (action === 'verify-2fa') {
