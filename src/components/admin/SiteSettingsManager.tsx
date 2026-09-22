@@ -952,6 +952,159 @@ export const SiteSettingsManager = () => {
             </div>
           </TabsContent>
 
+          {/* Testimonials Tab */}
+          <TabsContent value="testimonials" className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Quote className="h-4 w-4 text-primary" />
+                <Label htmlFor="testimonials-title">Título da Seção</Label>
+              </div>
+              <Input
+                id="testimonials-title"
+                value={testimonialsTitle}
+                onChange={(e) => setTestimonialsTitle(e.target.value)}
+                placeholder="O que dizem nossos clientes"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="testimonials-subtitle">Subtítulo da Seção</Label>
+              <Input
+                id="testimonials-subtitle"
+                value={testimonialsSubtitle}
+                onChange={(e) => setTestimonialsSubtitle(e.target.value)}
+                placeholder="Depoimentos de quem já usa a plataforma"
+              />
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Depoimentos ({testimonials.length}/10)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Os depoimentos aparecerão em carrossel na página inicial.
+                  </p>
+                </div>
+                <Button onClick={addTestimonial} variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Adicionar Depoimento
+                </Button>
+              </div>
+
+              {testimonials.map((testimonial, index) => (
+                <Card key={testimonial.id} className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">Depoimento {index + 1}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeTestimonial(index)}
+                      aria-label={`Remover depoimento ${index + 1}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`testimonial-name-${index}`}>Nome *</Label>
+                      <Input
+                        id={`testimonial-name-${index}`}
+                        value={testimonial.name}
+                        onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
+                        placeholder="Nome do cliente"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`testimonial-role-${index}`}>Cargo / Função</Label>
+                      <Input
+                        id={`testimonial-role-${index}`}
+                        value={testimonial.role || ""}
+                        onChange={(e) => updateTestimonial(index, 'role', e.target.value)}
+                        placeholder="Ex: Empreendedor"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`testimonial-company-${index}`}>Empresa</Label>
+                      <Input
+                        id={`testimonial-company-${index}`}
+                        value={testimonial.company || ""}
+                        onChange={(e) => updateTestimonial(index, 'company', e.target.value)}
+                        placeholder="Ex: Minha Empresa"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`testimonial-rating-${index}`}>Avaliação</Label>
+                      <select
+                        id={`testimonial-rating-${index}`}
+                        value={testimonial.rating || 5}
+                        onChange={(e) => updateTestimonial(index, 'rating', Number(e.target.value))}
+                        className="w-full px-3 py-2 border rounded-md bg-background"
+                      >
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <option key={rating} value={rating}>
+                            {rating} {rating === 1 ? 'estrela' : 'estrelas'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`testimonial-text-${index}`}>Depoimento *</Label>
+                    <Textarea
+                      id={`testimonial-text-${index}`}
+                      value={testimonial.text}
+                      onChange={(e) => updateTestimonial(index, 'text', e.target.value)}
+                      placeholder="Escreva aqui o depoimento do cliente..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Foto do Cliente</Label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleTestimonialImageUpload(index, e.target.files?.[0])}
+                        className="flex-1"
+                      />
+                      {testimonial.avatar_url ? (
+                        <img
+                          src={testimonial.avatar_url}
+                          alt={`Preview de ${testimonial.name || 'cliente'}`}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                          <User className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <Input
+                      value={testimonial.avatar_url || ""}
+                      onChange={(e) => updateTestimonial(index, 'avatar_url', e.target.value)}
+                      placeholder="Ou cole a URL da imagem"
+                      className="mt-2"
+                    />
+                  </div>
+                </Card>
+              ))}
+
+              {testimonials.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground text-sm border border-dashed rounded-lg">
+                  Nenhum depoimento adicionado. Clique em "Adicionar Depoimento" para começar.
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
           {/* Codes Tab */}
           <TabsContent value="codes" className="space-y-6">
             <div className="space-y-4">
