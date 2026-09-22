@@ -236,6 +236,7 @@ export function EntityRegistrationForm({
           step={f.type === "currency" ? "0.01" : undefined}
           value={value}
           placeholder={f.placeholder}
+          required={f.required && !isViewOnly}
           onChange={(e) => set(f.key, e.target.value)}
         />
       </div>
