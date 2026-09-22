@@ -45,9 +45,21 @@
   var CHAT_URL =
     origin + '/chat-online/' + encodeURIComponent(agentId) + '?embedded=1';
   var WIDGET_ID = 'outapp-floating-chat-root';
+  var STYLE_ID = 'outapp-floating-chat-style';
+  var CONTROLLER_KEY = '__outappFloatingChat';
 
-  // Evita duplicar o widget se o script for incluído duas vezes
-  if (document.getElementById(WIDGET_ID)) return;
+  // Se o site ainda tiver um código antigo junto do atual, o código mais novo
+  // substitui o widget existente para abrir exatamente o chat deste agentId.
+  var existingController = window[CONTROLLER_KEY];
+  if (existingController && typeof existingController.destroy === 'function') {
+    if (existingController.agentId === agentId) return;
+    existingController.destroy();
+  } else {
+    var staleRoot = document.getElementById(WIDGET_ID);
+    var staleStyle = document.getElementById(STYLE_ID);
+    if (staleRoot) staleRoot.remove();
+    if (staleStyle) staleStyle.remove();
+  }
 
   // ---------------------------------------------------------------------------
   // 2. Estilos (isolados, sem depender do CSS do site hospedeiro)
@@ -85,6 +97,7 @@
     '}';
 
   var style = document.createElement('style');
+  style.id = STYLE_ID;
   style.setAttribute('data-outapp-chat', 'true');
   style.textContent = css;
 
@@ -150,9 +163,23 @@
     if (isOpen) closeChat(); else openChat();
   });
 
-  document.addEventListener('keydown', function (event) {
+  function handleKeydown(event) {
     if (event.key === 'Escape' && isOpen) closeChat();
-  });
+  }
+
+  document.addEventListener('keydown', handleKeydown);
+
+  window[CONTROLLER_KEY] = {
+    agentId: agentId,
+    destroy: function () {
+      document.removeEventListener('keydown', handleKeydown);
+      if (root.parentNode) root.parentNode.removeChild(root);
+      if (style.parentNode) style.parentNode.removeChild(style);
+      if (window[CONTROLLER_KEY] && window[CONTROLLER_KEY].agentId === agentId) {
+        delete window[CONTROLLER_KEY];
+      }
+    }
+  };
 
   // ---------------------------------------------------------------------------
   // 5. Injeção no DOM (aguarda o body existir, ex.: script no <head>)
