@@ -479,7 +479,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => {
-                        const embedCode = `<script src="https://outapp.com.br/floating-chat.js?v=2" data-agent-id="${agent.id}"></script>`;
+                        const embedCode = `<script src="https://outapp.com.br/floating-chat.js?v=3" data-agent-id="${agent.id}"></script>`;
                         navigator.clipboard.writeText(embedCode);
                         toast({
                           title: "Código de incorporação copiado!",
