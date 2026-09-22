@@ -258,7 +258,10 @@ export const SiteSettingsManager = () => {
       saveSetting('footer_code', footerCode),
       saveSetting('checkout_banner_url', checkoutBannerUrl),
       saveSetting('site_primary_color', sitePrimaryColor.toLowerCase()),
-      saveSetting('site_logo_size', String(logoSize))
+      saveSetting('site_logo_size', String(logoSize)),
+      saveSetting('landing_testimonials', JSON.stringify(testimonials)),
+      saveSetting('testimonials_title', testimonialsTitle),
+      saveSetting('testimonials_subtitle', testimonialsSubtitle)
     ]);
 
     notifyThemeColorChange(sitePrimaryColor);
