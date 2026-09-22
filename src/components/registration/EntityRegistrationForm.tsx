@@ -10,7 +10,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImageUpload } from "../ImageUpload";
 import { toast } from "sonner";
+import { Plus, Trash2, ExternalLink } from "lucide-react";
 import { EntityKind, KindField, getEntityKind, ensureSchema } from "./entityKinds";
+
+interface UrlEntry {
+  label: string;
+  url: string;
+}
+
+const normalizeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
+
+const parseInitialUrls = (raw: any): UrlEntry[] => {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((u: any) =>
+    typeof u === "string" ? { label: "", url: u } : { label: u?.label || "", url: u?.url || "" }
+  );
+};
 
 
 interface EntityRegistrationFormProps {
@@ -89,15 +104,35 @@ export function EntityRegistrationForm({
     ? `entity-draft:${user?.id || "anon"}:${categoryId}:${initialData?.id || "new"}`
     : null;
 
-  const [values, setValues] = useState<Record<string, any>>(() => {
-    if (draftKey) {
-      try {
-        const raw = localStorage.getItem(draftKey);
-        if (raw) return { ...buildInitialValues(), ...JSON.parse(raw) };
-      } catch {}
+  const loadDraft = (): { fields?: Record<string, any>; urls?: UrlEntry[] } | null => {
+    if (!draftKey) return null;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // compatibilidade: rascunhos antigos salvavam os campos direto na raiz
+      if (parsed && (parsed.fields || parsed.urls)) return parsed;
+      return { fields: parsed };
+    } catch {
+      return null;
     }
-    return buildInitialValues();
-  });
+  };
+
+  const [draft] = useState(loadDraft);
+
+  const [values, setValues] = useState<Record<string, any>>(() => ({
+    ...buildInitialValues(),
+    ...(draft?.fields || {}),
+  }));
+
+  const [urls, setUrls] = useState<UrlEntry[]>(() =>
+    draft?.urls && Array.isArray(draft.urls) ? draft.urls : parseInitialUrls(initialData?.urls)
+  );
+
+  const addUrl = () => setUrls((p) => [...p, { label: "", url: "" }]);
+  const removeUrl = (i: number) => setUrls((p) => p.filter((_, idx) => idx !== i));
+  const updateUrl = (i: number, field: "label" | "url", val: string) =>
+    setUrls((p) => p.map((u, idx) => (idx === i ? { ...u, [field]: val } : u)));
 
   const skipFirst = useRef(true);
   useEffect(() => {
@@ -107,9 +142,9 @@ export function EntityRegistrationForm({
       return;
     }
     try {
-      localStorage.setItem(draftKey, JSON.stringify(values));
+      localStorage.setItem(draftKey, JSON.stringify({ fields: values, urls }));
     } catch {}
-  }, [values, draftKey]);
+  }, [values, urls, draftKey]);
 
   const set = (key: string, val: any) => setValues((p) => ({ ...p, [key]: val }));
 
@@ -165,6 +200,9 @@ export function EntityRegistrationForm({
       custom.__group = values.__group || null;
       payload.custom_fields = custom;
       payload.registration_category_id = categoryId;
+      payload.urls = urls
+        .filter((u) => u.url.trim())
+        .map((u) => ({ label: u.label.trim(), url: normalizeUrl(u.url.trim()) }));
 
       if (initialData?.id) {
         const { error } = await supabase.from("contacts").update(payload as any).eq("id", initialData.id);
@@ -292,6 +330,52 @@ export function EntityRegistrationForm({
 
             {/* ordem exatamente como o usuário configurou na categoria */}
             {fields.map(renderField)}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>URLs (Drive, Site, etc.)</Label>
+              {!isViewOnly && (
+                <Button type="button" variant="outline" size="sm" onClick={addUrl}>
+                  <Plus className="w-4 h-4 mr-1" /> Adicionar URL
+                </Button>
+              )}
+            </div>
+            {urls.length === 0 && (
+              <p className="text-sm text-muted-foreground">Nenhuma URL cadastrada.</p>
+            )}
+            {urls.map((u, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                {isViewOnly ? (
+                  <a
+                    href={normalizeUrl(u.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 hover:bg-muted text-primary underline break-all"
+                  >
+                    <ExternalLink className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{u.label ? `${u.label} — ${u.url}` : u.url}</span>
+                  </a>
+                ) : (
+                  <>
+                    <Input
+                      placeholder="Rótulo (opcional)"
+                      value={u.label}
+                      onChange={(e) => updateUrl(i, "label", e.target.value)}
+                      className="md:max-w-[200px]"
+                    />
+                    <Input
+                      placeholder="https://exemplo.com"
+                      value={u.url}
+                      onChange={(e) => updateUrl(i, "url", e.target.value)}
+                    />
+                    <Button type="button" variant="ghost" size="icon" aria-label="Remover URL" onClick={() => removeUrl(i)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            ))}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
