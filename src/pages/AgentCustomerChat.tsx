@@ -1634,7 +1634,7 @@ export default function AgentCustomerChat() {
               <div
                 className={
                   isMobile
-                    ? `flex gap-2 ${inputToolbarPosition === 'top' ? 'order-2' : 'order-1'}`
+                    ? `flex items-center gap-2 ${inputToolbarPosition === 'top' ? 'order-2' : 'order-1'}`
                     : 'contents'
                 }
               >
@@ -1660,7 +1660,7 @@ export default function AgentCustomerChat() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingMedia || !!selectedDocument}
-                  className="h-11 w-11 md:h-10 md:w-10"
+                  className="h-11 w-11 md:order-5 md:h-10 md:w-10"
                 >
                   <ImagePlus className="w-5 h-5" />
                 </Button>
@@ -1675,13 +1675,33 @@ export default function AgentCustomerChat() {
                 >
                   <FileText className="w-5 h-5" />
                 </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={openContactForm}
+                  title="Enviar mensagem por e-mail"
+                  aria-label="Enviar mensagem por e-mail"
+                  className="h-11 w-11 md:h-10 md:w-10"
+                >
+                  <Mail className="w-5 h-5" />
+                </Button>
+
+                <Button 
+                  type="submit"
+                  disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
+                  className="ml-auto h-11 w-11 md:order-6 md:ml-0 md:h-10 md:w-10 text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
               </div>
 
-              {/* Linha de digitação: textarea, e-mail e enviar */}
+              {/* Linha de digitação em largura total no chat incorporado */}
               <div
                 className={
                   isMobile
-                    ? `flex items-end gap-2 ${inputToolbarPosition === 'top' ? 'order-1' : 'order-2'}`
+                    ? `flex w-full ${inputToolbarPosition === 'top' ? 'order-1' : 'order-2'}`
                     : 'contents'
                 }
               >
@@ -1707,28 +1727,8 @@ export default function AgentCustomerChat() {
                   placeholder="Digite sua mensagem..."
                   disabled={loading || uploadingMedia}
                   rows={1}
-                  className="flex-1 resize-none rounded-md border border-input bg-background text-foreground px-4 py-3 md:py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-40"
+                  className="min-w-0 flex-1 resize-none rounded-md border border-input bg-background text-foreground px-4 py-3 md:order-4 md:py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-40"
                 />
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={openContactForm}
-                  title="Enviar mensagem por e-mail"
-                  aria-label="Enviar mensagem por e-mail"
-                  className="h-11 w-11 md:h-10 md:w-10"
-                >
-                  <Mail className="w-5 h-5" />
-                </Button>
-
-                <Button 
-                  type="submit"
-                  disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
-                  className="h-11 w-11 md:h-10 md:w-10 text-white"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <Send className="w-5 h-5" />
-                </Button>
               </div>
             </form>
           </div>
