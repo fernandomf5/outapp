@@ -387,8 +387,16 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
             <div className="flex items-start justify-between mb-4 relative z-10">
               <div className="flex items-center gap-1">
                 {dragHandle}
-                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  {typeof agent.config?.logoUrl === 'string' && agent.config.logoUrl.trim() ? (
+                    <img
+                      src={agent.config.logoUrl}
+                      alt={`Logo do chat ${agent.name}`}
+                      className="h-full w-full object-contain p-1"
+                    />
+                  ) : (
+                    <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                  )}
                 </div>
               </div>
               <div className="flex gap-1.5">
