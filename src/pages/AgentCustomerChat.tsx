@@ -41,7 +41,9 @@ export default function AgentCustomerChat() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const isEmbedded = new URLSearchParams(window.location.search).get('embedded') === '1';
+  const isEmbedded =
+    new URLSearchParams(window.location.search).get('embedded') === '1' ||
+    window.self !== window.top;
   const useStackedComposer = isMobile || isEmbedded;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");

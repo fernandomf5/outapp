@@ -166,7 +166,10 @@ export default function AgentCustomerAuth() {
     };
 
     localStorage.setItem(`agent_customer_${agentId}`, JSON.stringify(customer));
-    navigate(`/chat-online/${agentId}/atendimento`);
+    const embeddedSuffix = new URLSearchParams(window.location.search).get('embedded') === '1'
+      ? '?embedded=1'
+      : '';
+    navigate(`/chat-online/${agentId}/atendimento${embeddedSuffix}`);
   };
 
   const buttonStyle = { backgroundColor: primaryColor };
