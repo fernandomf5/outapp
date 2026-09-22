@@ -124,6 +124,7 @@ export default function AgentCustomerChat() {
           if (cfg.contactEmailMessage) setContactEmailMessage(cfg.contactEmailMessage);
           if (cfg.contactEmailButtonText) setContactEmailButtonText(cfg.contactEmailButtonText);
           if (cfg.contactEmailSuccessMessage) setContactEmailSuccessMessage(cfg.contactEmailSuccessMessage);
+          setInputToolbarPosition(cfg.inputToolbarPosition === 'top' ? 'top' : 'bottom');
         }
         if (agent?.attendant_status) setAttendantStatus(agent.attendant_status);
         if (agent?.attendant_name !== undefined) setAttendantName(agent.attendant_name);
