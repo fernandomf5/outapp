@@ -100,7 +100,6 @@
   var iframe = document.createElement('iframe');
   iframe.className = 'oa-iframe';
   iframe.setAttribute('title', 'Chat online');
-  iframe.setAttribute('allow', 'clipboard-write');
   // O src só é definido na primeira abertura (carregamento sob demanda)
   panel.appendChild(iframe);
 
