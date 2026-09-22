@@ -1601,9 +1601,15 @@ export default function AgentCustomerChat() {
                 className="hidden"
                 onChange={handleDocumentSelect}
               />
-              
-              {/* Primeira linha no mobile: Emoji, Imagem, Documento */}
-              <div className={isMobile ? "flex gap-2" : "contents"}>
+
+              {/* Linha de ícones: emoji, imagem, documento */}
+              <div
+                className={
+                  isMobile
+                    ? `flex gap-2 ${inputToolbarPosition === 'top' ? 'order-2' : 'order-1'}`
+                    : 'contents'
+                }
+              >
                 <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="icon" type="button" className="h-11 w-11 md:h-10 md:w-10">
@@ -1643,8 +1649,14 @@ export default function AgentCustomerChat() {
                 </Button>
               </div>
 
-              {/* Segunda linha no mobile: Textarea e Botão Enviar */}
-              <div className={isMobile ? "flex items-end gap-2" : "contents"}>
+              {/* Linha de digitação: textarea, e-mail e enviar */}
+              <div
+                className={
+                  isMobile
+                    ? `flex items-end gap-2 ${inputToolbarPosition === 'top' ? 'order-1' : 'order-2'}`
+                    : 'contents'
+                }
+              >
                 <textarea
                   value={input}
                   onChange={(e) => {
@@ -1689,7 +1701,6 @@ export default function AgentCustomerChat() {
                 >
                   <Send className="w-5 h-5" />
                 </Button>
-
               </div>
             </form>
           </div>
