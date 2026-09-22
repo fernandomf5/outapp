@@ -103,7 +103,10 @@ export const SiteSettingsManager = () => {
       'footer_code',
       'checkout_banner_url',
       'site_primary_color',
-      'site_logo_size'
+      'site_logo_size',
+      'landing_testimonials',
+      'testimonials_title',
+      'testimonials_subtitle'
     ];
     
     const { data, error } = await supabase
