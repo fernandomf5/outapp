@@ -40,8 +40,10 @@
     /* mantém o padrão */
   }
 
+  // O Chat Online usa a rota pública /chat-online/:agentId.
+  // /chat/:id pertence ao antigo chatbot automatizado e pode exibir outro chat.
   var CHAT_URL =
-    origin + '/chat/' + encodeURIComponent(agentId) + '?embedded=1';
+    origin + '/chat-online/' + encodeURIComponent(agentId) + '?embedded=1';
   var WIDGET_ID = 'outapp-floating-chat-root';
 
   // Evita duplicar o widget se o script for incluído duas vezes
