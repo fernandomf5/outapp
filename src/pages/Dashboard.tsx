@@ -1041,6 +1041,7 @@ const Dashboard = () => {
                     ← Voltar para lista de agentes
                   </Button>
                   <AgentManagementPanel 
+                    key={selectedAgentForManagement.id}
                     agentId={selectedAgentForManagement.id}
                     agentName={selectedAgentForManagement.name}
                   />
@@ -1152,6 +1153,7 @@ const Dashboard = () => {
                     </Button>
                   </div>
                   <AgentManagementPanel
+                    key={selectedAgentForManagement.id}
                     agentId={selectedAgentForManagement.id} 
                     agentName={selectedAgentForManagement.name}
                   />
