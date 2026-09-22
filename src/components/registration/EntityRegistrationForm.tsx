@@ -155,7 +155,7 @@ export function EntityRegistrationForm({
 
       fields.forEach((f) => {
         const v = values[f.key];
-        if (f.native === "status") {
+        if (f.key === "status") {
           payload.status = typeof v === "string" && v.trim() ? v.trim() : "lead";
         } else if (f.native) payload[f.native] = v === "" ? null : v;
         else custom[f.key] = v === "" ? null : v;
