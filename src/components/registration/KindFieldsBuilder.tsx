@@ -39,17 +39,20 @@ export function KindFieldsBuilder({ fields, onChange }: KindFieldsBuilderProps) 
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Label>Campos personalizados</Label>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <Label>Campos do formulário</Label>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Use ▲ e ▼ para definir a ordem em que os campos aparecem no cadastro.
+          </p>
+        </div>
         <Button type="button" variant="outline" size="sm" onClick={add}>
           <Plus className="h-4 w-4 mr-1" /> Adicionar campo
         </Button>
       </div>
 
       {fields.length === 0 && (
-        <p className="text-xs text-muted-foreground">
-          Nenhum campo extra. Os campos padrão do tipo escolhido já serão exibidos no formulário.
-        </p>
+        <p className="text-xs text-muted-foreground">Nenhum campo configurado ainda.</p>
       )}
 
       <div className="space-y-2">
@@ -57,27 +60,33 @@ export function KindFieldsBuilder({ fields, onChange }: KindFieldsBuilderProps) 
           <div key={f.key} className="rounded-lg border p-3 space-y-2 bg-muted/20">
             <div className="flex items-start gap-2">
               <div className="flex flex-col pt-2">
-                <button type="button" onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground text-xs leading-none">▲</button>
+                <button type="button" aria-label="Mover para cima" onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground text-xs leading-none">▲</button>
                 <GripVertical className="h-3 w-3 text-muted-foreground my-0.5" />
-                <button type="button" onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground text-xs leading-none">▼</button>
+                <button type="button" aria-label="Mover para baixo" onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground text-xs leading-none">▼</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1">
                 <Input
                   placeholder="Nome do campo (ex: Peso)"
                   value={f.label}
-                  onChange={(e) => update(i, { label: e.target.value, key: f.label ? f.key : slugify(e.target.value) })}
+                  onChange={(e) => update(i, { label: e.target.value, key: f.locked || f.label ? f.key : slugify(e.target.value) })}
                 />
-                <Select value={f.type} onValueChange={(v) => update(i, { type: v as FieldType })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(FIELD_TYPE_LABELS) as FieldType[]).map((t) => (
-                      <SelectItem key={t} value={t}>{FIELD_TYPE_LABELS[t]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {f.type === "select" && (
+                {f.locked ? (
+                  <div className="flex items-center text-xs text-muted-foreground px-3 rounded-md border bg-muted/40">
+                    Campo padrão · {FIELD_TYPE_LABELS[f.type]}
+                  </div>
+                ) : (
+                  <Select value={f.type} onValueChange={(v) => update(i, { type: v as FieldType })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(FIELD_TYPE_LABELS) as FieldType[]).map((t) => (
+                        <SelectItem key={t} value={t}>{FIELD_TYPE_LABELS[t]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {f.type === "select" && !f.locked && (
                   <Input
                     className="sm:col-span-2"
                     placeholder="Opções separadas por vírgula (ex: Novo, Usado)"
@@ -86,9 +95,13 @@ export function KindFieldsBuilder({ fields, onChange }: KindFieldsBuilderProps) 
                   />
                 )}
               </div>
-              <Button type="button" variant="ghost" size="icon" onClick={() => remove(i)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              {f.locked ? (
+                <div className="w-10 shrink-0" />
+              ) : (
+                <Button type="button" variant="ghost" size="icon" aria-label="Remover campo" onClick={() => remove(i)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
             </div>
           </div>
         ))}
