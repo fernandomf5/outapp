@@ -140,7 +140,9 @@ export function EntityRegistrationForm({
         name: resolvedName,
         avatar_url: values.avatar_url || null,
         notes: values.notes || null,
-        status: values.status || null,
+        status: typeof values.status === "string" && values.status.trim()
+          ? values.status.trim()
+          : "lead",
       };
 
 
@@ -153,7 +155,9 @@ export function EntityRegistrationForm({
 
       fields.forEach((f) => {
         const v = values[f.key];
-        if (f.native) payload[f.native] = v === "" ? null : v;
+        if (f.native === "status") {
+          payload.status = typeof v === "string" && v.trim() ? v.trim() : "lead";
+        } else if (f.native) payload[f.native] = v === "" ? null : v;
         else custom[f.key] = v === "" ? null : v;
       });
 
