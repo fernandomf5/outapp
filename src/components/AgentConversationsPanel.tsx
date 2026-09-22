@@ -880,9 +880,15 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
             <div className="space-y-2">
               <Label className="text-xs">Status do atendente</Label>
-              <Select value={attendantStatus} onValueChange={(v) => updateAttendantStatus(v as any)}>
+              <Select
+                key={`attendant-status-${attendantStatus}`}
+                value={attendantStatus}
+                onValueChange={(value: 'online' | 'offline' | 'busy') => updateAttendantStatus(value)}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Status" />
+                  <SelectValue>
+                    {attendantStatus === 'online' ? 'Online' : attendantStatus === 'busy' ? 'Ocupado' : 'Offline'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="online">Online</SelectItem>
