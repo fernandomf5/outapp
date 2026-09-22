@@ -226,6 +226,15 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
       notifCounts[item.agent_id].messages++;
     });
 
+    unreadCustomerMessages.forEach(msg => {
+      const conv = conversationById.get(msg.conversation_id);
+      if (!conv || !notifCounts[conv.agent_id]) return;
+      const lastRead = conv.last_read_by_owner_at ? new Date(conv.last_read_by_owner_at).getTime() : 0;
+      if (new Date(msg.created_at).getTime() > lastRead) {
+        notifCounts[conv.agent_id].messages++;
+      }
+    });
+
     setNotifications(notifCounts);
   };
 
