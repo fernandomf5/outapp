@@ -89,6 +89,7 @@ export default function AgentCustomerChat() {
   const [contactEmailMessage, setContactEmailMessage] = useState('Fale conosco por e-mail. Atendimento em até 24h.');
   const [contactEmailButtonText, setContactEmailButtonText] = useState('Fale conosco por e-mail');
   const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState('Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.');
+  const [inputToolbarPosition, setInputToolbarPosition] = useState<'top' | 'bottom'>('bottom');
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
