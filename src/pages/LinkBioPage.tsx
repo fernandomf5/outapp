@@ -306,14 +306,25 @@ export default function LinkBioPage() {
       )}
       
       {bio.music_url && (
-        <audio 
-          src={bio.music_url} 
-          autoPlay={bio.music_autoplay}
-          loop
-          controls
-          className="fixed bottom-4 right-4 z-50 opacity-80 hover:opacity-100 transition-opacity"
-          style={{ maxWidth: '250px' }}
-        />
+        <>
+          <audio ref={audioRef} src={bio.music_url} loop preload="auto" />
+          <button
+            type="button"
+            onClick={toggleMusic}
+            aria-label={isMusicPlaying ? "Pausar música" : "Tocar música"}
+            className="fixed bottom-4 right-4 z-50 flex items-center justify-center w-12 h-12 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform"
+            style={{
+              backgroundColor: bio.button_color || '#8B5CF6',
+              color: bio.button_text_color || '#FFFFFF',
+            }}
+          >
+            {isMusicPlaying ? (
+              <Pause className="w-5 h-5" />
+            ) : (
+              <Music className="w-5 h-5" />
+            )}
+          </button>
+        </>
       )}
 
       <div className="max-w-2xl mx-auto relative z-10">
