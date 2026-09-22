@@ -268,44 +268,8 @@ export function EntityRegistrationForm({
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {!hasCustom && (
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="name">{kind.nameLabel}</Label>
-                <Input
-                  id="name"
-                  value={values.name}
-                  placeholder={kind.namePlaceholder}
-                  onChange={(e) => set("name", e.target.value)}
-                  disabled={isViewOnly}
-                  required
-                />
-              </div>
-            )}
-
-
-            {kind.showContactBlock && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" value={values.email} onChange={(e) => set("email", e.target.value)} disabled={isViewOnly} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone / WhatsApp</Label>
-                  <Input id="phone" value={values.phone} onChange={(e) => set("phone", e.target.value)} disabled={isViewOnly} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="document">CNPJ / Documento</Label>
-                  <Input id="document" value={values.document} onChange={(e) => set("document", e.target.value)} disabled={isViewOnly} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Endereço</Label>
-                  <Input id="address" value={values.address} onChange={(e) => set("address", e.target.value)} disabled={isViewOnly} />
-                </div>
-              </>
-            )}
-
             {itemGroups.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="__group">Subcategoria</Label>
                 <Select
                   value={values.__group || "__none__"}
@@ -325,15 +289,8 @@ export function EntityRegistrationForm({
               </div>
             )}
 
-            {fields.filter((f) => f.type !== "textarea").map(renderField)}
-
-
-            {fields.filter((f) => f.type === "textarea").map(renderField)}
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="notes">Observações gerais</Label>
-              <Textarea id="notes" value={values.notes} onChange={(e) => set("notes", e.target.value)} disabled={isViewOnly} />
-            </div>
+            {/* ordem exatamente como o usuário configurou na categoria */}
+            {fields.map(renderField)}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
