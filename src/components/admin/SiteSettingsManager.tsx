@@ -24,6 +24,16 @@ interface SocialLink {
   url: string;
 }
 
+interface Testimonial {
+  id: string;
+  name: string;
+  role?: string;
+  company?: string;
+  text: string;
+  avatar_url?: string;
+  rating?: number;
+}
+
 export const SiteSettingsManager = () => {
   const { toast } = useToast();
   const [videoUrl, setVideoUrl] = useState("");
