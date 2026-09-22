@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Video, Image as ImageIcon, Globe, Upload, X, Palette } from "lucide-react";
+import { Settings, Video, Image as ImageIcon, Globe, Upload, X, Palette, Quote, Star, User, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { applyThemeColor, isValidThemeColor, notifyThemeColorChange } from "@/hooks/useDynamicTheme";
@@ -22,6 +22,16 @@ interface FooterMenu {
 interface SocialLink {
   platform: string;
   url: string;
+}
+
+interface Testimonial {
+  id: string;
+  name: string;
+  role?: string;
+  company?: string;
+  text: string;
+  avatar_url?: string;
+  rating?: number;
 }
 
 export const SiteSettingsManager = () => {
@@ -51,6 +61,9 @@ export const SiteSettingsManager = () => {
   const [checkoutBannerUrl, setCheckoutBannerUrl] = useState("");
   const [sitePrimaryColor, setSitePrimaryColor] = useState("#5ce951");
   const [logoSize, setLogoSize] = useState<number>(DEFAULT_LOGO_SIZE);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonialsTitle, setTestimonialsTitle] = useState("O que dizem nossos clientes");
+  const [testimonialsSubtitle, setTestimonialsSubtitle] = useState("");
 
   useEffect(() => {
     fetchSettings();
@@ -90,7 +103,10 @@ export const SiteSettingsManager = () => {
       'footer_code',
       'checkout_banner_url',
       'site_primary_color',
-      'site_logo_size'
+      'site_logo_size',
+      'landing_testimonials',
+      'testimonials_title',
+      'testimonials_subtitle'
     ];
     
     const { data, error } = await supabase
@@ -175,6 +191,21 @@ export const SiteSettingsManager = () => {
           case 'site_logo_size':
             setLogoSize(parseLogoSize(item.value));
             break;
+          case 'landing_testimonials':
+            try {
+              const parsed = JSON.parse(item.value || '[]');
+              setTestimonials(Array.isArray(parsed) ? parsed : []);
+            } catch (e) {
+              console.error('Error parsing testimonials:', e);
+              setTestimonials([]);
+            }
+            break;
+          case 'testimonials_title':
+            setTestimonialsTitle(item.value || "O que dizem nossos clientes");
+            break;
+          case 'testimonials_subtitle':
+            setTestimonialsSubtitle(item.value || "");
+            break;
         }
       });
     }
@@ -227,7 +258,10 @@ export const SiteSettingsManager = () => {
       saveSetting('footer_code', footerCode),
       saveSetting('checkout_banner_url', checkoutBannerUrl),
       saveSetting('site_primary_color', sitePrimaryColor.toLowerCase()),
-      saveSetting('site_logo_size', String(logoSize))
+      saveSetting('site_logo_size', String(logoSize)),
+      saveSetting('landing_testimonials', JSON.stringify(testimonials)),
+      saveSetting('testimonials_title', testimonialsTitle),
+      saveSetting('testimonials_subtitle', testimonialsSubtitle)
     ]);
 
     notifyThemeColorChange(sitePrimaryColor);
@@ -355,6 +389,51 @@ export const SiteSettingsManager = () => {
     setSocialLinks(updated);
   };
 
+  const addTestimonial = () => {
+    if (testimonials.length >= 10) {
+      toast({ title: "Limite atingido", description: "Você pode adicionar até 10 depoimentos.", variant: "destructive" });
+      return;
+    }
+    setTestimonials([
+      ...testimonials,
+      {
+        id: crypto.randomUUID(),
+        name: "",
+        role: "",
+        company: "",
+        text: "",
+        avatar_url: "",
+        rating: 5,
+      },
+    ]);
+  };
+
+  const removeTestimonial = (index: number) => {
+    setTestimonials(testimonials.filter((_, i) => i !== index));
+  };
+
+  const updateTestimonial = (index: number, field: keyof Testimonial, value: string | number) => {
+    const updated = [...testimonials];
+    updated[index] = { ...updated[index], [field]: value };
+    setTestimonials(updated);
+  };
+
+  const handleTestimonialImageUpload = async (index: number, file: File | undefined) => {
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `testimonial-${Date.now()}-${index}.${fileExt}`;
+
+    const { error } = await supabase.storage.from('avatars').upload(fileName, file);
+    if (error) {
+      toast({ title: "Erro ao fazer upload", variant: "destructive" });
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+    updateTestimonial(index, 'avatar_url', urlData.publicUrl);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -370,12 +449,13 @@ export const SiteSettingsManager = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="branding" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="branding">Marca</TabsTrigger>
             <TabsTrigger value="social">Redes Sociais</TabsTrigger>
             <TabsTrigger value="footer">Rodapé</TabsTrigger>
             <TabsTrigger value="cookie">Cookie Notice</TabsTrigger>
             <TabsTrigger value="video">Vídeo</TabsTrigger>
+            <TabsTrigger value="testimonials">Depoimentos</TabsTrigger>
             <TabsTrigger value="codes">Códigos</TabsTrigger>
           </TabsList>
 
@@ -869,6 +949,159 @@ export const SiteSettingsManager = () => {
                 <br />
                 O vídeo aparecerá entre o título e a descrição da primeira seção.
               </p>
+            </div>
+          </TabsContent>
+
+          {/* Testimonials Tab */}
+          <TabsContent value="testimonials" className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Quote className="h-4 w-4 text-primary" />
+                <Label htmlFor="testimonials-title">Título da Seção</Label>
+              </div>
+              <Input
+                id="testimonials-title"
+                value={testimonialsTitle}
+                onChange={(e) => setTestimonialsTitle(e.target.value)}
+                placeholder="O que dizem nossos clientes"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="testimonials-subtitle">Subtítulo da Seção</Label>
+              <Input
+                id="testimonials-subtitle"
+                value={testimonialsSubtitle}
+                onChange={(e) => setTestimonialsSubtitle(e.target.value)}
+                placeholder="Depoimentos de quem já usa a plataforma"
+              />
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Depoimentos ({testimonials.length}/10)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Os depoimentos aparecerão em carrossel na página inicial.
+                  </p>
+                </div>
+                <Button onClick={addTestimonial} variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Adicionar Depoimento
+                </Button>
+              </div>
+
+              {testimonials.map((testimonial, index) => (
+                <Card key={testimonial.id} className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">Depoimento {index + 1}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeTestimonial(index)}
+                      aria-label={`Remover depoimento ${index + 1}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`testimonial-name-${index}`}>Nome *</Label>
+                      <Input
+                        id={`testimonial-name-${index}`}
+                        value={testimonial.name}
+                        onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
+                        placeholder="Nome do cliente"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`testimonial-role-${index}`}>Cargo / Função</Label>
+                      <Input
+                        id={`testimonial-role-${index}`}
+                        value={testimonial.role || ""}
+                        onChange={(e) => updateTestimonial(index, 'role', e.target.value)}
+                        placeholder="Ex: Empreendedor"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`testimonial-company-${index}`}>Empresa</Label>
+                      <Input
+                        id={`testimonial-company-${index}`}
+                        value={testimonial.company || ""}
+                        onChange={(e) => updateTestimonial(index, 'company', e.target.value)}
+                        placeholder="Ex: Minha Empresa"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`testimonial-rating-${index}`}>Avaliação</Label>
+                      <select
+                        id={`testimonial-rating-${index}`}
+                        value={testimonial.rating || 5}
+                        onChange={(e) => updateTestimonial(index, 'rating', Number(e.target.value))}
+                        className="w-full px-3 py-2 border rounded-md bg-background"
+                      >
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <option key={rating} value={rating}>
+                            {rating} {rating === 1 ? 'estrela' : 'estrelas'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`testimonial-text-${index}`}>Depoimento *</Label>
+                    <Textarea
+                      id={`testimonial-text-${index}`}
+                      value={testimonial.text}
+                      onChange={(e) => updateTestimonial(index, 'text', e.target.value)}
+                      placeholder="Escreva aqui o depoimento do cliente..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Foto do Cliente</Label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleTestimonialImageUpload(index, e.target.files?.[0])}
+                        className="flex-1"
+                      />
+                      {testimonial.avatar_url ? (
+                        <img
+                          src={testimonial.avatar_url}
+                          alt={`Preview de ${testimonial.name || 'cliente'}`}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                          <User className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <Input
+                      value={testimonial.avatar_url || ""}
+                      onChange={(e) => updateTestimonial(index, 'avatar_url', e.target.value)}
+                      placeholder="Ou cole a URL da imagem"
+                      className="mt-2"
+                    />
+                  </div>
+                </Card>
+              ))}
+
+              {testimonials.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground text-sm border border-dashed rounded-lg">
+                  Nenhum depoimento adicionado. Clique em "Adicionar Depoimento" para começar.
+                </div>
+              )}
             </div>
           </TabsContent>
 

@@ -27,6 +27,7 @@ import { VideoCover } from "@/components/VideoCover";
 import { NeonImageFrame } from "@/components/NeonImageFrame";
 import { Feature3DCard } from "@/components/Feature3DCard";
 import { FeatureDescription } from "@/components/FeatureDescription";
+import { TestimonialsCarousel, type Testimonial } from "@/components/TestimonialsCarousel";
 
 import showcaseAsset from "@/assets/out-app-showcase-2.png.asset.json";
 import outAppLogo from "@/assets/out-app-logo.png";
@@ -80,6 +81,9 @@ const Index = () => {
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [headCode, setHeadCode] = useState("");
   const [footerCode, setFooterCode] = useState("");
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonialsTitle, setTestimonialsTitle] = useState("O que dizem nossos clientes");
+  const [testimonialsSubtitle, setTestimonialsSubtitle] = useState("");
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [landingSettings, setLandingSettings] = useState({
     landing_title: "A Solução Tudo em Um<br />para Empreendedores Digitais.",
@@ -90,6 +94,8 @@ const Index = () => {
     video_section_subtitle: "Descubra como é fácil automatizar seu negócio com nossa plataforma completa",
     features_title: "Tudo que Você Precisa em Uma Plataforma",
     features_subtitle: "Automação, CRM, Afiliados, Analytics e muito mais para fazer seu negócio crescer",
+    testimonials_title: "O que dizem nossos clientes",
+    testimonials_subtitle: "",
     pricing_title: "Planos para Todos os Tamanhos",
     pricing_subtitle: "Comece com 3 dias grátis e escolha o melhor plano para seu negócio crescer",
     cta_title: "Pronto para Transformar seu Negócio?",
@@ -132,6 +138,7 @@ const Index = () => {
         fetchVideoUrl(),
         fetchLandingSettings(),
         fetchFeatures(),
+        fetchTestimonials(),
         fetchSiteSettings()
       ]);
       setInitialLoadComplete(true);
@@ -265,6 +272,35 @@ const Index = () => {
       }
     } else {
       setFeatures(getDefaultFeatures());
+    }
+  };
+
+  const fetchTestimonials = async () => {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', ['landing_testimonials', 'testimonials_title', 'testimonials_subtitle']);
+
+    if (data) {
+      data.forEach((item) => {
+        switch (item.key) {
+          case 'landing_testimonials':
+            try {
+              const parsed = JSON.parse(item.value || '[]');
+              setTestimonials(Array.isArray(parsed) ? parsed : []);
+            } catch (e) {
+              console.error('Error parsing testimonials:', e);
+              setTestimonials([]);
+            }
+            break;
+          case 'testimonials_title':
+            setTestimonialsTitle(item.value || "O que dizem nossos clientes");
+            break;
+          case 'testimonials_subtitle':
+            setTestimonialsSubtitle(item.value || "");
+            break;
+        }
+      });
     }
   };
 
@@ -734,6 +770,12 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <TestimonialsCarousel
+        testimonials={testimonials}
+        title={testimonialsTitle || landingSettings.testimonials_title}
+        subtitle={testimonialsSubtitle || landingSettings.testimonials_subtitle}
+      />
 
       {/* Features Section */}
       <section id="recursos" className="relative overflow-hidden py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-background">
