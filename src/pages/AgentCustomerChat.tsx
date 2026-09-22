@@ -90,6 +90,8 @@ export default function AgentCustomerChat() {
   const [contactEmailButtonText, setContactEmailButtonText] = useState('Fale conosco por e-mail');
   const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState('Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.');
   const [inputToolbarPosition, setInputToolbarPosition] = useState<'top' | 'bottom'>('bottom');
+  const [queueNoticeOpen, setQueueNoticeOpen] = useState(true);
+  const [contactNoticeOpen, setContactNoticeOpen] = useState(true);
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -1131,7 +1133,8 @@ export default function AgentCustomerChat() {
                 <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                   <h2 className="text-base sm:text-xl font-bold truncate">{agentInfo?.name || 'Atendimento'}</h2>
                   {/* Status do Atendente */}
-                  <Badge 
+                  <Badge
+                    key={`customer-chat-status-${attendantStatus}`}
                     variant="outline" 
                     className="text-[10px] sm:text-xs shrink-0 bg-background/95 border-white/40"
                     style={{ color: currentStatusColor }}
@@ -1175,66 +1178,91 @@ export default function AgentCustomerChat() {
 
                 {/* Aviso de fila de espera */}
                 {(queuePosition !== null || queueEnabled) && (
-                  <Alert
-                    className={`mt-2 py-1.5 sm:py-2 ${
-                      queuePosition === 0
-                        ? 'border-green-500/60'
-                        : queuePosition === 1
-                          ? 'border-orange-500/70'
-                          : 'border-yellow-500/60'
-                    }`}
-                  >
-                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <AlertDescription className="ml-2 text-xs sm:text-sm">
-                      {queuePosition === 0 ? (
-                        <span className="font-semibold">É a sua vez! O atendente já está com você.</span>
-                      ) : queuePosition !== null ? (
-                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <Badge variant="secondary" className="text-[11px]">
-                            Fila • nº {queuePosition}
-                          </Badge>
-                          <span className="font-semibold">
-                            {queuePosition === 1 ? 'Você é o próximo a ser atendido!' : 'Você está na fila de espera.'}
+                  <Collapsible open={queueNoticeOpen} onOpenChange={setQueueNoticeOpen}>
+                    <Alert
+                      className={`mt-2 py-1.5 sm:py-2 ${
+                        queuePosition === 0
+                          ? 'border-green-500/60'
+                          : queuePosition === 1
+                            ? 'border-orange-500/70'
+                            : 'border-yellow-500/60'
+                      }`}
+                    >
+                      <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <AlertDescription className="ml-2 min-w-0 text-xs sm:text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate font-semibold">
+                            {queuePosition === 0 ? 'É a sua vez!' : queuePosition !== null ? `Fila de espera • nº ${queuePosition}` : 'Fila de espera'}
                           </span>
-                          {queuePosition > 1 && (
-                            <span className="text-muted-foreground">
-                              Há {queuePosition - 1} pessoa(s) na sua frente.
+                          <CollapsibleTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0"
+                              aria-label={queueNoticeOpen ? 'Minimizar mensagem da fila' : 'Mostrar mensagem da fila'}
+                            >
+                              {queueNoticeOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                            </Button>
+                          </CollapsibleTrigger>
+                        </div>
+                        <CollapsibleContent className="pt-1">
+                          {queuePosition === 0 ? (
+                            <span>O atendente já está com você.</span>
+                          ) : queuePosition !== null ? (
+                            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="font-semibold">
+                                {queuePosition === 1 ? 'Você é o próximo a ser atendido!' : 'Você está na fila de espera.'}
+                              </span>
+                              {queuePosition > 1 && (
+                                <span className="text-muted-foreground">Há {queuePosition - 1} pessoa(s) na sua frente.</span>
+                              )}
+                              <span className="text-muted-foreground">{queueMessage}</span>
+                            </span>
+                          ) : (
+                            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              {queueWaiting > 0 && <Badge variant="secondary" className="text-[11px]">{queueWaiting} na fila</Badge>}
+                              <span>{queueMessage}</span>
                             </span>
                           )}
-                          <span className="text-muted-foreground">{queueMessage}</span>
-                        </span>
-                      ) : (
-                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          {queueWaiting > 0 && (
-                            <Badge variant="secondary" className="text-[11px]">
-                              {queueWaiting} na fila
-                            </Badge>
-                          )}
-                          <span>{queueMessage}</span>
-                        </span>
-                      )}
-                    </AlertDescription>
-
-                  </Alert>
+                        </CollapsibleContent>
+                      </AlertDescription>
+                    </Alert>
+                  </Collapsible>
                 )}
 
 
                 {/* Contato por e-mail: só quando o atendente está offline ou ocupado */}
                 {attendantStatus !== 'online' && (
-                  <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">
-                    <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <AlertDescription className="ml-2 text-xs sm:text-sm flex flex-wrap items-center gap-2">
-                      <span>{contactEmailMessage}</span>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={openContactForm}
-                        className="h-7 text-xs"
-                      >
-                        {contactEmailButtonText}
-                      </Button>
-                    </AlertDescription>
-                  </Alert>
+                  <Collapsible open={contactNoticeOpen} onOpenChange={setContactNoticeOpen}>
+                    <Alert className="mt-2 py-1.5 sm:py-2 border-white/20">
+                      <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <AlertDescription className="ml-2 min-w-0 text-xs sm:text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate font-semibold">Fale conosco por e-mail</span>
+                          <CollapsibleTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0"
+                              aria-label={contactNoticeOpen ? 'Minimizar contato por e-mail' : 'Mostrar contato por e-mail'}
+                            >
+                              {contactNoticeOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                            </Button>
+                          </CollapsibleTrigger>
+                        </div>
+                        <CollapsibleContent className="pt-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span>{contactEmailMessage}</span>
+                            <Button size="sm" variant="secondary" onClick={openContactForm} className="h-7 text-xs">
+                              {contactEmailButtonText}
+                            </Button>
+                          </div>
+                        </CollapsibleContent>
+                      </AlertDescription>
+                    </Alert>
+                  </Collapsible>
                 )}
 
 

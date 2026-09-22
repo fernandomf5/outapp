@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Mail } from "lucide-react";
+import { MessageSquare, Mail, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function AgentCustomerAuth() {
   const { agentId } = useParams();
@@ -34,6 +35,8 @@ export default function AgentCustomerAuth() {
   const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
   const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
   const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState("Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.");
+  const [queueNoticeOpen, setQueueNoticeOpen] = useState(true);
+  const [contactNoticeOpen, setContactNoticeOpen] = useState(true);
   const [showContactForm, setShowContactForm] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
@@ -205,7 +208,7 @@ export default function AgentCustomerAuth() {
           <CardDescription>Informe seu nome para iniciar o atendimento</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <div key={`chat-auth-status-${attendantStatus}`} className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: currentStatusColor }}
@@ -214,16 +217,34 @@ export default function AgentCustomerAuth() {
           </div>
 
           {queueEnabled && (
-            <div className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground text-center">
-              {queueNext > 1 ? (
-                <>
-                  Há <span className="font-semibold text-foreground">{queueNext - 1}</span> pessoa(s) na fila. Ao iniciar,
-                  você será o <span className="font-semibold text-foreground">nº {queueNext}</span> e acompanhará sua posição em tempo real.
-                </>
-              ) : (
-                'A fila está livre — ao iniciar você será o próximo a ser atendido.'
-              )}
-            </div>
+            <Collapsible open={queueNoticeOpen} onOpenChange={setQueueNoticeOpen}>
+              <div className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-foreground">Fila de espera</span>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      aria-label={queueNoticeOpen ? 'Minimizar mensagem da fila' : 'Mostrar mensagem da fila'}
+                    >
+                      {queueNoticeOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent className="pt-1 text-center">
+                  {queueNext > 1 ? (
+                    <>
+                      Há <span className="font-semibold text-foreground">{queueNext - 1}</span> pessoa(s) na fila. Ao iniciar,
+                      você será o <span className="font-semibold text-foreground">nº {queueNext}</span> e acompanhará sua posição em tempo real.
+                    </>
+                  ) : (
+                    'A fila está livre — ao iniciar você será o próximo a ser atendido.'
+                  )}
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
           )}
 
 
@@ -250,21 +271,39 @@ export default function AgentCustomerAuth() {
           </form>
 
           {attendantStatus !== 'online' && (
-            <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2 text-center">
-              <p className="text-sm text-muted-foreground">{contactEmailMessage}</p>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full gap-2"
-                onClick={() => {
-                  setContactForm((prev) => ({ ...prev, name: prev.name || formData.name }));
-                  setShowContactForm(true);
-                }}
-              >
-                <Mail className="w-4 h-4" />
-                {contactEmailButtonText}
-              </Button>
-            </div>
+            <Collapsible open={contactNoticeOpen} onOpenChange={setContactNoticeOpen}>
+              <div className="rounded-md border border-border bg-muted/40 p-3 text-center">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">Fale conosco por e-mail</span>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      aria-label={contactNoticeOpen ? 'Minimizar contato por e-mail' : 'Mostrar contato por e-mail'}
+                    >
+                      {contactNoticeOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent className="space-y-2 pt-1">
+                  <p className="text-sm text-muted-foreground">{contactEmailMessage}</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full gap-2"
+                    onClick={() => {
+                      setContactForm((prev) => ({ ...prev, name: prev.name || formData.name }));
+                      setShowContactForm(true);
+                    }}
+                  >
+                    <Mail className="w-4 h-4" />
+                    {contactEmailButtonText}
+                  </Button>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
           )}
         </CardContent>
       </Card>
