@@ -95,15 +95,13 @@ export const AprovaJobPanel = () => {
   const [clientFilter, setClientFilter] = useState<string>('all');
 
   useEffect(() => {
-    if (user) {
-      fetchData();
-      setupRealtimeSubscription();
-    }
-  }, [user]);
+    if (!user) return;
 
-  const setupRealtimeSubscription = () => {
+    fetchData();
+
+    // Canal único por usuário/instância para evitar reuso de um canal já inscrito
     const channel = supabase
-      .channel('aprova-job-changes')
+      .channel(`aprova-job-changes-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'aprova_job_notifications' }, () => {
         fetchNotifications();
       })
@@ -115,7 +113,7 @@ export const AprovaJobPanel = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [user]);
 
   const fetchData = async () => {
     setLoading(true);
