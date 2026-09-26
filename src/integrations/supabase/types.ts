@@ -11104,6 +11104,204 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_ai_connections: {
+        Row: {
+          agent_enabled: boolean
+          agent_name: string
+          created_at: string
+          handoff_keywords: string[]
+          handoff_message: string
+          id: string
+          last_error: string | null
+          name: string
+          personality: string
+          phone_number: string | null
+          provider: string
+          qr_code: string | null
+          rules: string
+          status: string
+          system_prompt: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_enabled?: boolean
+          agent_name?: string
+          created_at?: string
+          handoff_keywords?: string[]
+          handoff_message?: string
+          id?: string
+          last_error?: string | null
+          name: string
+          personality?: string
+          phone_number?: string | null
+          provider: string
+          qr_code?: string | null
+          rules?: string
+          status?: string
+          system_prompt?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_enabled?: boolean
+          agent_name?: string
+          created_at?: string
+          handoff_keywords?: string[]
+          handoff_message?: string
+          id?: string
+          last_error?: string | null
+          name?: string
+          personality?: string
+          phone_number?: string | null
+          provider?: string
+          qr_code?: string | null
+          rules?: string
+          status?: string
+          system_prompt?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_ai_conversations: {
+        Row: {
+          connection_id: string
+          contact_name: string | null
+          contact_phone: string
+          created_at: string
+          id: string
+          last_message_at: string
+          last_message_preview: string | null
+          mode: string
+          unread_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connection_id: string
+          contact_name?: string | null
+          contact_phone: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          last_message_preview?: string | null
+          mode?: string
+          unread_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connection_id?: string
+          contact_name?: string | null
+          contact_phone?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          last_message_preview?: string | null
+          mode?: string
+          unread_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_ai_conversations_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_ai_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_ai_credentials: {
+        Row: {
+          connection_id: string
+          created_at: string
+          evolution_api_key: string | null
+          evolution_base_url: string | null
+          evolution_instance: string | null
+          meta_access_token: string | null
+          meta_phone_number_id: string | null
+          meta_verify_token: string | null
+          updated_at: string
+          webhook_secret: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          evolution_api_key?: string | null
+          evolution_base_url?: string | null
+          evolution_instance?: string | null
+          meta_access_token?: string | null
+          meta_phone_number_id?: string | null
+          meta_verify_token?: string | null
+          updated_at?: string
+          webhook_secret?: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          evolution_api_key?: string | null
+          evolution_base_url?: string | null
+          evolution_instance?: string | null
+          meta_access_token?: string | null
+          meta_phone_number_id?: string | null
+          meta_verify_token?: string | null
+          updated_at?: string
+          webhook_secret?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_ai_credentials_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_ai_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_ai_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          direction: string
+          external_id: string | null
+          id: string
+          sender: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          direction: string
+          external_id?: string | null
+          id?: string
+          sender: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          external_id?: string | null
+          id?: string
+          sender?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_connections: {
         Row: {
           connected_at: string | null
