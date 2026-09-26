@@ -134,6 +134,13 @@
       "when": 1790029924161,
       "tag": "0018_admin_purge_user_data",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790402602077,
+      "tag": "0019_whatsapp_ai_module",
+      "breakpoints": true
     }
   ]
 }
