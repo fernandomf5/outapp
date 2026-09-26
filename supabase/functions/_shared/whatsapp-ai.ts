@@ -84,7 +84,7 @@ export async function generateReply(conn: Connection, history: { role: "user" | 
     `Instruções de atendimento:\n${conn.system_prompt}`,
     conn.rules ? `Regras obrigatórias:\n${conn.rules}` : "",
     "Responda em mensagens curtas, próprias para WhatsApp, sem markdown pesado.",
-    "Se não souber responder, se o cliente estiver irritado ou pedir algo fora das regras, responda apenas com [TRANSFERIR].",
+    "Cumprimente e ajude normalmente. Se faltar uma informação, diga com educação que vai verificar e peça detalhes. Responda apenas com [TRANSFERIR] somente se o cliente pedir claramente um atendente, estiver muito irritado ou pedir algo proibido pelas regras.",
   ].filter(Boolean).join("\n\n");
 
   const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
