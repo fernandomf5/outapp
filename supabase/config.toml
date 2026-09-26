@@ -6,3 +6,6 @@ project_id = "hpwwzdbxexwmgevmqfkj"
 
 [functions.process-email-queue]
 verify_jwt = true
+
+[functions.whatsapp-ai-webhook]
+verify_jwt = false
