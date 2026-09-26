@@ -39,7 +39,12 @@ async function handleIncoming(conn: Connection, creds: Credentials, msg: Incomin
   if (!conn.agent_enabled || reopened !== "ai") return;
 
   const reply = async (text: string, sender: "ai" | "system") => {
-    const extId = await sendText(conn.provider, creds, msg.phone, text);
+    let extId: string | undefined;
+    try { extId = await sendText(conn.provider, creds, msg.phone, text); }
+    catch (e) {
+      await db.from("whatsapp_ai_messages").insert({ conversation_id: conv.id, user_id: conn.user_id, direction: "out", sender: "system", content: `Falha ao enviar pelo WhatsApp: ${(e as Error).message.slice(0, 150)}` });
+      return;
+    }
     await db.from("whatsapp_ai_messages").insert({ conversation_id: conv.id, user_id: conn.user_id, direction: "out", sender, content: text, external_id: extId ?? null });
     await db.from("whatsapp_ai_conversations").update({ last_message_at: new Date().toISOString(), last_message_preview: text.slice(0, 120) }).eq("id", conv.id);
   };
@@ -58,6 +63,7 @@ async function handleIncoming(conn: Connection, creds: Credentials, msg: Incomin
   }));
   try {
     const text = await generateReply(conn, history);
+    console.log("AI reply length", text.length, text.slice(0, 60));
     if (!text || text.includes("[TRANSFERIR]")) return handoff();
     await reply(text, "ai");
   } catch (e) {
