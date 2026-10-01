@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { planActivatedEmail, sendMail } from "../_shared/resend-mail.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -130,6 +131,15 @@ serve(async (req) => {
       }
 
       console.log('Assinatura criada com sucesso para o plano:', plan.name);
+
+      // E-mail de confirmação de plano ativo (falha no envio não desfaz a ativação)
+      try {
+        const { data: prof } = await supabase.from('profiles').select('full_name, email').eq('user_id', userId).maybeSingle();
+        const to = prof?.email ?? (await supabase.auth.admin.getUserById(userId)).data.user?.email;
+        if (to) await sendMail(to, `Pagamento confirmado: plano ${plan.name} ativo — Out App`, planActivatedEmail(prof?.full_name ?? '', plan.name, expiresAt));
+      } catch (mailErr) {
+        console.error('Falha ao enviar e-mail de plano ativo:', mailErr);
+      }
     } else {
       console.log('Pagamento em status:', payment.status);
     }

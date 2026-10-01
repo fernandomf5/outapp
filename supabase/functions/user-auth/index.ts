@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendMail, verificationEmail, resetEmail } from "../_shared/resend-mail.ts";
+
+const newCode = () => String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -99,22 +102,20 @@ serve(async (req) => {
           );
         }
 
-        console.log('[REGISTER] Creating auth user via signUp (native confirmation email)...');
+        const phone = String(requestData?.phone ?? '').replace(/\D/g, '');
+        if (phone.length < 10 || phone.length > 13) {
+          return new Response(JSON.stringify({ error: 'Informe um WhatsApp válido com DDD.' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        if (requestData?.acceptedTerms !== true) {
+          return new Response(JSON.stringify({ error: 'É necessário aceitar as políticas e os termos da Out App.' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
 
-        // Cria o usuário pelo fluxo nativo de cadastro: o Supabase envia
-        // automaticamente o e-mail de confirmação com o link de ativação.
-        const redirectTo =
-          typeof requestData?.redirectTo === 'string' && requestData.redirectTo.startsWith('http')
-            ? requestData.redirectTo
-            : undefined;
-
-        const { data: authUser, error: authError } = await authClient.auth.signUp({
+        // Cria o usuário sem confirmação: a confirmação é feita por código enviado pela Resend.
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
           email,
           password,
-          options: {
-            emailRedirectTo: redirectTo,
-            data: { full_name: name },
-          },
+          email_confirm: false,
+          user_metadata: { full_name: name, phone, terms_accepted_at: new Date().toISOString() },
         });
 
         if (authError || !authUser?.user?.id) {
@@ -145,6 +146,7 @@ serve(async (req) => {
               user_id: authUser.user.id,
               email,
               full_name: name,
+              phone: String(requestData?.phone ?? '').replace(/\D/g, ''),
               password_hash: passwordHash,
               email_verified: false,
             }, { onConflict: 'user_id' })
@@ -171,7 +173,19 @@ serve(async (req) => {
           }
         }
 
-        console.log('[REGISTER] Confirmation email handled natively by Supabase Auth');
+        // Garante o telefone no perfil (caso um gatilho tenha criado o perfil antes)
+        await supabase.from('profiles').update({ phone: String(requestData?.phone ?? '').replace(/\D/g, ''), full_name: name }).eq('user_id', authUser.user.id);
+
+        // Envia o código de confirmação pela Resend
+        const regCode = newCode();
+        await supabase.from('user_verification_codes').insert({
+          user_id: authUser.user.id, code: regCode, expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        });
+        try {
+          await sendMail(email, 'Seu código de confirmação — Out App', verificationEmail(name, regCode));
+        } catch (mailErr) {
+          console.error('[REGISTER] Falha ao enviar código:', mailErr);
+        }
 
         console.log('[REGISTER] Assigning user role...');
         await supabase.from('user_roles').insert({
@@ -248,7 +262,7 @@ serve(async (req) => {
         // Detect unconfirmed email to trigger verification flow instead of generic invalid credentials
         // @ts-ignore - edge runtime error object
         const code = (authError && (authError.code || authError.status || authError.name)) || '';
-        if (code === 'email_not_confirmed' || code === 400 || String(code).toLowerCase().includes('email')) {
+        if (code === 'email_not_confirmed') {
           const { data: pendingProfile } = await supabase
             .from('profiles')
             .select('user_id')
@@ -457,6 +471,47 @@ serve(async (req) => {
       );
     }
 
+    if (action === 'reset-request') {
+      const generic = new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const cleanEmail = String(email ?? '').trim().toLowerCase();
+      if (!cleanEmail.includes('@')) return generic;
+      const { data: prof } = await supabase.from('profiles').select('user_id, full_name, email').ilike('email', cleanEmail).maybeSingle();
+      if (!prof?.user_id) return generic; // não revela se o e-mail existe
+      const resetCode = newCode();
+      await supabase.from('user_password_reset_codes').update({ used: true }).eq('user_id', prof.user_id).eq('used', false);
+      await supabase.from('user_password_reset_codes').insert({
+        user_id: prof.user_id, code: resetCode, expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      });
+      try {
+        await sendMail(prof.email, 'Código para redefinir sua senha — Out App', resetEmail(prof.full_name, resetCode));
+      } catch (mailErr) {
+        console.error('[RESET] Falha ao enviar código:', mailErr);
+        return new Response(JSON.stringify({ error: 'Não foi possível enviar o e-mail agora. Tente novamente.'}), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      return generic;
+    }
+
+    if (action === 'reset-confirm') {
+      const fail = (msg: string) => new Response(JSON.stringify({ error: msg }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const cleanEmail = String(email ?? '').trim().toLowerCase();
+      const resetCodeIn = String(code ?? '').replace(/\D/g, '');
+      if (typeof password !== 'string' || password.length < 6) return fail('A senha deve ter pelo menos 6 caracteres.');
+      const { data: prof } = await supabase.from('profiles').select('user_id').ilike('email', cleanEmail).maybeSingle();
+      if (!prof?.user_id || resetCodeIn.length !== 6) return fail('Código inválido ou expirado.');
+      const { data: row } = await supabase.from('user_password_reset_codes').select('*')
+        .eq('user_id', prof.user_id).eq('used', false).order('created_at', { ascending: false }).limit(1).maybeSingle();
+      if (!row || new Date(row.expires_at) < new Date() || row.attempts >= 5) return fail('Código inválido ou expirado. Solicite um novo.');
+      if (row.code !== resetCodeIn) {
+        await supabase.from('user_password_reset_codes').update({ attempts: row.attempts + 1 }).eq('id', row.id);
+        return fail('Código incorreto.');
+      }
+      const { error: updErr } = await supabase.auth.admin.updateUserById(prof.user_id, { password, email_confirm: true });
+      if (updErr) return fail(translateAuthError(updErr.message));
+      await supabase.from('user_password_reset_codes').update({ used: true }).eq('id', row.id);
+      await supabase.from('profiles').update({ email_verified: true }).eq('user_id', prof.user_id);
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (action === 'resend') {
       // Get user data
       const { data: profile, error: profileError } = await supabase
@@ -472,33 +527,19 @@ serve(async (req) => {
         );
       }
 
-      // Generate new verification code
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-      // Store new verification code
-      const { error: codeError } = await supabase
-        .from('user_verification_codes')
-        .insert({
-          user_id: userId,
-          code: verificationCode,
-          expires_at: expiresAt.toISOString(),
-        });
-
+      if (profile.email_verified) {
+        return new Response(JSON.stringify({ error: 'Este e-mail já foi confirmado. Faça login.' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const verificationCode = newCode();
+      const { error: codeError } = await supabase.from('user_verification_codes').insert({
+        user_id: userId, code: verificationCode, expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      });
       if (codeError) throw codeError;
-
-      // Send verification email
       try {
-        await supabase.functions.invoke('send-verification-email', {
-          body: {
-            email: profile.email,
-            name: profile.full_name,
-            code: verificationCode,
-            chatbotName: 'Out App',
-          }
-        });
+        await sendMail(profile.email, 'Seu código de confirmação — Out App', verificationEmail(profile.full_name, verificationCode));
       } catch (emailError) {
         console.error('Failed to send verification email:', emailError);
+        return new Response(JSON.stringify({ error: 'Não foi possível enviar o e-mail agora. Tente novamente em instantes.' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       return new Response(

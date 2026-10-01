@@ -141,6 +141,13 @@
       "when": 1790402602077,
       "tag": "0019_whatsapp_ai_module",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790817504085,
+      "tag": "0020_password_reset_codes_and_retire_whatsapp_ai",
+      "breakpoints": true
     }
   ]
 }

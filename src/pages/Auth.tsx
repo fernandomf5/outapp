@@ -10,7 +10,9 @@ import { Eye, EyeOff, Bot, ArrowLeft, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { z } from "zod";
-import { EmailConfirmPending } from "@/components/EmailConfirmPending";
+import { EmailVerification } from "@/components/EmailVerification";
+import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +25,15 @@ import {
 
 const emailSchema = z.string().email("Por favor, insira um e-mail válido");
 const passwordSchema = z.string().min(6, "A senha deve ter pelo menos 6 caracteres");
-const nameSchema = z.string().trim().min(2, "Informe seu nome completo");
+const nameSchema = z.string().trim().min(5, "Informe seu nome completo").refine((v) => v.split(/\s+/).length >= 2, "Informe nome e sobrenome");
+
+/** Formata o WhatsApp como (11) 91234-5678 enquanto o usuário digita. */
+const formatPhone = (v: string): string => {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, d.length - 4)}-${d.slice(-4)}`;
+};
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -33,6 +43,10 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [legalLinks, setLegalLinks] = useState<{ terms: string; privacy: string }>({ terms: "", privacy: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [verificationUserId, setVerificationUserId] = useState("");
@@ -59,6 +73,14 @@ const Auth = () => {
 
   // Use light logo for auth page (colored background)
   const logoUrl = settings.siteLogoLightUrl || settings.siteLogoUrl || logoAsset.url;
+
+  useEffect(() => {
+    supabase.from("site_settings").select("key, value").in("key", ["cookie_terms_url", "cookie_privacy_url"])
+      .then(({ data }) => {
+        const get = (k: string) => String(data?.find((r) => r.key === k)?.value ?? "").trim();
+        setLegalLinks({ terms: get("cookie_terms_url"), privacy: get("cookie_privacy_url") });
+      });
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -90,6 +112,25 @@ const Auth = () => {
         return;
       }
 
+      const phoneDigits = phone.replace(/\D/g, "");
+      if (phoneDigits.length < 10) {
+        showMessage("WhatsApp inválido", "Informe seu WhatsApp com DDD.", "error");
+        setIsLoading(false);
+        return;
+      }
+
+      if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+        showMessage("E-mails não coincidem", "O e-mail e a confirmação de e-mail precisam ser iguais.", "error");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!acceptedTerms) {
+        showMessage("Aceite os termos", "Para criar a conta, aceite as políticas e os termos da Out App.", "error");
+        setIsLoading(false);
+        return;
+      }
+
       if (password !== confirmPassword) {
         showMessage("Senhas não coincidem", "As senhas digitadas não são iguais.", "error");
         setIsLoading(false);
@@ -105,7 +146,7 @@ const Auth = () => {
       }
 
       // Sign Up
-      const { error, userId, needsVerification } = await customSignUp(email, password, name);
+      const { error, userId, needsVerification } = await customSignUp(email.trim(), password, name.trim(), phoneDigits, acceptedTerms);
       
       if (error) {
         // Mensagens específicas baseadas no erro retornado
@@ -132,7 +173,7 @@ const Auth = () => {
         setVerificationUserId(userId ?? "");
         setVerificationEmail(email);
         setShowVerification(true);
-        showMessage("Conta criada com sucesso! 📧", "Enviamos um link de confirmação para seu e-mail. Clique nele para ativar sua conta (confira também o spam).", "success");
+        showMessage("Conta criada com sucesso! 📧", "Enviamos um código de 6 dígitos para seu e-mail. Digite-o para ativar sua conta (confira também o spam).", "success");
       }
       
       setIsLoading(false);
@@ -145,7 +186,10 @@ const Auth = () => {
           setVerificationUserId(userId ?? "");
           setVerificationEmail(email);
           setShowVerification(true);
-          showMessage("Email não confirmado ✉️", "Clique no link de confirmação que enviamos para seu e-mail. Confira a caixa de entrada e o spam.", "error");
+          if (userId) {
+            await supabase.functions.invoke("user-auth", { body: { action: "resend", userId } });
+          }
+          showMessage("Email não confirmado ✉️", "Enviamos um novo código para seu e-mail. Digite-o para ativar sua conta.", "error");
         } else if (error.includes("banido") || error.includes("banned")) {
           showMessage("Acesso negado 🚫", "Sua conta foi suspensa. Entre em contato com o suporte para mais informações.", "error");
         } else {
@@ -162,8 +206,10 @@ const Auth = () => {
 
   if (showVerification) {
     return (
-      <EmailConfirmPending
+      <EmailVerification
+        userId={verificationUserId}
         email={verificationEmail}
+        onVerified={() => setShowVerification(false)}
         onBack={() => {
           setShowVerification(false);
           setIsLogin(true);
@@ -287,6 +333,24 @@ const Auth = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  autoComplete="name"
+                  className="h-11"
+                />
+              </div>
+            )}
+
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="phone">WhatsApp</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="(11) 91234-5678"
+                  value={phone}
+                  onChange={(e) => setPhone(formatPhone(e.target.value))}
+                  required
+                  autoComplete="tel"
                   className="h-11"
                 />
               </div>
@@ -304,6 +368,22 @@ const Auth = () => {
                 className="h-11"
               />
             </div>
+
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmEmail">Confirmar Email</Label>
+                <Input
+                  id="confirmEmail"
+                  type="email"
+                  placeholder="Repita seu e-mail"
+                  value={confirmEmail}
+                  onChange={(e) => setConfirmEmail(e.target.value)}
+                  onPaste={(e) => e.preventDefault()}
+                  required
+                  className="h-11"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
@@ -351,6 +431,19 @@ const Auth = () => {
               </div>
             )}
 
+            {!isLogin && (
+              <div className="flex items-start gap-2">
+                <Checkbox id="terms" checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
+                <Label htmlFor="terms" className="text-sm font-normal leading-snug text-muted-foreground">
+                  Li e aceito os{" "}
+                  {legalLinks.terms ? <a href={legalLinks.terms} target="_blank" rel="noreferrer" className="text-primary underline">Termos de Uso</a> : "Termos de Uso"}
+                  {" "}e a{" "}
+                  {legalLinks.privacy ? <a href={legalLinks.privacy} target="_blank" rel="noreferrer" className="text-primary underline">Política de Privacidade</a> : "Política de Privacidade"}
+                  {" "}da Out App.
+                </Label>
+              </div>
+            )}
+
             {isLogin && (
               <div className="text-right">
                 <button
@@ -366,7 +459,7 @@ const Auth = () => {
             <Button 
               type="submit" 
               className="w-full text-base sm:text-lg py-5 sm:py-6 gradient-primary shadow-glow hover-scale font-semibold active:scale-95 transition-transform"
-              disabled={isLoading}
+              disabled={isLoading || (!isLogin && !acceptedTerms)}
             >
               {isLoading ? "Aguarde..." : (isLogin ? "Entrar na Plataforma" : "Criar Conta Grátis 🚀")}
             </Button>
@@ -386,11 +479,6 @@ const Auth = () => {
             
           </div>
 
-          {!isLogin && (
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              Ao se cadastrar, você concorda com nossos Termos de Uso e Política de Privacidade.
-            </p>
-          )}
         </Card>
       </div>
       </div>
