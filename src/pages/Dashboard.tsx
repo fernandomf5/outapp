@@ -69,7 +69,6 @@ import { AgendaPanel } from "@/components/AgendaPanel";
 import { AgendaReminders } from "@/components/AgendaReminders";
 import { RoutineReminders } from "@/components/RoutineReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
-import { WhatsAppAIPanel } from "@/components/whatsapp-ai/WhatsAppAIPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 
 import { ManualDispatcherPanel } from "@/components/ManualDispatcherPanel";
@@ -1339,11 +1338,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="whatsapp-ia">
-            <ErrorBoundary>
-              <WhatsAppAIPanel />
-            </ErrorBoundary>
-          </TabsContent>
 
 
 
