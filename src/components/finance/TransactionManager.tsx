@@ -96,7 +96,7 @@ interface Transaction {
 interface TransactionManagerProps {
   transactions: Transaction[];
   bankAccounts: any[];
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<void>;
   businessId: string;
   /** PF ou PJ atualmente selecionado na chave da gestão */
   entityType: EntityType;
@@ -716,10 +716,13 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         await updateAccountBalance(newBank, signed);
       }
 
+      // Aguarda a recarga antes de concluir, garantindo que o painel Geral
+      // recalcule Receitas Recebidas / Despesas Pagas com o novo status.
+      await onRefresh();
+
       toast.success("Status atualizado");
       setStatusDialogOpen(false);
       setStatusTarget(null);
-      onRefresh();
     } catch (error) {
       toast.error("Erro ao atualizar status");
     } finally {
