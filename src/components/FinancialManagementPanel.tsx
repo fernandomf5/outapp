@@ -464,9 +464,11 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           <TransactionManager 
             transactions={periodTransactions} 
             bankAccounts={bankAccounts} 
-            onRefresh={() => {
-              loadTransactions();
-              refetchBankAccounts();
+            onRefresh={async () => {
+              await Promise.all([
+                loadTransactions(),
+                Promise.resolve(refetchBankAccounts()),
+              ]);
             }}
             businessId={selectedBusinessId}
             entityType={entityType}
