@@ -53,6 +53,15 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
     };
   }, [transactions, bankAccounts]);
 
+  const incomePendingLabel =
+    stats.pendingIncomeCount > 0
+      ? `${stats.pendingIncomeCount} conta(s) a receber`
+      : "Sem pendências";
+  const expensePendingLabel =
+    stats.pendingExpenseCount > 0
+      ? `${stats.pendingExpenseCount} conta(s) a pagar`
+      : "Sem pendências";
+
   const chartData = useMemo(() => {
     const categories: { [key: string]: number } = {};
     transactions
