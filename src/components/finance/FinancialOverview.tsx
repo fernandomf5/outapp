@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, TrendingDown, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, ArrowUpCircle, ArrowDownCircle, Clock, AlertCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 
 interface Transaction {
@@ -36,6 +36,9 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
       .filter(t => t.type === 'expense' && t.status === 'pending')
       .reduce((acc, t) => acc + t.amount, 0);
 
+    const pendingIncomeCount = transactions.filter(t => t.type === 'income' && t.status === 'pending').length;
+    const pendingExpenseCount = transactions.filter(t => t.type === 'expense' && t.status === 'pending').length;
+
     const bankBalance = bankAccounts.reduce((acc, b) => acc + (b.current_balance || 0), 0);
 
     return {
@@ -44,9 +47,20 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
       netBalance: totalIncome - totalExpense,
       pendingIncome,
       pendingExpense,
+      pendingIncomeCount,
+      pendingExpenseCount,
       bankBalance
     };
   }, [transactions, bankAccounts]);
+
+  const incomePendingLabel =
+    stats.pendingIncomeCount > 0
+      ? `${stats.pendingIncomeCount} conta(s) a receber`
+      : "Sem pendências";
+  const expensePendingLabel =
+    stats.pendingExpenseCount > 0
+      ? `${stats.pendingExpenseCount} conta(s) a pagar`
+      : "Sem pendências";
 
   const chartData = useMemo(() => {
     const categories: { [key: string]: number } = {};
@@ -66,41 +80,79 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-medium">Saldo em Contas</CardTitle>
             <Wallet className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {stats.bankBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div className="text-xl font-bold">R$ {stats.bankBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground mt-1">Soma de todas as contas ativas</p>
           </CardContent>
         </Card>
 
         <Card className="bg-green-500/5 border-green-500/20">
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Receitas (Pagas)</CardTitle>
+            <CardTitle className="text-sm font-medium">Receitas Recebidas</CardTitle>
             <ArrowUpCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">R$ {stats.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            {stats.pendingIncome > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">Pendente: R$ {stats.pendingIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            )}
+            <div className="text-xl font-bold text-green-600">R$ {stats.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground mt-1">Já quitadas</p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className={
+            stats.pendingIncome > 0
+              ? "bg-amber-500/10 border-amber-500/50 border-2 shadow-md"
+              : "bg-muted/40 border-muted"
+          }
+        >
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-sm font-medium">Receitas Pendentes</CardTitle>
+            <Clock className={stats.pendingIncome > 0 ? "h-4 w-4 text-amber-600" : "h-4 w-4 text-muted-foreground"} />
+          </CardHeader>
+          <CardContent>
+            <div className={stats.pendingIncome > 0 ? "text-xl font-bold text-amber-600" : "text-xl font-bold text-muted-foreground"}>
+              R$ {stats.pendingIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {incomePendingLabel}
+            </p>
           </CardContent>
         </Card>
 
         <Card className="bg-red-500/5 border-red-500/20">
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Despesas (Pagas)</CardTitle>
+            <CardTitle className="text-sm font-medium">Despesas Pagas</CardTitle>
             <ArrowDownCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">R$ {stats.totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            {stats.pendingExpense > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">Pendente: R$ {stats.pendingExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            )}
+            <div className="text-xl font-bold text-red-600">R$ {stats.totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground mt-1">Já quitadas</p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className={
+            stats.pendingExpense > 0
+              ? "bg-orange-500/10 border-orange-500/50 border-2 shadow-md"
+              : "bg-muted/40 border-muted"
+          }
+        >
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-sm font-medium">Despesas Pendentes</CardTitle>
+            <AlertCircle className={stats.pendingExpense > 0 ? "h-4 w-4 text-orange-600" : "h-4 w-4 text-muted-foreground"} />
+          </CardHeader>
+          <CardContent>
+            <div className={stats.pendingExpense > 0 ? "text-xl font-bold text-orange-600" : "text-xl font-bold text-muted-foreground"}>
+              R$ {stats.pendingExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {expensePendingLabel}
+            </p>
           </CardContent>
         </Card>
 
@@ -110,7 +162,7 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
             <TrendingUp className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className={stats.netBalance >= 0 ? "text-2xl font-bold text-blue-600" : "text-2xl font-bold text-orange-600"}>
+            <div className={stats.netBalance >= 0 ? "text-xl font-bold text-blue-600" : "text-xl font-bold text-orange-600"}>
               R$ {stats.netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Receitas - Despesas (Pagas)</p>
