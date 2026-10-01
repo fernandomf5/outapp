@@ -119,9 +119,7 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
               R$ {stats.pendingIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.pendingIncomeCount > 0
-                ? `${stats.pendingIncomeCount} conta(s) a receber`
-                : "Sem pendências"}
+              {incomePendingLabel}
             </p>
           </CardContent>
         </Card>
@@ -153,9 +151,7 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
               R$ {stats.pendingExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.pendingExpenseCount > 0
-                ? `${stats.pendingExpenseCount} conta(s) a pagar`
-                : "Sem pendências"}
+              {expensePendingLabel}
             </p>
           </CardContent>
         </Card>
