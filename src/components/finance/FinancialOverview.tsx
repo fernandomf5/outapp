@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, TrendingDown, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, ArrowUpCircle, ArrowDownCircle, Clock, AlertCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 
 interface Transaction {
@@ -131,7 +131,7 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
         <Card
           className={
             stats.pendingExpense > 0
-              ? "bg-orange-500/10 border-orange-500/50 border-2 shadow-md animate-pulse-subtle"
+              ? "bg-orange-500/10 border-orange-500/50 border-2 shadow-md"
               : "bg-muted/40 border-muted"
           }
         >
