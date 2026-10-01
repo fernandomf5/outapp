@@ -486,7 +486,7 @@ serve(async (req) => {
         await sendMail(prof.email, 'Código para redefinir sua senha — Out App', resetEmail(prof.full_name, resetCode));
       } catch (mailErr) {
         console.error('[RESET] Falha ao enviar código:', mailErr);
-        return new Response(JSON.stringify({ error: 'Não foi possível enviar o e-mail agora. Tente novamente.', debug: String(mailErr) }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: 'Não foi possível enviar o e-mail agora. Tente novamente.'}), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       return generic;
     }
