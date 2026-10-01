@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
-  customSignUp: (email: string, password: string, fullName: string) => Promise<{ error?: string; userId?: string; needsVerification?: boolean }>;
+  customSignUp: (email: string, password: string, fullName: string, phone: string, acceptedTerms: boolean) => Promise<{ error?: string; userId?: string; needsVerification?: boolean }>;
   customSignIn: (email: string, password: string) => Promise<{ error?: string; needsVerification?: boolean; userId?: string }>;
   signOut: () => Promise<void>;
 }
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const customSignUp = async (email: string, password: string, fullName: string) => {
+  const customSignUp = async (email: string, password: string, fullName: string, phone: string, acceptedTerms: boolean) => {
     try {
       const { data, error } = await supabase.functions.invoke('user-auth', {
         body: {
@@ -73,8 +73,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email,
           password,
           name: fullName,
-          // Link de confirmação nativo volta para a página de sucesso do app
-          redirectTo: `${window.location.origin}/email-confirmed`,
+          phone,
+          acceptedTerms,
         }
       });
 

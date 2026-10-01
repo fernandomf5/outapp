@@ -198,6 +198,10 @@ export const VoucherRedemption = () => {
 
       if (redemptionError) throw redemptionError;
 
+      // E-mail de confirmação (Resend) — não bloqueia o resgate em caso de falha
+      supabase.functions.invoke('send-account-email', { body: { type: 'voucher_redeemed', voucherCode: voucher.code } })
+        .then(({ error }) => { if (error) console.error('Falha ao enviar e-mail do voucher:', error); });
+
       // Atualizar contador de usos
       await supabase
         .from('vouchers')
