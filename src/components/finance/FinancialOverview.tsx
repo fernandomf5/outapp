@@ -120,7 +120,7 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
             <p className="text-xs text-muted-foreground mt-1">
               {stats.pendingIncomeCount > 0
                 ? `${stats.pendingIncomeCount} conta(s) a receber`
-                : "Nada pendente"}
+                : "Sem pendências"}
             </p>
           </CardContent>
         </Card>
@@ -154,7 +154,7 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
             <p className="text-xs text-muted-foreground mt-1">
               {stats.pendingExpenseCount > 0
                 ? `${stats.pendingExpenseCount} conta(s) a pagar`
-                : "Nada pendente"}
+                : "Sem pendências"}
             </p>
           </CardContent>
         </Card>
