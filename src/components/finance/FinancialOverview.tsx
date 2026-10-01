@@ -20,24 +20,31 @@ interface FinancialOverviewProps {
 
 export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverviewProps) => {
   const stats = useMemo(() => {
+    const normalizedStatus = (status: string | null | undefined) =>
+      (status || '').trim().toLowerCase();
+    const amountOf = (amount: number) => {
+      const value = Number(amount);
+      return Number.isFinite(value) ? value : 0;
+    };
+
     const totalIncome = transactions
-      .filter(t => t.type === 'income' && t.status === 'paid')
-      .reduce((acc, t) => acc + t.amount, 0);
+      .filter(t => t.type === 'income' && normalizedStatus(t.status) === 'paid')
+      .reduce((acc, t) => acc + amountOf(t.amount), 0);
 
     const totalExpense = transactions
-      .filter(t => t.type === 'expense' && t.status === 'paid')
-      .reduce((acc, t) => acc + t.amount, 0);
+      .filter(t => t.type === 'expense' && normalizedStatus(t.status) === 'paid')
+      .reduce((acc, t) => acc + amountOf(t.amount), 0);
 
     const pendingIncome = transactions
-      .filter(t => t.type === 'income' && t.status === 'pending')
-      .reduce((acc, t) => acc + t.amount, 0);
+      .filter(t => t.type === 'income' && normalizedStatus(t.status) === 'pending')
+      .reduce((acc, t) => acc + amountOf(t.amount), 0);
 
     const pendingExpense = transactions
-      .filter(t => t.type === 'expense' && t.status === 'pending')
-      .reduce((acc, t) => acc + t.amount, 0);
+      .filter(t => t.type === 'expense' && normalizedStatus(t.status) === 'pending')
+      .reduce((acc, t) => acc + amountOf(t.amount), 0);
 
-    const pendingIncomeCount = transactions.filter(t => t.type === 'income' && t.status === 'pending').length;
-    const pendingExpenseCount = transactions.filter(t => t.type === 'expense' && t.status === 'pending').length;
+    const pendingIncomeCount = transactions.filter(t => t.type === 'income' && normalizedStatus(t.status) === 'pending').length;
+    const pendingExpenseCount = transactions.filter(t => t.type === 'expense' && normalizedStatus(t.status) === 'pending').length;
 
     const bankBalance = bankAccounts.reduce((acc, b) => acc + (b.current_balance || 0), 0);
 
