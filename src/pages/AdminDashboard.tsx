@@ -14,6 +14,7 @@ import { useTheme } from "next-themes";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UsersPanel } from "@/components/admin/UsersPanel";
+import { RegisteredContactsPanel } from "@/components/admin/RegisteredContactsPanel";
 import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
 import { RevenueChartPanel } from "@/components/admin/RevenueChartPanel";
@@ -818,6 +819,7 @@ const AdminDashboard = () => {
 
             {/* Users Section */}
             {currentSection === 'users' && <UsersPanel />}
+            {currentSection === 'contacts' && <RegisteredContactsPanel />}
 
             {/* Admins Section */}
             {currentSection === 'admins' && <AdminsPanel />}

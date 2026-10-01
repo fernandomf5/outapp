@@ -108,6 +108,7 @@ export function AdminSidebar() {
     { title: t('plans_manager'), icon: Crown, tab: "plans" },
     { title: t('features_manager'), icon: Package, tab: "features-manager" },
     { title: t('plan_features'), icon: Shield, tab: "feature-access" },
+    { title: "Contatos cadastrados", icon: Users, tab: "contacts" },
     { title: t('admins'), icon: Shield, tab: "admins" },
     { title: t('security'), icon: Shield, tab: "security" },
     { title: t('messages'), icon: MessageSquare, tab: "messages" },
