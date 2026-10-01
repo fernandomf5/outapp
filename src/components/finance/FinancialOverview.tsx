@@ -53,14 +53,6 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
     };
   }, [transactions, bankAccounts]);
 
-  console.log('[FO debug]', JSON.stringify({
-    n: transactions.length,
-    pi: stats.pendingIncome,
-    pic: stats.pendingIncomeCount,
-    pec: stats.pendingExpenseCount,
-    rows: transactions.map(t => [t.type, t.status, t.amount]),
-  }));
-
   const chartData = useMemo(() => {
     const categories: { [key: string]: number } = {};
     transactions
