@@ -36,6 +36,9 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
       .filter(t => t.type === 'expense' && t.status === 'pending')
       .reduce((acc, t) => acc + t.amount, 0);
 
+    const pendingIncomeCount = transactions.filter(t => t.type === 'income' && t.status === 'pending').length;
+    const pendingExpenseCount = transactions.filter(t => t.type === 'expense' && t.status === 'pending').length;
+
     const bankBalance = bankAccounts.reduce((acc, b) => acc + (b.current_balance || 0), 0);
 
     return {
@@ -44,6 +47,8 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
       netBalance: totalIncome - totalExpense,
       pendingIncome,
       pendingExpense,
+      pendingIncomeCount,
+      pendingExpenseCount,
       bankBalance
     };
   }, [transactions, bankAccounts]);
