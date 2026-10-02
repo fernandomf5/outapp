@@ -841,7 +841,7 @@ const Index = () => {
             <span>Deslize para o lado para ver outros planos</span>
           </div>
           
-          <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-none sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none scroll-smooth overscroll-x-contain px-[7vw] sm:px-0 pb-4 sm:pb-0 -mx-2 xs:-mx-3 sm:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-none sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none scroll-smooth overscroll-x-contain touch-pan-x scroll-px-[7vw] px-[7vw] sm:px-0 pb-4 sm:pb-0 -mx-2 xs:-mx-3 sm:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {plans.map((plan) => {
               const isAnnual = plan.plan_type === 'annual';
               const isPopular = isAnnual || (plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150);
