@@ -1028,30 +1028,35 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted/50 border-t">
-        <div className="container mx-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-6 xs:py-8 sm:py-10 lg:py-14 3xl:py-18">
-          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xs:gap-5 sm:gap-6 md:gap-8 mb-4 xs:mb-6 sm:mb-8">
-            <div className="space-y-2 xs:space-y-3 sm:space-y-4 col-span-2 xs:col-span-2 sm:col-span-2 md:col-span-1">
+      <footer className="border-t border-border/60 bg-background sm:bg-muted/50">
+        <div className="container mx-auto px-4 xs:px-5 sm:px-4 md:px-6 lg:px-8 py-8 xs:py-9 sm:py-10 lg:py-14 3xl:py-18">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 xs:gap-4 sm:gap-6 md:gap-8 mb-5 xs:mb-6 sm:mb-8">
+            <div className="col-span-1 sm:col-span-2 md:col-span-1 flex flex-col items-center text-center sm:items-start sm:text-left rounded-2xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none space-y-4">
               {logoUrl ? (
-                <img src={logoUrl} alt={siteTitle} className="h-6 xs:h-8 sm:h-10 lg:h-12 w-auto mb-2 xs:mb-3 sm:mb-4" />
+                <img src={logoUrl} alt={siteTitle} className="h-10 xs:h-11 sm:h-10 lg:h-12 w-auto max-w-[180px] object-contain" />
               ) : (
-                <div className="flex items-center gap-1.5 xs:gap-2 mb-2 xs:mb-3 sm:mb-4">
-                  <img src={outAppLogo} alt="Out App" className="h-5 xs:h-6 sm:h-7 md:h-8 w-auto" />
-                  <span className="font-bold text-sm xs:text-base sm:text-lg lg:text-xl">{siteTitle || "Out App"}</span>
+                <div className="flex items-center justify-center sm:justify-start gap-2">
+                  <img src={outAppLogo} alt="Out App" className="h-8 xs:h-9 sm:h-7 md:h-8 w-auto" />
+                  <span className="font-bold text-base xs:text-lg sm:text-lg lg:text-xl">{siteTitle || "Out App"}</span>
                 </div>
               )}
-              <SocialLinks links={socialLinks} variant="footer" />
+              <div className="flex justify-center sm:justify-start w-full">
+                <SocialLinks links={socialLinks} variant="footer" />
+              </div>
             </div>
             
             {footerMenus.map((menu: any, index: number) => (
-              <div key={index}>
-                <h4 className="font-semibold mb-1.5 xs:mb-2 sm:mb-3 text-xs xs:text-sm sm:text-base lg:text-lg">{menu.title}</h4>
-                <ul className="space-y-1 xs:space-y-1.5 sm:space-y-2">
+              <div
+                key={index}
+                className="rounded-2xl border border-border/60 bg-card/60 px-4 py-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
+              >
+                <h4 className="font-semibold mb-2 text-sm xs:text-base sm:text-base lg:text-lg">{menu.title}</h4>
+                <ul className="sm:space-y-2">
                   {menu.links?.map((link: any, linkIndex: number) => (
-                    <li key={linkIndex}>
+                    <li key={linkIndex} className="border-b border-border/50 last:border-b-0 sm:border-0">
                       <a 
                         href={link.url} 
-                        className="text-[10px] xs:text-xs sm:text-sm md:text-base text-muted-foreground hover:text-foreground transition-colors"
+                        className="block py-2.5 sm:py-0 text-xs xs:text-sm sm:text-sm md:text-base text-muted-foreground hover:text-foreground active:text-primary transition-colors"
                       >
                         {link.text}
                       </a>
@@ -1063,38 +1068,38 @@ const Index = () => {
           </div>
 
           {footerImages.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-3 xs:gap-4 sm:gap-6 py-3 xs:py-4 sm:py-5 border-t">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 rounded-2xl border border-border/60 bg-card/50 px-4 py-4 mb-5 sm:mb-0 sm:rounded-none sm:border-x-0 sm:border-b-0 sm:bg-transparent sm:px-0 sm:py-5">
               {footerImages.map((img, index) => (
                 <img 
                   key={index} 
                   src={img} 
                   alt={`Partner ${index + 1}`}
-                  className="h-6 xs:h-8 sm:h-10 w-auto opacity-70 hover:opacity-100 transition-opacity"
+                  className="h-7 xs:h-8 sm:h-10 w-auto max-w-[100px] opacity-80 hover:opacity-100 transition-opacity"
                 />
               ))}
             </div>
           )}
 
-          <div className="pt-4 xs:pt-5 sm:pt-6 border-t text-center space-y-2 xs:space-y-2.5 sm:space-y-3">
-            <p className="text-[10px] xs:text-xs sm:text-sm text-muted-foreground">
+          <div className="rounded-2xl border border-border/60 bg-card/40 px-4 py-5 sm:rounded-none sm:border-x-0 sm:border-b-0 sm:bg-transparent sm:px-0 sm:pt-6 sm:pb-0 text-center space-y-3">
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Out App'}. Todos os direitos reservados.`}
             </p>
-            <p className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
+            <p className="text-[10px] xs:text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed max-w-sm mx-auto">
               Um Negócio do Grupo Liberdade Financeira Online - 21.233.977/0001-29
             </p>
             <a 
               href="https://klicsmart.top/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[10px] xs:text-[11px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <span>Criado com carinho pela agência</span>
+              <span>Criado pela agência</span>
               <img 
                 src={klicLogoAsset.url} 
                 alt="Klic Smart AI" 
-                className="h-3.5 xs:h-4 sm:h-5 w-3.5 xs:w-4 sm:w-5 object-contain"
+                className="h-5 w-5 sm:h-5 sm:w-5 object-contain"
               />
-              <span className="font-medium">Klic Smart</span>
+              <span className="font-semibold">Klic Smart</span>
             </a>
           </div>
         </div>
