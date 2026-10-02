@@ -180,9 +180,12 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
                     <span className="truncate font-medium">{category.name}</span>
                     <span className="shrink-0 font-semibold tabular-nums">{money(category.value)} · {category.percent.toFixed(0)}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${category.percent}%` }} />
-                  </div>
+                  <progress
+                    className="h-2 w-full overflow-hidden rounded-full accent-primary"
+                    value={category.percent}
+                    max={100}
+                    aria-label={`${category.name}: ${category.percent.toFixed(0)}% das despesas pagas`}
+                  />
                 </div>
               ))}
             </div>
