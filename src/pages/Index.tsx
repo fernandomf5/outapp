@@ -841,7 +841,7 @@ const Index = () => {
             <span>Deslize para o lado para ver outros planos</span>
           </div>
           
-          <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-none sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none scroll-smooth overscroll-x-contain touch-pan-x scroll-px-[7vw] px-[7vw] sm:px-0 pb-4 sm:pb-0 -mx-2 xs:-mx-3 sm:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-5 sm:gap-5 md:gap-6 lg:gap-8 max-w-none sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none scroll-smooth overscroll-x-contain touch-pan-x scroll-px-[9vw] px-[9vw] sm:px-0 pt-5 sm:pt-0 pb-6 sm:pb-0 -mx-2 xs:-mx-3 sm:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {plans.map((plan) => {
               const isAnnual = plan.plan_type === 'annual';
               const isPopular = isAnnual || (plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150);
@@ -852,7 +852,7 @@ const Index = () => {
               return (
                 <div
                   key={plan.id}
-                  className={`group relative w-[86vw] max-w-[350px] shrink-0 snap-center snap-always sm:w-auto sm:max-w-none sm:shrink sm:snap-align-none bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 ${
+                  className={`group relative w-[82vw] max-w-[350px] shrink-0 snap-center snap-always sm:w-auto sm:max-w-none sm:shrink sm:snap-align-none bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 ${
                     isPopular 
                       ? 'plan-card-featured border-primary bg-gradient-to-b from-primary/[0.07] via-card to-card sm:scale-[1.03] z-10' 
                       : 'border-primary/30 hover:border-primary/70 hover:shadow-[0_0_30px_-8px_hsl(var(--primary)/0.5)]'
