@@ -678,25 +678,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
       if (t.__projected) {
         // Conta fixa repetida: o status é guardado por mês na transação original,
-        // preservando o histórico dos demais meses.
+        // preservando o histórico e as personalizações deste mês.
         const key = t.__periodKey || periodKey;
-        const { data: original, error: fetchError } = await supabase
-          .from('financial_transactions')
-          .select('monthly_status')
-          .eq('id', sourceIdOf(t))
-          .maybeSingle();
-        if (fetchError) throw fetchError;
-
-        const nextMonthlyStatus = {
-          ...(((original as any)?.monthly_status || {}) as Record<string, unknown>),
-          [key]: { status: newStatus, bank_account_id: newBank },
-        };
-
-        const { error } = await supabase
-          .from('financial_transactions')
-          .update({ monthly_status: nextMonthlyStatus } as any)
-          .eq('id', sourceIdOf(t));
-        if (error) throw error;
+        await patchMonthlyStatus(sourceIdOf(t), key, {
+          status: newStatus,
+          bank_account_id: newBank,
+        });
       } else {
         const { error } = await supabase
           .from('financial_transactions')
