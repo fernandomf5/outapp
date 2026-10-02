@@ -115,9 +115,27 @@ export function getMonthTransactions(
 
     const isRecurring = Boolean(raw?.is_recurring) || recurringCategoryNames.has(normalize(raw?.category));
 
-    // Mês exato do vencimento original
+    // Mês exato do vencimento original.
+    // Contas recorrentes também podem ter estado específico por mês em monthly_status.
+    // Aplicamos esse estado aqui para manter a mesma fonte de verdade usada nas projeções.
     if (parts.year === year && parts.month === month) {
-      acc.push({ ...raw, entity_type: tEntity, __sourceId: raw.id, __periodKey: key, __projected: false });
+      const monthlyStatus = (raw?.monthly_status || {}) as Record<string, MonthlyStatusEntry>;
+      const entry: MonthlyStatusEntry = monthlyStatus[key] || {};
+
+      if (entry.deleted) return acc;
+
+      const overrides = entry.overrides || {};
+      acc.push({
+        ...raw,
+        ...overrides,
+        due_date: overrides.due_date || raw.due_date,
+        status: entry.status || raw.status || "pending",
+        bank_account_id: entry.bank_account_id ?? raw.bank_account_id ?? null,
+        entity_type: tEntity,
+        __sourceId: raw.id,
+        __periodKey: key,
+        __projected: false,
+      });
       return acc;
     }
 
