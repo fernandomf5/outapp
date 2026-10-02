@@ -1,6 +1,6 @@
 import { RichFeatureText } from "@/components/RichFeatureText";
 import { HeroBackground } from "@/components/HeroBackground";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -85,6 +85,69 @@ const Index = () => {
   const [testimonialsTitle, setTestimonialsTitle] = useState("O que dizem nossos clientes");
   const [testimonialsSubtitle, setTestimonialsSubtitle] = useState("");
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const featureCarouselRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (features.length <= 1) return;
+
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    let intervalId: number | undefined;
+
+    const startAutoSlide = () => {
+      if (!mediaQuery.matches || intervalId) return;
+
+      intervalId = window.setInterval(() => {
+        const container = featureCarouselRef.current;
+        if (!container) return;
+
+        const cards = Array.from(container.children) as HTMLElement[];
+        if (cards.length <= 1) return;
+
+        const containerCenter = container.scrollLeft + container.clientWidth / 2;
+        let currentIndex = 0;
+        let closestDistance = Number.POSITIVE_INFINITY;
+
+        cards.forEach((card, index) => {
+          const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+          const distance = Math.abs(cardCenter - containerCenter);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            currentIndex = index;
+          }
+        });
+
+        const nextIndex = (currentIndex + 1) % cards.length;
+        const nextCard = cards[nextIndex];
+        const targetLeft =
+          nextCard.offsetLeft - (container.clientWidth - nextCard.offsetWidth) / 2;
+
+        container.scrollTo({
+          left: Math.max(0, targetLeft),
+          behavior: "smooth",
+        });
+      }, 3500);
+    };
+
+    const stopAutoSlide = () => {
+      if (intervalId) {
+        window.clearInterval(intervalId);
+        intervalId = undefined;
+      }
+    };
+
+    const handleMediaChange = () => {
+      stopAutoSlide();
+      startAutoSlide();
+    };
+
+    startAutoSlide();
+    mediaQuery.addEventListener("change", handleMediaChange);
+
+    return () => {
+      stopAutoSlide();
+      mediaQuery.removeEventListener("change", handleMediaChange);
+    };
+  }, [features.length]);
+
   const [landingSettings, setLandingSettings] = useState({
     landing_title: "A Solução Tudo em Um<br />para Empreendedores Digitais.",
     hero_title: "Plataforma Completa de Automação<br />e Marketing Digital",
@@ -802,7 +865,10 @@ const Index = () => {
             <span>Deslize para o lado para ver todos os recursos</span>
           </div>
           
-          <div className="features-3d flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-7 max-w-none sm:max-w-3xl md:max-w-4xl lg:max-w-6xl 3xl:max-w-[2200px] mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none scroll-smooth overscroll-x-contain touch-pan-x scroll-px-[7vw] px-[7vw] sm:px-0 pb-3 sm:pb-0 -mx-2 xs:-mx-3 sm:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            ref={featureCarouselRef}
+            className="features-3d flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-7 max-w-none sm:max-w-3xl md:max-w-4xl lg:max-w-6xl 3xl:max-w-[2200px] mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none scroll-smooth overscroll-x-contain touch-pan-x scroll-px-[7vw] px-[7vw] sm:px-0 pb-3 sm:pb-0 -mx-2 xs:-mx-3 sm:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {features.map((feature, index) => {
               const Icon = getIconComponent(feature.icon);
               return (
@@ -836,12 +902,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="sm:hidden flex items-center justify-center gap-2 mb-3 px-3 text-xs font-semibold text-primary animate-pulse">
-            <ArrowLeftRight className="w-4 h-4 shrink-0" />
-            <span>Deslize para o lado para ver outros planos</span>
-          </div>
-          
-          <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-5 sm:gap-5 md:gap-6 lg:gap-8 max-w-none sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none scroll-smooth overscroll-x-contain touch-pan-x scroll-px-[9vw] px-[9vw] sm:px-0 pt-5 sm:pt-0 pb-6 sm:pb-0 -mx-2 xs:-mx-3 sm:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-sm xs:max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto">
             {plans.map((plan) => {
               const isAnnual = plan.plan_type === 'annual';
               const isPopular = isAnnual || (plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150);
@@ -852,7 +913,7 @@ const Index = () => {
               return (
                 <div
                   key={plan.id}
-                  className={`group relative w-[82vw] max-w-[350px] shrink-0 snap-center snap-always sm:w-auto sm:max-w-none sm:shrink sm:snap-align-none bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 ${
+                  className={`group relative bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 ${
                     isPopular 
                       ? 'plan-card-featured border-primary bg-gradient-to-b from-primary/[0.07] via-card to-card sm:scale-[1.03] z-10' 
                       : 'border-primary/30 hover:border-primary/70 hover:shadow-[0_0_30px_-8px_hsl(var(--primary)/0.5)]'
