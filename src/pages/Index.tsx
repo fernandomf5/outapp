@@ -1087,19 +1087,28 @@ const Index = () => {
             <p className="text-[10px] xs:text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed max-w-sm mx-auto">
               Um Negócio do Grupo Liberdade Financeira Online - 21.233.977/0001-29
             </p>
-            <a 
-              href="https://klicsmart.top/" 
-              target="_blank" 
+            <a
+              href="https://klicsmart.top/"
+              target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[10px] xs:text-[11px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Visitar o site da Klic Smart AI"
+              className="group inline-flex items-center justify-center gap-3 rounded-2xl border border-border/70 bg-background/80 px-4 py-2.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-md"
             >
-              <span>Criado pela agência</span>
-              <img 
-                src={klicLogoAsset.url} 
-                alt="Klic Smart AI" 
-                className="h-5 w-5 sm:h-5 sm:w-5 object-contain"
-              />
-              <span className="font-semibold">Klic Smart</span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card p-1.5 shadow-sm transition-transform duration-300 group-hover:scale-105">
+                <img
+                  src={klicLogoAsset.url}
+                  alt="Klic Smart AI"
+                  className="h-full w-full object-contain"
+                />
+              </span>
+              <span className="flex flex-col items-start text-left leading-tight">
+                <span className="text-[9px] xs:text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground/70">
+                  Criado pela agência
+                </span>
+                <span className="mt-0.5 text-xs xs:text-sm font-bold text-foreground transition-colors group-hover:text-primary">
+                  Klic Smart AI
+                </span>
+              </span>
             </a>
           </div>
         </div>
