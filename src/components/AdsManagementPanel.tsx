@@ -332,26 +332,89 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
   }, [isAddClientDialogOpen]);
 
   const handleDownloadImage = async () => {
-    if (!dashboardRef.current) return;
-    
+    const dashboard = dashboardRef.current;
+    if (!dashboard || isDownloadingImage) return;
+
     setIsDownloadingImage(true);
     try {
-      const canvas = await html2canvas(dashboardRef.current, {
-        backgroundColor: null,
+      // Wait for web fonts and visible images to settle before taking the snapshot.
+      await document.fonts.ready;
+      await Promise.all(
+        Array.from(dashboard.querySelectorAll('img')).map(async (image) => {
+          if (!image.complete) {
+            await new Promise<void>((resolve) => {
+              image.addEventListener('load', () => resolve(), { once: true });
+              image.addEventListener('error', () => resolve(), { once: true });
+            });
+          }
+          if (image.complete && image.naturalWidth > 0 && image.decode) {
+            await image.decode().catch(() => undefined);
+          }
+        })
+      );
+
+      // Always export a desktop-sized report, even when downloaded on mobile.
+      const exportWidth = 1280;
+      const backgroundColor = getComputedStyle(document.body).backgroundColor;
+      const canvas = await html2canvas(dashboard, {
+        backgroundColor: backgroundColor === 'rgba(0, 0, 0, 0)' ? '#ffffff' : backgroundColor,
         scale: 2,
         useCORS: true,
-        logging: false
+        allowTaint: false,
+        logging: false,
+        imageTimeout: 15000,
+        windowWidth: 1440,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        onclone: (clonedDocument) => {
+          const clonedDashboard = clonedDocument.querySelector('[data-ads-dashboard-export]');
+          if (!(clonedDashboard instanceof HTMLElement)) return;
+
+          clonedDashboard.style.width = `${exportWidth}px`;
+          clonedDashboard.style.minWidth = `${exportWidth}px`;
+          clonedDashboard.style.maxWidth = 'none';
+          clonedDashboard.style.padding = '24px';
+          clonedDashboard.style.boxSizing = 'border-box';
+          clonedDashboard.style.margin = '0';
+          clonedDashboard.style.background = getComputedStyle(document.body).backgroundColor;
+
+          // Freeze animations and expand scroll containers so nothing is cut off.
+          clonedDashboard.querySelectorAll<HTMLElement>('*').forEach((element) => {
+            element.style.animation = 'none';
+            element.style.transition = 'none';
+            if (element.scrollWidth > element.clientWidth && element.clientWidth > 0) {
+              element.style.overflowX = 'visible';
+              element.style.maxWidth = 'none';
+            }
+          });
+        }
       });
-      
+
+      if (canvas.width === 0 || canvas.height === 0) {
+        throw new Error('A imagem gerada está vazia');
+      }
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((result) => {
+          if (result) resolve(result);
+          else reject(new Error('Não foi possível gerar o arquivo PNG'));
+        }, 'image/png');
+      });
+      const url = URL.createObjectURL(blob);
+      const campaignName = campaigns.find((campaign) => campaign.id === selectedCampaignId)?.name || 'geral';
+      const safeName = campaignName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9-_]/g, '-');
       const link = document.createElement('a');
-      link.download = `dashboard-campanha-${selectedCampaignId ? campaigns.find(c => c.id === selectedCampaignId)?.name || 'geral' : 'geral'}-${new Date().toISOString().split('T')[0]}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = url;
+      link.download = `dashboard-campanha-${safeName}-${new Date().toISOString().split('T')[0]}.png`;
+      document.body.appendChild(link);
       link.click();
-      
-      toast.success('Imagem baixada com sucesso!');
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      toast.success('Imagem PNG gerada em alta qualidade!');
     } catch (error) {
       console.error('Erro ao gerar imagem:', error);
-      toast.error('Erro ao gerar imagem');
+      toast.error('Não foi possível gerar a imagem. Tente novamente.');
     } finally {
       setIsDownloadingImage(false);
     }
@@ -2077,7 +2140,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               </CardContent>
             </Card>
           ) : (
-            <div ref={dashboardRef} className="space-y-6">
+            <div ref={dashboardRef} data-ads-dashboard-export className="space-y-6">
               {/* Metrics Cards - Financeiro */}
               <div className="grid gap-6 md:grid-cols-3 mb-6">
                 <Card className="glass border-destructive/30 bg-gradient-to-br from-destructive/10 to-transparent">
