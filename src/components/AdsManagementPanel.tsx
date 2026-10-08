@@ -368,7 +368,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
         scrollY: -window.scrollY,
         onclone: (clonedDocument) => {
           const clonedDashboard = clonedDocument.querySelector('[data-ads-dashboard-export]');
-          if (!(clonedDashboard instanceof HTMLElement)) return;
+          if (!clonedDashboard || clonedDashboard.nodeType !== 1) return;
 
           clonedDashboard.style.width = `${exportWidth}px`;
           clonedDashboard.style.minWidth = `${exportWidth}px`;
