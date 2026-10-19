@@ -84,11 +84,13 @@ interface TeamContext {
 }
 
 interface MyAIAgentsProps {
-  onManage?: (agent: { id: string; name: string; niche: string }) => void;
+  onManage?: (agent: { id: string; name: string; niche: string }, view?: string) => void;
   teamContext?: TeamContext;
+  /** Preserve the current Gestão Livre context when opening the chat editor. */
+  entityId?: string;
 }
 
-export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
+export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps = {}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isTeamMember } = useTeamMember();
@@ -259,8 +261,11 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
     setNotifications(notifCounts);
   };
 
+  const editorUrl = (agentId?: string) => "/chat-online" + (agentId ? "?id=" + encodeURIComponent(agentId) : "") +
+    (entityId ? (agentId ? "&" : "?") + "entity=" + encodeURIComponent(entityId) : "");
+
   const handleEdit = (agentId: string) => {
-    navigate(`/chat-online?id=${agentId}`);
+    navigate(editorUrl(agentId));
   };
 
   const handleDelete = async () => {
@@ -347,7 +352,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
         <p className="text-muted-foreground mb-6">
           Crie seu primeiro chat para atender clientes
         </p>
-        <Button onClick={() => navigate("/chat-online")} className="mx-auto">
+        <Button onClick={() => navigate(editorUrl())} className="mx-auto">
           <MessageSquare className="w-4 h-4 mr-2" />
           Criar Chat
         </Button>
@@ -364,7 +369,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
         </div>
         <div className="flex items-center gap-2">
           <ResourceAssignmentsButton resourceType="chat_online" />
-          <Button onClick={() => navigate("/chat-online")}>
+          <Button onClick={() => navigate(editorUrl())}>
             <MessageSquare className="w-4 h-4 mr-2" />
             Novo Chat
           </Button>
@@ -502,8 +507,8 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                   className="w-full bg-primary/5 hover:bg-primary/10 border-primary/20 hover:border-primary/40 transition-all rounded-xl h-9 font-bold text-xs"
                   onClick={() => onManage({ id: agent.id, name: agent.name, niche: agent.niche })}
                 >
-                  <Settings className="w-3.5 h-3.5 mr-2" />
-                  Gerenciar
+                  <MessageSquare className="w-3.5 h-3.5 mr-2" />
+                  Gerenciar atendimento
                 </Button>
               )}
             </div>
@@ -546,7 +551,7 @@ export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
                 const agent = agents.find((a) => a.id === selectedAgentForNotifications);
                 setSelectedAgentForNotifications(null);
                 if (agent && onManage) {
-                  onManage({ id: agent.id, name: agent.name, niche: agent.niche });
+                  onManage({ id: agent.id, name: agent.name, niche: agent.niche }, "conversations");
                 }
               }}
             />
