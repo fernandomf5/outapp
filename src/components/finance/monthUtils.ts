@@ -61,6 +61,7 @@ export interface PeriodTransaction {
   payment_method: string;
   is_recurring: boolean;
   bank_account_id?: string | null;
+  folder_id?: string | null;
   entity_type?: EntityType;
   /** Grau de urgência escolhido pelo usuário */
   priority?: "normal" | "alta" | "urgente";
