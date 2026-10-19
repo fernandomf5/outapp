@@ -31,7 +31,10 @@ const AIAgentBuilder = () => {
   const [searchParams] = useSearchParams();
   const agentId = searchParams.get('id');
   const entityId = searchParams.get('entity') || sessionStorage.getItem('outapp_hub_entity');
-  const returnToHub = entityId ? `/dashboard?entity=${encodeURIComponent(entityId)}&tab=chat-online` : '/dashboard';
+  const returnToManagement = searchParams.get("returnTo") === "manage" && Boolean(agentId);
+  const returnToHub = entityId
+    ? `/dashboard?entity=${encodeURIComponent(entityId)}&tab=chat-online${returnToManagement ? "&agentId=" + encodeURIComponent(agentId!) : ""}`
+    : "/dashboard";
   const entityQuery = entityId ? `&entity=${encodeURIComponent(entityId)}` : '';
   
   const { saveAgent, loadAgent } = useAIAgent();
