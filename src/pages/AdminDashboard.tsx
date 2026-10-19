@@ -8,10 +8,9 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminSidebar } from "@/components/layout/AdminSidebar";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { useTheme } from "next-themes";
-import { LanguageSelector } from "@/components/LanguageSelector";
+import { AdminSidebar, ADMIN_NAV_LABELS } from "@/components/layout/AdminSidebar";
+import { MasterCommandCenter } from "@/components/admin/MasterCommandCenter";
+import "./admin-master.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UsersPanel } from "@/components/admin/UsersPanel";
 import { RegisteredContactsPanel } from "@/components/admin/RegisteredContactsPanel";
@@ -61,6 +60,9 @@ import {
   Bell,
   Search,
   X,
+  ArrowUpRight,
+  LayoutDashboard,
+  Sparkles,
 } from "lucide-react";
 import {
   Dialog,
@@ -630,57 +632,47 @@ const AdminDashboard = () => {
 
   return (
     <>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-primary/5">
-        <AdminSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="bg-gradient-to-r from-card via-card to-primary/5 border-b border-border/50 backdrop-blur-sm px-6 py-4 sticky top-0 z-50 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <SidebarTrigger />
-                <Link to="/admin" className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow animate-pulse cursor-pointer hover:from-warning/30 hover:to-warning/20 transition-smooth">
-                  <Crown className="w-8 h-8 text-warning" />
-                </Link>
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                      Painel Master Admin
-                    </h1>
-                    <p className="text-sm text-muted-foreground">Controle total da plataforma</p>
+      <SidebarProvider className="dark outapp-master">
+        <div className="master-layout min-h-screen flex w-full">
+          <AdminSidebar />
+          <div className="master-workspace flex-1 flex flex-col min-w-0">
+            <header className="master-topbar sticky top-0 z-40">
+              <div className="master-topbar-inner">
+                <div className="master-topbar-title">
+                  <SidebarTrigger className="master-sidebar-trigger" aria-label="Abrir ou recolher menu" />
+                  <Link to="/admin?section=overview" className="master-topbar-emblem" aria-label="Visão geral do Master">
+                    <img src="/outapp-icon-192.png" alt="" />
+                  </Link>
+                  <div className="master-topbar-label">
+                    <span className="master-topbar-kicker"><span className="master-live-dot" /> ADMINISTRAÇÃO / OUT APP</span>
+                    <h1>{currentSection === "overview" ? "Painel Master" : ADMIN_NAV_LABELS[currentSection] || "Administração"}</h1>
                   </div>
                 </div>
+                <div className="master-topbar-actions">
+                  <div className="master-topbar-notifications"><NewUserNotifications /><TicketNotificationBell isAdmin={true}/></div>
+                  <a className="master-topbar-site" href="/" aria-label="Visualizar site" title="Ver site" target="_blank" rel="noopener noreferrer"><Globe2 size={18}/><span>Visualizar site</span><ArrowUpRight size={14}/></a>
+                  <button type="button" className="master-topbar-icon" onClick={() => setIsBroadcastOpen(true)} title="Enviar mensagem" aria-label="Enviar mensagem"><MessageSquare size={19}/></button>
+                  <button type="button" className="master-topbar-icon" onClick={() => setIsSettingsOpen(true)} title="Configurações Master" aria-label="Configurações Master"><Settings size={19}/></button>
+                  <button type="button" className="master-topbar-icon master-topbar-logout" onClick={handleLogout} title="Sair" aria-label="Sair"><LogOut size={19}/></button>
+                </div>
               </div>
-
-              <div className="flex gap-3 items-center">
-                <NewUserNotifications />
-                <TicketNotificationBell isAdmin={true} />
-                <LanguageSelector />
-                <ThemeToggle />
-                <Button variant="outline" onClick={() => setIsBroadcastOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Mensagens
-                </Button>
-                <Button variant="outline" onClick={() => setIsSettingsOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configurações
-                </Button>
-                <Button variant="ghost" onClick={handleLogout} className="hover:bg-destructive/10 text-destructive">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-                </Button>
+            </header>
+            <main className="master-main flex-1 min-w-0">
+              <div className="master-page-heading">
+                <div>
+                  <span className="master-kicker"><Sparkles size={14}/> OUT APP / MASTER CONTROL</span>
+                  <h2>{currentSection === "overview" ? "Visão geral da plataforma" : ADMIN_NAV_LABELS[currentSection] || "Centro administrativo"}</h2>
+                  <p>{currentSection === "overview" ? "Indicadores reais, operações e ferramentas do seu negócio." : "Controle, acompanhe e configure esta área da plataforma."}</p>
+                </div>
+                <span className="master-page-status"><span className="master-live-dot"/> SISTEMA ATIVO</span>
               </div>
-            </div>
-          </header>
-
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto px-6 py-8">
             {/* Overview Section */}
             {currentSection === 'overview' && (
               <>
+                <MasterCommandCenter />
+                <div className="master-stats-heading"><div><span className="master-kicker">DADOS DA PLATAFORMA</span><h2>Indicadores em tempo real</h2></div><span>VISÃO CONSOLIDADA</span></div>
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div className="master-kpi-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
                   <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 relative overflow-hidden group">
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
@@ -737,7 +729,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Detalhamento real da base */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                <div className="master-detail-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-8">
                   {[
                     { label: 'Testes ativos', value: stats.trialActive, hint: 'Trial em andamento' },
                     { label: 'Testes expirados', value: stats.trialExpired, hint: 'Precisam converter' },
@@ -754,8 +746,9 @@ const AdminDashboard = () => {
                 </div>
 
 
+                <div className="master-stats-heading master-stats-heading-small"><div><span className="master-kicker">ATALHOS DE OPERAÇÃO</span><h2>Ações rápidas</h2></div></div>
                 {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="master-actions-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
                   <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 group cursor-pointer" onClick={() => setIsBroadcastOpen(true)}>
                     <div className="flex items-center gap-4">
                       <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
@@ -806,7 +799,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Online Users and Growth Chart */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="master-charts-grid grid grid-cols-1 xl:grid-cols-3 gap-5">
                   <div className="lg:col-span-1">
                     <OnlineUsersPanel />
                   </div>
