@@ -30,6 +30,9 @@ const AIAgentBuilder = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const agentId = searchParams.get('id');
+  const entityId = searchParams.get('entity') || sessionStorage.getItem('outapp_hub_entity');
+  const returnToHub = entityId ? `/dashboard?entity=${encodeURIComponent(entityId)}&tab=chat-online` : '/dashboard';
+  const entityQuery = entityId ? `&entity=${encodeURIComponent(entityId)}` : '';
   
   const { saveAgent, loadAgent } = useAIAgent();
   
@@ -145,7 +148,7 @@ const AIAgentBuilder = () => {
       const result = await saveAgent(agentData, user.id);
       
       if (!agentId && result) {
-        navigate(`/chat-online?id=${result.id}`);
+        navigate(`/chat-online?id=${result.id}${entityQuery}`);
       }
     } catch (error) {
       console.error('Save error:', error);
@@ -192,7 +195,7 @@ const AIAgentBuilder = () => {
       <header className="bg-card border-b border-border px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard?tab=chat-online")} className="shrink-0">
+            <Button variant="ghost" size="icon" onClick={() => navigate(returnToHub)} className="shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="bg-primary/10 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-primary flex items-center gap-2">
