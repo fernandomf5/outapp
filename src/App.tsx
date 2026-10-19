@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -37,8 +37,6 @@ const AgentCustomerAuth = lazy(() => import("./pages/AgentCustomerAuth"));
 const AgentCustomerChat = lazy(() => import("./pages/AgentCustomerChat"));
 const ChatbotCustomerAuth = lazy(() => import("./pages/ChatbotCustomerAuth"));
 const ChatbotCustomerChat = lazy(() => import("./pages/ChatbotCustomerChat"));
-const CalculatorPage = lazy(() => import("./pages/CalculatorPage"));
-const QuickNotesPage = lazy(() => import("./pages/QuickNotesPage"));
 const BriefingPublicPage = lazy(() => import("./pages/BriefingPublicPage"));
 const MembersAreaPublic = lazy(() => import("./pages/MembersAreaPublic"));
 const ChatbotResetPassword = lazy(() => import("./pages/ChatbotResetPassword"));
@@ -115,8 +113,8 @@ const AppContent = () => {
               <Route path="/chatbot-chat/:chatbotId" element={<ChatbotCustomerChat />} />
               <Route path="/chatbot-reset-password/:token" element={<ChatbotResetPassword />} />
               <Route path="/agent-reset-password/:token" element={<AgentResetPassword />} />
-              <Route path="/calculadora" element={<CalculatorPage />} />
-               <Route path="/anotacoes" element={<ProtectedRoute><QuickNotesPage /></ProtectedRoute>} />
+              <Route path="/calculadora" element={<Navigate to="/dashboard" replace />} />
+               <Route path="/anotacoes" element={<Navigate to="/dashboard" replace />} />
           <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
           <Route path="/mindmap/:id" element={<MindMapPresentation />} />
