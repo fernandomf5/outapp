@@ -27,18 +27,20 @@ interface Business {
 }
 
 interface FinancialManagementPanelProps {
+  initialBusinessId?: string;
+  onBack?: () => void;
   teamContext?: {
     adminUserId: string;
     allowedIds: string[];
   };
 }
 
-export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPanelProps) => {
+export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBack }: FinancialManagementPanelProps) => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string>(initialBusinessId ?? '');
   const [selectedBusinessIds, setSelectedBusinessIds] = useState<string[]>([]);
   const [isConsolidatedView, setIsConsolidatedView] = useState(false);
-  const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
+  const [viewMode, setViewMode] = useState<'selection' | 'management'>(initialBusinessId ? 'management' : 'selection');
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingBusinesses, setLoadingBusinesses] = useState(true);
@@ -78,6 +80,15 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       setSelectedMonth((m) => m + 1);
     }
   };
+
+  useEffect(() => {
+    if (initialBusinessId) {
+      setSelectedBusinessId(initialBusinessId);
+      setSelectedBusinessIds([]);
+      setIsConsolidatedView(false);
+      setViewMode('management');
+    }
+  }, [initialBusinessId]);
 
   useEffect(() => {
     loadBusinesses();
@@ -340,7 +351,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={handleBackToSelection}>
+          <Button variant="outline" size="icon" onClick={onBack || handleBackToSelection}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
