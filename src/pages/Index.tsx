@@ -1,1091 +1,373 @@
-import { RichFeatureText } from "@/components/RichFeatureText";
-import { HeroBackground } from "@/components/HeroBackground";
-import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu,
-  Users, Ticket, Link2, Gift, BarChart3, Workflow, Brain, Video, UserPlus, DollarSign, Loader2, ArrowLeftRight
+import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowRight, ArrowUpRight, BadgeCheck, Building2, CalendarDays, Check,
+  CheckSquare2, ChevronDown, Coins, FilePenLine, FileSignature, Fingerprint,
+  LayoutGrid, Link2, LockKeyhole, Menu, MessageCircleMore, Network,
+  Plus, QrCode, ScanLine, ShieldCheck, Sparkles, Store,
+  UserRound, WandSparkles, Workflow, X,
 } from "lucide-react";
-// A biblioteca completa de ícones é carregada sob demanda (ver useEffect abaixo),
-// para não pesar no primeiro carregamento da página inicial.
 import type { LucideIcon } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { FAQSection } from "@/components/FAQSection";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { LanguageSelector } from "@/components/LanguageSelector";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { CookieNotice } from "@/components/CookieNotice";
-import { SocialLinks } from "@/components/SocialLinks";
-import { useTheme } from "next-themes";
-import { CountdownTimer } from "@/components/CountdownTimer";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { SocialLinks } from "@/components/SocialLinks";
+import { CookieNotice } from "@/components/CookieNotice";
 import { VideoCover } from "@/components/VideoCover";
-import { NeonImageFrame } from "@/components/NeonImageFrame";
-import { Feature3DCard } from "@/components/Feature3DCard";
-import { FeatureDescription } from "@/components/FeatureDescription";
-import { TestimonialsCarousel, type Testimonial } from "@/components/TestimonialsCarousel";
-
-import showcaseAsset from "@/assets/out-app-showcase-2.png.asset.json";
-import outAppLogo from "@/assets/out-app-logo.png";
-import heroIconAsset from "@/assets/lion-3d-white.png.asset.json";
-const heroIcon = heroIconAsset.url;
-import logoAsset from "@/assets/logo-outapp-v2.png.asset.json";
 import klicLogoAsset from "@/assets/klic-smart-logo-v3.png.asset.json";
-const logoLion = logoAsset.url;
+import "./outapp-landing.css";
 
-interface Plan {
+type Hue = "cyan" | "violet" | "pink" | "green" | "amber";
+type Module = {
+  id: string;
+  title: string;
+  shortTitle: string;
+  description: string;
+  icon: LucideIcon;
+  hue: Hue;
+};
+type LandingPlan = {
   id: string;
   name: string;
   price: number;
-  description: string | null;
-  features: any;
   plan_type: string;
   duration_days: number;
-  countdown_enabled?: boolean;
-  countdown_ends_at?: string;
-  limited_offer_banner?: string;
-  is_visible?: boolean;
+  description: string | null;
+};
+type PublicPage = { id: string; slug: string; title: string };
+
+const MANAGEMENT: Module[] = [
+  { id: "financeiro", title: "Gestão Financeira", shortTitle: "Financeiro", description: "Controle receitas, despesas, contas e transações de cada negócio.", icon: Coins, hue: "cyan" },
+  { id: "tarefas", title: "Gestão de Tarefas", shortTitle: "Tarefas", description: "Organize seus compromissos de trabalho e acompanhe as entregas.", icon: CheckSquare2, hue: "green" },
+  { id: "agenda", title: "Gestão de Agenda", shortTitle: "Agenda", description: "Planeje eventos, horários e lembretes em um só lugar.", icon: CalendarDays, hue: "violet" },
+  { id: "rotina", title: "Gestão de Rotina", shortTitle: "Rotina", description: "Estruture atividades e tenha mais clareza sobre o seu dia.", icon: Workflow, hue: "pink" },
+];
+
+const UTILITIES: Module[] = [
+  { id: "chat-online", title: "Chat online para seu negócio", shortTitle: "Chat online", description: "Crie seu chat e organize o atendimento no seu site.", icon: MessageCircleMore, hue: "cyan" },
+  { id: "linkbio", title: "Link na bio", shortTitle: "Link na bio", description: "Reúna os seus links em uma página personalizada.", icon: Link2, hue: "violet" },
+  { id: "briefing", title: "Criador de briefing", shortTitle: "Briefing", description: "Colete dados e respostas para iniciar projetos.", icon: FilePenLine, hue: "pink" },
+  { id: "mapa-mental", title: "Criador de mapa mental", shortTitle: "Mapa mental", description: "Organize ideias e conexões de forma visual.", icon: Network, hue: "cyan" },
+  { id: "contratos", title: "Criador de contrato", shortTitle: "Contratos", description: "Prepare e organize documentos contratuais.", icon: FileSignature, hue: "amber" },
+  { id: "aprova-job", title: "Aprova Job", shortTitle: "Aprova Job", description: "Envie trabalhos para revisão e aprovação.", icon: BadgeCheck, hue: "violet" },
+  { id: "tools", title: "Gerador de link Whats", shortTitle: "Link Whats", description: "Gere links de conversa com mensagem personalizada.", icon: MessageCircleMore, hue: "green" },
+  { id: "floating-button", title: "Botão flutuante", shortTitle: "Botão flutuante", description: "Configure botões de contato para o seu site.", icon: WandSparkles, hue: "pink" },
+  { id: "shortlinks", title: "Encurtador de links", shortTitle: "Encurtador", description: "Simplifique e compartilhe endereços longos.", icon: Link2, hue: "cyan" },
+  { id: "qrcode", title: "Criador de QR Code", shortTitle: "QR Code", description: "Gere e personalize códigos para divulgação.", icon: QrCode, hue: "amber" },
+  { id: "scripts", title: "Organizador de script", shortTitle: "Scripts", description: "Crie e organize roteiros e conteúdos.", icon: FilePenLine, hue: "cyan" },
+  { id: "funil-vendas", title: "Organizador de funil e kanban", shortTitle: "Funil e kanban", description: "Visualize etapas, oportunidades e movimentações.", icon: LayoutGrid, hue: "violet" },
+];
+
+const STEPS = [
+  { number: "01", icon: Plus, title: "Cadastre", text: "Crie um espaço para seu negócio ou pessoa, incluindo nome, informações e logo." },
+  { number: "02", icon: Fingerprint, title: "Ative sua esfera", text: "Selecione o cadastro e abra um menu orbital tecnológico, pensado para você." },
+  { number: "03", icon: WandSparkles, title: "Escolha o recurso", text: "Entre em Financeiro, Tarefas, Agenda, Rotina ou Recursos Úteis quando precisar." },
+];
+
+const FAQ = [
+  { question: "Como começo a usar a Out App?", answer: "Crie sua conta e entre na Gestão Livre. Cadastre um negócio ou pessoa e selecione esse cadastro para acessar o painel com o menu em forma de esfera." },
+  { question: "Posso cadastrar mais de um negócio?", answer: "Sim. Na Gestão Livre você pode adicionar negócios e pessoas e alternar entre os cadastros." },
+  { question: "A plataforma funciona no celular?", answer: "Sim. O menu futurista e as áreas da plataforma foram preparados para funcionar em telas de computador e celular." },
+  { question: "Quais recursos existem na nova Out App?", answer: "Gestão Financeira, Gestão de Tarefas, Gestão de Agenda, Gestão de Rotina e os 12 recursos listados nesta página. A disponibilidade de cada ferramenta depende do seu plano." },
+  { question: "Preciso instalar algum programa?", answer: "A Out App é acessada pelo navegador, sem exigir a instalação de um programa para desktop." },
+];
+
+function Price({ plan }: { plan: LandingPlan }) {
+  const formatted = Number(plan.price).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const frequency = plan.plan_type === "monthly" ? "/mês" : plan.plan_type === "annual" ? "/ano" : plan.plan_type === "lifetime" ? " pagamento único" : plan.duration_days ? "/" + plan.duration_days + " dias" : "";
+  return <div className="oa-price">{Number(plan.price) === 0 ? "Grátis" : formatted}<small>{Number(plan.price) !== 0 && frequency}</small></div>;
 }
 
-interface CustomPage {
-  id: string;
-  title: string;
-  content: string;
-  slug: string;
-}
-
-const Index = () => {
-  const navigate = useNavigate();
-  const { t } = useLanguage();
-  const { theme } = useTheme();
-  const { settings: siteSettingsFromHook, isLoading: siteSettingsLoading } = useSiteSettings();
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [customPages, setCustomPages] = useState<CustomPage[]>([]);
-  const [videoUrl, setVideoUrl] = useState<string>("");
-  const [selectedPage, setSelectedPage] = useState<CustomPage | null>(null);
-  const [pageDialogOpen, setPageDialogOpen] = useState(false);
-  const [features, setFeatures] = useState<any[]>([]);
-  const [iconLibrary, setIconLibrary] = useState<Record<string, LucideIcon | undefined> | null>(null);
-  const [siteTitle, setSiteTitle] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [logoLightUrl, setLogoLightUrl] = useState("");
-  const [logoDarkUrl, setLogoDarkUrl] = useState("");
-  const [secondSectionImageUrl, setSecondSectionImageUrl] = useState("");
-  const [footerText, setFooterText] = useState("");
-  const [footerMenus, setFooterMenus] = useState<any[]>([]);
-  const [footerImages, setFooterImages] = useState<string[]>([]);
-  const [socialLinks, setSocialLinks] = useState<any[]>([]);
-  const [headCode, setHeadCode] = useState("");
-  const [footerCode, setFooterCode] = useState("");
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [testimonialsTitle, setTestimonialsTitle] = useState("O que dizem nossos clientes");
-  const [testimonialsSubtitle, setTestimonialsSubtitle] = useState("");
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const featureCarouselRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (features.length <= 1) return;
-
-    const mediaQuery = window.matchMedia("(max-width: 639px)");
-    let intervalId: number | undefined;
-
-    const startAutoSlide = () => {
-      if (!mediaQuery.matches || intervalId) return;
-
-      intervalId = window.setInterval(() => {
-        const container = featureCarouselRef.current;
-        if (!container) return;
-
-        const cards = Array.from(container.children) as HTMLElement[];
-        if (cards.length <= 1) return;
-
-        const containerCenter = container.scrollLeft + container.clientWidth / 2;
-        let currentIndex = 0;
-        let closestDistance = Number.POSITIVE_INFINITY;
-
-        cards.forEach((card, index) => {
-          const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-          const distance = Math.abs(cardCenter - containerCenter);
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            currentIndex = index;
-          }
-        });
-
-        const nextIndex = (currentIndex + 1) % cards.length;
-        const nextCard = cards[nextIndex];
-        const targetLeft =
-          nextCard.offsetLeft - (container.clientWidth - nextCard.offsetWidth) / 2;
-
-        container.scrollTo({
-          left: Math.max(0, targetLeft),
-          behavior: "smooth",
-        });
-      }, 3500);
-    };
-
-    const stopAutoSlide = () => {
-      if (intervalId) {
-        window.clearInterval(intervalId);
-        intervalId = undefined;
-      }
-    };
-
-    const handleMediaChange = () => {
-      stopAutoSlide();
-      startAutoSlide();
-    };
-
-    startAutoSlide();
-    mediaQuery.addEventListener("change", handleMediaChange);
-
-    return () => {
-      stopAutoSlide();
-      mediaQuery.removeEventListener("change", handleMediaChange);
-    };
-  }, [features.length]);
-
-  const [landingSettings, setLandingSettings] = useState({
-    landing_title: "Gestão Livre.<br />Seu negócio no centro de tudo.",
-    hero_title: "Seu negócio. Seu universo de gestão.",
-    hero_subtitle: "Cadastre seu negócio ou pessoa, toque na esfera e abra um universo de gestão financeira, tarefas, agenda, rotina e recursos úteis.",
-    hero_cta_text: "Começar Teste Grátis",
-    video_section_title: "Uma nova forma de trabalhar",
-    video_section_subtitle: "Escolha seu negócio, abra a esfera e acesse somente o que precisa.",
-    features_title: "A gestão do seu negócio em outro nível",
-    features_subtitle: "Quatro áreas de gestão e 12 ferramentas úteis. Tudo organizado em torno do seu negócio.",
-    testimonials_title: "O que dizem nossos clientes",
-    testimonials_subtitle: "",
-    pricing_title: "Planos para Todos os Tamanhos",
-    pricing_subtitle: "Comece com 3 dias grátis e escolha o melhor plano para seu negócio crescer",
-    cta_title: "Pronto para abrir seu universo de gestão?",
-    cta_subtitle: "Uma maneira simples e inteligente de trabalhar, organizar e crescer.",
-    cta_button_text: "Começar Agora - 3 Dias Grátis"
-  });
-
-  // Carrega a biblioteca de ícones apenas depois da primeira renderização.
-  useEffect(() => {
-    let active = true;
-    import("lucide-react")
-      .then((mod) => {
-        if (active) setIconLibrary(mod as unknown as Record<string, LucideIcon | undefined>);
-      })
-      .catch((error) => console.error("Falha ao carregar ícones:", error));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-
-  // Sync from shared hook when loaded
-  useEffect(() => {
-    if (!siteSettingsLoading && siteSettingsFromHook) {
-      setSiteTitle(siteSettingsFromHook.siteTitle);
-      setLogoUrl(siteSettingsFromHook.siteLogoUrl);
-      setLogoLightUrl(siteSettingsFromHook.siteLogoLightUrl);
-      setLogoDarkUrl(siteSettingsFromHook.siteLogoDarkUrl);
-      setFooterText(siteSettingsFromHook.footerText);
-      setFooterMenus(siteSettingsFromHook.footerMenus);
-      setSocialLinks(siteSettingsFromHook.socialLinks);
-    }
-  }, [siteSettingsLoading, siteSettingsFromHook]);
-
-  useEffect(() => {
-    const loadInitialData = async () => {
-      await Promise.all([
-        fetchPlans(),
-        fetchCustomPages(),
-        fetchVideoUrl(),
-        fetchLandingSettings(),
-        fetchFeatures(),
-        fetchTestimonials(),
-        fetchSiteSettings()
-      ]);
-      setInitialLoadComplete(true);
-    };
-    loadInitialData();
-  }, []);
-
-  useEffect(() => {
-    updatePageTitle();
-  }, [siteTitle]);
-
-  // Realtime subscription para atualizar configurações do site
-  useEffect(() => {
-    const channel = supabase
-      .channel('site_settings_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'site_settings',
-          filter: 'key=in.(site_title,site_logo_url,site_logo_light_url,site_logo_dark_url,landing_second_section_image_url)'
-        },
-        () => {
-          fetchSiteSettings();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  // Realtime subscription for plans updates
-  useEffect(() => {
-    const plansChannel = supabase
-      .channel('plans_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'plans' },
-        () => {
-          fetchPlans();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(plansChannel);
-    };
-  }, []);
-
-  const fetchPlans = async () => {
-    const { data, error } = await supabase
-      .from('plans')
-      .select('*')
-      .eq('is_active', true)
-      .eq('is_visible', true)
-      .eq('show_on_landing', true)
-      .order('order_index', { ascending: true });
-    
-    if (!error && data) {
-      setPlans(data);
-    }
-  };
-
-  const fetchCustomPages = async () => {
-    const { data, error } = await supabase
-      .from('custom_pages')
-      .select('id, title, content, slug, show_in_menu, is_active, order_index')
-      .eq('is_active', true)
-      .eq('show_in_menu', true)
-      .order('order_index', { ascending: true });
-    
-    if (!error && data) {
-      setCustomPages(data);
-    }
-  };
-
-  const fetchVideoUrl = async () => {
-    const { data, error } = await supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'landing_video_url')
-      .maybeSingle();
-    
-    if (!error && data) {
-      setVideoUrl(data.value || "");
-    }
-  };
-
-  const fetchLandingSettings = async () => {
-    const keys = Object.keys(landingSettings);
-    const { data, error } = await supabase
-      .from('site_settings')
-      .select('key, value')
-      .in('key', keys);
-
-    if (!error && data) {
-      const newSettings = { ...landingSettings };
-      data.forEach(item => {
-        if (item.key in newSettings) {
-          newSettings[item.key as keyof typeof landingSettings] = item.value || newSettings[item.key as keyof typeof landingSettings];
-        }
-      });
-      setLandingSettings(newSettings);
-    }
-  };
-
-  const fetchFeatures = async () => {
-    // Legacy site_settings may still list retired tools. Publish only the approved catalogue.
-    const approved = getDefaultFeatures();
-    const { data } = await supabase.from('site_settings').select('value').eq('key', 'landing_features').maybeSingle();
-    try {
-      const customized = data?.value ? JSON.parse(data.value) : [];
-      const customList = Array.isArray(customized) ? customized : [];
-      setFeatures(approved.map(feature => {
-        const override = customList.find((item: any) => String(item.title).trim().toLowerCase() === feature.title.toLowerCase());
-        return override ? { ...feature, description: override.description || feature.description } : feature;
-      }));
-    } catch {
-      setFeatures(approved);
-    }
-  };
-
-  const fetchTestimonials = async () => {
-    const { data } = await supabase
-      .from('site_settings')
-      .select('key, value')
-      .in('key', ['landing_testimonials', 'testimonials_title', 'testimonials_subtitle']);
-
-    if (data) {
-      data.forEach((item) => {
-        switch (item.key) {
-          case 'landing_testimonials':
-            try {
-              const parsed = JSON.parse(item.value || '[]');
-              setTestimonials(Array.isArray(parsed) ? parsed : []);
-            } catch (e) {
-              console.error('Error parsing testimonials:', e);
-              setTestimonials([]);
-            }
-            break;
-          case 'testimonials_title':
-            setTestimonialsTitle(item.value || "O que dizem nossos clientes");
-            break;
-          case 'testimonials_subtitle':
-            setTestimonialsSubtitle(item.value || "");
-            break;
-        }
-      });
-    }
-  };
-
-  const fetchSiteSettings = async () => {
-    const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'landing_second_section_image_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links', 'head_code', 'footer_code'];
-    const { data } = await supabase
-      .from('site_settings')
-      .select('key, value')
-      .in('key', keys);
-
-    if (data) {
-      data.forEach(item => {
-        switch(item.key) {
-          case 'site_title':
-            setSiteTitle(item.value || "Automação & Marketing");
-            break;
-          case 'site_logo_url':
-            setLogoUrl(item.value || "");
-            break;
-          case 'site_logo_light_url':
-            setLogoLightUrl(item.value || "");
-            break;
-          case 'site_logo_dark_url':
-            setLogoDarkUrl(item.value || "");
-            break;
-          case 'landing_second_section_image_url':
-            setSecondSectionImageUrl(item.value || "");
-            break;
-          case 'footer_text':
-            setFooterText(item.value || "");
-            break;
-          case 'footer_menus':
-            try {
-              setFooterMenus(JSON.parse(item.value || '[]'));
-            } catch (e) {}
-            break;
-          case 'footer_images':
-            try {
-              setFooterImages(JSON.parse(item.value || '[]'));
-            } catch (e) {}
-            break;
-          case 'social_links':
-            try {
-              setSocialLinks(JSON.parse(item.value || '[]'));
-            } catch (e) {}
-            break;
-          case 'head_code':
-            setHeadCode(item.value || "");
-            break;
-          case 'footer_code':
-            setFooterCode(item.value || "");
-            break;
-        }
-      });
-    }
-  };
-
-  const updatePageTitle = () => {
-    if (siteTitle) {
-      document.title = siteTitle;
-    }
-  };
-
-  const getDefaultFeatures = () => [
-    { icon: "Building2", title: "Gestão Livre", description: "Cadastre seus negócios e pessoas. Acesse cada painel a partir de uma central inteligente." },
-    { icon: "Wallet", title: "Gestão Financeira", description: "Controle entradas, saídas, contas e planejamento de cada negócio." },
-    { icon: "ListTodo", title: "Gestão de Tarefas", description: "Organize entregas e acompanhe tarefas com mais clareza." },
-    { icon: "CalendarDays", title: "Gestão de Agenda", description: "Compromissos, horários e lembretes em um só lugar." },
-    { icon: "Workflow", title: "Gestão de Rotina", description: "Planeje e acompanhe suas atividades diárias." },
-    { icon: "MessageCircle", title: "Chat online para seu negócio", description: "Configure seu chat e atenda os visitantes do seu site." },
-    { icon: "Link2", title: "Link na bio", description: "Monte uma página organizada com seus principais links." },
-    { icon: "ClipboardCheck", title: "Criador de briefing", description: "Colete informações essenciais dos clientes e projetos." },
-    { icon: "Network", title: "Criador de mapa mental", description: "Conecte ideias, tarefas e projetos de forma visual." },
-    { icon: "FileSignature", title: "Criador de contrato", description: "Prepare contratos para seus serviços e negócios." },
-    { icon: "BadgeCheck", title: "Aprova Job", description: "Envie materiais e receba aprovações de clientes." },
-    { icon: "MessageSquare", title: "Gerador de link Whats", description: "Crie links para conversas rápidas no WhatsApp." },
-    { icon: "MousePointerClick", title: "Botão flutuante", description: "Configure botões de contato para seu site." },
-    { icon: "Link", title: "Encurtador de links", description: "Organize URLs longas em links fáceis de compartilhar." },
-    { icon: "QrCode", title: "Criador de QR Code", description: "Gere códigos personalizados para seus materiais." },
-    { icon: "FilePenLine", title: "Organizador de script", description: "Escreva e organize roteiros e conteúdos." },
-    { icon: "LayoutGrid", title: "Organizador de funil e kanban", description: "Visualize oportunidades por etapa e movimente leads." },
-  ];
-
-  const openPageDialog = (page: CustomPage) => {
-    setSelectedPage(page);
-    setPageDialogOpen(true);
-  };
-
-  /**
-   * Resolve o ícone pelo nome salvo no painel do master.
-   * Aceita qualquer ícone da biblioteca Lucide; usa Sparkles como reserva.
-   */
-  const getIconComponent = (iconName: string): LucideIcon => {
-    const candidate = iconName && iconLibrary ? iconLibrary[iconName] : undefined;
-    return typeof candidate === "object" || typeof candidate === "function"
-      ? (candidate as LucideIcon)
-      : Sparkles;
-  };
-
-  const headerPages = customPages;
-
-  const OffCanvasMenu = ({ headerPages, onPageClick }: { headerPages: CustomPage[], onPageClick: (page: CustomPage) => void }) => (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button className="group relative inline-flex items-center gap-1 xs:gap-1.5 sm:gap-2 px-2 xs:px-2.5 sm:px-3 md:px-4 py-1.5 xs:py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-[#0C101B]/10 dark:bg-primary/10 hover:bg-[#0C101B]/20 dark:hover:bg-primary/20 border border-[#0C101B]/50 dark:border-primary/30 hover:border-[#0C101B]/70 dark:hover:border-primary/50 transition-all duration-300 shadow-[0_0_12px_rgba(12,16,27,0.6)] sm:shadow-[0_0_20px_rgba(12,16,27,0.8),0_0_40px_rgba(12,16,27,0.4)] dark:shadow-[0_0_10px_rgba(var(--primary-rgb),0.2)] sm:dark:shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] hover:shadow-[0_0_20px_rgba(12,16,27,0.8)] sm:hover:shadow-[0_0_30px_rgba(12,16,27,1),0_0_60px_rgba(12,16,27,0.6)] dark:hover:shadow-[0_0_18px_rgba(var(--primary-rgb),0.4)] sm:dark:hover:shadow-[0_0_25px_rgba(var(--primary-rgb),0.5)]">
-          <Menu className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5 text-[#0C101B] dark:text-primary" />
-          <span className="text-[10px] xs:text-xs sm:text-sm font-bold text-[#0C101B] dark:text-primary hidden xs:inline">Menu</span>
-        </button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-[88vw] xs:w-[380px] sm:w-[420px] md:w-[460px] lg:w-[500px] p-0 flex flex-col bg-gradient-to-b from-background via-background to-background/95 border-l border-primary/20">
-        {/* Header compacto com Logo pequeno */}
-        <SheetHeader className="px-4 sm:px-5 py-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="flex items-center gap-2.5">
-            <img src={logoUrl || logoLightUrl || logoDarkUrl || logoLion} alt="Logo" className="h-8 w-8 object-contain" />
-            <SheetTitle className="text-base sm:text-lg font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              {t('menu')}
-            </SheetTitle>
-          </div>
-        </SheetHeader>
-        
-        {/* Menu Items */}
-        <ScrollArea className="flex-1">
-          <nav className="flex flex-col gap-1.5 p-4 sm:p-5">
-            <a 
-              href="#" 
-              className="group flex items-center gap-3 px-4 py-3.5 rounded-xl text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all duration-200"
-            >
-              <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(var(--primary-rgb),0.7)] transition-all duration-200" />
-              <span className="text-base sm:text-lg font-semibold">{t('home')}</span>
-            </a>
-            <a 
-              href="#recursos" 
-              className="group flex items-center gap-3 px-4 py-3.5 rounded-xl text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all duration-200"
-            >
-              <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(var(--primary-rgb),0.7)] transition-all duration-200" />
-              <span className="text-base sm:text-lg font-semibold">{t('features')}</span>
-            </a>
-            <a 
-              href="#planos" 
-              className="group flex items-center gap-3 px-4 py-3.5 rounded-xl text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all duration-200"
-            >
-              <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(var(--primary-rgb),0.7)] transition-all duration-200" />
-              <span className="text-base sm:text-lg font-semibold">{t('pricing')}</span>
-            </a>
-            <a 
-              href="#faq" 
-              className="group flex items-center gap-3 px-4 py-3.5 rounded-xl text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all duration-200"
-            >
-              <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(var(--primary-rgb),0.7)] transition-all duration-200" />
-              <span className="text-base sm:text-lg font-semibold">{t('faq')}</span>
-            </a>
-            {headerPages.map((page) => (
-              <Link
-                key={page.id}
-                to={`/${page.slug}`}
-                className="group flex items-center gap-3 px-4 py-3.5 rounded-xl text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all duration-200"
-              >
-                <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(var(--primary-rgb),0.7)] transition-all duration-200" />
-                <span className="text-base sm:text-lg font-semibold">{page.title}</span>
-              </Link>
-            ))}
-          </nav>
-        </ScrollArea>
-        
-        {/* Footer */}
-        <div className="p-3 xs:p-4 sm:p-5 border-t border-border/50 space-y-3 xs:space-y-4 bg-muted/30">
-          <div className="flex justify-center">
-            <SocialLinks links={socialLinks} horizontal />
-          </div>
-          
-          <div className="flex flex-col gap-1.5 xs:gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/auth")} 
-              className="w-full h-9 xs:h-10 sm:h-11 rounded-lg sm:rounded-xl text-sm font-medium border-primary/30 hover:border-primary/50 hover:bg-primary/5"
-            >
-              {t('login')}
-            </Button>
-            <Button 
-              onClick={() => navigate("/auth")} 
-              className="gradient-primary shadow-glow w-full h-9 xs:h-10 sm:h-11 rounded-lg sm:rounded-xl text-sm font-medium animate-cta-pulse"
-            >
-              {t('start_free')}
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-center gap-2 xs:gap-3 pt-1 xs:pt-2">
-            <ThemeToggle />
-            <LanguageSelector />
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-
-  // Inject custom head and footer codes
-  useEffect(() => {
-    const injectedElements: HTMLElement[] = [];
-    
-    // Inject head code
-    if (headCode) {
-      const headDiv = document.createElement('div');
-      headDiv.innerHTML = headCode;
-      const scripts = headDiv.querySelectorAll('script');
-      const styles = headDiv.querySelectorAll('style, link');
-      const metas = headDiv.querySelectorAll('meta');
-      
-      // Inject meta tags
-      metas.forEach(meta => {
-        const newMeta = meta.cloneNode(true) as HTMLElement;
-        document.head.appendChild(newMeta);
-        injectedElements.push(newMeta);
-      });
-      
-      // Inject styles
-      styles.forEach(style => {
-        const newStyle = style.cloneNode(true) as HTMLElement;
-        document.head.appendChild(newStyle);
-        injectedElements.push(newStyle);
-      });
-      
-      // Inject scripts with proper execution
-      scripts.forEach(script => {
-        const newScript = document.createElement('script');
-        
-        // Copy all attributes
-        Array.from(script.attributes).forEach(attr => {
-          newScript.setAttribute(attr.name, attr.value);
-        });
-        
-        if (script.src) {
-          newScript.src = script.src;
-        } else {
-          newScript.textContent = script.textContent;
-        }
-        
-        document.head.appendChild(newScript);
-        injectedElements.push(newScript);
-      });
-    }
-
-    // Inject footer code
-    if (footerCode) {
-      const footerDiv = document.createElement('div');
-      footerDiv.innerHTML = footerCode;
-      const elements = footerDiv.children;
-      
-      Array.from(elements).forEach(element => {
-        if (element.tagName === 'SCRIPT') {
-          const script = element as HTMLScriptElement;
-          const newScript = document.createElement('script');
-          
-          // Copy all attributes
-          Array.from(script.attributes).forEach(attr => {
-            newScript.setAttribute(attr.name, attr.value);
-          });
-          
-          if (script.src) {
-            newScript.src = script.src;
-          } else {
-            newScript.textContent = script.textContent;
-          }
-          
-          document.body.appendChild(newScript);
-          injectedElements.push(newScript);
-        } else {
-          const newElement = element.cloneNode(true) as HTMLElement;
-          document.body.appendChild(newElement);
-          injectedElements.push(newElement);
-        }
-      });
-    }
-
-    // Cleanup function to remove injected elements
-    return () => {
-      injectedElements.forEach(element => {
-        element.remove();
-      });
-    };
-  }, [headCode, footerCode]);
-
-  // Show loading screen while initial data is loading
-  if (siteSettingsLoading || !initialLoadComplete) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-primary animate-spin" />
-      </div>
-    );
-  }
+function LandingOrb({ onStart, onResources }: { onStart: () => void; onResources: () => void }) {
+  const [expanded, setExpanded] = useState(true);
+  const [selection, setSelection] = useState("financeiro");
+  const active = MANAGEMENT.find((module) => module.id === selection) ?? MANAGEMENT[0];
+  const ActiveIcon = active.icon;
 
   return (
-    <div className="min-h-screen bg-background safe-area-inset">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border safe-area-inset">
-        <div className="container mx-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-2 xs:py-2.5 sm:py-3 md:py-4">
-          <div className="flex items-center justify-between gap-2">
-            {/* Logo */}
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-3 min-w-0 flex-shrink">
-              {(logoLightUrl || logoDarkUrl) ? (
-                <img 
-                  src={theme === 'dark' ? (logoDarkUrl || logoUrl) : (logoLightUrl || logoUrl)} 
-                  alt={siteTitle || "Logo"} 
-                  style={{ height: `${siteSettingsFromHook.siteLogoSize}px` }}
-                  className="w-auto max-w-[38vw] object-contain flex-shrink-0 transition-[height] duration-300 sm:max-w-[44vw]"
-                />
-              ) : logoUrl ? (
-                <img 
-                  src={logoUrl} 
-                  alt={siteTitle || "Logo"} 
-                  style={{ height: `${siteSettingsFromHook.siteLogoSize}px` }}
-                  className="w-auto max-w-[38vw] object-contain flex-shrink-0 transition-[height] duration-300 sm:max-w-[44vw]"
-                />
-              ) : (
-                <img
-                  src={outAppLogo}
-                  alt="Out App"
-                  style={{ height: `${siteSettingsFromHook.siteLogoSize}px` }}
-                  className="w-auto max-w-[38vw] object-contain flex-shrink-0 transition-[height] duration-300 sm:max-w-[44vw]"
-                />
-              )}
-            </div>
-            
-            {/* Controls together */}
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
-              <div className="hidden xs:flex items-center gap-1 sm:gap-2">
-                <ThemeToggle />
-                <LanguageSelector />
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/auth")}
-                className="h-7 xs:h-8 sm:h-9 md:h-10 px-2 xs:px-2.5 sm:px-3 md:px-4 rounded-md sm:rounded-lg md:rounded-xl text-[10px] xs:text-xs sm:text-sm font-semibold active:scale-95 transition-transform whitespace-nowrap"
-              >
-                <span className="xs:hidden">Entrar</span>
-                <span className="hidden xs:inline sm:hidden">Entrar</span>
-                <span className="hidden sm:inline">Entrar/Cadastre-se</span>
-              </Button>
-              {/* Off-canvas Menu - All screen sizes */}
-              <OffCanvasMenu headerPages={headerPages} onPageClick={openPageDialog} />
-            </div>
+    <div className="oa-holo" aria-label="Demonstração visual da central de gestão">
+      <div className="oa-holo-topline"><span><span className="oa-online-dot" /> SISTEMA ATIVO</span><span>PAINEL / GESTÃO LIVRE</span></div>
+      <div className={"oa-orbit " + (expanded ? "oa-orbit-open" : "oa-orbit-closed")}>
+        <div className="oa-orbit-grid" aria-hidden="true" />
+        <div className="oa-orbit-ring oa-orbit-ring-a" aria-hidden="true" />
+        <div className="oa-orbit-ring oa-orbit-ring-b" aria-hidden="true" />
+        <button className="oa-orbit-core" aria-label={expanded ? "Recolher opções do exemplo" : "Mostrar opções do exemplo"} aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
+          <span className="oa-orbit-core-light" aria-hidden="true" />
+          <Store size={35} strokeWidth={1.7} aria-hidden="true" />
+          <strong>SEU NEGÓCIO</strong>
+          <small>{expanded ? "TOQUE PARA FECHAR" : "TOQUE PARA ABRIR"}</small>
+        </button>
+        {MANAGEMENT.map((module, index) => {
+          const Icon = module.icon;
+          return (
+            <button
+              key={module.id}
+              className={"oa-orbit-choice oa-orbit-pos-" + index + " oa-hue-" + module.hue + (selection === module.id ? " oa-orbit-selected" : "")}
+              style={{ "--order": index } as CSSProperties}
+              onClick={() => setSelection(module.id)}
+              aria-pressed={selection === module.id}
+              tabIndex={expanded ? 0 : -1}
+              aria-hidden={!expanded}
+            >
+              <Icon size={26} strokeWidth={1.8} aria-hidden="true" />
+              <span>{module.shortTitle}</span>
+            </button>
+          );
+        })}
+        <button
+          className="oa-orbit-choice oa-orbit-pos-4 oa-hue-violet oa-orbit-resources"
+          style={{ "--order": 4 } as CSSProperties}
+          onClick={onResources}
+          tabIndex={expanded ? 0 : -1}
+          aria-hidden={!expanded}
+        >
+          <WandSparkles size={26} strokeWidth={1.8} aria-hidden="true" /><span>Recursos Úteis</span>
+        </button>
+      </div>
+      <div className="oa-holo-bottom">
+        <div className="oa-holo-current">
+          <span className={"oa-holo-current-icon oa-hue-" + active.hue}><ActiveIcon size={20} /></span>
+          <span><strong>{active.title}</strong><small>{active.description}</small></span>
+        </div>
+        <button className="oa-text-link" onClick={onStart}>Acessar Out App <ArrowUpRight size={16} /></button>
+      </div>
+    </div>
+  );
+}
+
+function VisualWorkspace() {
+  return (
+    <div className="oa-mini-workspace" aria-label="Ilustração do fluxo de cadastro e seleção de negócios">
+      <div className="oa-mini-browserbar"><i /><i /><i /><span>outapp.com.br / gestão livre</span><ShieldCheck size={15} /></div>
+      <div className="oa-mini-inner">
+        <div className="oa-mini-list">
+          <span className="oa-eyebrow">GESTÃO LIVRE</span>
+          <h3>Seus cadastros</h3>
+          <div className="oa-mini-entity oa-mini-active"><Store size={17} /><span>Seu negócio<small>Negócio</small></span><ArrowRight size={15}/></div>
+          <div className="oa-mini-entity"><UserRound size={17}/><span>Seu perfil<small>Pessoa física</small></span><ArrowRight size={15}/></div>
+          <div className="oa-mini-add"><Plus size={14}/> Cadastrar novo</div>
+        </div>
+        <div className="oa-mini-scene">
+          <div className="oa-mini-rings"><span><Store size={32} /><b>SEU NEGÓCIO</b></span></div>
+          <div className="oa-mini-tags"><span><Coins size={13} /> Financeiro</span><span><CalendarDays size={13} /> Agenda</span><span><WandSparkles size={13} /> Recursos</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const LEGAL_RE = /termos|privacidade|lgpd|pol[ií]tica|contato|sobre|ajuda|suporte|legal|reembolso/i;
+
+export default function Index() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { settings } = useSiteSettings();
+  const [mobileMenu, setMobileMenu] = useState(false);
+  const [plans, setPlans] = useState<LandingPlan[]>([]);
+  const [legalPages, setLegalPages] = useState<PublicPage[]>([]);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [scriptCode, setScriptCode] = useState<{ head: string; footer: string }>({ head: "", footer: "" });
+
+  useEffect(() => {
+    document.title = "Out App | Gestão Livre — seu negócio no centro de tudo";
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (meta) meta.content = "Gestão Livre Out App: cadastre seu negócio, abra a esfera futurista e organize financeiro, tarefas, agenda, rotina e 12 ferramentas úteis.";
+  }, []);
+
+  useEffect(() => {
+    let live = true;
+    const load = async () => {
+      const [plansResult, pagesResult, configResult] = await Promise.all([
+        supabase.from("plans").select("id,name,price,plan_type,duration_days,description").eq("is_active", true).eq("is_visible", true).eq("show_on_landing", true).order("order_index", { ascending: true }),
+        supabase.from("custom_pages").select("id,title,slug").eq("is_active", true).order("order_index", { ascending: true }),
+        supabase.from("site_settings").select("key,value").in("key", ["landing_video_url", "head_code", "footer_code"]),
+      ]);
+      if (!live) return;
+      if (plansResult.data) setPlans(plansResult.data as LandingPlan[]);
+      if (pagesResult.data) setLegalPages((pagesResult.data as PublicPage[]).filter((p) => LEGAL_RE.test(p.title + " " + p.slug)));
+      if (configResult.data) {
+        const values = Object.fromEntries(configResult.data.map((item) => [item.key, item.value || ""]));
+        setVideoUrl(values.landing_video_url || "");
+        setScriptCode({ head: values.head_code || "", footer: values.footer_code || "" });
+      }
+    };
+    void load();
+    return () => { live = false; };
+  }, []);
+
+  // Preserve the existing site's administrator-configured tags/pixels.
+  useEffect(() => {
+    const injected: Element[] = [];
+    const appendMarkup = (markup: string, location: HTMLElement) => {
+      if (!markup.trim()) return;
+      const template = document.createElement("template");
+      template.innerHTML = markup;
+      for (const node of Array.from(template.content.childNodes)) {
+        if (!(node instanceof Element)) continue;
+        if (node.tagName === "SCRIPT") {
+          const script = document.createElement("script");
+          for (const attribute of Array.from(node.attributes)) script.setAttribute(attribute.name, attribute.value);
+          script.textContent = node.textContent;
+          location.appendChild(script);
+          injected.push(script);
+        } else {
+          const copy = node.cloneNode(true) as Element;
+          location.appendChild(copy);
+          injected.push(copy);
+        }
+      }
+    };
+    appendMarkup(scriptCode.head, document.head);
+    appendMarkup(scriptCode.footer, document.body);
+    return () => injected.forEach((node) => node.remove());
+  }, [scriptCode.head, scriptCode.footer]);
+
+  useEffect(() => {
+    if (!mobileMenu) return;
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setMobileMenu(false); };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [mobileMenu]);
+
+  const destination = user ? "/dashboard" : "/auth";
+  const goToApp = () => navigate(destination);
+  const scrollTo = (id: string) => {
+    setMobileMenu(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const footerLegal = useMemo(() => {
+    const existing = new Set<string>();
+    return legalPages.filter((page) => {
+      if (existing.has(page.slug)) return false;
+      existing.add(page.slug);
+      return true;
+    });
+  }, [legalPages]);
+
+  return (
+    <div className="outapp-landing">
+      <div className="oa-backdrop" aria-hidden="true" />
+      <header className="oa-header">
+        <div className="oa-header-inner">
+          <button className="oa-logo" onClick={() => scrollTo("inicio")} aria-label="Out App - ir ao início">
+            <span className="oa-logo-mark" aria-hidden="true" /><span>Out <strong>App</strong></span>
+          </button>
+          <nav className="oa-nav" aria-label="Navegação">
+            <a href="#como-funciona">Como funciona</a><a href="#gestao">Gestão Livre</a><a href="#recursos">Recursos</a><a href="#planos">Planos</a><a href="#duvidas">Dúvidas</a>
+          </nav>
+          <div className="oa-header-actions">
+            <button className="oa-header-login" onClick={goToApp}>{user ? "Meu painel" : "Entrar"}</button>
+            <button className="oa-btn oa-btn-primary oa-top-cta" onClick={goToApp}>{user ? "Abrir painel" : "Começar agora"} <ArrowUpRight size={16} /></button>
+            <button className="oa-menu-trigger" onClick={() => setMobileMenu(true)} aria-label="Abrir menu de navegação" aria-expanded={mobileMenu}><Menu size={22}/></button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section id="inicio" className="pt-24 xs:pt-28 sm:pt-32 md:pt-32 lg:pt-36 3xl:pt-44 pb-16 xs:pb-18 sm:pb-20 md:pb-22 lg:pb-24 3xl:pb-32 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
-        <HeroBackground />
-        
-        
-        <div className="container mx-auto text-center text-white relative z-10 max-w-5xl 3xl:max-w-7xl">
-          <div className="hero-lion-wrap inline-block mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8 [perspective:900px]">
-            <img src={heroIcon} alt="Out App" className="hero-lion-spin w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 3xl:w-52 3xl:h-52 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.35)]" />
-          </div>
-
-          
-          <h1 
-            className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl 3xl:text-7xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 animate-fade-in leading-tight px-1 xs:px-2 sm:px-4 md:px-8 lg:px-12"
-            dangerouslySetInnerHTML={{ __html: "Gestão Livre.<br />Seu negócio no centro de tudo." }}
-          />
-
-          {videoUrl && (
-            <div className="mx-auto mb-4 w-full max-w-3xl px-1 xs:mb-5 sm:mb-6 md:mb-8">
-              <VideoCover videoUrl={videoUrl} logoUrl={logoUrl || undefined} />
-            </div>
+      {mobileMenu && <div className="oa-mobile-overlay">
+        <button className="oa-mobile-backdrop" aria-label="Fechar navegação" onClick={() => setMobileMenu(false)} />
+        <nav className="oa-mobile-drawer" aria-label="Navegação mobile">
+          <div className="oa-mobile-drawer-top"><div className="oa-logo"><span className="oa-logo-mark" /><span>Out <strong>App</strong></span></div><button onClick={() => setMobileMenu(false)} aria-label="Fechar menu"><X /></button></div>
+          {[["inicio", "Início"], ["como-funciona", "Como funciona"], ["gestao", "Gestão Livre"], ["recursos", "Recursos"], ["planos", "Planos"], ["duvidas", "Dúvidas"]].map(([id, title]) =>
+            <button key={id} onClick={() => scrollTo(id)}>{title}<ArrowRight size={17}/></button>
           )}
-          
-          <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl mb-4 xs:mb-5 sm:mb-6 md:mb-8 text-white/90 max-w-xs xs:max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl 3xl:max-w-5xl mx-auto animate-fade-in leading-relaxed px-1">
-            Cadastre um negócio ou uma pessoa e abra um painel futurista com suas ferramentas organizadas ao redor de uma esfera interativa.
-          </p>
-          
-          <div className="flex flex-col xs:flex-col sm:flex-row gap-2 xs:gap-3 sm:gap-4 justify-center animate-scale-in max-w-xs xs:max-w-sm sm:max-w-none mx-auto px-1">
-            <Button 
-              size="lg" 
-              onClick={() => navigate("/auth")}
-              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl px-4 xs:px-5 sm:px-6 md:px-8 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform font-semibold animate-cta-pulse"
-            >
-              {landingSettings.hero_cta_text}
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-primary text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl px-4 xs:px-5 sm:px-6 md:px-8 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-all font-semibold"
-              onClick={() => document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Ver Recursos
-            </Button>
+          <button className="oa-btn oa-btn-primary" onClick={goToApp}>{user ? "Abrir meu painel" : "Criar minha conta"} <ArrowUpRight size={17}/></button>
+        </nav>
+      </div>}
+
+      <main>
+        <section id="inicio" className="oa-hero oa-wrap">
+          <div className="oa-hero-copy">
+            <div className="oa-kicker"><span className="oa-online-dot" /> NOVA ERA DA GESTÃO LIVRE <Sparkles size={15} /></div>
+            <h1>Seu negócio no <span>centro de tudo.</span></h1>
+            <p className="oa-hero-lede">Uma nova forma de organizar sua vida e seus negócios. Cadastre, toque na esfera e acesse suas ferramentas em um universo futurista.</p>
+            <div className="oa-hero-actions"><button className="oa-btn oa-btn-primary oa-btn-large" onClick={goToApp}>Explorar Out App <ArrowRight size={19}/></button><button className="oa-btn oa-btn-ghost oa-btn-large" onClick={() => scrollTo("como-funciona")}>Veja como funciona <ChevronDown size={17}/></button></div>
+            <div className="oa-hero-trust"><span><Check size={15} /> Negócios e pessoas</span><span><Check size={15} /> Desktop e celular</span><span><Check size={15} /> Ferramentas em um só lugar</span></div>
           </div>
-          
-          <div className="mt-4 xs:mt-5 sm:mt-6 md:mt-8 lg:mt-10 flex flex-wrap items-center justify-center gap-2 xs:gap-3 sm:gap-4 md:gap-6 text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg 3xl:text-xl px-1">
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2">
-              <CheckCircle2 className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 flex-shrink-0" />
-              <span className="font-medium whitespace-nowrap">3 dias grátis</span>
-            </div>
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2">
-              <CheckCircle2 className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 flex-shrink-0" />
-              <span className="font-medium whitespace-nowrap">Sem cartão</span>
-            </div>
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2">
-              <CheckCircle2 className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 flex-shrink-0" />
-              <span className="font-medium whitespace-nowrap">Cancele quando quiser</span>
-            </div>
-          </div>
-        </div>
-      </section>
+          <LandingOrb onStart={goToApp} onResources={() => scrollTo("recursos")} />
+          <div className="oa-hero-scroll">DESLIZE PARA EXPLORAR <span /></div>
+        </section>
 
+        <section id="como-funciona" className="oa-section oa-wrap">
+          <div className="oa-section-heading oa-center"><span className="oa-eyebrow">01 / UMA NOVA EXPERIÊNCIA</span><h2>Menos menus. <em>Mais possibilidades.</em></h2><p>Você decide quem quer gerenciar. A Out App organiza o resto, sem jogar dezenas de ferramentas na sua frente.</p></div>
+          <div className="oa-steps">{STEPS.map(({ number, icon: Icon, title, text }) => <article className="oa-step oa-glass" key={number}><div className="oa-step-top"><span>{number}</span><Icon size={27} strokeWidth={1.6}/></div><h3>{title}</h3><p>{text}</p><div className="oa-step-progress" /></article>)}</div>
+        </section>
 
-      <section className="relative bg-[#050f24] border-y border-cyan-500/20 px-4 py-14 text-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8"><span className="text-cyan-400 tracking-[.25em] text-xs font-bold">GESTÃO LIVRE</span><h2 className="text-2xl sm:text-4xl font-bold mt-3">Simples de começar. Incrível de usar.</h2></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="rounded-2xl border border-cyan-400/30 bg-sky-950/40 p-6"><div className="text-cyan-400 text-xs font-extrabold mb-3">01 / CADASTRE</div><h3 className="text-xl font-bold mb-2">Negócio ou pessoa</h3><p className="text-slate-300 text-sm">Nome, descrição e identidade visual em poucos passos.</p></div>
-            <div className="rounded-2xl border border-violet-400/30 bg-indigo-950/40 p-6"><div className="text-violet-400 text-xs font-extrabold mb-3">02 / SELECIONE</div><h3 className="text-xl font-bold mb-2">Sua esfera de gestão</h3><p className="text-slate-300 text-sm">Um painel orbital moderno que coloca você no comando.</p></div>
-            <div className="rounded-2xl border border-cyan-400/30 bg-sky-950/40 p-6"><div className="text-cyan-400 text-xs font-extrabold mb-3">03 / USE</div><h3 className="text-xl font-bold mb-2">Somente o que importa</h3><p className="text-slate-300 text-sm">Quatro módulos principais e uma central de ferramentas úteis.</p></div>
-          </div>
-        </div>
-      </section>
-
-      {/* Showcase Section */}
-      <section id="sobre" className="py-16 xs:py-20 sm:py-24 md:py-28 lg:py-32 3xl:py-40 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30 flex items-center justify-center overflow-hidden">
-        <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px] flex flex-col items-center justify-center w-full">
-          <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-2">
-            <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 leading-tight">
-              {landingSettings.video_section_title}
-            </h2>
-            <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl text-muted-foreground max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
-              {landingSettings.video_section_subtitle}
-            </p>
-          </div>
-
-          <NeonImageFrame
-            src={secondSectionImageUrl || showcaseAsset.url}
-            alt="Painel da Out App com todos os recursos da plataforma em um só lugar"
-            className="max-w-5xl 3xl:max-w-6xl"
-          />
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <TestimonialsCarousel
-        testimonials={testimonials}
-        title={testimonialsTitle || landingSettings.testimonials_title}
-        subtitle={testimonialsSubtitle || landingSettings.testimonials_subtitle}
-      />
-
-      {/* Features Section */}
-      <section id="recursos" className="relative overflow-hidden py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-background">
-        {/* Ambient glow background */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div className="features-glow-a absolute -top-24 left-[8%] w-[26rem] h-[26rem] rounded-full bg-primary/25 blur-[120px]" />
-          <div className="features-glow-b absolute top-1/3 right-[4%] w-[30rem] h-[30rem] rounded-full bg-primary/20 blur-[140px]" />
-          <div className="features-glow-c absolute -bottom-32 left-1/3 w-[28rem] h-[28rem] rounded-full bg-accent/20 blur-[130px]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(var(--background))_88%)]" />
-        </div>
-        <div className="relative z-10 container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px]">
-
-          <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-1">
-            <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 3xl:text-6xl font-bold mb-2 xs:mb-3 sm:mb-4 md:mb-5 leading-tight">
-              Uma nova forma de gerir seu negócio
-            </h2>
-            <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl text-muted-foreground max-w-xs xs:max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
-              Gestão financeira, tarefas, agenda, rotina e 12 recursos úteis. Sem excesso de menus.
-            </p>
-          </div>
-
-          <div className="sm:hidden flex items-center justify-center gap-2 mb-3 px-3 text-xs font-semibold text-primary animate-pulse">
-            <ArrowLeftRight className="w-4 h-4 shrink-0" />
-            <span>Deslize para o lado para ver todos os recursos</span>
-          </div>
-          
-          <div
-            ref={featureCarouselRef}
-            className="features-3d flex sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-7 max-w-none sm:max-w-3xl md:max-w-4xl lg:max-w-6xl 3xl:max-w-[2200px] mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none scroll-smooth overscroll-x-contain touch-pan-x scroll-px-[7vw] px-[7vw] sm:px-0 pb-3 sm:pb-0 -mx-2 xs:-mx-3 sm:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {features.map((feature, index) => {
-              const Icon = getIconComponent(feature.icon);
-              return (
-                <Feature3DCard
-                  key={feature.id || index}
-                  className="w-[86vw] max-w-[340px] shrink-0 snap-center snap-always p-3 xs:p-3.5 sm:w-auto sm:max-w-none sm:shrink sm:snap-align-none sm:p-4 md:p-5 lg:p-6 xl:p-8 3xl:p-10 rounded-xl sm:rounded-2xl overflow-hidden"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className="card-3d-icon bg-primary/10 w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 3xl:w-16 3xl:h-16 rounded-md xs:rounded-lg sm:rounded-lg md:rounded-xl flex items-center justify-center mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 lg:mb-5">
-                    <Icon className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 3xl:w-8 3xl:h-8 text-primary" />
-                  </div>
-                  <h3 className="card-3d-layer text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl font-bold mb-1 xs:mb-1.5 sm:mb-2 md:mb-3 leading-tight">{feature.title}</h3>
-                  <FeatureDescription text={feature.description} />
-
-                </Feature3DCard>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="planos" className="py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-muted/30">
-        <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-[1400px] 3xl:max-w-[2000px]">
-          <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-1">
-            <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 3xl:text-6xl font-bold mb-2 xs:mb-3 sm:mb-4 md:mb-5 leading-tight">
-              {landingSettings.pricing_title}
-            </h2>
-            <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl text-muted-foreground max-w-xs xs:max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
-              {landingSettings.pricing_subtitle}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-sm xs:max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto">
-            {plans.map((plan) => {
-              const isAnnual = plan.plan_type === 'annual';
-              const isPopular = isAnnual || (plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150);
-              const features = Array.isArray(plan.features) ? plan.features : [];
-              const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Date(plan.countdown_ends_at) > new Date();
-              const monthlyEquivalent = isAnnual && plan.price > 0 ? plan.price / 12 : null;
-              
-              return (
-                <div
-                  key={plan.id}
-                  className={`group relative bg-card p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 3xl:p-10 rounded-lg xs:rounded-xl sm:rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1.5 ${
-                    isPopular 
-                      ? 'plan-card-featured border-primary bg-gradient-to-b from-primary/[0.07] via-card to-card sm:scale-[1.03] z-10' 
-                      : 'border-primary/30 hover:border-primary/70 hover:shadow-[0_0_30px_-8px_hsl(var(--primary)/0.5)]'
-                  }`}
-                >
-                  {/* Top accent line */}
-                  <div className={`pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent ${isPopular ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} transition-opacity`} />
-
-                  {isPopular && (
-                    <div className="absolute -top-3 sm:-top-3.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] xs:text-xs sm:text-sm font-bold whitespace-nowrap shadow-[0_0_20px_-2px_hsl(var(--primary)/0.8)]">
-                      {isAnnual ? '★ Melhor Custo-Benefício' : 'Mais Popular'}
-                    </div>
-                  )}
-
-                  
-                  {isOfferActive && (
-                    <div className="mb-2 xs:mb-3 sm:mb-4 p-2 xs:p-2.5 sm:p-3 bg-destructive/10 border border-destructive/20 rounded-md xs:rounded-lg sm:rounded-xl text-center">
-                      {plan.limited_offer_banner && (
-                        <p className="text-[10px] xs:text-xs sm:text-sm font-semibold text-destructive mb-1">
-                          {plan.limited_offer_banner}
-                        </p>
-                      )}
-                      <CountdownTimer 
-                        endDate={plan.countdown_ends_at!} 
-                        className="text-destructive"
-                        onExpire={() => {
-                          setPlans(prev => prev.map(p => 
-                            p.id === plan.id 
-                              ? { ...p, countdown_enabled: false } 
-                              : p
-                          ));
-                        }}
-                      />
-                    </div>
-                  )}
-                  
-                  <div className="mb-3 xs:mb-4 sm:mb-5 lg:mb-6">
-                    <h3 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold mb-1 xs:mb-2 sm:mb-3">{plan.name}</h3>
-                    <p className="text-muted-foreground text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg line-clamp-2">{plan.description}</p>
-                  </div>
-                  
-                  <div className="mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-                    <span className={`text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold ${isPopular ? 'text-primary' : ''}`}>
-                      {plan.price === 0 ? 'Grátis' : `R$ ${Number(plan.price).toFixed(2).replace('.', ',')}`}
-                    </span>
-                    {plan.price > 0 && (
-                      <span className="text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground">
-                        /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : plan.duration_days + ' dias'}
-                      </span>
-                    )}
-                    {monthlyEquivalent !== null && (
-                      <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[10px] xs:text-xs sm:text-sm font-semibold text-primary">
-                        sai a R$ {monthlyEquivalent.toFixed(2).replace('.', ',')} o mês
-                      </div>
-                    )}
-                  </div>
-
-                  
-                  <ul className="space-y-1.5 xs:space-y-2 sm:space-y-3">
-                    {features.map((feature: string, featureIndex: number) => (
-                      <li key={featureIndex} className="flex items-start gap-1.5 xs:gap-2 sm:gap-3">
-                        <CheckCircle2 className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-primary flex-shrink-0 mt-0.5" />
-                        <RichFeatureText html={feature} className="text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg leading-tight" />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="text-center mt-5 xs:mt-6 sm:mt-8 md:mt-10 lg:mt-14 px-1">
-            <p className="text-[10px] xs:text-xs sm:text-sm md:text-base text-muted-foreground mb-2 xs:mb-3 sm:mb-4 leading-relaxed">
-              Teste todas as funcionalidades por 3 dias sem compromisso. Sem cartão de crédito.
-            </p>
-            <Button 
-              size="lg"
-              onClick={() => navigate("/auth")}
-              className="gradient-primary shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl px-4 xs:px-5 sm:px-6 md:px-8 lg:px-12 py-3 xs:py-3.5 sm:py-4 md:py-5 lg:py-6 active:scale-95 transition-transform w-full sm:w-auto max-w-xs sm:max-w-md font-semibold animate-cta-pulse"
-            >
-              Começar Teste Grátis - 3 Dias
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <FAQSection hideSupportCTA />
-
-      {/* CTA Section */}
-      <section id="comecar" className="py-6 xs:py-8 sm:py-10 md:py-14 lg:py-18 3xl:py-24 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 gradient-hero relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-5 xs:top-10 right-5 xs:right-10 w-24 xs:w-32 sm:w-40 md:w-56 lg:w-72 h-24 xs:h-32 sm:h-40 md:h-56 lg:h-72 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-5 xs:bottom-10 left-5 xs:left-10 w-32 xs:w-48 sm:w-56 md:w-72 lg:w-88 h-32 xs:h-48 sm:h-56 md:h-72 lg:h-88 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        </div>
-        
-        <div className="container mx-auto text-center text-white relative z-10 max-w-sm xs:max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl 3xl:max-w-6xl px-1">
-          <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 3xl:text-5xl font-bold mb-2 xs:mb-2.5 sm:mb-3 md:mb-5 leading-tight">
-            {landingSettings.cta_title}
-          </h2>
-          <p className="text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg 3xl:text-xl mb-3 xs:mb-4 sm:mb-5 md:mb-6 text-white/90 max-w-xs xs:max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed">
-            {landingSettings.cta_subtitle}
-          </p>
-          <Button 
-            size="lg"
-            onClick={() => navigate("/auth")}
-            className="w-full xs:w-auto max-w-xs xs:max-w-sm bg-white text-primary hover:bg-white/90 shadow-glow text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 py-2.5 xs:py-3 sm:py-3.5 md:py-4 lg:py-5 active:scale-95 transition-transform font-semibold animate-cta-pulse"
-          >
-            {landingSettings.cta_button_text}
-          </Button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/60 bg-background sm:bg-muted/50">
-        <div className="container mx-auto px-4 xs:px-5 sm:px-4 md:px-6 lg:px-8 py-8 xs:py-9 sm:py-10 lg:py-14 3xl:py-18">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 xs:gap-4 sm:gap-6 md:gap-8 mb-5 xs:mb-6 sm:mb-8">
-            <div className="col-span-1 sm:col-span-2 md:col-span-1 flex flex-col items-center text-center sm:items-start sm:text-left rounded-2xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none space-y-4">
-              {logoUrl ? (
-                <img src={logoUrl} alt={siteTitle} className="h-10 xs:h-11 sm:h-10 lg:h-12 w-auto max-w-[180px] object-contain" />
-              ) : (
-                <div className="flex items-center justify-center sm:justify-start gap-2">
-                  <img src={outAppLogo} alt="Out App" className="h-8 xs:h-9 sm:h-7 md:h-8 w-auto" />
-                  <span className="font-bold text-base xs:text-lg sm:text-lg lg:text-xl">{siteTitle || "Out App"}</span>
-                </div>
-              )}
-              <div className="flex justify-center sm:justify-start w-full">
-                <SocialLinks links={socialLinks} variant="footer" />
+        <section id="gestao" className="oa-section oa-management-section">
+          <div className="oa-wrap">
+            <div className="oa-two-column">
+              <div className="oa-manage-copy">
+                <span className="oa-eyebrow">02 / GESTÃO LIVRE</span>
+                <h2>Você cria o espaço.<br/><em>A esfera abre o caminho.</em></h2>
+                <p>Cadastre um negócio ou uma pessoa com nome, informações e imagem. Clique no cadastro para abrir o hub interativo e acessar as áreas da sua gestão.</p>
+                <div className="oa-manage-checks"><span><Check size={15}/> Cadastro de negócios e pessoas</span><span><Check size={15}/> Logo ou foto personalizada</span><span><Check size={15}/> Menu orbital animado</span><span><Check size={15}/> Experiência pensada para celular</span></div>
+                <button className="oa-btn oa-btn-outline" onClick={goToApp}>Conhecer a Gestão Livre <ArrowUpRight size={16}/></button>
               </div>
+              <VisualWorkspace />
             </div>
-            
-            {footerMenus.map((menu: any, index: number) => (
-              <div
-                key={index}
-                className="rounded-2xl border border-border/60 bg-card/60 px-4 py-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
-              >
-                <h4 className="font-semibold mb-2 text-sm xs:text-base sm:text-base lg:text-lg">{menu.title}</h4>
-                <ul className="sm:space-y-2">
-                  {menu.links?.map((link: any, linkIndex: number) => (
-                    <li key={linkIndex} className="border-b border-border/50 last:border-b-0 sm:border-0">
-                      <a 
-                        href={link.url} 
-                        className="block py-2.5 sm:py-0 text-xs xs:text-sm sm:text-sm md:text-base text-muted-foreground hover:text-foreground active:text-primary transition-colors"
-                      >
-                        {link.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
           </div>
+        </section>
 
-          {footerImages.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 rounded-2xl border border-border/60 bg-card/50 px-4 py-4 mb-5 sm:mb-0 sm:rounded-none sm:border-x-0 sm:border-b-0 sm:bg-transparent sm:px-0 sm:py-5">
-              {footerImages.map((img, index) => (
-                <img 
-                  key={index} 
-                  src={img} 
-                  alt={`Partner ${index + 1}`}
-                  className="h-7 xs:h-8 sm:h-10 w-auto max-w-[100px] opacity-80 hover:opacity-100 transition-opacity"
-                />
-              ))}
-            </div>
-          )}
+        <section className="oa-section oa-wrap" id="areas">
+          <div className="oa-section-heading oa-center"><span className="oa-eyebrow">03 / O ESSENCIAL DA SUA GESTÃO</span><h2>Quatro áreas. <em>Uma central.</em></h2><p>Tudo começa na esfera do seu negócio. Acesse a área certa, no momento certo.</p></div>
+          <div className="oa-management-grid">{MANAGEMENT.map((module, index) => {
+            const Icon = module.icon;
+            return <article key={module.id} className={"oa-management-card oa-glass oa-hue-" + module.hue}>
+              <span className="oa-management-count">0{index + 1} / 04</span><span className="oa-feature-icon"><Icon size={28}/></span><h3>{module.title}</h3><p>{module.description}</p><button onClick={goToApp} aria-label={"Acessar " + module.title}>Abrir gestão <ArrowUpRight size={16}/></button>
+            </article>;
+          })}</div>
+        </section>
 
-          <div className="rounded-2xl border border-border/60 bg-card/40 px-4 py-5 sm:rounded-none sm:border-x-0 sm:border-b-0 sm:bg-transparent sm:px-0 sm:pt-6 sm:pb-0 text-center space-y-3">
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Out App'}. Todos os direitos reservados.`}
-            </p>
-            <p className="text-[10px] xs:text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed max-w-sm mx-auto">
-              Um Negócio do Grupo Liberdade Financeira Online - 21.233.977/0001-29
-            </p>
-            <a
-              href="https://klicsmart.top/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Visitar o site da Klic Smart AI"
-              className="group inline-flex items-center justify-center gap-3 rounded-2xl border border-border/70 bg-background/80 px-4 py-2.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-md"
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card p-1.5 shadow-sm transition-transform duration-300 group-hover:scale-105">
-                <img
-                  src={klicLogoAsset.url}
-                  alt="Klic Smart AI"
-                  className="h-full w-full object-contain"
-                />
-              </span>
-              <span className="flex flex-col items-start text-left leading-tight">
-                <span className="text-[9px] xs:text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground/70">
-                  Criado pela agência
-                </span>
-                <span className="mt-0.5 text-xs xs:text-sm font-bold text-foreground transition-colors group-hover:text-primary">
-                  Klic Smart AI
-                </span>
-              </span>
-            </a>
+        <section id="recursos" className="oa-section oa-resources-section">
+          <div className="oa-wrap">
+            <div className="oa-resources-heading"><div><span className="oa-eyebrow">04 / RECURSOS ÚTEIS</span><h2>As ferramentas certas.<br/><em>Sem distrações.</em></h2><p>Os 12 recursos úteis da nova Out App, organizados para ajudar você a criar, divulgar, atender e estruturar seu trabalho.</p></div><div className="oa-resource-count"><WandSparkles size={25}/><strong>12</strong><small>RECURSOS ÚTEIS</small></div></div>
+            <div className="oa-utilities-grid">{UTILITIES.map((module, index) => {
+              const Icon = module.icon;
+              return <article key={module.id} className={"oa-utility-card oa-glass oa-hue-" + module.hue}><span className="oa-utility-number">{String(index + 1).padStart(2, "0")}</span><span className="oa-utility-icon"><Icon size={24}/></span><h3>{module.title}</h3><p>{module.description}</p><span className="oa-utility-foot">DISPONÍVEL NA PLATAFORMA <ArrowUpRight size={15}/></span></article>;
+            })}</div>
           </div>
+        </section>
+
+        <section className="oa-section oa-wrap oa-showcase-section">
+          <div className="oa-showcase-copy"><span className="oa-eyebrow">O FUTURO É AGORA</span><h2>Futurista no visual.<br/><em>Simples de usar.</em></h2><p>Uma interface construída em torno do seu espaço de trabalho, com animações, cores vibrantes e navegação adaptada para desktop e celular.</p><button className="oa-btn oa-btn-primary" onClick={goToApp}>Começar minha experiência <ArrowRight size={17}/></button></div>
+          <div className="oa-showcase-visual"><div className="oa-showcase-glow" /><div className="oa-showcase-disc"><Fingerprint size={67}/></div><div className="oa-showcase-pill oa-showcase-pill-a"><Coins size={19}/> FINANCEIRO</div><div className="oa-showcase-pill oa-showcase-pill-b"><CalendarDays size={19}/> AGENDA</div><div className="oa-showcase-pill oa-showcase-pill-c"><WandSparkles size={19}/> RECURSOS ÚTEIS</div></div>
+        </section>
+
+        {videoUrl && <section className="oa-section oa-wrap" id="demonstracao"><div className="oa-section-heading oa-center"><span className="oa-eyebrow">DEMONSTRAÇÃO</span><h2>Veja a Out App <em>em ação.</em></h2></div><div className="oa-video-frame"><VideoCover videoUrl={videoUrl}/></div></section>}
+
+        <section id="planos" className="oa-section oa-pricing-section">
+          <div className="oa-wrap">
+            <div className="oa-section-heading oa-center"><span className="oa-eyebrow">05 / PLANOS</span><h2>Seu próximo passo <em>começa aqui.</em></h2><p>Confira os planos disponíveis e escolha como começar na nova Out App.</p></div>
+            {plans.length > 0 ? <div className="oa-plans">{plans.map((plan, index) => <article className={"oa-plan oa-glass " + (index === 0 ? "oa-plan-highlight" : "")} key={plan.id}>
+              <span className="oa-plan-label">{index === 0 ? "COMECE POR AQUI" : "OUT APP"}</span><h3>{plan.name}</h3><Price plan={plan}/><div className="oa-plan-divider"/><p>Organize suas atividades na Gestão Livre e acesse as ferramentas disponíveis no seu plano.</p><button className="oa-btn oa-btn-primary" onClick={goToApp}>Quero este plano <ArrowRight size={17}/></button><small>Disponibilidade de recursos conforme as condições do plano.</small>
+            </article>)}</div> : <div className="oa-no-plans oa-glass"><Coins size={27}/><p>Consulte as opções de acesso disponíveis ao criar sua conta.</p><button className="oa-btn oa-btn-primary" onClick={goToApp}>Começar agora <ArrowRight size={16}/></button></div>}
+          </div>
+        </section>
+
+        <section id="duvidas" className="oa-section oa-wrap oa-faq-section">
+          <div className="oa-section-heading oa-center"><span className="oa-eyebrow">06 / PERGUNTAS FREQUENTES</span><h2>Ainda tem <em>dúvidas?</em></h2></div>
+          <div className="oa-faq-list">{FAQ.map((item, index) => <div key={item.question} className={"oa-faq-item oa-glass " + (openFaq === index ? "oa-faq-open" : "")}>
+            <button onClick={() => setOpenFaq(openFaq === index ? null : index)} aria-expanded={openFaq === index} aria-controls={"oa-faq-answer-" + index}><span>{item.question}</span><ChevronDown size={19}/></button>
+            {openFaq === index && <p id={"oa-faq-answer-" + index}>{item.answer}</p>}
+          </div>)}</div>
+        </section>
+
+        <section id="comecar" className="oa-section oa-final-section oa-wrap"><div className="oa-final-orbit" aria-hidden="true"/><div className="oa-final-inner"><span className="oa-eyebrow">SEU UNIVERSO COMEÇA AGORA</span><h2>Uma nova Out App.<br/><em>Um novo jeito de gerir.</em></h2><p>Seu negócio no centro, tudo que importa ao redor. Acesse a plataforma e comece pela Gestão Livre.</p><button className="oa-btn oa-btn-primary oa-btn-large" onClick={goToApp}>{user ? "Ir para meu painel" : "Criar minha conta"} <ArrowRight size={19}/></button></div></section>
+      </main>
+
+      <footer className="oa-footer">
+        <div className="oa-wrap">
+          <div className="oa-footer-grid">
+            <div className="oa-footer-brand"><div className="oa-logo"><span className="oa-logo-mark" /><span>Out <strong>App</strong></span></div><p>A tecnologia por trás da sua organização. Gestão Livre para negócios e pessoas.</p><SocialLinks links={settings.socialLinks} variant="footer" /></div>
+            <div className="oa-footer-col"><h3>Explorar</h3><a href="#como-funciona">Como funciona</a><a href="#gestao">Gestão Livre</a><a href="#areas">Gestões</a><a href="#recursos">Recursos Úteis</a><a href="#planos">Planos</a></div>
+            <div className="oa-footer-col"><h3>Conta</h3><Link to="/auth">Entrar ou cadastrar</Link><Link to="/dashboard">Meu painel</Link><a href="#duvidas">Perguntas frequentes</a></div>
+            <div className="oa-footer-col"><h3>Informações</h3>{footerLegal.map((page) => <Link key={page.id} to={"/" + page.slug}>{page.title}</Link>)}{footerLegal.length === 0 && <span className="oa-footer-muted">Páginas institucionais disponíveis no site.</span>}</div>
+          </div>
+          <div className="oa-footer-base"><div><span>{settings.footerText || "© " + new Date().getFullYear() + " Out App. Todos os direitos reservados."}</span><small>Grupo Liberdade Financeira Online — 21.233.977/0001-29</small></div><a href="https://klicsmart.top/" target="_blank" rel="noopener noreferrer"><img src={klicLogoAsset.url} alt="" loading="lazy"/> Criado pela Klic Smart <ArrowUpRight size={14}/></a></div>
         </div>
       </footer>
-
-      {/* Page Dialog */}
-      <Dialog open={pageDialogOpen} onOpenChange={setPageDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto mx-2 xs:mx-4">
-          <DialogHeader>
-            <DialogTitle className="text-lg xs:text-xl sm:text-2xl">{selectedPage?.title}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 xs:mt-6 text-sm xs:text-base leading-relaxed whitespace-pre-wrap">
-            {selectedPage?.content}
-          </div>
-        </DialogContent>
-      </Dialog>
       <CookieNotice />
     </div>
   );
-};
-
-export default Index;
+}

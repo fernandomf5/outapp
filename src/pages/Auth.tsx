@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
-import logoAsset from "@/assets/Logo_3D_Verde.png.asset.json";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Bot, ArrowLeft, Loader2 } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { z } from "zod";
 import { EmailVerification } from "@/components/EmailVerification";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import "./outapp-auth.css";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,14 +65,11 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAdmin, customSignUp, customSignIn, loading } = useAuth();
-  const { settings, isLoading: settingsLoading } = useSiteSettings();
+  const { isLoading: settingsLoading } = useSiteSettings();
 
   const showMessage = (title: string, description: string, type: 'success' | 'error') => {
     setMessageDialog({ open: true, title, description, type });
   };
-
-  // Use light logo for auth page (colored background)
-  const logoUrl = settings.siteLogoLightUrl || settings.siteLogoUrl || logoAsset.url;
 
   useEffect(() => {
     supabase.from("site_settings").select("key, value").in("key", ["cookie_terms_url", "cookie_privacy_url"])
@@ -222,7 +219,7 @@ const Auth = () => {
   // Show loading screen while settings are loading to prevent flash
   if (settingsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-primary">
+      <div className="outapp-auth min-h-screen flex items-center justify-center">
         <Loader2 className="w-12 h-12 text-white animate-spin" />
       </div>
     );
@@ -249,13 +246,13 @@ const Auth = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="min-h-screen flex items-center justify-center gradient-primary p-3 sm:p-4 relative overflow-hidden">
+      <div className="outapp-auth min-h-screen flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
       {/* Botão Voltar */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => navigate("/")}
-        className="absolute top-4 left-4 text-white hover:bg-white hover:text-primary active:scale-95 transition-all z-20"
+        className="absolute top-4 left-4 text-cyan-100 hover:bg-cyan-900/70 hover:text-white active:scale-95 transition-all z-20"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Voltar para o Início
@@ -299,26 +296,23 @@ const Auth = () => {
       </div>
 
       <div className="w-full max-w-md flex flex-col items-center relative z-10">
-        {/* Logo no topo - sem fundo */}
-        <div className="flex flex-col items-center gap-4 mb-8 animate-fade-in">
-          {logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="w-28 h-28 sm:w-32 sm:h-32 object-contain drop-shadow-2xl" />
-          ) : (
-            <Bot className="w-28 h-28 sm:w-32 sm:h-32 text-white drop-shadow-2xl" />
-          )}
-          
+        {/* Identidade visual da nova Gestão Livre */}
+        <div className="oa-auth-heading">
+          <span className="oa-auth-emblem" aria-hidden="true"><span /></span>
+          <strong>Out App</strong>
+          <small>GESTÃO LIVRE • SEU NEGÓCIO NO CENTRO</small>
         </div>
 
         {/* Formulário de Auth */}
-        <Card className="w-full p-6 sm:p-8 md:p-10 shadow-2xl backdrop-blur-sm bg-card/95 border-white/10 animate-scale-in">
+        <Card className="oa-auth-card w-full p-6 sm:p-8 md:p-10 shadow-2xl backdrop-blur-sm animate-scale-in">
           <div className="mb-6 sm:mb-8 text-center">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
               {isLogin ? "Bem-vindo de volta!" : "Crie sua conta"}
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground">
               {isLogin
-                ? "Entre para gerenciar seus chatbots"
-                : "Comece grátis por 3 dias • Sem cartão"}
+                ? "Entre para abrir sua Gestão Livre"
+                : "Crie sua conta e cadastre seu negócio ou pessoa"}
             </p>
           </div>
 
