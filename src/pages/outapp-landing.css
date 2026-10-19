@@ -299,3 +299,9 @@
 @media(prefers-reduced-motion: reduce) {
   .outapp-landing *, .outapp-landing *::before, .outapp-landing *::after {animation:none!important;scroll-behavior:auto!important;transition-duration:.01ms!important;}
 }
+
+/* Shared header on legal/institutional pages */
+.public-oa-header { flex-shrink:0; }
+.public-oa-mobile-link {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 14px;color:#b5d3ea;text-align:left;border-bottom:1px solid #1f3f5e;font-size:14px;font-weight:650;}
+.public-oa-mobile-link:hover {color:#4ae0ff;}
+.public-oa-footer {flex-shrink:0;}
