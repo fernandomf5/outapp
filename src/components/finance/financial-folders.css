@@ -1,0 +1,49 @@
+/* Gestao Financeira > Abas: organized folders with dark neon design. */
+.finance-folder-shell {
+  --finance-cyan:#44d9ff; --finance-muted:#88afca;
+  overflow:hidden;min-width:0;border:1px solid #2378a57b;border-radius:19px;
+  background:linear-gradient(123deg,rgba(9,44,78,.88),rgba(5,20,44,.93));
+  box-shadow:inset 0 1px #92dfff26,0 13px 35px #0004;
+}
+.finance-folder-heading {display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 23px 18px;}
+.finance-folder-kicker {color:#51dbff;font-size:10px;font-weight:850;letter-spacing:.15em;}
+.finance-folder-heading h2 {font-size:clamp(18px,2vw,24px);font-weight:800;color:#f4faff;margin:6px 0 5px;letter-spacing:-.035em;}
+.finance-folder-heading p {color:#91b5d3;font-size:12px;line-height:1.6;max-width:660px;}
+.finance-folder-shell .finance-folder-create {flex-shrink:0;display:flex;align-items:center;gap:9px;border:1px solid #56cfff90;
+ background:linear-gradient(110deg,#1175bc,#624ac2);color:#fff;box-shadow:0 0 21px #126ff752;}
+.finance-folder-shell .finance-folder-create:hover {background:linear-gradient(110deg,#178cce,#8450e6);box-shadow:0 0 26px #4a8afe9b;}
+.finance-folder-tabs {display:flex;gap:9px;padding:2px 22px 17px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#287ead #0b2d48;align-items:stretch;}
+.finance-folder-chip {border-radius:12px;min-height:48px;display:flex;gap:1px;align-items:center;flex:0 0 auto;border:1px solid #2c6180;
+ color:#a4c6df;background:#081d38;transition:border-color .2s,background .2s,box-shadow .2s;}
+.finance-folder-chip:hover {border-color:var(--folder-accent,#4bcbff);background:#0d3152;}
+.finance-folder-chip.is-selected {color:#fff;border-color:var(--folder-accent,#52dcff);background:linear-gradient(115deg,#0e3c67,#1e2057);box-shadow:inset 0 -3px var(--folder-accent,#52dcff),0 0 17px #189cea45;}
+.finance-folder-select {min-height:46px;display:flex;align-items:center;gap:9px;padding:10px 12px;color:inherit;}
+.finance-folder-select svg {flex-shrink:0;color:var(--folder-accent,#52dcff);}
+.finance-folder-chip-name {font-size:12px;max-width:175px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:730;}
+.finance-folder-chip-count {display:grid;place-items:center;min-width:22px;padding:3px 6px;border:1px solid #3b72906b;border-radius:999px;background:#0c2e4d;color:#a1dfff;font-size:10px;font-weight:850;}
+.finance-folder-edit {padding:9px 10px;color:#8dbcd8;border-left:1px solid #28537360;}
+.finance-folder-edit:hover {color:#fff;background:#1b4464;}
+.finance-folder-footer {display:flex;align-items:center;gap:14px 22px;flex-wrap:wrap;border-top:1px solid #24638a7c;background:#071c33b8;padding:13px 23px;color:#9dc3da;font-size:11px;}
+.finance-folder-footer>strong {font-weight:750;color:#5de4ff;}
+.finance-folder-footer>span:last-child {margin-left:auto;}
+.finance-folder-footer b {color:#f1f9ff;font-weight:800;font-variant-numeric:tabular-nums;}
+.finance-folder-colors {display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.finance-folder-colors button {width:30px;height:30px;border-radius:50%;border:2px solid #90d4ff29;box-shadow:0 0 15px #0002;transition:transform .18s;}
+.finance-folder-colors button.is-selected {outline:2px solid #80dfff;outline-offset:4px;transform:scale(1.12);}
+.finance-folder-unavailable,.finance-folders-unavailable {padding:17px;border-radius:14px;border:1px solid #b7903d99;background:rgba(81,59,20,.27);color:#f4dca8;font-size:12px;}
+.finance-folders-unavailable strong{font-weight:800;}
+.finance-folders-unavailable p{margin-top:5px;line-height:1.6;}
+.finance-folder-loading {display:flex;align-items:center;gap:10px;padding:19px;color:#9bcbe9;font-size:13px;}
+.finance-folder-annotation {padding:9px 22px;font-size:11px;color:#9bbcce;}
+.finance-transaction-folder-field {border:1px solid #387ca178;border-radius:12px;padding:13px;background:#10507d19;}
+@media(max-width:640px) {
+ .finance-folder-heading {align-items:stretch;flex-direction:column;gap:13px;padding:17px 14px 14px;}
+ .finance-folder-shell .finance-folder-create {width:100%;justify-content:center;}
+ .finance-folder-tabs {padding:0 12px 13px;gap:7px;}
+ .finance-folder-chip {min-height:44px;}
+ .finance-folder-select {min-height:43px;padding:8px 9px;gap:7px;}
+ .finance-folder-chip-name {max-width:130px;font-size:11px;}
+ .finance-folder-footer {padding:12px 14px;gap:8px 11px;font-size:10px;}
+ .finance-folder-footer>span:last-child {width:100%;margin-left:0;}
+}
+@media(prefers-reduced-motion:reduce) {.finance-folder-shell *{transition:none!important;}}

@@ -18,6 +18,9 @@ import { BankAccountSection } from "./finance/BankAccountSection";
 import { ReportCenter } from "./finance/ReportCenter";
 import { TransactionHistory } from "./finance/TransactionHistory";
 import { BusinessSelector } from "@/components/financial/BusinessSelector";
+import { useFinancialFolders } from "@/hooks/useFinancialFolders";
+import { FinancialFolderTabs } from "./finance/FinancialFolderTabs";
+import "./finance/financial-folders.css";
 
 interface Business {
   id: string;
@@ -47,6 +50,9 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [entityType, setEntityType] = useState<EntityType>('pf');
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('all');
+  const [activeFinanceTab, setActiveFinanceTab] = useState<string>('overview');
+  const { folders, loading: foldersLoading, error: foldersError, createFolder, renameFolder, removeFolder } = useFinancialFolders(selectedBusinessId, Boolean(teamContext) || isConsolidatedView);
 
   const { bankAccounts, refetch: refetchBankAccounts } = useBankAccounts(selectedBusinessId);
   const { categories } = useFinancialCategories(selectedBusinessId || undefined);
@@ -61,6 +67,15 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   const periodTransactions = useMemo(
     () => getMonthTransactions(transactions, selectedYear, selectedMonth, recurringCategoryNames, entityType),
     [transactions, selectedYear, selectedMonth, recurringCategoryNames, entityType]
+  );
+
+  /** Abas filtram somente lancamentos; categorias e contas bancarias permanecem compartilhadas. */
+  const visibleTransactions = useMemo(
+    () => selectedFolderId === "all"
+      ? periodTransactions
+      : periodTransactions.filter(t => selectedFolderId === "unfiled"
+        ? !t.folder_id : t.folder_id === selectedFolderId),
+    [periodTransactions, selectedFolderId]
   );
 
   const goToPreviousMonth = () => {
@@ -83,6 +98,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
 
   useEffect(() => {
     if (initialBusinessId) {
+      setSelectedFolderId("all");
       setSelectedBusinessId(initialBusinessId);
       setSelectedBusinessIds([]);
       setIsConsolidatedView(false);
@@ -161,6 +177,8 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   };
 
   const handleSelectBusiness = (businessId: string) => {
+    setSelectedFolderId("all");
+    setActiveFinanceTab('overview');
     setSelectedBusinessId(businessId);
     setIsConsolidatedView(false);
     setSelectedBusinessIds([]);
@@ -168,6 +186,8 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   };
 
   const handleSelectMultipleBusinesses = (businessIds: string[]) => {
+    setSelectedFolderId("all");
+    setActiveFinanceTab('overview');
     setSelectedBusinessIds(businessIds);
     setSelectedBusinessId('');
     setIsConsolidatedView(true);
@@ -175,6 +195,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   };
 
   const handleBackToSelection = () => {
+    setSelectedFolderId("all");
     setViewMode('selection');
     setSelectedBusinessId('');
     setSelectedBusinessIds([]);
@@ -384,6 +405,35 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
         </div>
       </div>
 
+      {!isConsolidatedView && selectedBusinessId && (
+        <>
+          {foldersError ? (
+            <div className="finance-folders-unavailable" role="status">
+              <strong>As abas personalizadas ainda precisam ser ativadas no banco.</strong>
+              <p>Seus lançamentos antigos continuam disponíveis normalmente. Execute a migração financeira no Supabase para criar e organizar novas abas.</p>
+            </div>
+          ) : foldersLoading ? (
+            <div className="finance-folder-loading"><Loader2 size={17} className="animate-spin" /> Carregando abas...</div>
+          ) : (
+            <FinancialFolderTabs
+              key={selectedBusinessId}
+              folders={folders}
+              transactions={periodTransactions}
+              selected={selectedFolderId}
+              onSelect={(id) => {
+                setSelectedFolderId(id);
+                setActiveFinanceTab(id === "all" ? "overview" : "transactions");
+              }}
+              onCreate={createFolder}
+              onEdit={renameFolder}
+              onDelete={removeFolder}
+              onRefreshTransactions={loadTransactions}
+              disabled={Boolean(teamContext)}
+            />
+          )}
+        </>
+      )}
+
       {/* Barra de meses */}
       <div className="rounded-xl border bg-card p-3 space-y-3">
         <div className="flex items-center justify-between gap-2">
@@ -395,7 +445,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
               {MONTH_NAMES[selectedMonth]} de {selectedYear}
             </p>
             <p className="text-xs text-muted-foreground">
-              {periodTransactions.length} conta(s) • {entityType === 'pf' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+              {visibleTransactions.length} conta(s) • {entityType === 'pf' ? 'Pessoa Física' : 'Pessoa Jurídica'}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -431,7 +481,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
       </div>
 
 
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs value={activeFinanceTab} onValueChange={setActiveFinanceTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 lg:w-[700px] mb-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4" />
@@ -439,7 +489,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
           </TabsTrigger>
           <TabsTrigger value="accounts" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
-            <span className="hidden sm:inline">Contas</span>
+            <span className="hidden sm:inline">Bancos</span>
           </TabsTrigger>
           <TabsTrigger value="transactions" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
@@ -458,12 +508,14 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
 
         <TabsContent value="overview" className="space-y-4">
           <FinancialOverview 
-            transactions={periodTransactions} 
-            bankAccounts={bankAccounts} 
+            transactions={visibleTransactions} 
+            bankAccounts={bankAccounts}
+            showBankBalance={selectedFolderId === "all"} 
           />
         </TabsContent>
 
         <TabsContent value="accounts" className="space-y-4">
+          <p className="text-xs text-muted-foreground">Estas são as contas bancárias do negócio. Elas são compartilhadas entre todas as abas financeiras.</p>
           <BankAccountSection 
             businessId={selectedBusinessId}
             bankAccounts={bankAccounts}
@@ -473,8 +525,11 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
 
         <TabsContent value="transactions" className="space-y-4">
           <TransactionManager 
-            transactions={periodTransactions} 
+            transactions={visibleTransactions} 
             bankAccounts={bankAccounts} 
+            folders={folders}
+            defaultFolderId={selectedFolderId}
+            folderStorageReady={!foldersError && !foldersLoading && !teamContext}
             onRefresh={async () => {
               await Promise.all([
                 loadTransactions(),
@@ -489,11 +544,11 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">
-          <TransactionHistory transactions={periodTransactions} bankAccounts={bankAccounts} />
+          <TransactionHistory transactions={visibleTransactions} bankAccounts={bankAccounts} />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
-          <ReportCenter transactions={periodTransactions} />
+          <ReportCenter transactions={visibleTransactions} />
         </TabsContent>
       </Tabs>
     </div>

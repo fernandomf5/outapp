@@ -5708,6 +5708,45 @@ export type Database = {
           },
         ]
       }
+      financial_folders: {
+        Row: {
+          id: string
+          user_id: string
+          business_id: string
+          name: string
+          color: string
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          business_id: string
+          name: string
+          color?: string
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          business_id?: string
+          name?: string
+          color?: string
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [{
+          foreignKeyName: "financial_folders_business_id_fkey"
+          columns: ["business_id"]
+          isOneToOne: false
+          referencedRelation: "financial_businesses"
+          referencedColumns: ["id"]
+        }]
+      }
       financial_reports: {
         Row: {
           created_at: string | null
@@ -5747,6 +5786,7 @@ export type Database = {
       financial_transactions: {
         Row: {
           amount: number
+          folder_id: string | null
           bank_account_id: string | null
           business_id: string | null
           business_name: string | null
@@ -5778,6 +5818,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          folder_id?: string | null
           bank_account_id?: string | null
           business_id?: string | null
           business_name?: string | null
@@ -5809,6 +5850,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          folder_id?: string | null
           bank_account_id?: string | null
           business_id?: string | null
           business_name?: string | null
@@ -5851,6 +5893,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "financial_folders"
             referencedColumns: ["id"]
           },
         ]

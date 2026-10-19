@@ -31,6 +31,8 @@ interface BankAccount {
 interface FinancialOverviewProps {
   transactions: Transaction[];
   bankAccounts: BankAccount[];
+  /** Hide bank balance when filtering a folder: bank accounts span all folders. */
+  showBankBalance?: boolean;
 }
 
 const normalizeStatus = (status: string | null | undefined): string =>
@@ -44,7 +46,7 @@ const amountOf = (amount: number): number => {
 const money = (value: number): string =>
   `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverviewProps) => {
+export const FinancialOverview = ({ transactions, bankAccounts, showBankBalance = true }: FinancialOverviewProps) => {
   const summary = useMemo(() => {
     const paidIncome = transactions.filter((item) => item.type === "income" && normalizeStatus(item.status) === "paid");
     const paidExpenses = transactions.filter((item) => item.type === "expense" && normalizeStatus(item.status) === "paid");
@@ -112,7 +114,7 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
   return (
     <div className="space-y-6">
       <section aria-label="Resumo financeiro" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {metricCards.map((metric) => <FinancialMetricCard key={metric.label} {...metric} />)}
+        {metricCards.filter(metric => showBankBalance || metric.label !== "Saldo em contas").map((metric) => <FinancialMetricCard key={metric.label} {...metric} />)}
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
