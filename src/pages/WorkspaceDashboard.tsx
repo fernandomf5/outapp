@@ -79,7 +79,7 @@ const Financial = lazy(() => import("@/components/FinancialManagementPanel").the
 const Tasks = lazy(() => import("@/components/tasks/TaskManagerContainer").then((m) => ({ default: m.TaskManagerContainer })));
 const Agenda = lazy(() => import("@/components/AgendaPanel").then((m) => ({ default: m.AgendaPanel })));
 const Routine = lazy(() => import("@/components/RoutineOrganizerPanel"));
-const Chats = lazy(() => import("@/components/MyAIAgents").then((m) => ({ default: m.MyAIAgents })));
+const ChatOnlineWorkspace = lazy(() => import("@/components/chat/ChatOnlineWorkspace").then((m) => ({ default: m.ChatOnlineWorkspace })));
 const LinkBio = lazy(() => import("@/components/LinkBioCreator").then((m) => ({ default: m.LinkBioCreator })));
 const Briefing = lazy(() => import("@/components/BriefingCreatorPanel").then((m) => ({ default: m.BriefingCreatorPanel })));
 const BriefingResponses = lazy(() => import("@/components/BriefingResponsesPanel").then((m) => ({ default: m.BriefingResponsesPanel })));
@@ -105,7 +105,7 @@ function ModuleView({ item, entity, onBack }: { item: ToolItem; entity: Entity; 
     case "tarefas": content = <Tasks />; break;
     case "agenda": content = <Agenda />; break;
     case "rotina": content = <Routine />; break;
-    case "chat-online": content = <div className="hub-chat-manager"><Button onClick={() => navigate("/chat-online?entity=" + entity.id)}><Plus size={16} /> Criar novo chat online</Button><Chats onManage={(agent) => navigate("/chat-online?id=" + agent.id + "&entity=" + entity.id)} /></div>; break;
+    case "chat-online": content = <ChatOnlineWorkspace entityId={entity.id} />; break;
     case "linkbio": content = <LinkBio />; break;
     case "briefing": content = <div className="hub-briefing"><Briefing /><h3>Respostas recebidas</h3><BriefingResponses /></div>; break;
     case "mapa-mental": content = <MindMap />; break;
