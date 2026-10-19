@@ -108,7 +108,7 @@
 .hub-accent-green { --accent:#5cfac0; --glow:#14dfaa88; }
 .hub-accent-amber { --accent:#ffd477; --glow:#d8a02166; }
 .hub-position-4 { border-color:#a362fc; background:linear-gradient(145deg,#4d2394e6,#0a245be0); box-shadow:0 0 32px #b74fff99; }
-.hub-menu-closed .hub-orbit-tile { transform:translate(calc(50% - var(--tile-x)),calc(50% - var(--tile-y))) scale(.15) rotate(-35deg); opacity:0; pointer-events:none; transition-delay:0ms; }
+.hub-menu-closed .hub-orbit-tile { transform:scale(.15) rotate(-35deg); opacity:0; pointer-events:none; transition-delay:0ms; }
 .hub-menu-open .hub-orbit-tile { transform:translate(0,0) scale(1) rotate(0); opacity:1; }
 .hub-orbit-instructions { display:flex;align-items:center; justify-content:center; gap:10px; color:#7fbcde; font-size:12px; text-align:center; margin-top:-3px; }
 .hub-stage-bottom { padding:18px 16px 9px; margin-top:9px; display:flex; justify-content:space-between; align-items:center; gap:18px; border-top:1px solid #125284; }
