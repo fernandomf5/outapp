@@ -61,7 +61,7 @@ import {
   Search,
   X,
   ArrowUpRight,
-  LayoutDashboard,
+  Globe2,
   Sparkles,
 } from "lucide-react";
 import {
