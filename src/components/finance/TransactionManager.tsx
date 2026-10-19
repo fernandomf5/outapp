@@ -22,6 +22,7 @@ import { useFinancialCategories } from "@/hooks/useFinancialCategories";
 import { CategoryManager } from "./CategoryManager";
 import { CategorySelect } from "./CategorySelect";
 import { EntityType, MonthlyStatusEntry, MonthlyOverrides } from "./monthUtils";
+import type { FinancialFolder } from "@/hooks/useFinancialFolders";
 
 
 export type TransactionPriority = 'normal' | 'alta' | 'urgente';
@@ -77,6 +78,7 @@ interface Transaction {
   payment_method: string;
   is_recurring: boolean;
   bank_account_id?: string | null;
+  folder_id?: string | null;
   entity_type?: EntityType;
   priority?: TransactionPriority;
   reminder_days_before?: number | null;
@@ -98,6 +100,9 @@ interface TransactionManagerProps {
   bankAccounts: any[];
   onRefresh: () => void | Promise<void>;
   businessId: string;
+  folders?: FinancialFolder[];
+  /** "all", "unfiled" or a folder UUID; new transactions inherit the active folder. */
+  defaultFolderId?: string;
   /** PF ou PJ atualmente selecionado na chave da gestão */
   entityType: EntityType;
   /** Período exibido, formato YYYY-MM */
@@ -124,7 +129,8 @@ const SortableTransactionRow = ({ id, children, className }: { id: string; child
   );
 };
 
-export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId, entityType, periodKey, periodLabel }: TransactionManagerProps) => {
+export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId, entityType, periodKey, periodLabel, folders = [], defaultFolderId = "all" }: TransactionManagerProps) => {
+  const activeFolderId = defaultFolderId === "all" || defaultFolderId === "unfiled" ? "" : defaultFolderId;
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -133,6 +139,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
+  const [bulkFolderId, setBulkFolderId] = useState(activeFolderId);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
@@ -162,6 +169,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     amount: "",
     type: "expense" as "income" | "expense",
     category: "",
+    folder_id: activeFolderId,
     due_date: format(new Date(), "yyyy-MM-dd"),
     status: "pending",
     payment_method: "pix",
@@ -177,6 +185,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [bulkRows, setBulkRows] = useState<any[]>([
     { description: "", amount: "", type: "expense", category: "", due_date: format(new Date(), "yyyy-MM-dd"), status: "pending", payment_method: "pix", bank_account_id: "" }
   ]);
+
+  useEffect(() => {
+    setBulkFolderId(activeFolderId);
+    setFormData(previous => ({ ...previous, folder_id: activeFolderId }));
+  }, [activeFolderId]);
 
   useEffect(() => {
     setOrderedIds(transactions.map(t => t.id));
@@ -295,6 +308,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         amount: amount,
         type: formData.type,
         category: formData.category,
+        folder_id: formData.folder_id || null,
         due_date: formData.due_date,
         status: formData.status,
         payment_method: formData.payment_method,
@@ -432,6 +446,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
         if (error) throw error;
 
+        // Parcelas relacionadas devem permanecer na mesma aba financeira.
+        if (oldTransaction?.installment_group_id && (oldTransaction.folder_id || null) !== (formData.folder_id || null)) {
+          const { error: moveError } = await supabase.from("financial_transactions")
+            .update({ folder_id: formData.folder_id || null })
+            .eq("installment_group_id", oldTransaction.installment_group_id)
+            .eq("business_id", businessId);
+          if (moveError) throw moveError;
+        }
+
         // Lógica de atualização de saldo se o status for 'paid'
         if (oldTransaction) {
           // Reverter transação antiga se era 'paid'
@@ -492,6 +515,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           amount: amount,
           type: row.type,
           category: row.category,
+          folder_id: bulkFolderId || null,
           due_date: row.due_date,
           status: row.status,
           payment_method: row.payment_method,
@@ -547,6 +571,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       amount: "",
       type: "expense",
       category: "",
+      folder_id: activeFolderId,
       due_date: defaultDueDate,
       status: "pending",
       payment_method: "pix",
@@ -594,6 +619,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       amount: t.amount.toString(),
       type: t.type,
       category: t.category,
+      folder_id: t.folder_id || "",
       due_date: t.due_date,
       status: t.status,
       payment_method: t.payment_method,
@@ -798,6 +824,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 <DialogTitle>Adicionar Múltiplas Transações</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleBulkSubmit} className="space-y-4 py-4">
+                <div className="space-y-2 max-w-sm">
+                  <Label>Aba para os lançamentos</Label>
+                  <Select value={bulkFolderId || "none"} onValueChange={id => setBulkFolderId(id === "none" ? "" : id)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent><SelectItem value="none">Sem aba</SelectItem>
+                      {folders.map(folder => <SelectItem value={folder.id} key={folder.id}>{folder.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -999,6 +1034,21 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   placeholder="Ex: Aluguel, Venda de Produto"
                 />
               </div>
+
+              {!editingProjected && (
+                <div className="finance-transaction-folder-field space-y-2">
+                  <Label>Aba financeira</Label>
+                  <Select value={formData.folder_id || "none"}
+                    onValueChange={id => setFormData({ ...formData, folder_id: id === "none" ? "" : id })}>
+                    <SelectTrigger><SelectValue placeholder="Selecione uma aba"/></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem aba</SelectItem>
+                      {folders.map(folder => <SelectItem value={folder.id} key={folder.id}>{folder.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Esta conta aparecerá apenas na aba escolhida. Você pode movê-la depois.</p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
