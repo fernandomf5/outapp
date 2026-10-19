@@ -103,6 +103,7 @@ interface TransactionManagerProps {
   folders?: FinancialFolder[];
   /** "all", "unfiled" or a folder UUID; new transactions inherit the active folder. */
   defaultFolderId?: string;
+  folderStorageReady?: boolean;
   /** PF ou PJ atualmente selecionado na chave da gestão */
   entityType: EntityType;
   /** Período exibido, formato YYYY-MM */
@@ -129,7 +130,7 @@ const SortableTransactionRow = ({ id, children, className }: { id: string; child
   );
 };
 
-export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId, entityType, periodKey, periodLabel, folders = [], defaultFolderId = "all" }: TransactionManagerProps) => {
+export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId, entityType, periodKey, periodLabel, folders = [], defaultFolderId = "all", folderStorageReady = true }: TransactionManagerProps) => {
   const activeFolderId = defaultFolderId === "all" || defaultFolderId === "unfiled" ? "" : defaultFolderId;
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -308,7 +309,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         amount: amount,
         type: formData.type,
         category: formData.category,
-        folder_id: formData.folder_id || null,
+        ...(folderStorageReady ? { folder_id: formData.folder_id || null } : {}),
         due_date: formData.due_date,
         status: formData.status,
         payment_method: formData.payment_method,
@@ -447,7 +448,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         if (error) throw error;
 
         // Parcelas relacionadas devem permanecer na mesma aba financeira.
-        if (oldTransaction?.installment_group_id && (oldTransaction.folder_id || null) !== (formData.folder_id || null)) {
+        if (folderStorageReady && oldTransaction?.installment_group_id && (oldTransaction.folder_id || null) !== (formData.folder_id || null)) {
           const { error: moveError } = await supabase.from("financial_transactions")
             .update({ folder_id: formData.folder_id || null })
             .eq("installment_group_id", oldTransaction.installment_group_id)
@@ -515,7 +516,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           amount: amount,
           type: row.type,
           category: row.category,
-          folder_id: bulkFolderId || null,
+          ...(folderStorageReady ? { folder_id: bulkFolderId || null } : {}),
           due_date: row.due_date,
           status: row.status,
           payment_method: row.payment_method,
@@ -824,7 +825,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 <DialogTitle>Adicionar Múltiplas Transações</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleBulkSubmit} className="space-y-4 py-4">
-                <div className="space-y-2 max-w-sm">
+                {folderStorageReady && <div className="space-y-2 max-w-sm">
                   <Label>Aba para os lançamentos</Label>
                   <Select value={bulkFolderId || "none"} onValueChange={id => setBulkFolderId(id === "none" ? "" : id)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -832,7 +833,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                       {folders.map(folder => <SelectItem value={folder.id} key={folder.id}>{folder.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                </div>
+                </div>}
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -1035,7 +1036,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 />
               </div>
 
-              {!editingProjected && (
+              {folderStorageReady && !editingProjected && (
                 <div className="finance-transaction-folder-field space-y-2">
                   <Label>Aba financeira</Label>
                   <Select value={formData.folder_id || "none"}
