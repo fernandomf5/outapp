@@ -149,20 +149,20 @@ const Index = () => {
   }, [features.length]);
 
   const [landingSettings, setLandingSettings] = useState({
-    landing_title: "A Solução Tudo em Um<br />para Empreendedores Digitais.",
-    hero_title: "Plataforma Completa de Automação<br />e Marketing Digital",
-    hero_subtitle: "CRM, chat online, sistema de afiliados, pixels de conversão, gestão de leads e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
+    landing_title: "Gestão Livre.<br />Seu negócio no centro de tudo.",
+    hero_title: "Seu negócio. Seu universo de gestão.",
+    hero_subtitle: "Cadastre seu negócio ou pessoa, toque na esfera e abra um universo de gestão financeira, tarefas, agenda, rotina e recursos úteis.",
     hero_cta_text: "Começar Teste Grátis",
-    video_section_title: "Veja a Plataforma em Ação",
-    video_section_subtitle: "Descubra como é fácil automatizar seu negócio com nossa plataforma completa",
-    features_title: "Tudo que Você Precisa em Uma Plataforma",
-    features_subtitle: "Automação, CRM, Afiliados, Analytics e muito mais para fazer seu negócio crescer",
+    video_section_title: "Uma nova forma de trabalhar",
+    video_section_subtitle: "Escolha seu negócio, abra a esfera e acesse somente o que precisa.",
+    features_title: "A gestão do seu negócio em outro nível",
+    features_subtitle: "Quatro áreas de gestão e 12 ferramentas úteis. Tudo organizado em torno do seu negócio.",
     testimonials_title: "O que dizem nossos clientes",
     testimonials_subtitle: "",
     pricing_title: "Planos para Todos os Tamanhos",
     pricing_subtitle: "Comece com 3 dias grátis e escolha o melhor plano para seu negócio crescer",
-    cta_title: "Pronto para Transformar seu Negócio?",
-    cta_subtitle: "Junte-se a centenas de empresas que já automatizam com nossa plataforma",
+    cta_title: "Pronto para abrir seu universo de gestão?",
+    cta_subtitle: "Uma maneira simples e inteligente de trabalhar, organizar e crescer.",
     cta_button_text: "Começar Agora - 3 Dias Grátis"
   });
 
@@ -312,29 +312,18 @@ const Index = () => {
   };
 
   const fetchFeatures = async () => {
-    const { data } = await supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'landing_features')
-      .maybeSingle();
-
-    if (data?.value) {
-      try {
-        const parsedFeatures = JSON.parse(data.value);
-        setFeatures(
-          Array.isArray(parsedFeatures)
-            ? [...parsedFeatures].sort(
-                (a: any, b: any) => (a?.order_index ?? 0) - (b?.order_index ?? 0)
-              )
-            : parsedFeatures
-        );
-      } catch (e) {
-        console.error('Error parsing features:', e);
-        // Fallback to default features if parsing fails
-        setFeatures(getDefaultFeatures());
-      }
-    } else {
-      setFeatures(getDefaultFeatures());
+    // Legacy site_settings may still list retired tools. Publish only the approved catalogue.
+    const approved = getDefaultFeatures();
+    const { data } = await supabase.from('site_settings').select('value').eq('key', 'landing_features').maybeSingle();
+    try {
+      const customized = data?.value ? JSON.parse(data.value) : [];
+      const customList = Array.isArray(customized) ? customized : [];
+      setFeatures(approved.map(feature => {
+        const override = customList.find((item: any) => String(item.title).trim().toLowerCase() === feature.title.toLowerCase());
+        return override ? { ...feature, description: override.description || feature.description } : feature;
+      }));
+    } catch {
+      setFeatures(approved);
     }
   };
 
@@ -428,66 +417,23 @@ const Index = () => {
   };
 
   const getDefaultFeatures = () => [
-    {
-      icon: "Workflow",
-      title: "Construtor Visual de Automações",
-      description: "Construtor drag-and-drop estilo Manychat para criar fluxos de conversação sem código",
-    },
-    {
-      icon: "Brain",
-      title: "Chat Online para Atendimento",
-      description: "Atenda clientes no site com conversas em tempo real, status do atendente e formulário por e-mail",
-    },
-    {
-      icon: "Users",
-      title: "CRM de Contatos Integrado",
-      description: "Gerencie leads, contatos e interações em um só lugar com tags e status",
-    },
-    {
-      icon: "UserPlus",
-      title: "Sistema de Afiliados Completo",
-      description: "Crie programas de afiliados, rastreie cliques, conversões e gerencie comissões",
-    },
-    {
-      icon: "BarChart3",
-      title: "Pixels de Conversão",
-      description: "Integre Meta Pixel, Google Analytics e outros pixels para rastrear conversões",
-    },
-    {
-      icon: "Link2",
-      title: "Gerador de Links WhatsApp",
-      description: "Crie links personalizados do WhatsApp com mensagens pré-definidas",
-    },
-    {
-      icon: "Gift",
-      title: "Sistema de Vouchers",
-      description: "Crie e gerencie cupons de desconto e vouchers de acesso aos planos",
-    },
-    {
-      icon: "Ticket",
-      title: "Sistema de Tickets",
-      description: "Suporte organizado com sistema de tickets, prioridades e categorias",
-    },
-    {
-      icon: "Video",
-      title: "Biblioteca de Tutoriais",
-      description: "Vídeos tutoriais organizados por categoria para seus usuários",
-    },
-    {
-      icon: "DollarSign",
-      title: "Integrações de Pagamento",
-      description: "Conecte Stripe, PagSeguro e outros gateways de pagamento facilmente",
-    },
-    {
-      icon: "Shield",
-      title: "Páginas Personalizadas",
-      description: "Crie páginas customizadas para termos, políticas e conteúdo institucional",
-    },
-    {
-      icon: "TrendingUp",
-      title: "Dashboard de Analytics",
-      description: "Acompanhe métricas, conversões, receitas e crescimento em tempo real",
-    },
+    { icon: "Building2", title: "Gestão Livre", description: "Cadastre seus negócios e pessoas. Acesse cada painel a partir de uma central inteligente." },
+    { icon: "Wallet", title: "Gestão Financeira", description: "Controle entradas, saídas, contas e planejamento de cada negócio." },
+    { icon: "ListTodo", title: "Gestão de Tarefas", description: "Organize entregas e acompanhe tarefas com mais clareza." },
+    { icon: "CalendarDays", title: "Gestão de Agenda", description: "Compromissos, horários e lembretes em um só lugar." },
+    { icon: "Workflow", title: "Gestão de Rotina", description: "Planeje e acompanhe suas atividades diárias." },
+    { icon: "MessageCircle", title: "Chat online para seu negócio", description: "Configure seu chat e atenda os visitantes do seu site." },
+    { icon: "Link2", title: "Link na bio", description: "Monte uma página organizada com seus principais links." },
+    { icon: "ClipboardCheck", title: "Criador de briefing", description: "Colete informações essenciais dos clientes e projetos." },
+    { icon: "Network", title: "Criador de mapa mental", description: "Conecte ideias, tarefas e projetos de forma visual." },
+    { icon: "FileSignature", title: "Criador de contrato", description: "Prepare contratos para seus serviços e negócios." },
+    { icon: "BadgeCheck", title: "Aprova Job", description: "Envie materiais e receba aprovações de clientes." },
+    { icon: "MessageSquare", title: "Gerador de link Whats", description: "Crie links para conversas rápidas no WhatsApp." },
+    { icon: "MousePointerClick", title: "Botão flutuante", description: "Configure botões de contato para seu site." },
+    { icon: "Link", title: "Encurtador de links", description: "Organize URLs longas em links fáceis de compartilhar." },
+    { icon: "QrCode", title: "Criador de QR Code", description: "Gere códigos personalizados para seus materiais." },
+    { icon: "FilePenLine", title: "Organizador de script", description: "Escreva e organize roteiros e conteúdos." },
+    { icon: "LayoutGrid", title: "Organizador de funil e kanban", description: "Visualize oportunidades por etapa e movimente leads." },
   ];
 
   const openPageDialog = (page: CustomPage) => {
@@ -765,7 +711,7 @@ const Index = () => {
           
           <h1 
             className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl 3xl:text-7xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 animate-fade-in leading-tight px-1 xs:px-2 sm:px-4 md:px-8 lg:px-12"
-            dangerouslySetInnerHTML={{ __html: landingSettings.landing_title }}
+            dangerouslySetInnerHTML={{ __html: "Gestão Livre.<br />Seu negócio no centro de tudo." }}
           />
 
           {videoUrl && (
@@ -775,7 +721,7 @@ const Index = () => {
           )}
           
           <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl mb-4 xs:mb-5 sm:mb-6 md:mb-8 text-white/90 max-w-xs xs:max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl 3xl:max-w-5xl mx-auto animate-fade-in leading-relaxed px-1">
-            {landingSettings.hero_subtitle}
+            Cadastre um negócio ou uma pessoa e abra um painel futurista com suas ferramentas organizadas ao redor de uma esfera interativa.
           </p>
           
           <div className="flex flex-col xs:flex-col sm:flex-row gap-2 xs:gap-3 sm:gap-4 justify-center animate-scale-in max-w-xs xs:max-w-sm sm:max-w-none mx-auto px-1">
@@ -813,7 +759,19 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Showcase Section */}
+
+      <section className="relative bg-[#050f24] border-y border-cyan-500/20 px-4 py-14 text-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8"><span className="text-cyan-400 tracking-[.25em] text-xs font-bold">GESTÃO LIVRE</span><h2 className="text-2xl sm:text-4xl font-bold mt-3">Simples de começar. Incrível de usar.</h2></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="rounded-2xl border border-cyan-400/30 bg-sky-950/40 p-6"><div className="text-cyan-400 text-xs font-extrabold mb-3">01 / CADASTRE</div><h3 className="text-xl font-bold mb-2">Negócio ou pessoa</h3><p className="text-slate-300 text-sm">Nome, descrição e identidade visual em poucos passos.</p></div>
+            <div className="rounded-2xl border border-violet-400/30 bg-indigo-950/40 p-6"><div className="text-violet-400 text-xs font-extrabold mb-3">02 / SELECIONE</div><h3 className="text-xl font-bold mb-2">Sua esfera de gestão</h3><p className="text-slate-300 text-sm">Um painel orbital moderno que coloca você no comando.</p></div>
+            <div className="rounded-2xl border border-cyan-400/30 bg-sky-950/40 p-6"><div className="text-cyan-400 text-xs font-extrabold mb-3">03 / USE</div><h3 className="text-xl font-bold mb-2">Somente o que importa</h3><p className="text-slate-300 text-sm">Quatro módulos principais e uma central de ferramentas úteis.</p></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Showcase Section */
       <section id="sobre" className="py-16 xs:py-20 sm:py-24 md:py-28 lg:py-32 3xl:py-40 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30 flex items-center justify-center overflow-hidden">
         <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px] flex flex-col items-center justify-center w-full">
           <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-2">
@@ -853,10 +811,10 @@ const Index = () => {
 
           <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-1">
             <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 3xl:text-6xl font-bold mb-2 xs:mb-3 sm:mb-4 md:mb-5 leading-tight">
-              {landingSettings.features_title}
+              Uma nova forma de gerir seu negócio
             </h2>
             <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl text-muted-foreground max-w-xs xs:max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
-              {landingSettings.features_subtitle}
+              Gestão financeira, tarefas, agenda, rotina e 12 recursos úteis. Sem excesso de menus.
             </p>
           </div>
 
