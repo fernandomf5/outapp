@@ -18,7 +18,7 @@ import Index from "./pages/Index";
 // para que o primeiro acesso não precise baixar o aplicativo inteiro.
 const Auth = lazy(() => import("./pages/Auth"));
 const CheckoutEditorPage = lazy(() => import("./pages/CheckoutEditorPage"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Dashboard = lazy(() => import("./pages/WorkspaceDashboard"));
 const FullOrganizationTable = lazy(() => import("./pages/FullOrganizationTable"));
 const AIAgentBuilder = lazy(() => import("./pages/AIAgentBuilder"));
 const FunnelBuilder = lazy(() => import("./pages/FunnelBuilder"));
