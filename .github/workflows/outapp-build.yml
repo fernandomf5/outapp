@@ -13,5 +13,5 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps --no-package-lock --no-audit --no-fund
       - run: npm run build
