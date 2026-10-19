@@ -1,0 +1,33 @@
+name: Generate Out App favicon and social preview
+
+on:
+  push:
+    branches: [update-favicon-social-20261019]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image tools
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Generate assets from the supplied Out App logo
+        run: python scripts/generate_outapp_brand_assets.py
+      - name: Commit generated static images
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/favicon.png public/apple-touch-icon.png public/outapp-icon-192.png public/outapp-icon-512.png public/social-outapp.png
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: publish updated Out App favicon and social image"
+            git push origin HEAD:update-favicon-social-20261019
+          fi
