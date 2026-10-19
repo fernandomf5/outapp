@@ -1,10 +1,10 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, FormEvent, ComponentType } from "react";
+import type { FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, Bell, Building2, CalendarDays, CheckSquare2,
-  ChevronRight, CircleHelp, ClipboardCheck, Coins, ExternalLink, FilePenLine, FileSignature,
-  Fingerprint, LayoutGrid, Link2, ListTodo, Loader2, LogOut, Menu, MessageCircleMore,
+  ArrowLeft, ArrowRight, BadgeCheck, Building2, CalendarDays, CheckSquare2,
+  ChevronRight, ClipboardCheck, Coins, FilePenLine, FileSignature,
+  Fingerprint, LayoutGrid, Link2, Loader2, LogOut, Menu, MessageCircleMore,
   Network, Pencil, Plus, QrCode, Save, Settings2, ShieldCheck, Sparkles, Store,
   UserRound, WandSparkles, Workflow, X,
 } from "lucide-react";
@@ -73,6 +73,7 @@ const ALL_TOOLS = [...MAIN_TOOLS, ...UTILITY_TOOLS];
 const TOOL_IDS = new Set(ALL_TOOLS.map((item) => item.id));
 
 // Keep resource modules as separate chunks: opening the hub should be fast on mobile.
+const LegacyTeamDashboard = lazy(() => import("./Dashboard"));
 const Financial = lazy(() => import("@/components/FinancialManagementPanel").then((m) => ({ default: m.FinancialManagementPanel })));
 const Tasks = lazy(() => import("@/components/tasks/TaskManagerContainer").then((m) => ({ default: m.TaskManagerContainer })));
 const Agenda = lazy(() => import("@/components/AgendaPanel").then((m) => ({ default: m.AgendaPanel })));
@@ -95,15 +96,15 @@ function LoadingModule() {
   return <div className="hub-module-loading" role="status"><Loader2 className="animate-spin" /> Preparando ferramenta...</div>;
 }
 
-function ModuleView({ item, entity }: { item: ToolItem; entity: Entity }) {
+function ModuleView({ item, entity, onBack }: { item: ToolItem; entity: Entity; onBack: () => void }) {
   const navigate = useNavigate();
   let content: React.ReactNode;
   switch (item.id) {
-    case "financeiro": content = <Financial key={entity.id} initialBusinessId={entity.id} />; break;
+    case "financeiro": content = <Financial key={entity.id} initialBusinessId={entity.id} onBack={onBack} />; break;
     case "tarefas": content = <Tasks />; break;
     case "agenda": content = <Agenda />; break;
     case "rotina": content = <Routine />; break;
-    case "chat-online": content = <div className="hub-chat-manager"><Button onClick={() => navigate("/chat-online")}><Plus size={16} /> Criar novo chat online</Button><Chats onManage={(agent) => navigate("/chat-online?agentId=" + agent.id)} /></div>; break;
+    case "chat-online": content = <div className="hub-chat-manager"><Button onClick={() => navigate("/chat-online")}><Plus size={16} /> Criar novo chat online</Button><Chats onManage={(agent) => navigate("/chat-online?id=" + agent.id)} /></div>; break;
     case "linkbio": content = <LinkBio />; break;
     case "briefing": content = <div className="hub-briefing"><Briefing /><h3>Respostas recebidas</h3><BriefingResponses /></div>; break;
     case "mapa-mental": content = <MindMap />; break;
@@ -246,6 +247,8 @@ export default function WorkspaceDashboard() {
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Você";
   const statusLabel = selected ? (selected.business_type === "personal" ? "Pessoa" : "Negócio") : "Gestão Livre";
 
+  if (isTeamMember) return <Suspense fallback={<LoadingModule />}><LegacyTeamDashboard /></Suspense>;
+
   return (
     <div className="outapp-hub">
       <div className="hub-starfield" aria-hidden />
@@ -306,7 +309,7 @@ export default function WorkspaceDashboard() {
                 <div className="hub-module-titles"><span>{statusLabel} / {selected.name}</span><h1>{activeTool.title}</h1></div>
                 <button className="hub-secondary-action" onClick={backToEntities}>Trocar cadastro</button>
               </div>
-              <div className="hub-tool-content" key={selected.id + "-" + activeTool.id}><ModuleView item={activeTool} entity={selected}/></div>
+              <div className="hub-tool-content" key={selected.id + "-" + activeTool.id}><ModuleView item={activeTool} entity={selected} onBack={backToHub}/></div>
             </section>
           ) : (
             <div className="hub-orb-stage">
