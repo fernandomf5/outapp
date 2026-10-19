@@ -74,6 +74,7 @@ const TOOL_IDS = new Set(ALL_TOOLS.map((item) => item.id));
 
 // Keep resource modules as separate chunks: opening the hub should be fast on mobile.
 const LegacyTeamDashboard = lazy(() => import("./Dashboard"));
+const MyPlan = lazy(() => import("@/components/MyPlanSection").then((m) => ({ default: m.MyPlanSection })));
 const Financial = lazy(() => import("@/components/FinancialManagementPanel").then((m) => ({ default: m.FinancialManagementPanel })));
 const Tasks = lazy(() => import("@/components/tasks/TaskManagerContainer").then((m) => ({ default: m.TaskManagerContainer })));
 const Agenda = lazy(() => import("@/components/AgendaPanel").then((m) => ({ default: m.AgendaPanel })));
@@ -104,7 +105,7 @@ function ModuleView({ item, entity, onBack }: { item: ToolItem; entity: Entity; 
     case "tarefas": content = <Tasks />; break;
     case "agenda": content = <Agenda />; break;
     case "rotina": content = <Routine />; break;
-    case "chat-online": content = <div className="hub-chat-manager"><Button onClick={() => navigate("/chat-online")}><Plus size={16} /> Criar novo chat online</Button><Chats onManage={(agent) => navigate("/chat-online?id=" + agent.id)} /></div>; break;
+    case "chat-online": content = <div className="hub-chat-manager"><Button onClick={() => navigate("/chat-online?entity=" + entity.id)}><Plus size={16} /> Criar novo chat online</Button><Chats onManage={(agent) => navigate("/chat-online?id=" + agent.id + "&entity=" + entity.id)} /></div>; break;
     case "linkbio": content = <LinkBio />; break;
     case "briefing": content = <div className="hub-briefing"><Briefing /><h3>Respostas recebidas</h3><BriefingResponses /></div>; break;
     case "mapa-mental": content = <MindMap />; break;
@@ -156,6 +157,7 @@ export default function WorkspaceDashboard() {
   const selectedId = params.get("entity");
   const selected = entities.find((entity) => entity.id === selectedId) ?? null;
   const rawTab = params.get("tab");
+  const viewingPlan = rawTab === "plan";
   const activeTool = selected && rawTab && TOOL_IDS.has(rawTab) ? ALL_TOOLS.find((tool) => tool.id === rawTab) : undefined;
 
   const loadEntities = useCallback(async () => {
@@ -176,6 +178,7 @@ export default function WorkspaceDashboard() {
   }, [user]);
 
   useEffect(() => { void loadEntities(); }, [loadEntities]);
+  useEffect(() => { if (selected) sessionStorage.setItem("outapp_hub_entity", selected.id); }, [selected?.id]);
 
   useEffect(() => {
     if (!resourcesOpen) return;
@@ -185,6 +188,7 @@ export default function WorkspaceDashboard() {
   }, [resourcesOpen]);
 
   const chooseEntity = (entity: Entity) => {
+    sessionStorage.setItem("outapp_hub_entity", entity.id);
     setParams({ entity: entity.id });
     setMobileEntitiesOpen(false);
     setResourcesOpen(false);
@@ -263,6 +267,7 @@ export default function WorkspaceDashboard() {
         </nav>
         <div className="hub-header-actions">
           <span className="hub-hello">Olá, {displayName.split(" ")[0]}</span>
+          <button onClick={() => setParams({ tab: "plan" })} aria-label="Meu plano" title="Meu plano"><BadgeCheck size={19} /></button>
           {isAdmin && <button onClick={() => navigate("/admin")} aria-label="Administração" title="Administração"><ShieldCheck size={18} /></button>}
           <button onClick={() => navigate("/settings")} aria-label="Configurações" title="Configurações"><Settings2 size={19} /></button>
           <button onClick={leave} aria-label="Sair" title="Sair"><LogOut size={18} /></button>
@@ -292,7 +297,12 @@ export default function WorkspaceDashboard() {
         </aside>
 
         <main className="hub-main">
-          {!selected ? (
+          {viewingPlan ? (
+            <section className="hub-module-view">
+              <div className="hub-module-heading hub-glass"><button className="hub-circle-back" onClick={backToEntities} aria-label="Voltar à Gestão Livre"><ArrowLeft /></button><div className="hub-module-titles"><span>Conta Out App</span><h1>Meu Plano</h1></div></div>
+              <div className="hub-tool-content"><Suspense fallback={<LoadingModule />}><MyPlan /></Suspense></div>
+            </section>
+          ) : !selected ? (
             <div className="hub-welcome hub-glass">
               <div className="hub-welcome-orbit" aria-hidden><span className="hub-orbit-core"><Fingerprint size={56}/></span></div>
               <div className="hub-eyebrow">SEU UNIVERSO DE GESTÃO</div>
