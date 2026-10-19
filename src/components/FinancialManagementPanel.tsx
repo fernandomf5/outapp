@@ -51,6 +51,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [entityType, setEntityType] = useState<EntityType>('pf');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('all');
+  const [activeFinanceTab, setActiveFinanceTab] = useState<string>('overview');
   const { folders, loading: foldersLoading, error: foldersError, createFolder, renameFolder, removeFolder } = useFinancialFolders(selectedBusinessId, Boolean(teamContext) || isConsolidatedView);
 
   const { bankAccounts, refetch: refetchBankAccounts } = useBankAccounts(selectedBusinessId);
@@ -177,6 +178,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
 
   const handleSelectBusiness = (businessId: string) => {
     setSelectedFolderId("all");
+    setActiveFinanceTab('overview');
     setSelectedBusinessId(businessId);
     setIsConsolidatedView(false);
     setSelectedBusinessIds([]);
@@ -185,6 +187,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
 
   const handleSelectMultipleBusinesses = (businessIds: string[]) => {
     setSelectedFolderId("all");
+    setActiveFinanceTab('overview');
     setSelectedBusinessIds(businessIds);
     setSelectedBusinessId('');
     setIsConsolidatedView(true);
@@ -417,7 +420,10 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
               folders={folders}
               transactions={periodTransactions}
               selected={selectedFolderId}
-              onSelect={setSelectedFolderId}
+              onSelect={(id) => {
+                setSelectedFolderId(id);
+                setActiveFinanceTab(id === "all" ? "overview" : "transactions");
+              }}
               onCreate={createFolder}
               onEdit={renameFolder}
               onDelete={removeFolder}
@@ -475,7 +481,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
       </div>
 
 
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs value={activeFinanceTab} onValueChange={setActiveFinanceTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 lg:w-[700px] mb-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4" />
@@ -483,7 +489,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
           </TabsTrigger>
           <TabsTrigger value="accounts" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
-            <span className="hidden sm:inline">Contas</span>
+            <span className="hidden sm:inline">Bancos</span>
           </TabsTrigger>
           <TabsTrigger value="transactions" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
@@ -509,6 +515,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
         </TabsContent>
 
         <TabsContent value="accounts" className="space-y-4">
+          <p className="text-xs text-muted-foreground">Estas são as contas bancárias do negócio. Elas são compartilhadas entre todas as abas financeiras.</p>
           <BankAccountSection 
             businessId={selectedBusinessId}
             bankAccounts={bankAccounts}
@@ -522,6 +529,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
             bankAccounts={bankAccounts} 
             folders={folders}
             defaultFolderId={selectedFolderId}
+            folderStorageReady={!foldersError && !foldersLoading && !teamContext}
             onRefresh={async () => {
               await Promise.all([
                 loadTransactions(),
