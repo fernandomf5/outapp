@@ -771,7 +771,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Showcase Section */
+      {/* Showcase Section */}
       <section id="sobre" className="py-16 xs:py-20 sm:py-24 md:py-28 lg:py-32 3xl:py-40 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30 flex items-center justify-center overflow-hidden">
         <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px] flex flex-col items-center justify-center w-full">
           <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-2">
