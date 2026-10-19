@@ -1,0 +1,17 @@
+name: Out App build
+on:
+  push:
+    branches: [redesign-gestao-livre-jarvis-20261019]
+  pull_request:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
