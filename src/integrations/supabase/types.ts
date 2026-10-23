@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -5710,42 +5710,44 @@ export type Database = {
       }
       financial_folders: {
         Row: {
-          id: string
-          user_id: string
           business_id: string
-          name: string
           color: string
-          sort_order: number
           created_at: string
+          id: string
+          name: string
+          sort_order: number
           updated_at: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id: string
           business_id: string
-          name: string
           color?: string
-          sort_order?: number
           created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
           updated_at?: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
           business_id?: string
-          name?: string
           color?: string
-          sort_order?: number
           created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
           updated_at?: string
+          user_id?: string
         }
-        Relationships: [{
-          foreignKeyName: "financial_folders_business_id_fkey"
-          columns: ["business_id"]
-          isOneToOne: false
-          referencedRelation: "financial_businesses"
-          referencedColumns: ["id"]
-        }]
+        Relationships: [
+          {
+            foreignKeyName: "financial_folders_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_reports: {
         Row: {
@@ -5786,7 +5788,6 @@ export type Database = {
       financial_transactions: {
         Row: {
           amount: number
-          folder_id: string | null
           bank_account_id: string | null
           business_id: string | null
           business_name: string | null
@@ -5797,6 +5798,7 @@ export type Database = {
           description: string
           due_date: string | null
           entity_type: string | null
+          folder_id: string | null
           id: string
           installment_group_id: string | null
           installment_number: number | null
@@ -5818,7 +5820,6 @@ export type Database = {
         }
         Insert: {
           amount: number
-          folder_id?: string | null
           bank_account_id?: string | null
           business_id?: string | null
           business_name?: string | null
@@ -5829,6 +5830,7 @@ export type Database = {
           description?: string
           due_date?: string | null
           entity_type?: string | null
+          folder_id?: string | null
           id?: string
           installment_group_id?: string | null
           installment_number?: number | null
@@ -5850,7 +5852,6 @@ export type Database = {
         }
         Update: {
           amount?: number
-          folder_id?: string | null
           bank_account_id?: string | null
           business_id?: string | null
           business_name?: string | null
@@ -5861,6 +5862,7 @@ export type Database = {
           description?: string
           due_date?: string | null
           entity_type?: string | null
+          folder_id?: string | null
           id?: string
           installment_group_id?: string | null
           installment_number?: number | null
