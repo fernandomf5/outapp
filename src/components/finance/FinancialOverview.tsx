@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface Transaction {
   id: string;
@@ -198,7 +198,9 @@ export const FinancialOverview = ({
                   contentStyle={{ background: "#0b2b47", color: "#f0faff", border: "1px solid #41647f", borderRadius: 10, fontSize: 12 }}
                   cursor={{ fill: "#65d9f212" }}
                 />
-                <Bar dataKey="amount" name="Valor" radius={[8, 8, 3, 3]} maxBarSize={84} />
+                <Bar dataKey="amount" name="Valor" radius={[8, 8, 3, 3]} maxBarSize={84}>
+                  {comparisonData.map((item) => <Cell key={item.label} fill={item.fill} />)}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
