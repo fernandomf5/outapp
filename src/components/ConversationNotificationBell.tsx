@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { MessageCircle, CheckCircle, Circle, Trash2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { MessageCircle, BellRing, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,10 +33,13 @@ export const ConversationNotificationBell = () => {
   const [notifications, setNotifications] = useState<ConversationNotification[]>([]);
   const [totalUnread, setTotalUnread] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const previousUnreadRef = useRef<Map<string, number> | null>(null);
 
   useEffect(() => {
     if (!user) return;
     fetchNotifications();
+    // Reconciliation also catches events missed during a realtime reconnect.
+    const refreshInterval = window.setInterval(fetchNotifications, 30000);
 
     // Real-time subscriptions for agent conversations
     const agentConvChannel = supabase
@@ -108,6 +111,7 @@ export const ConversationNotificationBell = () => {
       .subscribe();
 
     return () => {
+      window.clearInterval(refreshInterval);
       supabase.removeChannel(agentConvChannel);
       supabase.removeChannel(agentMsgChannel);
       supabase.removeChannel(chatbotConvChannel);
@@ -288,6 +292,26 @@ export const ConversationNotificationBell = () => {
       new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
     );
 
+    // Only alert on new unread messages; do not flood the screen on page load.
+    const currentUnread = new Map(notifications.map(n => [`${n.type}:${n.id}`, n.unread_count]));
+    const previousUnread = previousUnreadRef.current;
+    if (previousUnread) {
+      const newlyUnread = notifications.filter(n =>
+        n.unread_count > (previousUnread.get(`${n.type}:${n.id}`) ?? 0)
+      );
+      if (newlyUnread.length > 0) {
+        const latest = newlyUnread[0];
+        toast.info(newlyUnread.length > 1 ? `${newlyUnread.length} conversas com novas mensagens` : 'Nova mensagem no chat online!', {
+          description: `${latest.customer_name}: ${latest.last_message.slice(0, 100)}`,
+          duration: 12000,
+          action: {
+            label: 'Ver conversa',
+            onClick: () => handleNotificationClick(latest),
+          },
+        });
+      }
+    }
+    previousUnreadRef.current = currentUnread;
     setNotifications(notifications);
     setTotalUnread(totalUnreadCount);
   };
@@ -364,9 +388,11 @@ export const ConversationNotificationBell = () => {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="relative"
+          className="relative h-9 w-9"
+          title={totalUnread > 0 ? `Chat online: ${totalUnread} mensagens não lidas` : "Notificações do chat online"}
+          aria-label={totalUnread > 0 ? `Chat online: ${totalUnread} mensagens não lidas` : "Notificações do chat online"}
         >
-          <MessageCircle className="w-5 h-5" />
+          <BellRing className={`w-5 h-5 ${totalUnread > 0 ? "text-destructive animate-pulse" : ""}`} />
           {totalUnread > 0 && (
             <Badge 
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-destructive"
@@ -376,7 +402,7 @@ export const ConversationNotificationBell = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end">
+      <PopoverContent className="w-[min(24rem,calc(100vw-1rem))] p-0" align="end">
         <div className="flex items-center justify-between border-b p-4">
           <h3 className="font-semibold flex items-center gap-2">
             <MessageCircle className="w-4 h-4" />
