@@ -170,7 +170,7 @@ const Auth = () => {
         setVerificationUserId(userId ?? "");
         setVerificationEmail(email);
         setShowVerification(true);
-        showMessage("Conta criada com sucesso! 📧", "Enviamos um código de 6 dígitos para seu e-mail. Digite-o para ativar sua conta (confira também o spam).", "success");
+        showMessage("Conta criada com sucesso! 📧", "Enviamos um código de confirmação pelo serviço de autenticação do Lovable. Digite-o para ativar sua conta (confira também o spam).", "success");
       }
       
       setIsLoading(false);
@@ -183,8 +183,14 @@ const Auth = () => {
           setVerificationUserId(userId ?? "");
           setVerificationEmail(email);
           setShowVerification(true);
-          if (userId) {
-            await supabase.functions.invoke("user-auth", { body: { action: "resend", userId } });
+          const { error: resendError } = await supabase.auth.resend({
+            type: "signup",
+            email: email.trim(),
+          });
+          if (resendError) {
+            showMessage("Falha ao reenviar", resendError.message, "error");
+            setIsLoading(false);
+            return;
           }
           showMessage("Email não confirmado ✉️", "Enviamos um novo código para seu e-mail. Digite-o para ativar sua conta.", "error");
         } else if (error.includes("banido") || error.includes("banned")) {
