@@ -206,3 +206,49 @@
   .hub-sidebar-toggle { padding:9px; margin-left:0; }
   .hub-sidebar-toggle span { display:none; }
 }
+
+/* Unified Out App workspace language - same visual system as the finance dashboard. */
+.outapp-modern-module {
+  --modern-border:rgba(125,182,222,.20);
+  --modern-cyan:#70ddf3;
+  --modern-muted:#aac5d8;
+  background:linear-gradient(150deg,#081b31,#0a233b)!important;
+  border-color:var(--modern-border)!important;
+  color:#edf8ff;
+}
+.outapp-modern-module:not(.outapp-finance-module) :where([data-slot="card"], .rounded-xl.border.bg-card, .rounded-lg.border.bg-card) {
+  border:1px solid var(--modern-border);
+  background:linear-gradient(145deg,#102e49,#0b243b);
+  border-radius:16px;
+  box-shadow:0 8px 24px #0000001c,inset 0 1px #ffffff0a;
+}
+.outapp-modern-module:not(.outapp-finance-module) :where(input:not([type="checkbox"]), textarea, [role="combobox"]) {
+  border-color:#3b627d;
+  background-color:#0b2943;
+  color:#f1faff;
+  border-radius:10px;
+}
+.outapp-modern-module:not(.outapp-finance-module) :where(input,textarea,[role="combobox"]):focus-visible {
+  border-color:#74def5;
+  box-shadow:0 0 0 2px #29c6ed24;
+}
+.outapp-modern-module:not(.outapp-finance-module) :where(table) {width:100%;}
+.outapp-modern-module:not(.outapp-finance-module) :where(th) {
+  background:#133651;
+  border-color:#365770;
+  color:#bdd7e8;
+  font-weight:700;
+}
+.outapp-modern-module:not(.outapp-finance-module) :where(td) {border-color:#34536a70;}
+.outapp-modern-module:not(.outapp-finance-module) :where(tr:hover) {background:#1c45604a;}
+.outapp-modern-module:not(.outapp-finance-module) :where(button):focus-visible {
+  outline:2px solid #7ce8ff;outline-offset:2px;
+}
+.outapp-modern-module:not(.outapp-finance-module) :where(.text-muted-foreground) {color:var(--modern-muted);}
+.outapp-modern-module:not(.outapp-finance-module) :where(.text-primary) {color:var(--modern-cyan);}
+.outapp-modern-module:not(.outapp-finance-module) :where(.overflow-x-auto) {scrollbar-color:#2a6f92 transparent;}
+.outapp-modern-module:not(.outapp-finance-module) :where(.bg-muted\/20,.bg-muted\/30,.bg-muted\/50) {background:#20466045;}
+@media(max-width:760px) {
+ .outapp-modern-module{padding:12px!important;}
+ .outapp-modern-module:not(.outapp-finance-module) :where(.overflow-x-auto){max-width:100%;}
+}
