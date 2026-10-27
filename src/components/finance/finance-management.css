@@ -188,3 +188,17 @@
 @media (prefers-reduced-motion: reduce) {
   .finance-app button,.finance-section-content {transition:none!important;animation:none!important;}
 }
+/* Period picker portal and compact year/month navigation. */
+.finance-period-picker-trigger {display:flex;align-items:center;gap:7px;text-align:left;font-size:15px;font-weight:760;color:#f2faff;line-height:1.35;white-space:nowrap;text-transform:capitalize;border-radius:6px;}
+.finance-period-picker-trigger svg {color:#86dffc;}
+.finance-period-picker-trigger:hover {color:#73eaff;}
+.finance-month-popover {z-index:120;width:290px;max-width:calc(100vw - 24px);padding:14px;border:1px solid #47708b;border-radius:15px;background:#0b2845;color:#eaf9ff;box-shadow:0 18px 42px #0008;}
+.finance-month-header {display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px;color:#a9c8dc;font-weight:700;font-size:12px;}
+.finance-month-header>div {display:flex;align-items:center;gap:7px;}
+.finance-month-header button {height:30px;width:30px;display:grid;place-items:center;border:1px solid #42647a;border-radius:8px;color:#def3ff;}
+.finance-month-header button:hover {background:#174768;}
+.finance-month-header strong {width:39px;text-align:center;color:#eefaff;font-variant-numeric:tabular-nums;}
+.finance-month-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+.finance-month-grid button {padding:10px 5px;border:1px solid #335471;border-radius:9px;color:#accbdf;font-size:12px;font-weight:680;text-transform:capitalize;}
+.finance-month-grid button:hover {background:#194568;color:#fff;}
+.finance-month-grid button.is-current {background:#15648d;border-color:#57dfff;color:white;box-shadow:inset 0 0 0 1px #7ee5ff3d;}
