@@ -50,7 +50,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [entityType, setEntityType] = useState<EntityType>('pf');
-  const [selectedFolderId, setSelectedFolderId] = useState<string>('all');
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [activeFinanceTab, setActiveFinanceTab] = useState<string>('overview');
   const { folders, loading: foldersLoading, error: foldersError, createFolder, renameFolder, removeFolder } = useFinancialFolders(selectedBusinessId, Boolean(teamContext) || isConsolidatedView);
 
@@ -69,12 +69,19 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
     [transactions, selectedYear, selectedMonth, recurringCategoryNames, entityType]
   );
 
+  // Keep selection on an existing custom tab when switching businesses or deleting tabs.
+  useEffect(() => {
+    if (foldersLoading || foldersError || isConsolidatedView || teamContext) return;
+    if (!folders.some(folder => folder.id === selectedFolderId)) {
+      setSelectedFolderId(folders[0]?.id ?? "");
+    }
+  }, [folders, foldersLoading, foldersError, isConsolidatedView, teamContext, selectedFolderId]);
+
   /** Abas filtram somente lancamentos; categorias e contas bancarias permanecem compartilhadas. */
   const visibleTransactions = useMemo(
-    () => selectedFolderId === "all"
+    () => isConsolidatedView || Boolean(teamContext) || Boolean(foldersError)
       ? periodTransactions
-      : periodTransactions.filter(t => selectedFolderId === "unfiled"
-        ? !t.folder_id : t.folder_id === selectedFolderId),
+      : periodTransactions.filter(t => Boolean(selectedFolderId) && t.folder_id === selectedFolderId),
     [periodTransactions, selectedFolderId]
   );
 
@@ -98,7 +105,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
 
   useEffect(() => {
     if (initialBusinessId) {
-      setSelectedFolderId("all");
+      setSelectedFolderId("");
       setSelectedBusinessId(initialBusinessId);
       setSelectedBusinessIds([]);
       setIsConsolidatedView(false);
@@ -177,7 +184,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   };
 
   const handleSelectBusiness = (businessId: string) => {
-    setSelectedFolderId("all");
+    setSelectedFolderId("");
     setActiveFinanceTab('overview');
     setSelectedBusinessId(businessId);
     setIsConsolidatedView(false);
@@ -186,7 +193,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   };
 
   const handleSelectMultipleBusinesses = (businessIds: string[]) => {
-    setSelectedFolderId("all");
+    setSelectedFolderId("");
     setActiveFinanceTab('overview');
     setSelectedBusinessIds(businessIds);
     setSelectedBusinessId('');
@@ -195,7 +202,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   };
 
   const handleBackToSelection = () => {
-    setSelectedFolderId("all");
+    setSelectedFolderId("");
     setViewMode('selection');
     setSelectedBusinessId('');
     setSelectedBusinessIds([]);
@@ -422,7 +429,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
               selected={selectedFolderId}
               onSelect={(id) => {
                 setSelectedFolderId(id);
-                setActiveFinanceTab(id === "all" ? "overview" : "transactions");
+                setActiveFinanceTab("transactions");
               }}
               onCreate={createFolder}
               onEdit={renameFolder}
@@ -510,7 +517,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
           <FinancialOverview 
             transactions={visibleTransactions} 
             bankAccounts={bankAccounts}
-            showBankBalance={selectedFolderId === "all"} 
+            showBankBalance={isConsolidatedView || Boolean(teamContext)} 
           />
         </TabsContent>
 
@@ -528,7 +535,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
             transactions={visibleTransactions} 
             bankAccounts={bankAccounts} 
             folders={folders}
-            defaultFolderId={selectedFolderId}
+            defaultFolderId={folders.some(folder => folder.id === selectedFolderId) ? selectedFolderId : ""}
             folderStorageReady={!foldersError && !foldersLoading && !teamContext}
             onRefresh={async () => {
               await Promise.all([
