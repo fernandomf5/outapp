@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FolderOpen, Layers3, Pencil, Plus, Trash2, Wallet } from "lucide-react";
+import { Pencil, Plus, Trash2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +27,8 @@ export function FinancialFolderTabs({ folders, transactions, selected, onSelect,
   const [toDelete, setToDelete] = useState<FinancialFolder | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const folderTotal = (id: string) => transactions.filter((t) => id === "all" || (id === "unfiled" ? !t.folder_id : t.folder_id === id)).length;
-  const folderSum = (id: string) => transactions.filter((t) => id === "all" || (id === "unfiled" ? !t.folder_id : t.folder_id === id))
+  const folderTotal = (id: string) => transactions.filter((t) => t.folder_id === id).length;
+  const folderSum = (id: string) => transactions.filter((t) => t.folder_id === id)
     .reduce((sum, t) => sum + ((t.type === "income" ? 1 : -1) * (Number(t.amount) || 0)), 0);
   const money = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   const save = async () => {
@@ -51,9 +51,9 @@ export function FinancialFolderTabs({ folders, transactions, selected, onSelect,
     setDeleting(true);
     try {
       await onDelete(toDelete.id);
-      if (selected === toDelete.id) onSelect("unfiled");
+      if (selected === toDelete.id) onSelect(folders.find(folder => folder.id !== toDelete.id)?.id ?? "");
       await onRefreshTransactions();
-      toast.success("Aba excluída. Suas contas foram preservadas em Sem aba.");
+      toast.success("Aba excluída. Os lançamentos anteriores foram preservados no histórico.");
       setToDelete(null);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível excluir a aba.");
@@ -68,22 +68,23 @@ export function FinancialFolderTabs({ folders, transactions, selected, onSelect,
         </div>
         {!disabled && <Button onClick={() => setEditing({ name: "", color: COLORS[0] })} className="finance-folder-create"><Plus size={17}/> Nova aba</Button>}
       </div>
+      {folders.length === 0 && <p className="finance-folder-annotation">Crie sua primeira aba para organizar os lançamentos financeiros.</p>}
       <div className="finance-folder-tabs" role="group" aria-label="Escolha a aba financeira">
-        {[{ id: "all", name: "Todas", color: "#43d9ff" }, ...folders, { id: "unfiled", name: "Sem aba", color: "#8ca6be" }].map(folder => (
+        {folders.map(folder => (
           <div key={folder.id} className={"finance-folder-chip " + (selected === folder.id ? "is-selected" : "")} style={{ "--folder-accent": folder.color } as React.CSSProperties}>
             <button type="button" className="finance-folder-select" onClick={() => onSelect(folder.id)}
               aria-pressed={selected === folder.id} title={folder.name}>
-              {folder.id === "all" ? <Layers3 size={18}/> : folder.id === "unfiled" ? <FolderOpen size={18}/> : <Wallet size={18}/>}
+              <Wallet size={18}/>
               <span className="finance-folder-chip-name">{folder.name}</span>
               <span className="finance-folder-chip-count">{folderTotal(folder.id)}</span>
             </button>
-            {!disabled && folder.id !== "all" && folder.id !== "unfiled" && <button
+            {!disabled && <button
               type="button" className="finance-folder-edit" title={"Editar " + folder.name} aria-label={"Editar aba " + folder.name}
               onClick={() => setEditing({ id: folder.id, name: folder.name, color: folder.color })}><Pencil size={13}/></button>}
           </div>
         ))}
       </div>
-      <div className="finance-folder-footer"><span>{selected === "all" ? "Visão de todas as abas" : selected === "unfiled" ? "Lançamentos anteriores e sem aba" : folders.find(f => f.id === selected)?.name || "Aba selecionada"}</span>
+      <div className="finance-folder-footer"><span>{folders.find(f => f.id === selected)?.name || "Selecione ou crie uma aba"}</span>
         <strong>{folderTotal(selected)} lançamento(s) neste mês</strong>
         <span>Resultado previsto: <b>{money(folderSum(selected))}</b></span>
       </div>
@@ -115,7 +116,7 @@ export function FinancialFolderTabs({ folders, transactions, selected, onSelect,
       <AlertDialog open={toDelete !== null} onOpenChange={open => !deleting && !open && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader><AlertDialogTitle>Excluir a aba “{toDelete?.name}”?</AlertDialogTitle>
-            <AlertDialogDescription>As contas cadastradas nesta aba NÃO serão excluídas. Elas serão movidas para “Sem aba”, mantendo pagamentos, valores e histórico.</AlertDialogDescription>
+            <AlertDialogDescription>A aba será excluída, mas os lançamentos e o histórico financeiro serão preservados. Para voltar a visualizá-los por aba, será necessário vinculá-los a outra aba.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter><AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction disabled={deleting} onClick={e => { e.preventDefault(); void remove(); }}>{deleting ? "Excluindo..." : "Excluir somente a aba"}</AlertDialogAction>
