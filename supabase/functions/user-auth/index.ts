@@ -345,7 +345,7 @@ serve(async (req) => {
             needsVerification: true,
             userId: profile.user_id
           }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
