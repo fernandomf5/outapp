@@ -1,24 +1,25 @@
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  ArrowDownCircle,
-  ArrowUpCircle,
+  Activity,
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
   CalendarClock,
+  CheckCircle2,
   CircleDollarSign,
-  Clock,
+  Clock3,
   Landmark,
-  Scale,
+  Receipt,
+  TrendingUp,
   Wallet,
 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { FinancialMetricCard, type FinancialMetricTone } from "./FinancialMetricCard";
 
 interface Transaction {
   id: string;
   amount: number;
   type: "income" | "expense";
   status: string;
-  category: string;
   description: string;
   due_date: string;
 }
@@ -31,171 +32,236 @@ interface BankAccount {
 interface FinancialOverviewProps {
   transactions: Transaction[];
   bankAccounts: BankAccount[];
-  /** Hide bank balance when filtering a folder: bank accounts span all folders. */
+  /** Bank accounts are shared by every financial folder. */
   showBankBalance?: boolean;
+  onShowTransactions?: () => void;
 }
 
-const normalizeStatus = (status: string | null | undefined): string =>
-  (status || "").trim().toLowerCase();
-
-const amountOf = (amount: number): number => {
-  const value = Number(amount);
-  return Number.isFinite(value) ? value : 0;
+const amountOf = (value: number | string | null | undefined) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+const money = (value: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+const paid = (status: string | null | undefined) => status?.trim().toLowerCase() === "paid";
+const pending = (status: string | null | undefined) => status?.trim().toLowerCase() === "pending";
+const dateLabel = (date: string) => {
+  if (!date) return "Sem vencimento";
+  const parsed = new Date(date.slice(0, 10) + "T12:00:00");
+  return Number.isNaN(parsed.getTime()) ? "Sem vencimento" : parsed.toLocaleDateString("pt-BR");
 };
 
-const money = (value: number): string =>
-  `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-export const FinancialOverview = ({ transactions, bankAccounts, showBankBalance = true }: FinancialOverviewProps) => {
+export const FinancialOverview = ({
+  transactions,
+  bankAccounts,
+  showBankBalance = false,
+  onShowTransactions,
+}: FinancialOverviewProps) => {
   const summary = useMemo(() => {
-    const paidIncome = transactions.filter((item) => item.type === "income" && normalizeStatus(item.status) === "paid");
-    const paidExpenses = transactions.filter((item) => item.type === "expense" && normalizeStatus(item.status) === "paid");
-    const pendingIncome = transactions.filter((item) => item.type === "income" && normalizeStatus(item.status) === "pending");
-    const pendingExpenses = transactions.filter((item) => item.type === "expense" && normalizeStatus(item.status) === "pending");
-    const sum = (items: Transaction[]) => items.reduce((total, item) => total + amountOf(item.amount), 0);
-    const income = sum(paidIncome);
-    const expenses = sum(paidExpenses);
-    const receivable = sum(pendingIncome);
-    const payable = sum(pendingExpenses);
+    const sum = (type: "income" | "expense", status: "paid" | "pending") =>
+      transactions.reduce(
+        (total, item) => total + (item.type === type && (status === "paid" ? paid(item.status) : pending(item.status)) ? amountOf(item.amount) : 0),
+        0,
+      );
+
+    const received = sum("income", "paid");
+    const spent = sum("expense", "paid");
+    const toReceive = sum("income", "pending");
+    const toPay = sum("expense", "pending");
 
     return {
-      income,
-      expenses,
-      receivable,
-      payable,
-      net: income - expenses,
-      forecast: income + receivable - expenses - payable,
-      bankBalance: bankAccounts.reduce((total, account) => total + amountOf(account.current_balance || 0), 0),
-      pendingIncomeCount: pendingIncome.length,
-      pendingExpenseCount: pendingExpenses.length,
+      received,
+      spent,
+      toReceive,
+      toPay,
+      realized: received - spent,
+      forecast: received + toReceive - spent - toPay,
+      pendingCount: transactions.filter((item) => pending(item.status)).length,
+      bankBalance: bankAccounts.reduce((total, item) => total + amountOf(item.current_balance), 0),
     };
   }, [transactions, bankAccounts]);
 
-  const pendingTransactions = useMemo(
-    () => transactions
-      .filter((item) => normalizeStatus(item.status) === "pending")
-      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
-      .slice(0, 5),
-    [transactions],
-  );
-
-  const expenseCategories = useMemo(() => {
-    const totals = new Map<string, number>();
+  const upcoming = useMemo(() =>
     transactions
-      .filter((item) => item.type === "expense" && normalizeStatus(item.status) === "paid")
-      .forEach((item) => totals.set(item.category || "Sem categoria", (totals.get(item.category || "Sem categoria") || 0) + amountOf(item.amount)));
-    const entries = [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
-    const total = entries.reduce((sum, [, value]) => sum + value, 0);
-    return entries.map(([name, value]) => ({ name, value, percent: total > 0 ? (value / total) * 100 : 0 }));
-  }, [transactions]);
+      .filter((item) => pending(item.status))
+      .slice()
+      .sort((a, b) => (a.due_date || "9999").localeCompare(b.due_date || "9999"))
+      .slice(0, 5),
+  [transactions]);
 
-  const metricCards: Array<{
-    label: string;
-    value: string;
-    detail: string;
-    icon: typeof Wallet;
-    tone: FinancialMetricTone;
-    emphasized?: boolean;
-  }> = [
-    { label: "Saldo em contas", value: money(summary.bankBalance), detail: "Todas as contas ativas", icon: Landmark, tone: "neutral" },
-    { label: "Resultado do mês", value: money(summary.net), detail: "Recebido menos pago", icon: Scale, tone: summary.net >= 0 ? "positive" : "negative", emphasized: true },
-    { label: "Saldo previsto", value: money(summary.forecast), detail: "Incluindo todas as pendências", icon: Wallet, tone: summary.forecast >= 0 ? "info" : "negative" },
-    { label: "Receitas recebidas", value: money(summary.income), detail: "Valores já recebidos", icon: ArrowUpCircle, tone: "positive" },
-    { label: "Despesas pagas", value: money(summary.expenses), detail: "Valores já quitados", icon: ArrowDownCircle, tone: "negative" },
-    { label: "Receitas pendentes", value: money(summary.receivable), detail: `${summary.pendingIncomeCount} conta(s) a receber`, icon: Clock, tone: summary.receivable > 0 ? "warning" : "neutral", emphasized: summary.receivable > 0 },
-    { label: "Despesas pendentes", value: money(summary.payable), detail: `${summary.pendingExpenseCount} conta(s) a pagar`, icon: CalendarClock, tone: summary.payable > 0 ? "warning" : "neutral", emphasized: summary.payable > 0 },
-  ];
+  const recent = useMemo(() =>
+    transactions
+      .slice()
+      .sort((a, b) => (b.due_date || "").localeCompare(a.due_date || ""))
+      .slice(0, 4),
+  [transactions]);
 
   const comparisonData = [
-    { name: "Receitas", value: summary.income, fill: "hsl(var(--success))" },
-    { name: "Despesas", value: summary.expenses, fill: "hsl(var(--destructive))" },
+    { label: "Recebido", amount: summary.received, fill: "#5be0b1" },
+    { label: "Pago", amount: summary.spent, fill: "#ff8998" },
+  ];
+
+  const metrics = [
+    {
+      label: "Receitas recebidas",
+      amount: summary.received,
+      helper: "Entradas confirmadas no mês",
+      tone: "positive",
+      icon: ArrowUpRight,
+    },
+    {
+      label: "Despesas pagas",
+      amount: summary.spent,
+      helper: "Saídas confirmadas no mês",
+      tone: "negative",
+      icon: ArrowDownRight,
+    },
+    {
+      label: "A receber",
+      amount: summary.toReceive,
+      helper: "Receitas aguardando pagamento",
+      tone: "warning",
+      icon: Clock3,
+    },
+    {
+      label: "A pagar",
+      amount: summary.toPay,
+      helper: "Despesas aguardando quitação",
+      tone: "warning",
+      icon: CalendarClock,
+    },
   ];
 
   return (
-    <div className="space-y-6">
-      <section aria-label="Resumo financeiro" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {metricCards.filter(metric => showBankBalance || metric.label !== "Saldo em contas").map((metric) => <FinancialMetricCard key={metric.label} {...metric} />)}
+    <div className="finance-overview">
+      <section className="finance-overview-hero" aria-label="Resultado financeiro do mês">
+        <div className="finance-result-card">
+          <div className="finance-result-kicker"><Activity size={16} /> RESULTADO DO PERÍODO</div>
+          <div className="finance-result-value">{money(summary.realized)}</div>
+          <p className="finance-result-subtitle">Diferença entre tudo o que já entrou e o que já foi pago neste mês.</p>
+          <div className="finance-result-insight">
+            <span className={"finance-result-pill " + (summary.realized < 0 ? "negative" : "")}>
+              {summary.realized >= 0 ? <TrendingUp size={14} /> : <ArrowDownRight size={14} />}
+              {summary.realized >= 0 ? "Resultado positivo" : "Resultado negativo"}
+            </span>
+            <span>{transactions.length} movimentação(ões) no período</span>
+          </div>
+        </div>
+        <div className="finance-forecast-card">
+          <div>
+            <span className="finance-forecast-icon"><Wallet size={19} /></span>
+            <p style={{ marginTop: 14 }}>SALDO PREVISTO</p>
+            <strong>{money(summary.forecast)}</strong>
+            <small>Estimativa incluindo receitas e despesas pendentes da aba selecionada.</small>
+          </div>
+          {showBankBalance ? (
+            <div style={{ borderTop: "1px solid rgba(125,182,222,.19)", paddingTop: 12 }}>
+              <p><Landmark size={14} style={{ display: "inline", marginRight: 6 }} /> SALDO DAS CONTAS BANCÁRIAS</p>
+              <strong style={{ fontSize: 18 }}>{money(summary.bankBalance)}</strong>
+            </div>
+          ) : (
+            <div className="finance-result-insight" style={{ marginTop: 0 }}>
+              <span className="finance-result-pill"><CheckCircle2 size={13} /> Valores desta aba</span>
+            </div>
+          )}
+        </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="overflow-hidden shadow-sm lg:col-span-2">
-          <CardHeader className="border-b border-border/70 pb-4">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <CircleDollarSign className="h-4 w-4 text-primary" aria-hidden="true" />
-              Comparativo do mês
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-[280px] pt-6">
+      <section className="finance-metric-grid" aria-label="Indicadores financeiros">
+        {metrics.map(({ label, amount, helper, tone, icon: Icon }) => (
+          <div key={label} className={"finance-metric " + tone}>
+            <div className="finance-metric-top">
+              <span className="finance-metric-label">{label}</span>
+              <span className="finance-metric-icon"><Icon size={17} /></span>
+            </div>
+            <strong>{money(amount)}</strong>
+            <small>{helper}</small>
+          </div>
+        ))}
+      </section>
+
+      <div className="finance-overview-panels">
+        <section className="finance-panel" aria-label="Comparativo financeiro">
+          <div className="finance-panel-title">
+            <h3><CircleDollarSign size={16} color="#67dfff" /> Entradas x saídas</h3>
+            <span className="finance-panel-aside">Valores efetivados</span>
+          </div>
+          <div className="finance-comparison">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={comparisonData} barCategoryGap="34%">
-                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                <Tooltip formatter={(value: number) => [money(value), "Valor"]} cursor={{ fill: "hsl(var(--muted) / 0.35)" }} />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]} />
+              <BarChart data={comparisonData} barCategoryGap="46%" margin={{ left: 2, right: 14, top: 8, bottom: 0 }}>
+                <CartesianGrid stroke="#375672" strokeDasharray="3 5" vertical={false} opacity={0.45} />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#aac5d7", fontSize: 11 }} />
+                <YAxis axisLine={false} tickLine={false} width={56} tick={{ fill: "#8baabe", fontSize: 10 }}
+                  tickFormatter={(value: number) => value >= 1000 ? (value / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " mil" : String(value)} />
+                <Tooltip
+                  formatter={(value: number) => [money(amountOf(value)), "Valor"]}
+                  contentStyle={{ background: "#0b2b47", color: "#f0faff", border: "1px solid #41647f", borderRadius: 10, fontSize: 12 }}
+                  cursor={{ fill: "#65d9f212" }}
+                />
+                <Bar dataKey="amount" name="Valor" radius={[8, 8, 3, 3]} maxBarSize={84} />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        <Card className="overflow-hidden shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border/70 pb-4">
-            <CardTitle className="text-base">Próximos vencimentos</CardTitle>
-            <span className="rounded-md bg-warning/10 px-2 py-1 text-xs font-semibold text-warning">{pendingTransactions.length} pendente(s)</span>
-          </CardHeader>
-          <CardContent className="p-0">
-            {pendingTransactions.length > 0 ? (
-              <div className="divide-y divide-border/60">
-                {pendingTransactions.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-muted/30">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">{item.description}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(`${item.due_date}T00:00:00`).toLocaleDateString("pt-BR")}</p>
-                    </div>
-                    <p className={item.type === "income" ? "shrink-0 text-sm font-bold text-success" : "shrink-0 text-sm font-bold text-destructive"}>
-                      {item.type === "income" ? "+" : "-"} {money(amountOf(item.amount))}
-                    </p>
+        <section className="finance-panel" aria-label="Próximos vencimentos">
+          <div className="finance-panel-title">
+            <h3><CalendarClock size={16} color="#ffd08a" /> Próximos vencimentos</h3>
+            <span className="finance-panel-aside">{summary.pendingCount} pendente(s)</span>
+          </div>
+          {upcoming.length ? (
+            <div className="finance-due-list">
+              {upcoming.map((item) => (
+                <div className="finance-due-row" key={item.id}>
+                  <div className="finance-due-copy">
+                    <strong title={item.description}>{item.description}</strong>
+                    <span>Vence em {dateLabel(item.due_date)}</span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex min-h-48 flex-col items-center justify-center gap-2 px-5 text-center">
-                <CalendarClock className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm font-medium">Nenhum vencimento pendente</p>
-                <p className="text-xs text-muted-foreground">As contas deste mês estão em dia.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="overflow-hidden shadow-sm">
-        <CardHeader className="border-b border-border/70 pb-4">
-          <CardTitle className="text-base">Despesas por categoria</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-5">
-          {expenseCategories.length > 0 ? (
-            <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
-              {expenseCategories.map((category) => (
-                <div key={category.name}>
-                  <div className="mb-2 flex items-center justify-between gap-4 text-sm">
-                    <span className="truncate font-medium">{category.name}</span>
-                    <span className="shrink-0 font-semibold tabular-nums">{money(category.value)} · {category.percent.toFixed(0)}%</span>
-                  </div>
-                  <progress
-                    className="h-2 w-full overflow-hidden rounded-full accent-primary"
-                    value={category.percent}
-                    max={100}
-                    aria-label={`${category.name}: ${category.percent.toFixed(0)}% das despesas pagas`}
-                  />
+                  <span className={"finance-due-amount " + item.type}>
+                    {item.type === "income" ? "+" : "−"} {money(amountOf(item.amount))}
+                  </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma despesa paga neste mês.</p>
+            <div className="finance-empty">
+              <CheckCircle2 size={25} color="#66e4b8" />
+              <span>Nenhuma conta pendente neste período.</span>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </section>
+      </div>
+
+      <section className="finance-panel" aria-label="Últimas movimentações">
+        <div className="finance-panel-title">
+          <h3><Receipt size={16} color="#67dfff" /> Movimentações recentes</h3>
+          {onShowTransactions && (
+            <button type="button" className="finance-panel-link" onClick={onShowTransactions}>
+              Ver transações <ArrowRight size={15} />
+            </button>
+          )}
+        </div>
+        {recent.length ? recent.map((item) => (
+          <div className="finance-recent-row" key={item.id}>
+            <div className="finance-recent-copy">
+              <strong title={item.description}>{item.description}</strong>
+              <span>{dateLabel(item.due_date)} · {item.type === "income" ? "Receita" : "Despesa"}</span>
+            </div>
+            <span className={"finance-recent-status " + (pending(item.status) ? "pending" : "")}>
+              {paid(item.status) ? "Pago" : pending(item.status) ? "Pendente" : item.status}
+            </span>
+            <strong className={"finance-recent-amount " + item.type}>
+              {item.type === "income" ? "+" : "−"} {money(amountOf(item.amount))}
+            </strong>
+          </div>
+        )) : (
+          <div className="finance-empty">
+            <Receipt size={25} />
+            <span>Esta aba ainda não tem movimentações no período selecionado.</span>
+            {onShowTransactions && <button type="button" className="finance-panel-link" onClick={onShowTransactions}>Adicionar transação <ArrowRight size={14}/></button>}
+          </div>
+        )}
+      </section>
     </div>
   );
 };
