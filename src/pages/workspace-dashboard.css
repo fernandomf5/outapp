@@ -193,3 +193,16 @@
   .hub-position-4{--tile-x:calc(96% - 82px)}
 }
 @media(prefers-reduced-motion:reduce){.outapp-hub *, .outapp-hub *:before,.outapp-hub *:after{animation:none!important;transition-duration:.01ms!important;}}
+
+/* Expand the active workspace when the left management rail is collapsed. */
+.hub-shell.hub-shell-expanded { grid-template-columns:minmax(0,1fr); max-width:none; }
+.hub-shell-expanded > .hub-entities-panel.hub-entities-collapsed { display:none; }
+.hub-sidebar-toggle { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 12px; border:1px solid var(--hub-line); border-radius:10px; color:#aeeaff; background:#0b3059; font-size:12px; white-space:nowrap; margin-left:auto; }
+.hub-sidebar-toggle:hover { background:#165381; color:white; }
+.hub-tool-content { min-width:0; }
+@media(max-width:760px) {
+  .hub-shell.hub-shell-expanded { display:flex; }
+  .hub-shell-expanded > .hub-entities-panel.hub-entities-collapsed { display:none; }
+  .hub-sidebar-toggle { padding:9px; margin-left:0; }
+  .hub-sidebar-toggle span { display:none; }
+}
