@@ -16,11 +16,13 @@ import {
 interface RecoveryEmailProps {
   siteName: string
   confirmationUrl: string
+  token?: string
 }
 
 export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
+  token,
 }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
@@ -34,6 +36,11 @@ export const RecoveryEmail = ({
           We received a request to reset your password for {siteName}. Click
           the button below to choose a new password.
         </Text>
+        {token && (
+          <Text style={{ fontSize: '28px', letterSpacing: '6px', fontWeight: 'bold', textAlign: 'center' }}>
+            {token}
+          </Text>
+        )}
         <Button className="dm-btn" style={button} href={confirmationUrl}>
           Reset Password
         </Button>
