@@ -323,7 +323,7 @@ export default function WorkspaceDashboard() {
                 <button className="hub-sidebar-toggle" type="button" onClick={() => setEntitiesCollapsed(v => !v)} aria-expanded={!entitiesCollapsed} aria-label={entitiesCollapsed ? "Expandir painel esquerdo" : "Minimizar painel esquerdo"} title={entitiesCollapsed ? "Expandir painel esquerdo" : "Minimizar painel esquerdo"}>{entitiesCollapsed ? <PanelLeftOpen size={18}/> : <PanelLeftClose size={18}/>}<span>{entitiesCollapsed ? "Expandir menu" : "Ampliar área"}</span></button>
                 <button className="hub-secondary-action" onClick={backToEntities}>Trocar cadastro</button>
               </div>
-              <div className="hub-tool-content" key={selected.id + "-" + activeTool.id}><ModuleView item={activeTool} entity={selected} onBack={backToHub}/></div>
+              <div className={"hub-tool-content outapp-modern-module " + (activeTool.id === "financeiro" ? "outapp-finance-module" : "")} key={selected.id + "-" + activeTool.id}><ModuleView item={activeTool} entity={selected} onBack={backToHub}/></div>
             </section>
           ) : (
             <div className="hub-orb-stage">
