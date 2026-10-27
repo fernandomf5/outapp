@@ -9,6 +9,7 @@ import {
   UserRound, WandSparkles, Workflow, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -267,6 +268,7 @@ export default function WorkspaceDashboard() {
         </nav>
         <div className="hub-header-actions">
           <span className="hub-hello">Olá, {displayName.split(" ")[0]}</span>
+          <div className="hub-chat-notification" aria-label="Notificações do chat online"><ConversationNotificationBell /></div>
           <button onClick={() => setParams({ tab: "plan" })} aria-label="Meu plano" title="Meu plano"><BadgeCheck size={19} /></button>
           {isAdmin && <button onClick={() => navigate("/admin")} aria-label="Administração" title="Administração"><ShieldCheck size={18} /></button>}
           <button onClick={() => navigate("/settings")} aria-label="Configurações" title="Configurações"><Settings2 size={19} /></button>
