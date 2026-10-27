@@ -18,9 +18,6 @@ import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useFinancialCategories } from "@/hooks/useFinancialCategories";
-import { CategoryManager } from "./CategoryManager";
-import { CategorySelect } from "./CategorySelect";
 import { EntityType, MonthlyStatusEntry, MonthlyOverrides } from "./monthUtils";
 import type { FinancialFolder } from "@/hooks/useFinancialFolders";
 
@@ -133,15 +130,9 @@ const SortableTransactionRow = ({ id, children, className }: { id: string; child
 export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId, entityType, periodKey, periodLabel, folders = [], defaultFolderId = "all", folderStorageReady = true }: TransactionManagerProps) => {
   const activeFolderId = defaultFolderId === "all" || defaultFolderId === "unfiled" ? "" : defaultFolderId;
   const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [bankFilter, setBankFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [bulkFolderId, setBulkFolderId] = useState(activeFolderId);
-  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   /** Quando o usuário edita uma repetição de conta fixa, a alteração vale só para aquele mês. */
@@ -155,7 +146,6 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [savingStatus, setSavingStatus] = useState(false);
 
 
-  const { categories, createCategory } = useFinancialCategories(businessId);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -203,20 +193,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     return [...ordered, ...missing];
   }, [transactions, orderedIds]);
 
-  const filteredTransactions = useMemo(() => {
-    return orderedTransactions.filter(t => {
-      const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           (t.category || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = typeFilter === "all" || t.type === typeFilter;
-      const matchesStatus = statusFilter === "all" || t.status === statusFilter;
-      const matchesCategory = categoryFilter === "all" ||
-        (t.category || "").trim().toLowerCase() === categoryFilter.trim().toLowerCase();
-      const matchesBank = bankFilter === "all" ||
-        (bankFilter === "none" ? !t.bank_account_id : t.bank_account_id === bankFilter);
-      const matchesPriority = priorityFilter === "all" || (t.priority || "normal") === priorityFilter;
-      return matchesSearch && matchesType && matchesStatus && matchesCategory && matchesBank && matchesPriority;
-    });
-  }, [orderedTransactions, searchTerm, typeFilter, statusFilter, categoryFilter, bankFilter, priorityFilter]);
+  const filteredTransactions = useMemo(() => orderedTransactions.filter(t =>
+    t.description.toLowerCase().includes(searchTerm.toLowerCase())
+  ), [orderedTransactions, searchTerm]);
 
   const bankNameById = useMemo(
     () => new Map<string, string>(bankAccounts.map((a: any) => [a.id, a.bank_name])),
@@ -758,61 +737,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               className="pl-9"
             />
           </div>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-full xl:w-[130px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="income">Receitas</SelectItem>
-              <SelectItem value="expense">Despesas</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full xl:w-[170px]">
-              <Tags className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas categorias</SelectItem>
-              {categories.map(c => (
-                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={bankFilter} onValueChange={setBankFilter}>
-            <SelectTrigger className="w-full xl:w-[170px]">
-              <Landmark className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Conta" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as contas</SelectItem>
-              <SelectItem value="none">Sem conta</SelectItem>
-              {bankAccounts.map(acc => (
-                <SelectItem key={acc.id} value={acc.id}>{acc.bank_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-full xl:w-[160px]">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Prioridade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas prioridades</SelectItem>
-              <SelectItem value="urgente">Urgente</SelectItem>
-              <SelectItem value="alta">Alta</SelectItem>
-              <SelectItem value="normal">Normal</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
 
         <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:shrink-0">
-          <Button variant="outline" className="w-full xl:w-auto" onClick={() => setIsCategoryManagerOpen(true)}>
-            <Tags className="h-4 w-4 mr-2" /> Categorias
-          </Button>
           <Dialog open={isBulkAddOpen} onOpenChange={setIsBulkAddOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full xl:w-auto">
@@ -841,7 +769,6 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                         <TableHead className="w-[140px]">Tipo</TableHead>
                         <TableHead className="min-w-[300px]">Descrição</TableHead>
                         <TableHead className="min-w-[280px] w-[280px]">Valor (R$)</TableHead>
-                        <TableHead className="w-[180px]">Categoria</TableHead>
                         <TableHead className="w-[160px]">Vencimento</TableHead>
                         <TableHead className="w-[180px]">Conta</TableHead>
                         <TableHead className="w-[140px]">Forma</TableHead>
@@ -883,15 +810,6 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                 className="h-10 w-full min-w-[220px] pl-7 font-bold text-right text-base border-primary/40 focus:border-primary bg-background"
                               />
                             </div>
-                          </TableCell>
-                          <TableCell className="px-1 py-2">
-                            <CategorySelect
-                              value={row.category}
-                              onChange={(v) => updateBulkRow(index, 'category', v)}
-                              categories={categories}
-                              onCreate={createCategory}
-                              className="h-10 text-sm min-w-[150px]"
-                            />
                           </TableCell>
                           <TableCell className="px-1 py-2">
                             <Input 
@@ -1052,16 +970,6 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               )}
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Categoria</Label>
-                  <CategorySelect
-                    value={formData.category}
-                    onChange={(v) => setFormData({ ...formData, category: v })}
-                    categories={categories}
-                    onCreate={createCategory}
-                  />
-
-                </div>
                 <div className="space-y-2">
                   <Label>Vencimento</Label>
                   <Input 
@@ -1361,13 +1269,6 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         </CardContent>
       </Card>
 
-      <CategoryManager
-        open={isCategoryManagerOpen}
-        onOpenChange={setIsCategoryManagerOpen}
-        businessId={businessId}
-        transactions={transactions}
-        onSelectCategory={(name) => setCategoryFilter(name)}
-      />
 
       <SecureDeleteDialog
         open={deleteDialogOpen}
