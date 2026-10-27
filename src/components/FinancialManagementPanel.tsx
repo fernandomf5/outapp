@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History, ChevronLeft, ChevronRight, Building2, User, Loader2 } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History, ChevronLeft, ChevronRight, Building2, User, Loader2, CalendarDays, CircleDollarSign, Layers3 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ import { BusinessSelector } from "@/components/financial/BusinessSelector";
 import { useFinancialFolders } from "@/hooks/useFinancialFolders";
 import { FinancialFolderTabs } from "./finance/FinancialFolderTabs";
 import "./finance/financial-folders.css";
+import "./finance/finance-management.css";
 
 interface Business {
   id: string;
@@ -371,66 +372,52 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
     );
   }
 
-  const selectedBusinessName = isConsolidatedView 
-    ? "Visão Consolidada" 
+  const selectedBusinessName = isConsolidatedView
+    ? "Visão Consolidada"
     : businesses.find(b => b.id === selectedBusinessId)?.name || "Negócio";
+  const periodTitle = `${MONTH_NAMES[selectedMonth]} de ${selectedYear}`;
+  const pendingCount = visibleTransactions.filter((t) => t.status === "pending").length;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={onBack || handleBackToSelection}>
-            <ArrowLeft className="h-4 w-4" />
+    <div className="finance-app">
+      <header className="finance-app-header">
+        <div className="finance-app-heading">
+          <Button variant="ghost" size="icon" className="finance-back-button" onClick={onBack || handleBackToSelection} aria-label="Voltar ao painel">
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{selectedBusinessName}</h1>
-            <p className="text-sm text-muted-foreground">Sistema Financeiro Inteligente</p>
+          <div className="finance-title-symbol" aria-hidden="true"><CircleDollarSign size={23} /></div>
+          <div className="finance-title-copy">
+            <span className="finance-eyebrow">CENTRAL FINANCEIRA</span>
+            <h1>{selectedBusinessName}</h1>
+            <p>Seus números, suas contas e seus próximos passos em um só lugar.</p>
           </div>
         </div>
-        {/* Chave PF / PJ */}
-        <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
-          <Button
-            type="button"
-            size="sm"
-            variant={entityType === 'pf' ? 'default' : 'ghost'}
-            className="gap-2"
-            aria-pressed={entityType === 'pf'}
-            onClick={() => setEntityType('pf')}
-          >
-            <User className="h-4 w-4" /> Pessoa Física
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={entityType === 'pj' ? 'default' : 'ghost'}
-            className="gap-2"
-            aria-pressed={entityType === 'pj'}
-            onClick={() => setEntityType('pj')}
-          >
-            <Building2 className="h-4 w-4" /> Pessoa Jurídica
-          </Button>
+        <div className="finance-person-switch" role="group" aria-label="Tipo de movimentação">
+          <button type="button" onClick={() => setEntityType('pf')} className={entityType === 'pf' ? "is-current" : ""} aria-pressed={entityType === 'pf'}>
+            <User size={15} /> Pessoa física
+          </button>
+          <button type="button" onClick={() => setEntityType('pj')} className={entityType === 'pj' ? "is-current" : ""} aria-pressed={entityType === 'pj'}>
+            <Building2 size={15} /> Pessoa jurídica
+          </button>
         </div>
-      </div>
+      </header>
 
       {!isConsolidatedView && selectedBusinessId && (
-        <>
+        <div className="finance-app-folders">
           {foldersError ? (
-            <div className="finance-folders-unavailable" role="status">
-              <strong>As abas personalizadas ainda precisam ser ativadas no banco.</strong>
-              <p>Seus lançamentos antigos continuam disponíveis normalmente. Execute a migração financeira no Supabase para criar e organizar novas abas.</p>
+            <div className="finance-folders-unavailable" role="alert">
+              <strong>Abas financeiras indisponíveis neste momento.</strong>
+              <p>Seus lançamentos permanecem salvos. A configuração das abas no banco precisa ser verificada.</p>
             </div>
           ) : foldersLoading ? (
-            <div className="finance-folder-loading"><Loader2 size={17} className="animate-spin" /> Carregando abas...</div>
+            <div className="finance-folder-loading"><Loader2 size={17} className="animate-spin" /> Carregando suas abas financeiras...</div>
           ) : (
             <FinancialFolderTabs
               key={selectedBusinessId}
               folders={folders}
               transactions={periodTransactions}
               selected={selectedFolderId}
-              onSelect={(id) => {
-                setSelectedFolderId(id);
-                setActiveFinanceTab("overview");
-              }}
+              onSelect={setSelectedFolderId}
               onCreate={createFolder}
               onEdit={renameFolder}
               onDelete={removeFolder}
@@ -438,125 +425,111 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
               disabled={Boolean(teamContext)}
             />
           )}
-        </>
+        </div>
       )}
 
-      {/* Barra de meses */}
-      <div className="rounded-xl border bg-card p-3 space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <Button variant="outline" size="icon" onClick={goToPreviousMonth} aria-label="Mês anterior">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="text-center">
-            <p className="text-sm font-semibold">
-              {MONTH_NAMES[selectedMonth]} de {selectedYear}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {visibleTransactions.length} conta(s) • {entityType === 'pf' ? 'Pessoa Física' : 'Pessoa Jurídica'}
-            </p>
+      <div className="finance-toolbar">
+        <div className="finance-period" aria-label="Período financeiro">
+          <span className="finance-toolbar-icon"><CalendarDays size={18} /></span>
+          <div className="finance-period-title">
+            <span>PERÍODO SELECIONADO</span>
+            <strong>{periodTitle}</strong>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedYear((y) => y - 1)}>
-              {selectedYear - 1}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedYear((y) => y + 1)}>
-              {selectedYear + 1}
-            </Button>
-            <Button variant="outline" size="icon" onClick={goToNextMonth} aria-label="Próximo mês">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+          <div className="finance-period-controls">
+            <button type="button" onClick={goToPreviousMonth} aria-label="Mês anterior" title="Mês anterior"><ChevronLeft size={18}/></button>
+            <button type="button" onClick={goToNextMonth} aria-label="Próximo mês" title="Próximo mês"><ChevronRight size={18}/></button>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-12">
-          {MONTH_NAMES.map((name, index) => (
-            <button
-              key={name}
-              type="button"
-              onClick={() => setSelectedMonth(index)}
-              className={cn(
-                "rounded-md border px-2 py-2 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                selectedMonth === index
-                  ? "border-primary bg-primary text-primary-foreground hover:bg-primary"
-                  : "border-border bg-background text-muted-foreground"
-              )}
-              aria-pressed={selectedMonth === index}
-            >
-              {name.slice(0, 3)}
-            </button>
-          ))}
+        <div className="finance-toolbar-meta">
+          <span><Layers3 size={14}/>{isConsolidatedView ? "Consolidado" : folders.find(f => f.id === selectedFolderId)?.name || "Sem aba selecionada"}</span>
+          <span className="finance-toolbar-count">{visibleTransactions.length} lançamento(s)</span>
+          <button type="button" className="finance-today-button" onClick={() => { setSelectedMonth(new Date().getMonth()); setSelectedYear(new Date().getFullYear()); }}>
+            Mês atual
+          </button>
         </div>
       </div>
 
-
-      <Tabs value={activeFinanceTab} onValueChange={setActiveFinanceTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[600px] mb-8">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="hidden sm:inline">Geral</span>
-          </TabsTrigger>
-          <TabsTrigger value="accounts" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
-            <span className="hidden sm:inline">Bancos</span>
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <History className="h-4 w-4" />
-            <span className="hidden sm:inline">Histórico</span>
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center gap-2">
-            <FileBarChart className="h-4 w-4" />
-            <span className="hidden sm:inline">Relatórios</span>
-          </TabsTrigger>
+      <Tabs value={activeFinanceTab} onValueChange={setActiveFinanceTab} className="finance-sections">
+        <TabsList className="finance-navigation" aria-label="Áreas da gestão financeira">
+          <TabsTrigger value="overview" className="finance-nav-item"><LayoutDashboard size={18}/><span>Dashboard</span></TabsTrigger>
+          <TabsTrigger value="transactions" className="finance-nav-item"><Receipt size={18}/><span>Transações</span></TabsTrigger>
+          <TabsTrigger value="accounts" className="finance-nav-item"><Wallet size={18}/><span>Contas bancárias</span></TabsTrigger>
+          <TabsTrigger value="history" className="finance-nav-item"><History size={18}/><span>Histórico</span></TabsTrigger>
+          <TabsTrigger value="reports" className="finance-nav-item"><FileBarChart size={18}/><span>Relatórios</span></TabsTrigger>
         </TabsList>
 
-
-        <TabsContent value="overview" className="space-y-4">
-          <FinancialOverview 
-            transactions={visibleTransactions} 
+        <TabsContent value="overview" className="finance-section-content">
+          <FinancialOverview
+            transactions={visibleTransactions}
             bankAccounts={bankAccounts}
-            showBankBalance={isConsolidatedView || Boolean(teamContext)} 
+            showBankBalance={isConsolidatedView || Boolean(teamContext)}
+            onShowTransactions={() => setActiveFinanceTab("transactions")}
           />
-          <section className="mt-6 space-y-3" aria-label="Transações da aba selecionada">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+        </TabsContent>
+
+        <TabsContent value="transactions" className="finance-section-content">
+          <section className="finance-ledger" aria-label="Lançamentos financeiros">
+            <div className="finance-section-header">
               <div>
-                <h2 className="text-lg font-semibold">Transações</h2>
-                <p className="text-xs text-muted-foreground">Lançamentos da aba e do mês selecionados.</p>
+                <span className="finance-eyebrow">MOVIMENTAÇÕES</span>
+                <h2>Suas transações</h2>
+                <p>Cadastre, acompanhe e atualize receitas e despesas da aba selecionada.</p>
+              </div>
+              <div className="finance-ledger-stats">
+                <span>{visibleTransactions.length} lançamentos</span>
+                {pendingCount > 0 && <span className="finance-ledger-pending">{pendingCount} pendente(s)</span>}
               </div>
             </div>
-          <TransactionManager 
-            transactions={visibleTransactions} 
-            bankAccounts={bankAccounts} 
-            folders={folders}
-            defaultFolderId={folders.some(folder => folder.id === selectedFolderId) ? selectedFolderId : ""}
-            folderStorageReady={!foldersError && !foldersLoading && !teamContext}
-            onRefresh={async () => {
-              await Promise.all([
-                loadTransactions(),
-                Promise.resolve(refetchBankAccounts()),
-              ]);
-            }}
-            businessId={selectedBusinessId}
-            entityType={entityType}
-            periodKey={buildPeriodKey(selectedYear, selectedMonth)}
-            periodLabel={`${MONTH_NAMES[selectedMonth]} de ${selectedYear}`}
-          />
+            <TransactionManager
+              transactions={visibleTransactions}
+              bankAccounts={bankAccounts}
+              folders={folders}
+              defaultFolderId={folders.some(folder => folder.id === selectedFolderId) ? selectedFolderId : ""}
+              folderStorageReady={!foldersError && !foldersLoading && !teamContext}
+              onRefresh={async () => {
+                await Promise.all([loadTransactions(), Promise.resolve(refetchBankAccounts())]);
+              }}
+              businessId={selectedBusinessId}
+              entityType={entityType}
+              periodKey={buildPeriodKey(selectedYear, selectedMonth)}
+              periodLabel={periodTitle}
+            />
           </section>
         </TabsContent>
 
-        <TabsContent value="accounts" className="space-y-4">
-          <p className="text-xs text-muted-foreground">Estas são as contas bancárias do negócio. Elas são compartilhadas entre todas as abas financeiras.</p>
-          <BankAccountSection 
-            businessId={selectedBusinessId}
-            bankAccounts={bankAccounts}
-            onRefresh={refetchBankAccounts}
-          />
+        <TabsContent value="accounts" className="finance-section-content">
+          <section className="finance-ledger">
+            <div className="finance-section-header">
+              <div>
+                <span className="finance-eyebrow">CONTROLE BANCÁRIO</span>
+                <h2>Contas bancárias</h2>
+                <p>Gerencie suas contas. Seus saldos bancários são compartilhados entre as abas financeiras.</p>
+              </div>
+            </div>
+            <BankAccountSection businessId={selectedBusinessId} bankAccounts={bankAccounts} onRefresh={refetchBankAccounts} />
+          </section>
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-4">
-          <TransactionHistory transactions={visibleTransactions} bankAccounts={bankAccounts} />
+        <TabsContent value="history" className="finance-section-content">
+          <section className="finance-ledger">
+            <div className="finance-section-header"><div>
+              <span className="finance-eyebrow">REGISTROS</span>
+              <h2>Histórico financeiro</h2>
+              <p>Consulte os lançamentos do período e da aba selecionados.</p>
+            </div></div>
+            <TransactionHistory transactions={visibleTransactions} bankAccounts={bankAccounts} />
+          </section>
         </TabsContent>
 
-        <TabsContent value="reports" className="space-y-4">
-          <ReportCenter transactions={visibleTransactions} />
+        <TabsContent value="reports" className="finance-section-content">
+          <section className="finance-ledger">
+            <div className="finance-section-header"><div>
+              <span className="finance-eyebrow">ANÁLISE FINANCEIRA</span>
+              <h2>Relatórios</h2>
+              <p>Visualize os resultados financeiros da aba e do período selecionados.</p>
+            </div></div>
+            <ReportCenter transactions={visibleTransactions} />
+          </section>
         </TabsContent>
       </Tabs>
     </div>
