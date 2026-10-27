@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History, ChevronLeft, ChevronRight, Building2, User, Loader2, CalendarDays, CircleDollarSign, Layers3 } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, History, ChevronLeft, ChevronRight, ChevronDown, Building2, User, Loader2, CalendarDays, CircleDollarSign, Layers3 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
   const [entityType, setEntityType] = useState<EntityType>('pf');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [activeFinanceTab, setActiveFinanceTab] = useState<string>('overview');
+  const [periodPickerOpen, setPeriodPickerOpen] = useState(false);
   const { folders, loading: foldersLoading, error: foldersError, createFolder, renameFolder, removeFolder } = useFinancialFolders(selectedBusinessId, Boolean(teamContext) || isConsolidatedView);
 
   const { bankAccounts, refetch: refetchBankAccounts } = useBankAccounts(selectedBusinessId);
@@ -433,7 +435,32 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
           <span className="finance-toolbar-icon"><CalendarDays size={18} /></span>
           <div className="finance-period-title">
             <span>PERÍODO SELECIONADO</span>
-            <strong>{periodTitle}</strong>
+            <Popover open={periodPickerOpen} onOpenChange={setPeriodPickerOpen}>
+              <PopoverTrigger asChild>
+                <button type="button" className="finance-period-picker-trigger" aria-label="Escolher mês e ano">
+                  {periodTitle} <ChevronDown size={15}/>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="finance-month-popover">
+                <div className="finance-month-header">
+                  <span>Escolha o período</span>
+                  <div>
+                    <button type="button" aria-label="Ano anterior" onClick={() => setSelectedYear(y => y - 1)}><ChevronLeft size={17}/></button>
+                    <strong>{selectedYear}</strong>
+                    <button type="button" aria-label="Ano seguinte" onClick={() => setSelectedYear(y => y + 1)}><ChevronRight size={17}/></button>
+                  </div>
+                </div>
+                <div className="finance-month-grid">
+                  {MONTH_NAMES.map((month, index) => (
+                    <button key={month} type="button" className={selectedMonth === index ? "is-current" : ""}
+                      aria-pressed={selectedMonth === index}
+                      onClick={() => { setSelectedMonth(index); setPeriodPickerOpen(false); }}>
+                      {month.slice(0,3)}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="finance-period-controls">
             <button type="button" onClick={goToPreviousMonth} aria-label="Mês anterior" title="Mês anterior"><ChevronLeft size={18}/></button>
@@ -441,7 +468,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
           </div>
         </div>
         <div className="finance-toolbar-meta">
-          <span><Layers3 size={14}/>{isConsolidatedView ? "Consolidado" : folders.find(f => f.id === selectedFolderId)?.name || "Sem aba selecionada"}</span>
+          <span><Layers3 size={14}/>{isConsolidatedView ? "Consolidado" : folders.find(f => f.id === selectedFolderId)?.name || "Crie sua primeira aba"}</span>
           <span className="finance-toolbar-count">{visibleTransactions.length} lançamento(s)</span>
           <button type="button" className="finance-today-button" onClick={() => { setSelectedMonth(new Date().getMonth()); setSelectedYear(new Date().getFullYear()); }}>
             Mês atual
