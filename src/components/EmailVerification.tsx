@@ -25,60 +25,17 @@ export const EmailVerification = ({ userId, email, onVerified, onBack }: EmailVe
     setIsLoading(true);
 
     try {
-      // Try agent-customer-auth first
-      let data, error;
-      const agentResult = await supabase.functions.invoke('agent-customer-auth', {
-        body: {
-          action: 'verify',
-          customerId: userId,
-          code,
-        }
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: code.trim(),
+        type: 'signup',
       });
-
-      if (agentResult.error || agentResult.data?.error) {
-        // Fallback to user-auth for regular users
-        const userResult = await supabase.functions.invoke('user-auth', {
-          body: {
-            action: 'verify',
-            userId,
-            code,
-          }
-        });
-        data = userResult.data;
-        error = userResult.error;
-      } else {
-        data = agentResult.data;
-        error = agentResult.error;
-      }
-
       if (error) throw error;
 
-      if (data.error) {
-        toast({
-          title: "Erro na verificação",
-          description: data.error,
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Entra direto na conta quando o servidor devolve uma sessão válida
-      if (data?.session?.access_token && data?.session?.refresh_token) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        });
-        if (sessionError) {
-          console.error('Erro ao iniciar sessão automática:', sessionError);
-        }
-      }
-
       toast({
-        title: "Email verificado! ✅",
-        description: "Sua conta foi ativada. Entrando...",
+        title: "E-mail confirmado",
+        description: "Sua conta foi ativada com sucesso.",
       });
-
       onVerified();
     } catch (error: any) {
       toast({
@@ -94,47 +51,16 @@ export const EmailVerification = ({ userId, email, onVerified, onBack }: EmailVe
     setIsResending(true);
 
     try {
-      // Try agent-customer-auth first
-      let data, error;
-      const agentResult = await supabase.functions.invoke('agent-customer-auth', {
-        body: {
-          action: 'resend',
-          customerId: userId,
-        }
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
       });
-
-      if (agentResult.error || agentResult.data?.error) {
-        // Fallback to user-auth for regular users
-        const userResult = await supabase.functions.invoke('user-auth', {
-          body: {
-            action: 'resend',
-            userId,
-          }
-        });
-        data = userResult.data;
-        error = userResult.error;
-      } else {
-        data = agentResult.data;
-        error = agentResult.error;
-      }
-
       if (error) throw error;
-
-      if (data.error) {
-        toast({
-          title: "Erro",
-          description: data.error,
-          variant: "destructive",
-        });
-        setIsResending(false);
-        return;
-      }
 
       toast({
         title: "Código reenviado",
-        description: "Um novo código foi enviado para seu email.",
+        description: "Confira sua caixa de entrada e a pasta de spam.",
       });
-
       setIsResending(false);
     } catch (error: any) {
       toast({
@@ -210,7 +136,7 @@ export const EmailVerification = ({ userId, email, onVerified, onBack }: EmailVe
         </div>
 
         <p className="text-xs text-muted-foreground text-center mt-4">
-          O código expira em 15 minutos
+          Use o código mais recente recebido por e-mail
         </p>
       </Card>
     </div>
