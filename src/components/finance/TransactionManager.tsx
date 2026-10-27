@@ -129,6 +129,8 @@ const SortableTransactionRow = ({ id, children, className }: { id: string; child
 
 export const TransactionManager = ({ transactions, bankAccounts, onRefresh, businessId, entityType, periodKey, periodLabel, folders = [], defaultFolderId = "all", folderStorageReady = true }: TransactionManagerProps) => {
   const activeFolderId = defaultFolderId === "all" || defaultFolderId === "unfiled" ? "" : defaultFolderId;
+  // When custom folder management is enabled, never create hidden "Sem aba" records.
+  const canCreateTransaction = !folderStorageReady || folders.length > 0;
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
@@ -261,6 +263,11 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (folderStorageReady && !editingProjected && (!folders.length || !folders.some(f => f.id === formData.folder_id))) {
+      e.preventDefault();
+      toast.error("Selecione uma aba financeira para salvar a transação.");
+      return;
+    }
     e.preventDefault();
     try {
       setLoading(true);
@@ -475,6 +482,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (folderStorageReady && (!folders.length || !folders.some(f => f.id === bulkFolderId))) {
+      toast.error("Escolha uma aba financeira antes de salvar os lançamentos.");
+      return;
+    }
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -725,7 +736,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
 
 
   return (
-    <div className="w-full max-w-full space-y-4 overflow-hidden">
+    <div className="finance-ledger-manager w-full max-w-full space-y-4 overflow-hidden">
       <div className="flex w-full min-w-0 flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
         <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:flex xl:flex-1">
           <div className="relative flex-1">
@@ -743,7 +754,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:shrink-0">
           <Dialog open={isBulkAddOpen} onOpenChange={setIsBulkAddOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full xl:w-auto">
+              <Button variant="outline" className="w-full xl:w-auto" disabled={!canCreateTransaction} title={!canCreateTransaction ? "Crie uma aba financeira primeiro" : "Adicionar várias transações"}>
 
                 <ListPlus className="h-4 w-4 mr-2" /> Adicionar Múltiplas
               </Button>
@@ -755,9 +766,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               <form onSubmit={handleBulkSubmit} className="space-y-4 py-4">
                 {folderStorageReady && <div className="space-y-2 max-w-sm">
                   <Label>Aba para os lançamentos</Label>
-                  <Select value={bulkFolderId || "none"} onValueChange={id => setBulkFolderId(id === "none" ? "" : id)}>
+                  <Select value={bulkFolderId || undefined} onValueChange={setBulkFolderId}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value="none">Sem aba</SelectItem>
+                    <SelectContent>
                       {folders.map(folder => <SelectItem value={folder.id} key={folder.id}>{folder.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -898,7 +909,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             if (!open) resetForm();
           }}>
             <DialogTrigger asChild>
-              <Button className="w-full xl:w-auto">
+              <Button className="w-full xl:w-auto" disabled={!canCreateTransaction} title={!canCreateTransaction ? "Crie uma aba financeira primeiro" : "Adicionar transação"}>
                 <Plus className="h-4 w-4 mr-2" /> Nova Transação
               </Button>
             </DialogTrigger>
@@ -957,11 +968,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               {folderStorageReady && !editingProjected && (
                 <div className="finance-transaction-folder-field space-y-2">
                   <Label>Aba financeira</Label>
-                  <Select value={formData.folder_id || "none"}
-                    onValueChange={id => setFormData({ ...formData, folder_id: id === "none" ? "" : id })}>
+                  <Select value={formData.folder_id || undefined}
+                    onValueChange={id => setFormData({ ...formData, folder_id: id })}>
                     <SelectTrigger><SelectValue placeholder="Selecione uma aba"/></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Sem aba</SelectItem>
                       {folders.map(folder => <SelectItem value={folder.id} key={folder.id}>{folder.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
