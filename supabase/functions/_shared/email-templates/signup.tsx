@@ -19,6 +19,7 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  token?: string
 }
 
 export const SignupEmail = ({
@@ -26,6 +27,7 @@ export const SignupEmail = ({
   siteUrl,
   recipient,
   confirmationUrl,
+  token,
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
@@ -49,6 +51,11 @@ export const SignupEmail = ({
           </Link>
           ) by clicking the button below:
         </Text>
+        {token && (
+          <Text style={{ fontSize: '28px', letterSpacing: '6px', fontWeight: 'bold', textAlign: 'center' }}>
+            {token}
+          </Text>
+        )}
         <Button className="dm-btn" style={button} href={confirmationUrl}>
           Verify Email
         </Button>
