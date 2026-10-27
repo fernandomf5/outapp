@@ -176,15 +176,14 @@ serve(async (req) => {
         // Garante o telefone no perfil (caso um gatilho tenha criado o perfil antes)
         await supabase.from('profiles').update({ phone: String(requestData?.phone ?? '').replace(/\D/g, ''), full_name: name }).eq('user_id', authUser.user.id);
 
-        // Envia o código de confirmação pela Resend
-        const regCode = newCode();
-        await supabase.from('user_verification_codes').insert({
-          user_id: authUser.user.id, code: regCode, expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-        });
-        try {
-          await sendMail(email, 'Seu código de confirmação — Out App', verificationEmail(name, regCode));
-        } catch (mailErr) {
-          console.error('[REGISTER] Falha ao enviar código:', mailErr);
+        // Dispara o código de confirmação pelo provedor nativo de autenticação do Lovable Cloud.
+        const { error: confirmationError } = await authClient.auth.resend({ type: 'signup', email });
+        if (confirmationError) {
+          console.error('[REGISTER] Falha no envio de confirmação nativa:', confirmationError);
+          return new Response(
+            JSON.stringify({ error: 'Conta criada, mas não foi possível enviar a confirmação. Tente reenviar o código na tela de verificação.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
 
         console.log('[REGISTER] Assigning user role...');
@@ -330,8 +329,14 @@ serve(async (req) => {
 
       console.log('Is admin:', isAdmin, 'Email verified:', profile.email_verified);
 
+      // O provedor Auth é a fonte da verdade sobre confirmação de e-mail.
+      const authEmailVerified = Boolean(authData.user?.email_confirmed_at);
+      if (authEmailVerified && !profile.email_verified) {
+        await supabase.from('profiles').update({ email_verified: true }).eq('user_id', profile.user_id);
+      }
+
       // Skip email verification for admin users
-      if (!isAdmin && !profile.email_verified) {
+      if (!isAdmin && !authEmailVerified) {
         console.log('Email not verified, logging out...');
         // Logout the user since they can't proceed
         await authClient.auth.signOut();
