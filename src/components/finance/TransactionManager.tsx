@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Tags, Landmark, AlertTriangle, BellRing } from "lucide-react";
+import { Plus, Search, Trash2, Edit2, CheckCircle, Clock, ListPlus, X, GripVertical, Landmark, AlertTriangle, BellRing } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -1171,21 +1171,6 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               <TableCell className="w-[32px] pr-0">{handle}</TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-1">
-                                  {t.category && (
-                                    <span
-                                      title={t.category}
-                                      className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-                                    >
-                                      <span
-                                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
-                                        style={(() => {
-                                          const cat = categories.find(c => c.name.trim().toLowerCase() === (t.category || '').trim().toLowerCase());
-                                          return cat?.color ? { backgroundColor: cat.color } : undefined;
-                                        })()}
-                                      />
-                                      <span className="truncate leading-none">{t.category}</span>
-                                    </span>
-                                  )}
                                   <span className="truncate font-medium leading-tight" title={t.description}>
                                     {t.description}
                                   </span>
