@@ -11,9 +11,7 @@ import { z } from "zod";
 
 const emailSchema = z.string().trim().email("Por favor, insira um e-mail válido");
 
-interface AuthFnResult { success?: boolean; error?: string }
-
-/** Recuperação de senha em 2 etapas: e-mail → código (Resend) + nova senha. */
+/** Recuperação de senha pelo provedor nativo Lovable Auth. */
 const ForgotPassword = () => {
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
@@ -24,12 +22,6 @@ const ForgotPassword = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const callAuth = async (body: Record<string, unknown>): Promise<AuthFnResult> => {
-    const { data, error } = await supabase.functions.invoke<AuthFnResult>("user-auth", { body });
-    if (error) return { error: "Não foi possível concluir agora. Tente novamente." };
-    return data ?? {};
-  };
-
   const requestCode = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const v = emailSchema.safeParse(email);
@@ -38,10 +30,10 @@ const ForgotPassword = () => {
       return;
     }
     setIsLoading(true);
-    const res = await callAuth({ action: "reset-request", email: v.data });
+    const { error } = await supabase.auth.resetPasswordForEmail(v.data);
     setIsLoading(false);
-    if (res.error) {
-      toast({ title: "Erro ao enviar", description: res.error, variant: "destructive" });
+    if (error) {
+      toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
       return;
     }
     setStep("code");
@@ -59,12 +51,23 @@ const ForgotPassword = () => {
       return;
     }
     setIsLoading(true);
-    const res = await callAuth({ action: "reset-confirm", email: email.trim(), code, password });
-    setIsLoading(false);
-    if (res.error) {
-      toast({ title: "Não foi possível redefinir", description: res.error, variant: "destructive" });
+    const { error: otpError } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: "recovery",
+    });
+    if (otpError) {
+      setIsLoading(false);
+      toast({ title: "Código inválido ou expirado", description: otpError.message, variant: "destructive" });
       return;
     }
+    const { error: passwordError } = await supabase.auth.updateUser({ password });
+    setIsLoading(false);
+    if (passwordError) {
+      toast({ title: "Não foi possível redefinir", description: passwordError.message, variant: "destructive" });
+      return;
+    }
+    await supabase.auth.signOut();
     toast({ title: "Senha redefinida ✅", description: "Agora é só entrar com sua nova senha." });
     navigate("/auth");
   };
@@ -129,7 +132,7 @@ const ForgotPassword = () => {
           Voltar para Login
         </Button>
 
-        <p className="text-xs text-muted-foreground text-center">O código expira em 15 minutos.</p>
+        <p className="text-xs text-muted-foreground text-center">Utilize o código de recuperação mais recente enviado ao seu e-mail.</p>
       </Card>
     </div>
   );
