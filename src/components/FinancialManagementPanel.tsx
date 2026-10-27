@@ -83,7 +83,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
     () => isConsolidatedView || Boolean(teamContext) || Boolean(foldersError)
       ? periodTransactions
       : periodTransactions.filter(t => Boolean(selectedFolderId) && t.folder_id === selectedFolderId),
-    [periodTransactions, selectedFolderId]
+    [periodTransactions, selectedFolderId, isConsolidatedView, teamContext, foldersError]
   );
 
   const goToPreviousMonth = () => {
