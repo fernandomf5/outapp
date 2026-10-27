@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, ArrowRight, BadgeCheck, Building2, CalendarDays, CheckSquare2,
-  ChevronRight, ClipboardCheck, Coins, FilePenLine, FileSignature,
+  ChevronRight, PanelLeftClose, PanelLeftOpen, ClipboardCheck, Coins, FilePenLine, FileSignature,
   Fingerprint, LayoutGrid, Link2, Loader2, LogOut, Menu, MessageCircleMore,
   Network, Pencil, Plus, QrCode, Save, Settings2, ShieldCheck, Sparkles, Store,
   UserRound, WandSparkles, Workflow, X,
@@ -154,6 +154,7 @@ export default function WorkspaceDashboard() {
   const [menuOpen, setMenuOpen] = useState(true);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [mobileEntitiesOpen, setMobileEntitiesOpen] = useState(false);
+  const [entitiesCollapsed, setEntitiesCollapsed] = useState(false);
 
   const selectedId = params.get("entity");
   const selected = entities.find((entity) => entity.id === selectedId) ?? null;
@@ -277,8 +278,8 @@ export default function WorkspaceDashboard() {
         </div>
       </header>
 
-      <div className="hub-shell">
-        <aside className={"hub-entities-panel hub-glass " + (mobileEntitiesOpen ? "mobile-open" : "")}>
+      <div className={"hub-shell " + (entitiesCollapsed && activeTool ? "hub-shell-expanded" : "")}>
+        <aside className={"hub-entities-panel hub-glass " + (mobileEntitiesOpen ? "mobile-open " : "") + (entitiesCollapsed && activeTool ? "hub-entities-collapsed" : "")}>
           <div className="hub-eyebrow"><span className="hub-signal" /> Central de gestão</div>
           <div className="hub-entities-heading"><div><h2>Gestão Livre</h2><p>Seus negócios e pessoas em um só lugar.</p></div></div>
           <Button className="hub-new-button" onClick={() => openEntityForm()}><Plus size={18} /> Cadastrar novo</Button>
@@ -319,6 +320,7 @@ export default function WorkspaceDashboard() {
                 <button className="hub-circle-back" onClick={backToHub} title="Voltar ao menu" aria-label="Voltar ao menu"><ArrowLeft /></button>
                 <EntityMark entity={selected} />
                 <div className="hub-module-titles"><span>{statusLabel} / {selected.name}</span><h1>{activeTool.title}</h1></div>
+                <button className="hub-sidebar-toggle" type="button" onClick={() => setEntitiesCollapsed(v => !v)} aria-expanded={!entitiesCollapsed} aria-label={entitiesCollapsed ? "Expandir painel esquerdo" : "Minimizar painel esquerdo"} title={entitiesCollapsed ? "Expandir painel esquerdo" : "Minimizar painel esquerdo"}>{entitiesCollapsed ? <PanelLeftOpen size={18}/> : <PanelLeftClose size={18}/>}<span>{entitiesCollapsed ? "Expandir menu" : "Ampliar área"}</span></button>
                 <button className="hub-secondary-action" onClick={backToEntities}>Trocar cadastro</button>
               </div>
               <div className="hub-tool-content" key={selected.id + "-" + activeTool.id}><ModuleView item={activeTool} entity={selected} onBack={backToHub}/></div>
