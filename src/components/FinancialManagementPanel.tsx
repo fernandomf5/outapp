@@ -429,7 +429,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
               selected={selectedFolderId}
               onSelect={(id) => {
                 setSelectedFolderId(id);
-                setActiveFinanceTab("transactions");
+                setActiveFinanceTab("overview");
               }}
               onCreate={createFolder}
               onEdit={renameFolder}
@@ -489,7 +489,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
 
 
       <Tabs value={activeFinanceTab} onValueChange={setActiveFinanceTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:w-[700px] mb-8">
+        <TabsList className="grid w-full grid-cols-4 lg:w-[600px] mb-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline">Geral</span>
@@ -497,10 +497,6 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
           <TabsTrigger value="accounts" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             <span className="hidden sm:inline">Bancos</span>
-          </TabsTrigger>
-          <TabsTrigger value="transactions" className="flex items-center gap-2">
-            <Receipt className="h-4 w-4" />
-            <span className="hidden sm:inline">Transações</span>
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />
@@ -519,18 +515,13 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
             bankAccounts={bankAccounts}
             showBankBalance={isConsolidatedView || Boolean(teamContext)} 
           />
-        </TabsContent>
-
-        <TabsContent value="accounts" className="space-y-4">
-          <p className="text-xs text-muted-foreground">Estas são as contas bancárias do negócio. Elas são compartilhadas entre todas as abas financeiras.</p>
-          <BankAccountSection 
-            businessId={selectedBusinessId}
-            bankAccounts={bankAccounts}
-            onRefresh={refetchBankAccounts}
-          />
-        </TabsContent>
-
-        <TabsContent value="transactions" className="space-y-4">
+          <section className="mt-6 space-y-3" aria-label="Transações da aba selecionada">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-semibold">Transações</h2>
+                <p className="text-xs text-muted-foreground">Lançamentos da aba e do mês selecionados.</p>
+              </div>
+            </div>
           <TransactionManager 
             transactions={visibleTransactions} 
             bankAccounts={bankAccounts} 
@@ -547,6 +538,16 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
             entityType={entityType}
             periodKey={buildPeriodKey(selectedYear, selectedMonth)}
             periodLabel={`${MONTH_NAMES[selectedMonth]} de ${selectedYear}`}
+          />
+          </section>
+        </TabsContent>
+
+        <TabsContent value="accounts" className="space-y-4">
+          <p className="text-xs text-muted-foreground">Estas são as contas bancárias do negócio. Elas são compartilhadas entre todas as abas financeiras.</p>
+          <BankAccountSection 
+            businessId={selectedBusinessId}
+            bankAccounts={bankAccounts}
+            onRefresh={refetchBankAccounts}
           />
         </TabsContent>
 
