@@ -179,11 +179,9 @@ serve(async (req) => {
         // Dispara o código de confirmação pelo provedor nativo de autenticação do Lovable Cloud.
         const { error: confirmationError } = await authClient.auth.resend({ type: 'signup', email });
         if (confirmationError) {
+          // Não interromper o provisionamento do perfil, papel e plano de teste.
+          // A tela de confirmação permite solicitar um novo envio.
           console.error('[REGISTER] Falha no envio de confirmação nativa:', confirmationError);
-          return new Response(
-            JSON.stringify({ error: 'Conta criada, mas não foi possível enviar a confirmação. Tente reenviar o código na tela de verificação.' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
         }
 
         console.log('[REGISTER] Assigning user role...');
