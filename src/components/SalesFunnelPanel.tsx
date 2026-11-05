@@ -13,8 +13,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2, ChevronDown, ChevronUp, Users, Folder, FolderOpen, Search, UserPlus } from 'lucide-react';
+import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2, ChevronDown, ChevronUp, Users, Folder, FolderOpen, Search, UserPlus, Archive } from 'lucide-react';
 import FunnelChart from './FunnelChart';
+import LeadLibraryPanel, { type LeadLibrarySource } from './LeadLibraryPanel';
 
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
@@ -131,12 +132,13 @@ function SortableStageItem({ stage, leadsCount, onEdit, onDelete }: {
 }
 
 // Draggable Lead Card Component
-function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView }: { 
+function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView, onArchive }: { 
   lead: FunnelLead; 
   stages: FunnelStage[];
   onEdit: (lead: FunnelLead) => void;
   onDelete: (id: string) => void;
   onView: (lead: FunnelLead) => void;
+  onArchive: (lead: FunnelLead) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
@@ -180,6 +182,9 @@ function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView }: {
           </Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onEdit(lead); }}>
             <Pencil className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="icon" title="Enviar para lista de leads" className="h-6 w-6" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onArchive(lead); }}>
+            <Archive className="h-3 w-3" />
           </Button>
           <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(lead.id); }}>
             <Trash2 className="h-3 w-3" />
@@ -284,6 +289,7 @@ export default function SalesFunnelPanel() {
   const [selectedFunnel, setSelectedFunnel] = useState<SalesFunnel | null>(null);
   const [stages, setStages] = useState<FunnelStage[]>([]);
   const [leads, setLeads] = useState<FunnelLead[]>([]);
+  const [archiveLead, setArchiveLead] = useState<LeadLibrarySource | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('kanban');
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
@@ -1353,7 +1359,14 @@ export default function SalesFunnelPanel() {
           <p className="text-muted-foreground text-sm">Gerencie seus leads e acompanhe a jornada de vendas</p>
             <div className="mt-3"><ResourceAssignmentsButton resourceType="sales_funnel" /></div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <LeadLibraryPanel
+            source={archiveLead}
+            sourceFunnelName={selectedFunnel?.name}
+            sourceStageName={stages.find(stage => stage.id === archiveLead?.stage_id)?.name}
+            onCloseSource={() => setArchiveLead(null)}
+            onRemovedFromFunnel={() => { if (selectedFunnel) void loadLeads(selectedFunnel.id); }}
+          />
           <Select 
             value={selectedFunnel?.id || ''} 
             onValueChange={(value) => {
@@ -1640,6 +1653,7 @@ export default function SalesFunnelPanel() {
                           onEdit={openEditLead}
                           onDelete={handleDeleteLead}
                           onView={handleViewLead}
+                          onArchive={setArchiveLead}
                         />
                       ))}
                       {stageLeads.length === 0 && (
