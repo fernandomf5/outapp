@@ -303,7 +303,9 @@ export const ConversationNotificationBell = () => {
         const latest = newlyUnread[0];
         toast.info(newlyUnread.length > 1 ? `${newlyUnread.length} conversas com novas mensagens` : 'Nova mensagem no chat online!', {
           description: `${latest.customer_name}: ${latest.last_message.slice(0, 100)}`,
-          duration: 12000,
+          id: `chat-pending-${latest.id}`,
+          duration: Infinity,
+          dismissible: false,
           action: {
             label: 'Ver conversa',
             onClick: () => handleNotificationClick(latest),
@@ -318,6 +320,7 @@ export const ConversationNotificationBell = () => {
 
   const handleNotificationClick = async (notification: ConversationNotification) => {
     setIsOpen(false);
+    toast.dismiss(`chat-pending-${notification.id}`);
     
     // Mark conversation as read
     try {
