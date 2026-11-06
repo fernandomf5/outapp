@@ -95,11 +95,11 @@ serve(async (req) => {
     if (queueActive && uuidRegex.test(conversationId)) {
       const { data: conv } = await supabase
         .from('agent_conversations')
-        .select('id, queue_position')
+        .select('id, queue_position, created_at')
         .eq('id', conversationId)
         .eq('agent_id', agentId)
         .maybeSingle();
-      if (conv && conv.queue_position !== null && conv.queue_position !== undefined) {
+      if (conv && new Date(conv.created_at).getTime() >= queueExpiresAt - 6 * 60 * 60 * 1000 && conv.queue_position !== null && conv.queue_position !== undefined) {
         queuePosition = Number(conv.queue_position);
       }
     }
