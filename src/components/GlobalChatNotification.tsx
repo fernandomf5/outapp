@@ -4,9 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { chatSounds } from "@/utils/chatSounds";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export const GlobalChatNotification = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { isTeamMember, teamMember, getAllowedIds, canAccessModule } = useTeamMember();
   const [agentIds, setAgentIds] = useState<string[]>([]);
   const channelRef = useRef<any>(null);
@@ -98,7 +100,13 @@ export const GlobalChatNotification = () => {
             // Mostrar toast de notificação
             toast.info("Nova mensagem de cliente!", {
               description: newMessage.content?.substring(0, 50) + (newMessage.content?.length > 50 ? '...' : ''),
-              duration: 5000,
+              id: `chat-pending-${newMessage.conversation_id}`,
+              duration: Infinity,
+              dismissible: false,
+              action: { label: "Ver conversa", onClick: () => {
+                toast.dismiss(`chat-pending-${newMessage.conversation_id}`);
+                navigate(`/dashboard?tab=chat-online&agentId=${conversation.agent_id}&agentView=conversations&conversationId=${newMessage.conversation_id}`);
+              } },
             });
           }
         }
@@ -129,7 +137,13 @@ export const GlobalChatNotification = () => {
           chatSounds.playNotificationSound();
           toast.info("Nova conversa no chat online!", {
             description: `${customerName} iniciou um atendimento.`,
-            duration: 6000,
+            id: `chat-pending-${conv.id}`,
+            duration: Infinity,
+            dismissible: false,
+            action: { label: "Ver conversa", onClick: () => {
+              toast.dismiss(`chat-pending-${conv.id}`);
+              navigate(`/dashboard?tab=chat-online&agentId=${conv.agent_id}&agentView=conversations&conversationId=${conv.id}`);
+            } },
           });
         }
       )
@@ -144,7 +158,7 @@ export const GlobalChatNotification = () => {
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [agentIds]);
+  }, [agentIds, navigate]);
 
   // Componente invisível - apenas escuta notificações
   return null;
