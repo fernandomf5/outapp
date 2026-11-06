@@ -44,6 +44,8 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [senderName, setSenderName] = useState("");
   const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
   const [queueEnabled, setQueueEnabled] = useState(false);
+  const [queueExpiresAt, setQueueExpiresAt] = useState<string | null>(null);
+  const QUEUE_TTL_MS = 6 * 60 * 60 * 1000;
   const [queueAhead, setQueueAhead] = useState(0);
   const [queueEtaMinutes, setQueueEtaMinutes] = useState(0);
   const [queueMessage, setQueueMessage] = useState("Fila de espera — envie sua mensagem que logo logo vamos te atender.");
@@ -99,8 +101,11 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
           setSenderName(agent.attendant_name);
         }
         const cfg = (agent.config || {}) as any;
-        setQueueEnabled(cfg.queueEnabled === true);
-        setQueueAhead(Number(cfg.queueAhead ?? 0) || 0);
+        const validUntil = Date.parse(cfg.queueExpiresAt || "");
+        const queueActive = cfg.queueEnabled === true && Number.isFinite(validUntil) && validUntil > Date.now();
+        setQueueEnabled(queueActive);
+        setQueueExpiresAt(queueActive ? cfg.queueExpiresAt : null);
+        setQueueAhead(queueActive ? Number(cfg.queueAhead ?? 0) || 0 : 0);
         setQueueEtaMinutes(Number(cfg.queueEtaMinutes ?? 0) || 0);
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
 
@@ -120,6 +125,19 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     
     loadAttendantStatus();
   }, [agentId]);
+
+  // A tela do atendente também expira a fila, mesmo que continue aberta por horas.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (queueEnabled && (!queueExpiresAt || Date.parse(queueExpiresAt) <= Date.now())) {
+        setQueueEnabled(false);
+        setQueueExpiresAt(null);
+        setQueueAhead(0);
+        setConversations(prev => prev.map(conv => ({ ...conv, queue_position: null })));
+      }
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, [queueEnabled, queueExpiresAt]);
 
   // Função para atualizar status do atendente
   const updateAttendantStatus = async (status: 'online' | 'offline' | 'busy') => {
@@ -201,9 +219,24 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       .eq('id', agentId)
       .single();
 
+    const oldConfig = (agent?.config || {}) as any;
+    const oldExpiry = Date.parse(oldConfig.queueExpiresAt || "");
+    const previouslyActive = oldConfig.queueEnabled === true && Number.isFinite(oldExpiry) && oldExpiry > Date.now();
+    // Only switching the queue on starts a new six-hour window. Editing count/text never extends it.
+    const expiresAt = enabled ? (previouslyActive ? oldConfig.queueExpiresAt : new Date(Date.now() + QUEUE_TTL_MS).toISOString()) : null;
+    if (enabled && !previouslyActive) {
+      // Clear prior shifts before opening a fresh queue session.
+      const { error: resetError } = await supabase.from("agent_conversations").update({ queue_position: null }).eq("agent_id", agentId);
+      if (resetError) {
+        toast({ title: "Erro", description: "Não foi possível limpar a fila anterior.", variant: "destructive" });
+        return;
+      }
+      setConversations(prev => prev.map(conv => ({ ...conv, queue_position: null })));
+    }
     const config = {
-      ...((agent?.config || {}) as any),
+      ...oldConfig,
       queueEnabled: enabled,
+      queueExpiresAt: expiresAt,
       queueMessage: message,
       queueAhead: Math.max(0, Math.round(ahead || 0)),
       queueEtaMinutes: Math.max(0, Math.round(etaMinutes || 0)),
@@ -219,6 +252,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       return;
     }
 
+    setQueueExpiresAt(expiresAt);
     await broadcastQueue({
       queueEnabled: enabled,
       queueMessage: message,
@@ -900,7 +934,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Fila de espera</Label>
+                <Label className="text-xs">Fila de espera (expira após 6 horas)</Label>
                 <Switch
                   checked={queueEnabled}
                   onCheckedChange={(checked) => {
