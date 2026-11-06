@@ -62,7 +62,10 @@ serve(async (req) => {
     }
 
     const cfg = (agent.config ?? {}) as Record<string, unknown>;
-    const queueAhead = Number(cfg.queueAhead ?? 0) || 0;
+    const queueExpiresAt = typeof cfg.queueExpiresAt === 'string' ? Date.parse(cfg.queueExpiresAt) : NaN;
+    // Old configurations (without expiry) must never keep a queue active indefinitely.
+    const queueActive = cfg.queueEnabled === true && Number.isFinite(queueExpiresAt) && queueExpiresAt > Date.now();
+    const queueAhead = queueActive ? Math.max(0, Number(cfg.queueAhead ?? 0) || 0) : 0;
 
     // Only expose the public presentation settings of the chat.
     const publicConfig = {
@@ -70,7 +73,8 @@ serve(async (req) => {
       secondaryColor: cfg.secondaryColor ?? '#8b5cf6',
       logoUrl: cfg.logoUrl ?? null,
       welcomeMessage: cfg.welcomeMessage ?? null,
-      queueEnabled: cfg.queueEnabled === true,
+      queueEnabled: queueActive,
+      queueExpiresAt: queueActive ? cfg.queueExpiresAt : null,
       queueMessage: cfg.queueMessage ?? null,
       queueAhead,
       statusColors: {
@@ -88,7 +92,7 @@ serve(async (req) => {
 
     // Queue info
     let queuePosition: number | null = null;
-    if (uuidRegex.test(conversationId)) {
+    if (queueActive && uuidRegex.test(conversationId)) {
       const { data: conv } = await supabase
         .from('agent_conversations')
         .select('id, queue_position')
@@ -100,22 +104,24 @@ serve(async (req) => {
       }
     }
 
-    const { count: waitingCount } = await supabase
+    const { count: waitingCount } = queueActive ? await supabase
       .from('agent_conversations')
       .select('id', { count: 'exact', head: true })
       .eq('agent_id', agentId)
       .eq('status', 'active')
-      .gt('queue_position', 0);
+      .gt('queue_position', 0)
+      .gte('created_at', new Date(queueExpiresAt - 6 * 60 * 60 * 1000).toISOString()) : { count: 0 };
 
     // Maior posição já ocupada (inclui posições definidas manualmente pelo atendente)
-    const { data: topQueue } = await supabase
+    const { data: topQueue } = queueActive ? await supabase
       .from('agent_conversations')
       .select('queue_position')
       .eq('agent_id', agentId)
       .eq('status', 'active')
       .not('queue_position', 'is', null)
       .order('queue_position', { ascending: false })
-      .limit(1);
+      .gte('created_at', new Date(queueExpiresAt - 6 * 60 * 60 * 1000).toISOString())
+      .limit(1) : { data: [] };
 
     const maxPosition = Number(topQueue?.[0]?.queue_position ?? 0) || 0;
     const nextPosition = Math.max(maxPosition, queueAhead) + 1;
@@ -132,12 +138,12 @@ serve(async (req) => {
           config: publicConfig,
         },
         queue: {
-          enabled: cfg.queueEnabled === true,
+          enabled: queueActive,
           message: cfg.queueMessage ?? null,
-          etaMinutes: Number(cfg.queueEtaMinutes ?? 0) || 0,
+          etaMinutes: queueActive ? Number(cfg.queueEtaMinutes ?? 0) || 0 : 0,
           ahead: queueAhead,
           waiting: waitingCount ?? 0,
-          position: queuePosition,
+          position: queueActive ? queuePosition : null,
           max: maxPosition,
           next: nextPosition,
         },
