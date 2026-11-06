@@ -118,6 +118,7 @@ export default function AgentCustomerChat() {
         if (agent?.config) {
           const cfg = agent.config as any;
           setQueueEnabled(cfg.queueEnabled === true);
+          if (cfg.queueEnabled !== true) { setQueuePosition(null); setQueueWaiting(0); setQueueEta(0); }
           if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
           setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
           if (cfg.statusColors) {
@@ -189,14 +190,16 @@ export default function AgentCustomerChat() {
         setAttendantName(agent.attendant_name || null);
         const cfg = (agent.config || {}) as any;
         setQueueEnabled(cfg.queueEnabled === true);
+          if (cfg.queueEnabled !== true) { setQueuePosition(null); setQueueWaiting(0); setQueueEta(0); }
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
         if (cfg.queueEtaMinutes !== undefined) setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
         if (data?.queue) {
+          if (data.queue.enabled !== true) { setQueuePosition(null); setQueueWaiting(0); }
           // Só atualiza a posição quando a consulta foi feita para a conversa atual
           // e quando o servidor devolve um número — nunca apaga a posição por ausência de dado.
           if (conversationId) {
             const pos = data.queue.position;
-            if (pos !== null && pos !== undefined) setQueuePosition(Number(pos));
+            setQueuePosition(data.queue.enabled === true && pos !== null && pos !== undefined ? Number(pos) : null);
           }
           setQueueWaiting(Number(data.queue.waiting || 0));
         }
@@ -320,6 +323,7 @@ export default function AgentCustomerChat() {
           if (agent.config) {
             const cfg = agent.config as any;
             setQueueEnabled(cfg.queueEnabled === true);
+          if (cfg.queueEnabled !== true) { setQueuePosition(null); setQueueWaiting(0); setQueueEta(0); }
             if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
           setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
             if (cfg.statusColors) {
@@ -581,6 +585,7 @@ export default function AgentCustomerChat() {
       if (data.agent?.config) {
         const cfg = data.agent.config as any;
         setQueueEnabled(cfg.queueEnabled === true);
+          if (cfg.queueEnabled !== true) { setQueuePosition(null); setQueueWaiting(0); setQueueEta(0); }
         if (cfg.queueMessage) setQueueMessage(cfg.queueMessage);
           setQueueEta(Number(cfg.queueEtaMinutes || 0) || 0);
         if (cfg.statusColors) {
