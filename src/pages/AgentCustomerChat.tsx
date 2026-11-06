@@ -90,7 +90,7 @@ export default function AgentCustomerChat() {
     busy: '#eab308',
     offline: '#64748b',
   });
-  const [contactEmailMessage, setContactEmailMessage] = useState('Fale conosco por e-mail. Atendimento em até 24h.');
+  const [contactEmailMessage, setContactEmailMessage] = useState('Fale conosco por e-mail. Retornaremos seu contato em até 24 horas.');
   const [contactEmailButtonText, setContactEmailButtonText] = useState('Fale conosco por e-mail');
   const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState('Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.');
   const [inputToolbarPosition, setInputToolbarPosition] = useState<'top' | 'bottom'>('bottom');
@@ -1248,7 +1248,7 @@ export default function AgentCustomerChat() {
                       <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
                       <AlertDescription className="ml-2 min-w-0 text-xs sm:text-sm">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="truncate font-semibold">Fale conosco por e-mail</span>
+                          <span className="font-semibold">Não pode esperar?</span>
                           <CollapsibleTrigger asChild>
                             <Button
                               type="button"
