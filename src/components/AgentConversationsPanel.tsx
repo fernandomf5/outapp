@@ -55,7 +55,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     busy: '#eab308',
     offline: '#64748b',
   });
-  const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Atendimento em até 24h.");
+  const [contactEmailMessage, setContactEmailMessage] = useState("Fale conosco por e-mail. Retornaremos seu contato em até 24 horas.");
   const [contactEmailButtonText, setContactEmailButtonText] = useState("Fale conosco por e-mail");
   const [contactEmailSuccessMessage, setContactEmailSuccessMessage] = useState("Sua mensagem foi enviada! Vamos te retornar por e-mail em breve.");
   const [inputToolbarPosition, setInputToolbarPosition] = useState<'top' | 'bottom'>('bottom');
