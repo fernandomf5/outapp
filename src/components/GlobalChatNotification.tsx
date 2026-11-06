@@ -4,11 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { chatSounds } from "@/utils/chatSounds";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const GlobalChatNotification = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    const conversationId = new URLSearchParams(location.search).get("conversationId");
+    if (conversationId) toast.dismiss(`chat-pending-${conversationId}`);
+  }, [location.search]);
   const { isTeamMember, teamMember, getAllowedIds, canAccessModule } = useTeamMember();
   const [agentIds, setAgentIds] = useState<string[]>([]);
   const channelRef = useRef<any>(null);
