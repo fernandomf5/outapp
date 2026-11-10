@@ -26,6 +26,7 @@ interface BlockDialogProps {
   block: Block | null;
   userId: string;
   effectiveUserId: string;
+  entityId: string;
   onSuccess: () => void;
 }
 
@@ -54,6 +55,7 @@ export const BlockDialog = ({
   block, 
   userId, 
   effectiveUserId,
+  entityId,
   onSuccess 
 }: BlockDialogProps) => {
   const [loading, setLoading] = useState(false);
@@ -91,7 +93,7 @@ export const BlockDialog = ({
       
       if (block) {
         // Update
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("task_blocks")
           .update({
             name: formData.name,
@@ -99,7 +101,7 @@ export const BlockDialog = ({
             logo_url: formData.logo_url,
             updated_at: new Date().toISOString()
           })
-          .eq("id", block.id);
+          .eq("id", block.id).filter("entity_id", "eq", entityId);
         
         if (error) throw error;
         toast.success("Bloco atualizado");
@@ -110,6 +112,7 @@ export const BlockDialog = ({
           .from("task_blocks")
           .select("order_index")
           .eq("contact_id", userId)
+          .filter("entity_id", "eq", entityId)
           .order("order_index", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -123,6 +126,7 @@ export const BlockDialog = ({
             color: formData.color,
             logo_url: formData.logo_url,
             user_id: effectiveUserId,
+            entity_id: entityId,
             contact_id: userId,
             order_index: nextOrder
           } as any);

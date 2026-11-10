@@ -67,8 +67,9 @@ interface Comment {
   created_at: string;
 }
 
-export const AprovaJobPanel = () => {
+export const AprovaJobPanel = ({ entityId }: { entityId?: string } = {}) => {
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const { toast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -122,10 +123,10 @@ export const AprovaJobPanel = () => {
   };
 
   const fetchClients = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_clients')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -134,20 +135,20 @@ export const AprovaJobPanel = () => {
   };
 
   const fetchJobs = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_jobs')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
       // Fetch client info for each job
       const jobsWithClients = await Promise.all(
         data.map(async (job) => {
-          const { data: clientData } = await supabase
+          const { data: clientData } = await (supabase as any)
             .from('aprova_job_clients')
             .select('*')
-            .eq('id', job.client_id)
+            .eq('id', job.client_id).filter("entity_id", "eq", scopedEntityId)
             .single();
           return { ...job, client: clientData, media_urls: job.media_urls || [] } as Job;
         })
@@ -157,10 +158,10 @@ export const AprovaJobPanel = () => {
   };
 
   const fetchNotifications = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_notifications')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
       .order('created_at', { ascending: false })
       .limit(50);
 
@@ -170,7 +171,7 @@ export const AprovaJobPanel = () => {
   };
 
   const fetchJobComments = async (jobId: string) => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_comments')
       .select('*')
       .eq('job_id', jobId)
@@ -193,7 +194,7 @@ export const AprovaJobPanel = () => {
   const handlePickContact = async (contactId: string | null) => {
     setClientForm(prev => ({ ...prev, contact_id: contactId }));
     if (!contactId) return;
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('contacts')
       .select('name')
       .eq('id', contactId)
@@ -238,10 +239,10 @@ export const AprovaJobPanel = () => {
 
     const passwordHash = await hashPassword(clientForm.password);
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_clients')
       .insert({
-        user_id: user?.id,
+        user_id: user?.id, entity_id: scopedEntityId,
         name: clientForm.name,
         username: clientForm.username.toLowerCase().trim(),
         password_hash: passwordHash,
@@ -285,10 +286,10 @@ export const AprovaJobPanel = () => {
       updateData.password_hash = await hashPassword(clientForm.password);
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_clients')
       .update(updateData)
-      .eq('id', editingClient.id);
+      .eq('id', editingClient.id).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -303,10 +304,10 @@ export const AprovaJobPanel = () => {
   };
 
   const deleteClient = async (clientId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_clients')
       .delete()
-      .eq('id', clientId);
+      .eq('id', clientId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -358,10 +359,10 @@ export const AprovaJobPanel = () => {
       return;
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_jobs')
       .insert({
-        user_id: user?.id,
+        user_id: user?.id, entity_id: scopedEntityId,
         client_id: jobForm.client_id,
         title: jobForm.title,
         description: jobForm.description || null,
@@ -386,7 +387,7 @@ export const AprovaJobPanel = () => {
       return;
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_jobs')
       .update({
         title: jobForm.title,
@@ -395,7 +396,7 @@ export const AprovaJobPanel = () => {
         due_date: jobForm.due_date || null,
         status: 'pending' // Reset status to pending when edited
       })
-      .eq('id', editingJob.id);
+      .eq('id', editingJob.id).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -428,10 +429,10 @@ export const AprovaJobPanel = () => {
   };
 
   const deleteJob = async (jobId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_jobs')
       .delete()
-      .eq('id', jobId);
+      .eq('id', jobId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -445,7 +446,7 @@ export const AprovaJobPanel = () => {
   const addComment = async () => {
     if (!selectedJob || !newComment.trim()) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_comments')
       .insert({
         job_id: selectedJob.id,
@@ -463,19 +464,19 @@ export const AprovaJobPanel = () => {
   };
 
   const markNotificationRead = async (notificationId: string) => {
-    await supabase
+    await (supabase as any)
       .from('aprova_job_notifications')
       .update({ is_read: true })
-      .eq('id', notificationId);
+      .eq('id', notificationId).filter("entity_id", "eq", scopedEntityId);
     
     fetchNotifications();
   };
 
   const markAllNotificationsRead = async () => {
-    await supabase
+    await (supabase as any)
       .from('aprova_job_notifications')
       .update({ is_read: true })
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
       .eq('is_read', false);
     
     fetchNotifications();

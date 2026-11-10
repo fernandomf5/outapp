@@ -33,7 +33,7 @@ export const useAIAgent = () => {
     }
   }, [toast]);
 
-  const saveAgent = useCallback(async (agent: Partial<AIAgent>, userId: string) => {
+  const saveAgent = useCallback(async (agent: Partial<AIAgent>, userId: string, entityId?: string | null) => {
     try {
       // Ensure config is properly serialized as JSON
       const configToSave = agent.config ? JSON.parse(JSON.stringify(agent.config)) : {};
@@ -46,6 +46,7 @@ export const useAIAgent = () => {
         is_active: agent.is_active ?? true,
         description: agent.description,
         user_id: userId,
+        entity_id: entityId || null,
         // O banco só aceita 'public' ou 'private'; qualquer outro valor vira 'public'.
         access_type: (agent as any).access_type === 'private' || (agent as any).access_type === 'restricted'
           ? 'private'
@@ -58,10 +59,11 @@ export const useAIAgent = () => {
       let result;
       if (agent.id) {
         // Update existing
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('ai_agents')
           .update(agentData)
           .eq('id', agent.id)
+          .filter("entity_id", "eq", entityId || "")
           .select()
           .single();
         
@@ -96,12 +98,13 @@ export const useAIAgent = () => {
     }
   }, [toast]);
 
-  const loadAgent = useCallback(async (agentId: string) => {
+  const loadAgent = useCallback(async (agentId: string, entityId?: string | null) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('ai_agents')
         .select('*')
         .eq('id', agentId)
+        .filter('entity_id', 'eq', entityId || '')
         .single();
 
       if (error) throw error;

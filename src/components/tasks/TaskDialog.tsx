@@ -54,6 +54,7 @@ interface TaskDialogProps {
   blocks: Block[];
   userId: string;
   effectiveUserId: string;
+  entityId: string;
   onSuccess: () => void;
 }
 
@@ -65,6 +66,7 @@ export const TaskDialog = ({
   blocks, 
   userId, 
   effectiveUserId,
+  entityId,
   onSuccess 
 }: TaskDialogProps) => {
   const [loading, setLoading] = useState(false);
@@ -145,7 +147,7 @@ export const TaskDialog = ({
       
       if (task) {
         // Update
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tasks")
           .update({
             title: formData.title,
@@ -158,7 +160,7 @@ export const TaskDialog = ({
             updated_at: new Date().toISOString()
           })
 
-          .eq("id", task.id);
+          .eq("id", task.id).filter("entity_id", "eq", entityId);
         
         if (error) throw error;
         await saveLink(task.id, contactId, formData.title);
@@ -170,6 +172,7 @@ export const TaskDialog = ({
           .from("tasks")
           .select("task_order")
           .eq("block_id", formData.block_id)
+          .filter("entity_id", "eq", entityId)
           .order("task_order", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -186,6 +189,7 @@ export const TaskDialog = ({
             due_date: formData.due_date || null,
             block_id: formData.block_id,
             user_id: effectiveUserId,
+            entity_id: entityId,
             contact_id: userId,
             task_order: nextOrder,
             status: "pending",

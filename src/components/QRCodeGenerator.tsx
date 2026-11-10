@@ -59,7 +59,7 @@ interface SocialMedia {
   linkedin: string;
 }
 
-export function QRCodeGenerator() {
+export function QRCodeGenerator({ entityId }: { entityId?: string } = {}) {
   const [text, setText] = useState('');
   const [size, setSize] = useState(256);
   const [fgColor, setFgColor] = useState('#000000');
@@ -100,6 +100,7 @@ export function QRCodeGenerator() {
   
   const { toast } = useToast();
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
 
   useEffect(() => {
     if (user) {
@@ -108,7 +109,7 @@ export function QRCodeGenerator() {
   }, [user]);
 
   const fetchSavedQRCodes = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('saved_qr_codes')
       .select('*')
       .order('created_at', { ascending: false });
@@ -390,7 +391,7 @@ export function QRCodeGenerator() {
   const saveExistingQRCode = async () => {
     if (!user || !editingId) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('saved_qr_codes')
       .update({
         content: text,
@@ -409,7 +410,7 @@ export function QRCodeGenerator() {
         show_social_media: showSocialMedia,
         social_media: socialMedia as any,
       })
-      .eq('id', editingId);
+      .eq('id', editingId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({
@@ -473,10 +474,10 @@ export function QRCodeGenerator() {
       return;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('saved_qr_codes')
       .insert({
-        user_id: user.id,
+        user_id: user.id, entity_id: scopedEntityId,
         name: qrName,
         content: text,
         size,
@@ -566,10 +567,10 @@ export function QRCodeGenerator() {
       return;
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('saved_qr_codes')
       .delete()
-      .eq('id', qrToDelete);
+      .eq('id', qrToDelete).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({

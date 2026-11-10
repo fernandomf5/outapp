@@ -125,7 +125,8 @@ const SortableUserCard = ({ userReg, index, total, reorderMode, onSelect, onMove
 };
 
 
-export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => {
+export const TaskManagerContainer = ({ teamContext, entityId }: { teamContext?: any; entityId?: string }) => {
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const { user } = useAuth();
   const [view, setView] = useState<"categories" | "users" | "kanban">("categories");
   const [categories, setRegistrationCategories] = useState<Category[]>([]);
@@ -141,7 +142,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
 
   useEffect(() => {
     fetchCategories();
-  }, [effectiveUserId]);
+  }, [effectiveUserId, scopedEntityId]);
 
   const fetchCategories = async () => {
     try {
@@ -297,6 +298,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         effectiveUserId={effectiveUserId}
+        entityId={scopedEntityId}
         onChanged={() => setKanbanRefreshKey((k) => k + 1)}
       />
 
@@ -393,6 +395,7 @@ export const TaskManagerContainer = ({ teamContext }: { teamContext?: any }) => 
 
       {view === "kanban" && selectedUser && (
         <KanbanBoard 
+          entityId={scopedEntityId}
           userId={selectedUser.id} 
           userName={selectedUser.name} 
           teamContext={teamContext}

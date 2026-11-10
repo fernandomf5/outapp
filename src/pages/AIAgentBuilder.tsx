@@ -56,7 +56,8 @@ const AIAgentBuilder = () => {
 
   useEffect(() => {
     if (agentId && user) {
-      loadAgent(agentId).then(agent => {
+      loadAgent(agentId, entityId).then(agent => {
+        if (entityId && (agent as any).entity_id !== entityId) throw new Error("Este chat pertence a outra gestão.");
         setAgentName(agent.name);
         setWelcomeMessage(agent.config?.welcomeMessage || "");
         setPrimaryColor(agent.config?.primaryColor || "#6366f1");
@@ -71,7 +72,7 @@ const AIAgentBuilder = () => {
         setIsFloating(!!agent.config?.isFloating);
       }).catch(console.error);
     }
-  }, [agentId, user]);
+  }, [agentId, user, entityId]);
 
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +149,7 @@ const AIAgentBuilder = () => {
         access_type: 'public',
       };
 
-      const result = await saveAgent(agentData, user.id);
+      const result = await saveAgent(agentData, user.id, entityId);
       
       if (!agentId && result) {
         navigate(`/chat-online?id=${result.id}${entityQuery}`);

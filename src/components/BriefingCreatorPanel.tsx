@@ -158,9 +158,10 @@ interface TeamContext {
 
 interface BriefingCreatorPanelProps {
   teamContext?: TeamContext;
+  entityId?: string;
 }
 
-export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps) {
+export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorPanelProps) {
   const [briefings, setBriefings] = useState<Briefing[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -224,10 +225,10 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
       const userId = await getTargetUserId();
       if (!userId) return;
 
-      let query = supabase
+      let query = (supabase as any)
         .from('briefings' as any)
         .select('*', { count: 'exact' })
-        .eq('user_id', userId)
+        .eq('user_id', userId).filter('entity_id', 'eq', entityId || '')
         .order('created_at', { ascending: false });
 
       // If team member with restrictions, filter by allowed briefing IDs
@@ -325,7 +326,7 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
       }
 
       if (editingBriefing) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('briefings' as any)
           .update({
             title: formData.title,
@@ -343,15 +344,16 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
             step_labels: formData.step_labels,
             fields: formData.fields
           })
-          .eq('id', editingBriefing.id);
+          .eq('id', editingBriefing.id).filter('entity_id', 'eq', entityId || '');
 
         if (error) throw error;
         toast.success("Briefing atualizado!");
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('briefings' as any)
           .insert([{
             user_id: userId,
+            entity_id: entityId,
             title: formData.title,
             description: formData.description,
             logo_url: formData.logo_url,
@@ -410,10 +412,10 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
     if (!deleteBriefingId) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('briefings' as any)
         .delete()
-        .eq('id', deleteBriefingId);
+        .eq('id', deleteBriefingId).filter('entity_id', 'eq', entityId || '');
 
       if (error) throw error;
       toast.success("Briefing excluído!");
@@ -543,10 +545,10 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
   const handleToggleBlock = async (briefing: Briefing) => {
     try {
       const newBlockedState = !briefing.is_blocked;
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('briefings' as any)
         .update({ is_blocked: newBlockedState })
-        .eq('id', briefing.id);
+        .eq('id', briefing.id).filter('entity_id', 'eq', entityId || '');
 
       if (error) throw error;
       

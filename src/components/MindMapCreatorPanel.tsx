@@ -111,8 +111,9 @@ const CUSTOM_COLORS = [
 
 type OrganizationType = 'radial' | 'horizontal' | 'vertical' | 'tree' | 'mindmap';
 
-export const MindMapCreatorPanel = () => {
+export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) => {
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
   const [savedNodes, setSavedNodes] = useState<MindMapNode[] | null>(null);
@@ -146,10 +147,10 @@ export const MindMapCreatorPanel = () => {
 
   const fetchSavedMaps = async () => {
     if (!user) return;
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('mind_maps')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
       .order('updated_at', { ascending: false });
     
     if (!error && data) {
@@ -325,15 +326,15 @@ export const MindMapCreatorPanel = () => {
     setEditingNode(null);
 
     if (user && currentMapId) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('mind_maps')
         .update({
           nodes: JSON.parse(JSON.stringify(nextNodes)),
           theme: currentTheme,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', currentMapId)
-        .eq('user_id', user.id);
+        .eq('id', currentMapId).filter("entity_id", "eq", scopedEntityId)
+        .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId);
 
       if (error) {
         toast.error('Erro ao salvar o título do bloco');
@@ -435,14 +436,14 @@ export const MindMapCreatorPanel = () => {
   useEffect(() => {
     if (!user || !currentMapId || !mapName) return;
     autosaveTimerRef.current = setTimeout(async () => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('mind_maps')
         .update({
           nodes: JSON.parse(JSON.stringify(nodes)),
           theme: currentTheme,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', currentMapId);
+        .eq('id', currentMapId).filter("entity_id", "eq", scopedEntityId);
       if (!error) setSavedNodes(JSON.parse(JSON.stringify(nodes)));
     }, 1200);
     return () => {
@@ -464,7 +465,7 @@ export const MindMapCreatorPanel = () => {
     }
 
     const mapData = {
-      user_id: user.id,
+      user_id: user.id, entity_id: scopedEntityId,
       name: mapName,
       description: mapDescription || null,
       nodes: JSON.parse(JSON.stringify(nodes)),
@@ -474,10 +475,10 @@ export const MindMapCreatorPanel = () => {
     };
 
     if (currentMapId) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('mind_maps')
         .update(mapData)
-        .eq('id', currentMapId);
+        .eq('id', currentMapId).filter("entity_id", "eq", scopedEntityId);
       
       if (error) {
         toast.error('Erro ao atualizar');
@@ -487,7 +488,7 @@ export const MindMapCreatorPanel = () => {
         fetchSavedMaps();
       }
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('mind_maps')
         .insert([mapData])
         .select()
@@ -528,10 +529,10 @@ export const MindMapCreatorPanel = () => {
   };
 
   const deleteMap = async (mapId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('mind_maps')
       .delete()
-      .eq('id', mapId);
+      .eq('id', mapId).filter("entity_id", "eq", scopedEntityId);
     
     if (!error) {
       toast.success('Mapa deletado');

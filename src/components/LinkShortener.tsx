@@ -20,9 +20,10 @@ interface ShortLink {
   created_at: string;
 }
 
-export const LinkShortener = () => {
+export const LinkShortener = ({ entityId }: { entityId?: string } = {}) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const [originalUrl, setOriginalUrl] = useState("");
   const [customName, setCustomName] = useState("");
   const [customSlug, setCustomSlug] = useState("");
@@ -36,10 +37,10 @@ export const LinkShortener = () => {
   }, [user]);
 
   const fetchLinks = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("short_links")
       .select("*")
-      .eq("user_id", user?.id)
+      .eq("user_id", user?.id).filter("entity_id", "eq", scopedEntityId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -79,7 +80,7 @@ export const LinkShortener = () => {
     if (customSlug.trim()) {
       finalShortCode = sanitizeSlug(customSlug.trim());
       
-      const { data: existing } = await supabase
+      const { data: existing } = await (supabase as any)
         .from("short_links")
         .select("id")
         .eq("short_code", finalShortCode)
@@ -98,8 +99,8 @@ export const LinkShortener = () => {
       finalShortCode = generateShortCode();
     }
 
-    const { error } = await supabase.from("short_links").insert({
-      user_id: user?.id,
+    const { error } = await (supabase as any).from("short_links").insert({
+      user_id: user?.id, entity_id: scopedEntityId,
       original_url: originalUrl,
       short_code: finalShortCode,
       custom_name: customName || null,
@@ -137,10 +138,10 @@ export const LinkShortener = () => {
   };
 
   const toggleActive = async (id: string, currentStatus: boolean) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("short_links")
       .update({ is_active: !currentStatus })
-      .eq("id", id);
+      .eq("id", id).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({
@@ -159,7 +160,7 @@ export const LinkShortener = () => {
   };
 
   const deleteLink = async (id: string) => {
-    const { error } = await supabase.from("short_links").delete().eq("id", id);
+    const { error } = await (supabase as any).from("short_links").delete().eq("id", id).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({

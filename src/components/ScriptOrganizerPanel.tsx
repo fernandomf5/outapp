@@ -89,8 +89,9 @@ const CATEGORY_COLORS = [
   "#ec4899", "#06b6d4", "#f97316", "#14b8a6", "#6366f1"
 ];
 
-export function ScriptOrganizerPanel() {
+export function ScriptOrganizerPanel({ entityId }: { entityId?: string } = {}) {
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const [categories, setCategories] = useState<ScriptCategory[]>([]);
   const [scripts, setScripts] = useState<SavedScript[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -129,10 +130,10 @@ export function ScriptOrganizerPanel() {
 
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('script_categories')
       .select('*')
-      .eq('user_id', user!.id)
+      .eq('user_id', user!.id).filter("entity_id", "eq", scopedEntityId)
       .order('sort_order', { ascending: true });
     if (!error && data) {
       const cats = data as unknown as ScriptCategory[];
@@ -147,10 +148,10 @@ export function ScriptOrganizerPanel() {
 
   const fetchScripts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('saved_scripts')
       .select('*')
-      .eq('user_id', user!.id)
+      .eq('user_id', user!.id).filter("entity_id", "eq", scopedEntityId)
       .order('is_favorite', { ascending: false })
       .order('sort_order', { ascending: true });
     if (!error && data) setScripts(data as any);
@@ -163,17 +164,17 @@ export function ScriptOrganizerPanel() {
     const bizId = null;
     
     if (editingCategory) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('script_categories')
         .update({ name: categoryName.trim(), color: categoryColor, business_id: bizId } as any)
-        .eq('id', editingCategory.id);
+        .eq('id', editingCategory.id).filter("entity_id", "eq", scopedEntityId);
       if (error) { toast.error("Erro ao atualizar categoria"); return; }
       toast.success("Categoria atualizada!");
     } else {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('script_categories')
         .insert({ 
-          user_id: user!.id, 
+          user_id: user!.id, entity_id: scopedEntityId, 
           name: categoryName.trim(), 
           color: categoryColor,
           business_id: bizId,
@@ -188,7 +189,7 @@ export function ScriptOrganizerPanel() {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    const { error } = await supabase.from('script_categories').delete().eq('id', id);
+    const { error } = await (supabase as any).from('script_categories').delete().eq('id', id).filter("entity_id", "eq", scopedEntityId);
     if (error) { toast.error("Erro ao excluir"); return; }
     if (selectedCategory === id) setSelectedCategory(null);
     toast.success("Categoria excluída!");
@@ -211,12 +212,12 @@ export function ScriptOrganizerPanel() {
     const { eventId, title, description, scheduledAtIso, reminderMinutes, color } = params;
 
     if (!scheduledAtIso) {
-      if (eventId) await supabase.from('agenda_events').delete().eq('id', eventId);
+      if (eventId) await (supabase as any).from('agenda_events').delete().eq('id', eventId).filter("entity_id", "eq", scopedEntityId);
       return null;
     }
 
     const eventPayload = {
-      user_id: user!.id,
+      user_id: user!.id, entity_id: scopedEntityId,
       title: `Postagem: ${title}`,
       description: description.slice(0, 500),
       start_date: scheduledAtIso,
@@ -226,11 +227,11 @@ export function ScriptOrganizerPanel() {
     };
 
     if (eventId) {
-      const { error } = await supabase.from('agenda_events').update(eventPayload).eq('id', eventId);
+      const { error } = await (supabase as any).from('agenda_events').update(eventPayload).eq('id', eventId).filter("entity_id", "eq", scopedEntityId);
       if (!error) return eventId;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('agenda_events')
       .insert(eventPayload)
       .select('id')
@@ -267,7 +268,7 @@ export function ScriptOrganizerPanel() {
 
     const keepPublished = editingScript?.post_status === 'published';
     const payload = {
-      user_id: user!.id,
+      user_id: user!.id, entity_id: scopedEntityId,
       title: scriptTitle.trim(),
       content: scriptContent.trim(),
       category_id: catId,
@@ -281,11 +282,11 @@ export function ScriptOrganizerPanel() {
     };
 
     if (editingScript) {
-      const { error } = await supabase.from('saved_scripts').update(payload as any).eq('id', editingScript.id);
+      const { error } = await (supabase as any).from('saved_scripts').update(payload as any).eq('id', editingScript.id).filter("entity_id", "eq", scopedEntityId);
       if (error) { toast.error("Erro ao atualizar"); return; }
       toast.success("Conteúdo atualizado!");
     } else {
-      const { error } = await supabase.from('saved_scripts').insert(payload as any);
+      const { error } = await (supabase as any).from('saved_scripts').insert(payload as any);
       if (error) { toast.error("Erro ao criar"); return; }
       toast.success(scheduledIso ? "Conteúdo agendado! Lembrete criado na agenda." : "Conteúdo salvo!");
     }
@@ -298,13 +299,13 @@ export function ScriptOrganizerPanel() {
   const handleTogglePublished = async (script: SavedScript) => {
     const published = script.post_status === 'published';
     const next: PostStatus = published ? (script.scheduled_at ? 'scheduled' : 'idea') : 'published';
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('saved_scripts')
       .update({ post_status: next } as any)
-      .eq('id', script.id);
+      .eq('id', script.id).filter("entity_id", "eq", scopedEntityId);
     if (error) { toast.error('Não foi possível atualizar a situação'); return; }
     if (!published && script.agenda_event_id) {
-      await supabase.from('agenda_events').update({ reminder_shown: true }).eq('id', script.agenda_event_id);
+      await (supabase as any).from('agenda_events').update({ reminder_shown: true }).eq('id', script.agenda_event_id).filter("entity_id", "eq", scopedEntityId);
     }
     toast.success(published ? 'Marcado como pendente' : 'Marcado como publicado!');
     fetchScripts();
@@ -313,17 +314,17 @@ export function ScriptOrganizerPanel() {
 
   const handleDeleteScript = async (id: string) => {
     const target = scripts.find(s => s.id === id);
-    const { error } = await supabase.from('saved_scripts').delete().eq('id', id);
+    const { error } = await (supabase as any).from('saved_scripts').delete().eq('id', id).filter("entity_id", "eq", scopedEntityId);
     if (error) { toast.error("Erro ao excluir"); return; }
     if (target?.agenda_event_id) {
-      await supabase.from('agenda_events').delete().eq('id', target.agenda_event_id);
+      await (supabase as any).from('agenda_events').delete().eq('id', target.agenda_event_id).filter("entity_id", "eq", scopedEntityId);
     }
     toast.success("Conteúdo excluído!");
     fetchScripts();
   };
 
   const handleToggleFavorite = async (script: SavedScript) => {
-    await supabase.from('saved_scripts').update({ is_favorite: !script.is_favorite }).eq('id', script.id);
+    await (supabase as any).from('saved_scripts').update({ is_favorite: !script.is_favorite }).eq('id', script.id).filter("entity_id", "eq", scopedEntityId);
     fetchScripts();
   };
 
@@ -339,7 +340,7 @@ export function ScriptOrganizerPanel() {
 
   const handleIncrementUse = async (script: SavedScript) => {
     await handleCopyText(script.content);
-    await supabase.from('saved_scripts').update({ use_count: script.use_count + 1 }).eq('id', script.id);
+    await (supabase as any).from('saved_scripts').update({ use_count: script.use_count + 1 }).eq('id', script.id).filter("entity_id", "eq", scopedEntityId);
     fetchScripts();
   };
 

@@ -282,8 +282,9 @@ function DroppableStageColumn({ stage, leads, children, onAddLead }: {
   );
 }
 
-export default function SalesFunnelPanel() {
+export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {}) {
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [funnels, setFunnels] = useState<SalesFunnel[]>([]);
   const [selectedFunnel, setSelectedFunnel] = useState<SalesFunnel | null>(null);
@@ -384,10 +385,10 @@ export default function SalesFunnelPanel() {
       }));
 
       for (const update of updates) {
-        await supabase
+        await (supabase as any)
           .from('funnel_stages')
           .update({ order_index: update.order_index })
-          .eq('id', update.id);
+          .eq('id', update.id).filter("entity_id", "eq", scopedEntityId);
       }
 
       toast.success('Ordem das etapas atualizada!');
@@ -414,10 +415,10 @@ export default function SalesFunnelPanel() {
 
   const loadFunnels = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('sales_funnels')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -436,7 +437,7 @@ export default function SalesFunnelPanel() {
 
   const loadStages = async (funnelId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('funnel_stages')
         .select('*')
         .eq('funnel_id', funnelId)
@@ -451,7 +452,7 @@ export default function SalesFunnelPanel() {
 
   const loadLeads = async (funnelId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('funnel_leads')
         .select('*')
         .eq('funnel_id', funnelId)
@@ -471,15 +472,15 @@ export default function SalesFunnelPanel() {
     
     try {
       const [customersRes, categoriesRes] = await Promise.all([
-        supabase
+        (supabase as any)
           .from('customers')
           .select('id, name, email, phone, company, category_id')
           .eq('user_id', user.id)
           .order('name'),
-        supabase
+        (supabase as any)
           .from('customer_categories')
           .select('id, name, color')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name')
       ]);
 
@@ -574,7 +575,7 @@ export default function SalesFunnelPanel() {
       let importedCount = 0;
 
       for (const customer of customersToImport) {
-        const { data: newLead, error } = await supabase
+        const { data: newLead, error } = await (supabase as any)
           .from('funnel_leads')
           .insert({
             funnel_id: selectedFunnel.id,
@@ -590,7 +591,7 @@ export default function SalesFunnelPanel() {
           .single();
 
         if (!error && newLead) {
-          await supabase
+          await (supabase as any)
             .from('funnel_lead_history')
             .insert({
               lead_id: newLead.id,
@@ -638,7 +639,7 @@ export default function SalesFunnelPanel() {
       let importedCount = 0;
 
       for (const customer of categoryCustomers) {
-        const { data: newLead, error } = await supabase
+        const { data: newLead, error } = await (supabase as any)
           .from('funnel_leads')
           .insert({
             funnel_id: selectedFunnel.id,
@@ -654,7 +655,7 @@ export default function SalesFunnelPanel() {
           .single();
 
         if (!error && newLead) {
-          await supabase
+          await (supabase as any)
             .from('funnel_lead_history')
             .insert({
               lead_id: newLead.id,
@@ -684,15 +685,15 @@ export default function SalesFunnelPanel() {
     setLoadingContacts(true);
     try {
       const [contactsRes, categoriesRes] = await Promise.all([
-        supabase
+        (supabase as any)
           .from('contacts')
           .select('id, name, email, phone, company, registration_category_id')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name'),
-        supabase
+        (supabase as any)
           .from('registration_categories')
           .select('id, name, color')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name'),
       ]);
       if (contactsRes.error) throw contactsRes.error;
@@ -758,7 +759,7 @@ export default function SalesFunnelPanel() {
     }
     let importedCount = 0;
     for (const c of toImport) {
-      const { data: newLead, error } = await supabase
+      const { data: newLead, error } = await (supabase as any)
         .from('funnel_leads')
         .insert({
           funnel_id: selectedFunnel.id,
@@ -773,7 +774,7 @@ export default function SalesFunnelPanel() {
         .select()
         .single();
       if (!error && newLead) {
-        await supabase.from('funnel_lead_history').insert({
+        await (supabase as any).from('funnel_lead_history').insert({
           lead_id: newLead.id,
           to_stage_id: targetStageId,
           notes: notesLabel,
@@ -835,7 +836,7 @@ export default function SalesFunnelPanel() {
 
   const loadLeadHistory = async (leadId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('funnel_lead_history')
         .select('*')
         .eq('lead_id', leadId)
@@ -857,22 +858,22 @@ export default function SalesFunnelPanel() {
 
     try {
       if (editingFunnel) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('sales_funnels')
           .update({
             name: funnelName,
             description: funnelDescription || null,
             color: funnelColor,
           })
-          .eq('id', editingFunnel.id);
+          .eq('id', editingFunnel.id).filter("entity_id", "eq", scopedEntityId);
 
         if (error) throw error;
         toast.success('Funil atualizado!');
       } else {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('sales_funnels')
           .insert({
-            user_id: user?.id,
+            user_id: user?.id, entity_id: scopedEntityId,
             name: funnelName,
             description: funnelDescription || null,
             color: funnelColor,
@@ -891,7 +892,7 @@ export default function SalesFunnelPanel() {
           { name: 'Fechamento', color: '#22c55e', order_index: 4 },
         ];
 
-        await supabase
+        await (supabase as any)
           .from('funnel_stages')
           .insert(defaultStages.map(s => ({ ...s, funnel_id: data.id })));
 
@@ -912,10 +913,10 @@ export default function SalesFunnelPanel() {
     if (!confirm('Excluir este funil e todos os dados associados?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('sales_funnels')
         .delete()
-        .eq('id', id);
+        .eq('id', id).filter("entity_id", "eq", scopedEntityId);
 
       if (error) throw error;
       
@@ -948,19 +949,19 @@ export default function SalesFunnelPanel() {
 
     try {
       if (editingStage) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('funnel_stages')
           .update({
             name: stageName,
             color: stageColor,
           })
-          .eq('id', editingStage.id);
+          .eq('id', editingStage.id).filter("entity_id", "eq", scopedEntityId);
 
         if (error) throw error;
         toast.success('Etapa atualizada!');
       } else {
         const maxOrder = Math.max(...stages.map(s => s.order_index), -1);
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('funnel_stages')
           .insert({
             funnel_id: selectedFunnel.id,
@@ -992,10 +993,10 @@ export default function SalesFunnelPanel() {
     if (!confirm('Excluir esta etapa?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('funnel_stages')
         .delete()
-        .eq('id', id);
+        .eq('id', id).filter("entity_id", "eq", scopedEntityId);
 
       if (error) throw error;
       
@@ -1042,15 +1043,15 @@ export default function SalesFunnelPanel() {
       };
 
       if (editingLead) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('funnel_leads')
           .update(leadData)
-          .eq('id', editingLead.id);
+          .eq('id', editingLead.id).filter("entity_id", "eq", scopedEntityId);
 
         if (error) throw error;
         toast.success('Lead atualizado!');
       } else {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('funnel_leads')
           .insert(leadData)
           .select()
@@ -1059,7 +1060,7 @@ export default function SalesFunnelPanel() {
         if (error) throw error;
 
         // Create initial history
-        await supabase
+        await (supabase as any)
           .from('funnel_lead_history')
           .insert({
             lead_id: data.id,
@@ -1083,10 +1084,10 @@ export default function SalesFunnelPanel() {
     if (!confirm('Excluir este lead?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('funnel_leads')
         .delete()
-        .eq('id', id);
+        .eq('id', id).filter("entity_id", "eq", scopedEntityId);
 
       if (error) throw error;
       
@@ -1137,15 +1138,15 @@ export default function SalesFunnelPanel() {
     ));
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('funnel_leads')
         .update({ stage_id: newStageId })
-        .eq('id', leadId);
+        .eq('id', leadId).filter("entity_id", "eq", scopedEntityId);
 
       if (error) throw error;
 
       // Record history
-      await supabase
+      await (supabase as any)
         .from('funnel_lead_history')
         .insert({
           lead_id: leadId,
@@ -1274,7 +1275,7 @@ export default function SalesFunnelPanel() {
             let addedCount = 0;
             for (const lead of extractedLeads) {
               if (lead.name || lead.phone || lead.email) {
-                const { data: newLead, error: insertError } = await supabase
+                const { data: newLead, error: insertError } = await (supabase as any)
                   .from('funnel_leads')
                   .insert({
                     funnel_id: selectedFunnel.id,
@@ -1289,7 +1290,7 @@ export default function SalesFunnelPanel() {
                   .single();
 
                 if (!insertError && newLead) {
-                  await supabase
+                  await (supabase as any)
                     .from('funnel_lead_history')
                     .insert({
                       lead_id: newLead.id,

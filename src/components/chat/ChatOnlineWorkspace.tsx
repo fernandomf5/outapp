@@ -34,10 +34,11 @@ export function ChatOnlineWorkspace({ entityId }: { entityId: string }) {
     let live = true;
     setLoadingAgent(true);
     setLoadError("");
-    supabase.from("ai_agents")
+    (supabase as any).from("ai_agents")
       .select("id,name,niche")
       .eq("id", agentId)
       .eq("user_id", user.id)
+      .filter("entity_id", "eq", entityId)
       .maybeSingle()
       .then(({ data, error }) => {
         if (!live) return;
@@ -50,7 +51,7 @@ export function ChatOnlineWorkspace({ entityId }: { entityId: string }) {
         setLoadingAgent(false);
       });
     return () => { live = false; };
-  }, [agentId, user?.id]);
+  }, [agentId, user?.id, entityId]);
 
   const openManagement = (agent: ManagedAgent, view?: string) => {
     const next = new URLSearchParams(params);

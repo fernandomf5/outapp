@@ -33,6 +33,7 @@ interface BulkTaskDialogProps {
   blocks: Block[];
   userId: string;
   effectiveUserId: string;
+  entityId: string;
   onSuccess: () => void;
 }
 
@@ -75,10 +76,11 @@ export const BulkTaskDialog = ({
     try {
       setLoading(true);
 
-      const { data: lastTask } = await supabase
+      const { data: lastTask } = await (supabase as any)
         .from("tasks")
         .select("task_order")
         .eq("block_id", blockId)
+        .filter("entity_id", "eq", entityId)
         .order("task_order", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -91,12 +93,13 @@ export const BulkTaskDialog = ({
         priority,
         block_id: blockId,
         user_id: effectiveUserId,
+        entity_id: entityId,
         contact_id: userId,
         task_order: startOrder + idx,
         status: "pending",
       }));
 
-      const { error } = await supabase.from("tasks").insert(rows as any);
+      const { error } = await (supabase as any).from("tasks").insert(rows as any);
       if (error) throw error;
 
       toast.success(`${lines.length} tarefa(s) criada(s)`);
