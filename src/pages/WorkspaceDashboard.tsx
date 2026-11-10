@@ -280,7 +280,12 @@ export default function WorkspaceDashboard() {
 
       <div className={"hub-shell " + (entitiesCollapsed && activeTool ? "hub-shell-expanded" : "")}>
         <aside className={"hub-entities-panel hub-glass " + (mobileEntitiesOpen ? "mobile-open " : "") + (entitiesCollapsed && activeTool ? "hub-entities-collapsed" : "")}>
-          <div className="hub-eyebrow"><span className="hub-signal" /> Central de gestão</div>
+          <div className="hub-panel-topline">
+            <div className="hub-eyebrow"><span className="hub-signal" /> Central de gestão</div>
+            {activeTool && <button className="hub-sidebar-toggle hub-sidebar-toggle-panel" type="button" onClick={() => setEntitiesCollapsed(true)} aria-expanded={!entitiesCollapsed} aria-label="Ampliar área de trabalho e minimizar o menu da gestão" title="Ampliar área de trabalho">
+              <PanelLeftClose size={18}/><span>Ampliar área</span>
+            </button>}
+          </div>
           <div className="hub-entities-heading"><div><h2>Gestão Livre</h2><p>Seus negócios e pessoas em um só lugar.</p></div></div>
           <Button className="hub-new-button" onClick={() => openEntityForm()}><Plus size={18} /> Cadastrar novo</Button>
           <div className="hub-entities-list">
@@ -317,10 +322,12 @@ export default function WorkspaceDashboard() {
           ) : activeTool ? (
             <section className="hub-module-view">
               <div className="hub-module-heading hub-glass">
+                {entitiesCollapsed && <button className="hub-sidebar-toggle hub-sidebar-toggle-reopen" type="button" onClick={() => setEntitiesCollapsed(false)} aria-expanded={false} aria-label="Expandir menu da gestão" title="Mostrar menu da gestão">
+                  <PanelLeftOpen size={18}/><span>Mostrar menu</span>
+                </button>}
                 <button className="hub-circle-back" onClick={backToHub} title="Voltar ao menu" aria-label="Voltar ao menu"><ArrowLeft /></button>
                 <EntityMark entity={selected} />
                 <div className="hub-module-titles"><span>{statusLabel} / {selected.name}</span><h1>{activeTool.title}</h1></div>
-                <button className="hub-sidebar-toggle" type="button" onClick={() => setEntitiesCollapsed(v => !v)} aria-expanded={!entitiesCollapsed} aria-label={entitiesCollapsed ? "Expandir painel esquerdo" : "Minimizar painel esquerdo"} title={entitiesCollapsed ? "Expandir painel esquerdo" : "Minimizar painel esquerdo"}>{entitiesCollapsed ? <PanelLeftOpen size={18}/> : <PanelLeftClose size={18}/>}<span>{entitiesCollapsed ? "Expandir menu" : "Ampliar área"}</span></button>
                 <button className="hub-secondary-action" onClick={backToEntities}>Trocar cadastro</button>
               </div>
               <div className={"hub-tool-content outapp-modern-module " + (activeTool.id === "financeiro" ? "outapp-finance-module" : "")} key={selected.id + "-" + activeTool.id}><ModuleView item={activeTool} entity={selected} onBack={backToHub}/></div>

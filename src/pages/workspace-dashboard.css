@@ -43,6 +43,9 @@
 .hub-shell { display:grid; grid-template-columns:minmax(256px,310px) minmax(0,1fr); gap:22px; padding:23px clamp(14px,2vw,30px); max-width:1700px; margin:0 auto; align-items:start; }
 .hub-glass { background:linear-gradient(130deg, rgba(9,34,62,.89), rgba(3,17,34,.76)); border:1px solid var(--hub-line); border-radius:20px; box-shadow:0 12px 42px #0004, inset 0 1px rgba(190,238,255,.09); backdrop-filter:blur(22px); }
 .hub-entities-panel { padding:24px 17px 15px; position:sticky; top:20px; }
+.hub-panel-topline { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+.hub-sidebar-toggle-panel { margin-left:0; padding:7px 9px; gap:5px; font-size:10px; flex-shrink:0; }
+.hub-sidebar-toggle-reopen { margin:0 3px 0 0; flex-shrink:0; }
 .hub-eyebrow { color:var(--hub-cyan); font-size:11px; font-weight:800; letter-spacing:.16em; display:flex; align-items:center; gap:9px; text-transform:uppercase; }
 .hub-signal { display:inline-block; width:7px; height:7px; border-radius:50%; flex-shrink:0; background:#4effd5; box-shadow:0 0 10px #3effd5; }
 .hub-entities-heading h2 { font-size:28px; font-weight:750; margin:13px 0 4px; letter-spacing:-.05em; }
