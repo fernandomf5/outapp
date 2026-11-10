@@ -130,7 +130,7 @@ export function ScriptOrganizerPanel({ entityId }: { entityId?: string } = {}) {
 
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('script_categories')
       .select('*')
       .eq('user_id', user!.id).filter("entity_id", "eq", scopedEntityId)
@@ -148,7 +148,7 @@ export function ScriptOrganizerPanel({ entityId }: { entityId?: string } = {}) {
 
   const fetchScripts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('saved_scripts')
       .select('*')
       .eq('user_id', user!.id).filter("entity_id", "eq", scopedEntityId)
@@ -164,14 +164,14 @@ export function ScriptOrganizerPanel({ entityId }: { entityId?: string } = {}) {
     const bizId = null;
     
     if (editingCategory) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('script_categories')
         .update({ name: categoryName.trim(), color: categoryColor, business_id: bizId } as any)
         .eq('id', editingCategory.id).filter("entity_id", "eq", scopedEntityId);
       if (error) { toast.error("Erro ao atualizar categoria"); return; }
       toast.success("Categoria atualizada!");
     } else {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('script_categories')
         .insert({ 
           user_id: user!.id, entity_id: scopedEntityId, 
@@ -231,7 +231,7 @@ export function ScriptOrganizerPanel({ entityId }: { entityId?: string } = {}) {
       if (!error) return eventId;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('agenda_events')
       .insert(eventPayload)
       .select('id')
@@ -299,7 +299,7 @@ export function ScriptOrganizerPanel({ entityId }: { entityId?: string } = {}) {
   const handleTogglePublished = async (script: SavedScript) => {
     const published = script.post_status === 'published';
     const next: PostStatus = published ? (script.scheduled_at ? 'scheduled' : 'idea') : 'published';
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('saved_scripts')
       .update({ post_status: next } as any)
       .eq('id', script.id).filter("entity_id", "eq", scopedEntityId);
