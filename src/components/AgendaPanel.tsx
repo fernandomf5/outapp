@@ -46,10 +46,11 @@ interface TeamContext {
 
 interface AgendaPanelProps {
   teamContext?: TeamContext;
-  entityId: string;
+  entityId?: string;
 }
 
 export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<AgendaEvent[]>([]);
@@ -79,7 +80,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
       .from('agenda_events')
       .select('*')
       .eq('user_id', user.id)
-      .filter('entity_id', 'eq', entityId)
+      .filter('entity_id', 'eq', scopedEntityId)
       .order('start_date', { ascending: true });
 
     if (error) {
@@ -92,7 +93,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
       setEvents((data as AgendaEvent[]) || []);
     }
     setLoading(false);
-  }, [user, toast, entityId]);
+  }, [user, toast, scopedEntityId]);
 
   useEffect(() => {
     fetchEvents();
@@ -161,7 +162,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
 
     const eventData = {
       user_id: user.id,
-      entity_id: entityId,
+      entity_id: scopedEntityId,
       title: formTitle.trim(),
       description: formDescription.trim() || null,
       start_date: startDateTime,
@@ -178,7 +179,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
         .from('agenda_events')
         .update(eventData)
         .eq('id', editingEvent.id)
-        .filter('entity_id', 'eq', entityId);
+        .filter('entity_id', 'eq', scopedEntityId);
 
       if (error) {
         toast({
@@ -221,7 +222,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
       .from('agenda_events')
       .delete()
       .eq('id', eventId)
-      .filter('entity_id', 'eq', entityId);
+      .filter('entity_id', 'eq', scopedEntityId);
 
     if (error) {
       toast({
