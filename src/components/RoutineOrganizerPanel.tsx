@@ -277,7 +277,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
     setIsLoading(true);
     
     try {
-      const { data: routinesData } = await supabase
+      const { data: routinesData } = await (supabase as any)
         .from('routines')
         .select('*')
         .eq('user_id', user.id)
@@ -290,11 +290,9 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
         setActiveRoutine(active as Routine);
       } else {
         // Auto-create a default routine and migrate existing items
-        const { data: newRoutine } = await supabase
+        const { data: newRoutine } = await (supabase as any)
           .from('routines')
-          .insert({ user_id: user.id,
-          entity_id: scopedEntityId,
-          entity_id: scopedEntityId, name: 'Minha Rotina', is_active: true })
+          .insert({ user_id: user.id, entity_id: scopedEntityId, name: 'Minha Rotina', is_active: true })
           .select()
           .single();
 
@@ -379,16 +377,14 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
 
     try {
       // Deactivate all other routines
-      await supabase
+      await (supabase as any)
         .from('routines')
         .update({ is_active: false })
-        .eq('user_id', user.id);
-        .filter('entity_id', 'eq', scopedEntityId)
+        .eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId);
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('routines')
-        .insert({ user_id: user.id, name: newRoutineName.trim(), is_active: true })
-        entity_id: scopedEntityId,
+        .insert({ user_id: user.id, entity_id: scopedEntityId, name: newRoutineName.trim(), is_active: true })
         .select()
         .single();
 
@@ -408,13 +404,13 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
     if (!user || routine.id === activeRoutine?.id) return;
 
     try {
-      await supabase
+      await (supabase as any)
         .from('routines')
         .update({ is_active: false })
         .eq('user_id', user.id);
         .filter('entity_id', 'eq', scopedEntityId)
 
-      await supabase
+      await (supabase as any)
         .from('routines')
         .update({ is_active: true })
         .eq('id', routine.id).filter('entity_id', 'eq', scopedEntityId);
@@ -431,7 +427,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
     if (!activeRoutine || !renameRoutineName.trim()) return;
 
     try {
-      await supabase
+      await (supabase as any)
         .from('routines')
         .update({ name: renameRoutineName.trim() })
         .eq('id', activeRoutine.id).filter('entity_id', 'eq', scopedEntityId);
@@ -565,7 +561,6 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       if (newDays.length > 0) {
         const newItems = newDays.map(day => ({
           user_id: user!.id,
-          entity_id: scopedEntityId,
           entity_id: scopedEntityId,
           routine_id: activeRoutine?.id,
           ...commonData,
@@ -894,8 +889,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
 
     try {
       // Delete existing items for this routine
-      await (supabase as any).from('routine_items').delete().eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId).eq('routine_id', activeRoutine?.id).filter('entity_id', 'eq', scopedEntityId);
-      .filter('entity_id', 'eq', scopedEntityId)
+      await (supabase as any).from('routine_items').delete().eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId).eq('routine_id', activeRoutine?.id);
 
       // Insert template items
       const newItems = (template.items as any[]).map((item, idx) => ({
@@ -953,8 +947,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
 
     try {
       for (const targetDay of copyToDays) {
-        await (supabase as any).from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine?.id).eq('day_of_week', targetDay).filter('entity_id', 'eq', scopedEntityId);
-        .filter('entity_id', 'eq', scopedEntityId)
+        await (supabase as any).from('routine_items').delete().eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId).eq('routine_id', activeRoutine?.id).eq('day_of_week', targetDay);
       }
 
       const newItems = copyToDays.flatMap(targetDay =>
