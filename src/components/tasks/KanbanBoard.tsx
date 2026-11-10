@@ -156,7 +156,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
     try {
       setLoading(true);
       
-      const { data: blocksData, error: blocksError } = await supabase
+      const { data: blocksData, error: blocksError } = await (supabase as any)
         .from("task_blocks")
         .select("*")
         .eq("user_id", effectiveUserId)
@@ -177,7 +177,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
           { name: "Concluído", color: "#22c55e", order_index: 2, user_id: effectiveUserId, contact_id: userId },
         ];
         
-        const { data: insertedBlocks, error: insertError } = await supabase
+        const { data: insertedBlocks, error: insertError } = await (supabase as any)
           .from("task_blocks")
           .insert(defaultBlocks as any)
           .select();
@@ -190,7 +190,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
       }
       setBlocks(currentBlocks);
 
-      const { data: tasksData, error: tasksError } = await supabase
+      const { data: tasksData, error: tasksError } = await (supabase as any)
         .from("tasks")
         .select("*")
         .eq("user_id", effectiveUserId)
@@ -297,7 +297,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
         updated_at: new Date().toISOString()
       }));
 
-      const { error } = await supabase.from("tasks").upsert(updates as any);
+      const { error } = await (supabase as any).from("tasks").upsert(updates as any);
       if (error) throw error;
     } catch (error) {
       console.error("Error updating tasks:", error);
@@ -324,7 +324,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
     if (!pendingTaskDelete) return;
     try {
       setTaskDeleteLoading(true);
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("tasks")
         .update({ archived: true, archived_at: new Date().toISOString() } as any)
         .eq("id", pendingTaskDelete.id).filter("entity_id", "eq", entityId);
@@ -344,7 +344,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
     if (!pendingTaskDelete) return;
     try {
       setTaskDeleteLoading(true);
-      const { error } = await supabase.from("tasks").delete().eq("id", pendingTaskDelete.id);
+      const { error } = await (supabase as any).from("tasks").delete().eq("id", pendingTaskDelete.id);
       if (error) throw error;
       setTasks(tasks.filter(t => t.id !== pendingTaskDelete.id));
       toast.success("Tarefa excluída definitivamente");
@@ -369,7 +369,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
     }
 
     try {
-      const { error } = await supabase.from("task_blocks").delete().eq("id", pendingDelete.id).filter("entity_id", "eq", entityId);
+      const { error } = await (supabase as any).from("task_blocks").delete().eq("id", pendingDelete.id).filter("entity_id", "eq", entityId);
       if (error) throw error;
       setBlocks(blocks.filter(b => b.id !== pendingDelete.id));
       toast.success("Bloco removido");
@@ -385,7 +385,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
     const prev = tasks;
     setTasks(tasks.map(t => t.id === taskId ? { ...t, checklist } : t));
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("tasks")
         .update({ checklist: checklist as any, updated_at: new Date().toISOString() })
         .eq("id", taskId).filter("entity_id", "eq", entityId);
