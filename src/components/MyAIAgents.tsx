@@ -126,7 +126,7 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
     return () => {
       subscription.unsubscribe();
     };
-  }, [effectiveUserId, isTeamMember]);
+  }, [effectiveUserId, isTeamMember, entityId]);
 
   // Atualiza os contadores do sininho quando chegam mensagens de clientes
   useEffect(() => {
@@ -164,6 +164,7 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
       .from('ai_agents')
       .select('*')
       .eq('user_id', effectiveUserId)
+      .filter('entity_id', 'eq', entityId || '')
       .order('order_index', { ascending: true })
       .order('created_at', { ascending: false });
 
@@ -274,7 +275,7 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
     const { error } = await supabase
       .from('ai_agents')
       .delete()
-      .eq('id', deletingId);
+      .eq('id', deletingId).filter('entity_id', 'eq', entityId || '');
 
     if (error) {
       toast({
@@ -321,7 +322,7 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
     setAgents(reordered);
 
     const updates = reordered.map((agent, index) =>
-      supabase.from('ai_agents').update({ order_index: index } as any).eq('id', agent.id)
+      supabase.from('ai_agents').update({ order_index: index } as any).eq('id', agent.id).filter('entity_id', 'eq', entityId || '')
     );
     const results = await Promise.all(updates);
     const failed = results.find((r: any) => r.error);
