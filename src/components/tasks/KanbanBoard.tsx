@@ -193,7 +193,6 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
         .from("tasks")
         .select("*")
         .eq("user_id", effectiveUserId)
-        .eq("contact_id", userId)
         .filter("entity_id", "eq", entityId)
         .eq("archived", false)
         .order("task_order");
