@@ -160,7 +160,6 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
         .from("task_blocks")
         .select("*")
         .eq("user_id", effectiveUserId)
-        .eq("contact_id", userId)
         .filter("entity_id", "eq", entityId)
         .order("order_index");
 
