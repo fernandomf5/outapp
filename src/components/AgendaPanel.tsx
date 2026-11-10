@@ -46,9 +46,10 @@ interface TeamContext {
 
 interface AgendaPanelProps {
   teamContext?: TeamContext;
+  entityId: string;
 }
 
-export function AgendaPanel({ teamContext }: AgendaPanelProps) {
+export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<AgendaEvent[]>([]);
@@ -78,6 +79,7 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
       .from('agenda_events')
       .select('*')
       .eq('user_id', user.id)
+      .filter('entity_id', 'eq', entityId)
       .order('start_date', { ascending: true });
 
     if (error) {
@@ -90,7 +92,7 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
       setEvents((data as AgendaEvent[]) || []);
     }
     setLoading(false);
-  }, [user, toast]);
+  }, [user, toast, entityId]);
 
   useEffect(() => {
     fetchEvents();
@@ -159,6 +161,7 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
 
     const eventData = {
       user_id: user.id,
+      entity_id: entityId,
       title: formTitle.trim(),
       description: formDescription.trim() || null,
       start_date: startDateTime,
@@ -174,7 +177,8 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
       const { error } = await supabase
         .from('agenda_events')
         .update(eventData)
-        .eq('id', editingEvent.id);
+        .eq('id', editingEvent.id)
+        .filter('entity_id', 'eq', entityId);
 
       if (error) {
         toast({
@@ -216,7 +220,8 @@ export function AgendaPanel({ teamContext }: AgendaPanelProps) {
     const { error } = await supabase
       .from('agenda_events')
       .delete()
-      .eq('id', eventId);
+      .eq('id', eventId)
+      .filter('entity_id', 'eq', entityId);
 
     if (error) {
       toast({
