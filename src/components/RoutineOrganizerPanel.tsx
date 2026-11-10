@@ -293,6 +293,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
         const { data: newRoutine } = await supabase
           .from('routines')
           .insert({ user_id: user.id,
+          entity_id: scopedEntityId,
           entity_id: scopedEntityId, name: 'Minha Rotina', is_active: true })
           .select()
           .single();
@@ -387,6 +388,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       const { data, error } = await supabase
         .from('routines')
         .insert({ user_id: user.id, name: newRoutineName.trim(), is_active: true })
+        entity_id: scopedEntityId,
         .select()
         .single();
 
@@ -506,6 +508,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
     try {
       const itemsToInsert = itemFormData.days_of_week.map(day => ({
         user_id: user.id,
+        entity_id: scopedEntityId,
         routine_id: activeRoutine?.id,
         title: itemFormData.title,
         description: itemFormData.description || null,
@@ -562,6 +565,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       if (newDays.length > 0) {
         const newItems = newDays.map(day => ({
           user_id: user!.id,
+          entity_id: scopedEntityId,
           entity_id: scopedEntityId,
           routine_id: activeRoutine?.id,
           ...commonData,
@@ -622,6 +626,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
           .from('routine_completions')
           .insert({
             user_id: user!.id,
+            entity_id: scopedEntityId,
             routine_item_id: item.id,
             completion_date: today
           });
@@ -653,6 +658,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
         .from('routine_objectives')
         .insert({
           user_id: user.id,
+          entity_id: scopedEntityId,
           routine_id: activeRoutine?.id,
           title: objectiveFormData.title,
           description: objectiveFormData.description || null,
@@ -868,6 +874,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
     try {
       const { error } = await (supabase as any).from('routine_templates').insert({
         user_id: user.id,
+        entity_id: scopedEntityId,
         name: templateName.trim(),
         items: templateItems,
       });
@@ -893,6 +900,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       // Insert template items
       const newItems = (template.items as any[]).map((item, idx) => ({
         user_id: user.id,
+        entity_id: scopedEntityId,
         routine_id: activeRoutine?.id,
         title: item.title,
         description: item.description,
@@ -952,6 +960,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       const newItems = copyToDays.flatMap(targetDay =>
         sourceItems.map((item, idx) => ({
           user_id: user.id,
+          entity_id: scopedEntityId,
           routine_id: activeRoutine?.id,
           title: item.title,
           description: item.description,
