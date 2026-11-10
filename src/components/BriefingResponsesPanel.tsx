@@ -65,7 +65,8 @@ interface BriefingOption {
   title: string;
 }
 
-export function BriefingResponsesPanel() {
+export function BriefingResponsesPanel({ entityId }: { entityId?: string } = {}) {
+  const scopedEntityId = entityId || (typeof sessionStorage !== "undefined" ? sessionStorage.getItem("outapp_hub_entity") : null) || "";
   const [responses, setResponses] = useState<BriefingResponse[]>([]);
   const [briefings, setBriefings] = useState<BriefingOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +86,7 @@ export function BriefingResponsesPanel() {
       const { data: briefingsData } = await supabase
         .from('briefings')
         .select('id, title, fields')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId);
 
       if (!briefingsData) return;
 
@@ -94,7 +95,7 @@ export function BriefingResponsesPanel() {
       const { data, error } = await supabase
         .from('briefing_responses')
         .select('*')
-        .in('briefing_id', briefingsData.map(b => b.id))
+        .in('briefing_id', briefingsData.map(b => b.id)).filter('entity_id', 'eq', scopedEntityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
