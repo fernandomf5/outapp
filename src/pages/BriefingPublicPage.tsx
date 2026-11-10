@@ -34,7 +34,7 @@ export default function BriefingPublicPage() {
     try {
       console.log('Fetching briefing with ID:', briefingId);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('briefings')
         .select('*')
         .eq('id', briefingId)
@@ -108,7 +108,7 @@ export default function BriefingPublicPage() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('briefing_responses')
         .insert([{
           briefing_id: briefingId,
