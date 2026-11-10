@@ -120,11 +120,13 @@ export const TaskHistoryDialog = ({
         (supabase as any)
           .from("task_blocks")
           .select("id, name, color")
-          .eq("user_id", effectiveUserId),
+          .eq("user_id", effectiveUserId)
+          .filter("entity_id", "eq", entityId),
         (supabase as any)
           .from("contacts")
           .select("id, name")
-          .eq("user_id", effectiveUserId),
+          .eq("user_id", effectiveUserId)
+          .filter("entity_id", "eq", entityId),
       ]);
 
       if (tasksRes.error) throw tasksRes.error;
@@ -254,7 +256,8 @@ export const TaskHistoryDialog = ({
       const { error } = await (supabase as any)
         .from("tasks")
         .update({ archived: false, archived_at: null } as any)
-        .eq("id", id);
+        .eq("id", id)
+        .filter("entity_id", "eq", entityId);
       if (error) throw error;
       setTasks((prev) => prev.filter((t) => t.id !== id));
       toast.success("Tarefa desarquivada e restaurada ao bloco original.");
