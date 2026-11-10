@@ -147,7 +147,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
 
   const fetchSavedMaps = async () => {
     if (!user) return;
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('mind_maps')
       .select('*')
       .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
@@ -326,7 +326,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
     setEditingNode(null);
 
     if (user && currentMapId) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('mind_maps')
         .update({
           nodes: JSON.parse(JSON.stringify(nextNodes)),
@@ -436,7 +436,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
   useEffect(() => {
     if (!user || !currentMapId || !mapName) return;
     autosaveTimerRef.current = setTimeout(async () => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('mind_maps')
         .update({
           nodes: JSON.parse(JSON.stringify(nodes)),
@@ -475,7 +475,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
     };
 
     if (currentMapId) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('mind_maps')
         .update(mapData)
         .eq('id', currentMapId).filter("entity_id", "eq", scopedEntityId);
@@ -488,7 +488,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
         fetchSavedMaps();
       }
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('mind_maps')
         .insert([mapData])
         .select()
@@ -529,7 +529,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
   };
 
   const deleteMap = async (mapId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('mind_maps')
       .delete()
       .eq('id', mapId).filter("entity_id", "eq", scopedEntityId);
