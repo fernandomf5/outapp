@@ -34,7 +34,7 @@ export const LinkShortener = ({ entityId }: { entityId?: string } = {}) => {
     if (user) {
       fetchLinks();
     }
-  }, [user]);
+  }, [user, scopedEntityId]);
 
   const fetchLinks = async () => {
     const { data, error } = await (supabase as any)
