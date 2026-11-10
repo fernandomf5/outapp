@@ -218,7 +218,7 @@ export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorP
 
   useEffect(() => {
     loadBriefings();
-  }, [teamContext]);
+  }, [teamContext, entityId]);
 
   const loadBriefings = async () => {
     try {
