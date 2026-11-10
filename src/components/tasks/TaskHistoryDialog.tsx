@@ -110,18 +110,18 @@ export const TaskHistoryDialog = ({
     try {
       setLoading(true);
       const [tasksRes, blocksRes, contactsRes] = await Promise.all([
-        supabase
+        (supabase as any)
           .from("tasks")
           .select("*")
           .eq("user_id", effectiveUserId)
           .filter("entity_id", "eq", entityId)
           .eq("archived", true)
           .order("updated_at", { ascending: false }),
-        supabase
+        (supabase as any)
           .from("task_blocks")
           .select("id, name, color")
           .eq("user_id", effectiveUserId),
-        supabase
+        (supabase as any)
           .from("contacts")
           .select("id, name")
           .eq("user_id", effectiveUserId),
@@ -224,7 +224,7 @@ export const TaskHistoryDialog = ({
         return;
       }
 
-      const { error } = await supabase.from("tasks").delete().in("id", ids).filter("entity_id", "eq", entityId);
+      const { error } = await (supabase as any).from("tasks").delete().in("id", ids).filter("entity_id", "eq", entityId);
       if (error) throw error;
 
       setTasks((prev) => prev.filter((t) => !ids.includes(t.id)));
@@ -240,7 +240,7 @@ export const TaskHistoryDialog = ({
 
   const handleDeleteTask = async (id: string) => {
     try {
-      const { error } = await supabase.from("tasks").delete().eq("id", id).filter("entity_id", "eq", entityId);
+      const { error } = await (supabase as any).from("tasks").delete().eq("id", id).filter("entity_id", "eq", entityId);
       if (error) throw error;
       setTasks((prev) => prev.filter((t) => t.id !== id));
       toast.success("Tarefa removida do histórico.");
@@ -251,7 +251,7 @@ export const TaskHistoryDialog = ({
 
   const handleUnarchiveTask = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("tasks")
         .update({ archived: false, archived_at: null } as any)
         .eq("id", id);
