@@ -34,7 +34,7 @@ export function ChatOnlineWorkspace({ entityId }: { entityId: string }) {
     let live = true;
     setLoadingAgent(true);
     setLoadError("");
-    supabase.from("ai_agents")
+    (supabase as any).from("ai_agents")
       .select("id,name,niche")
       .eq("id", agentId)
       .eq("user_id", user.id)
