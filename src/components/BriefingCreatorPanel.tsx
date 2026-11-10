@@ -225,7 +225,7 @@ export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorP
       const userId = await getTargetUserId();
       if (!userId) return;
 
-      let query = supabase
+      let query = (supabase as any)
         .from('briefings' as any)
         .select('*', { count: 'exact' })
         .eq('user_id', userId).filter('entity_id', 'eq', entityId || '')
@@ -326,7 +326,7 @@ export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorP
       }
 
       if (editingBriefing) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('briefings' as any)
           .update({
             title: formData.title,
@@ -349,7 +349,7 @@ export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorP
         if (error) throw error;
         toast.success("Briefing atualizado!");
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('briefings' as any)
           .insert([{
             user_id: userId,
@@ -412,7 +412,7 @@ export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorP
     if (!deleteBriefingId) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('briefings' as any)
         .delete()
         .eq('id', deleteBriefingId).filter('entity_id', 'eq', entityId || '');
@@ -545,7 +545,7 @@ export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorP
   const handleToggleBlock = async (briefing: Briefing) => {
     try {
       const newBlockedState = !briefing.is_blocked;
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('briefings' as any)
         .update({ is_blocked: newBlockedState })
         .eq('id', briefing.id).filter('entity_id', 'eq', entityId || '');
