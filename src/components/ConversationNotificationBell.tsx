@@ -19,6 +19,8 @@ interface ConversationNotification {
 
   agent_id?: string;
   chatbot_id?: string;
+  entity_id?: string;
+  entity_name?: string;
   agent_name?: string;
   chatbot_name?: string;
   customer_name: string;
@@ -130,8 +132,11 @@ export const ConversationNotificationBell = () => {
     // Fetch agent conversations with unread messages
     const { data: agents } = await supabase
       .from('ai_agents')
-      .select('id, name')
+      .select('id, name, entity_id')
       .eq('user_id', user.id);
+
+    const { data: businesses } = await supabase.from('financial_businesses').select('id, name').eq('user_id', user.id);
+    const entityNames = new Map((businesses || []).map((business: any) => [business.id, business.name]));
 
     if (agents) {
       for (const agent of agents) {
@@ -184,6 +189,8 @@ export const ConversationNotificationBell = () => {
                 id: conv.id,
                 type: 'agent',
                 agent_id: agent.id,
+                entity_id: agent.entity_id || undefined,
+                entity_name: entityNames.get(agent.entity_id) || 'Gestão não identificada',
                 agent_name: agent.name,
                 customer_name: (conv.agent_customers as any)?.name || 'Cliente',
                 last_message: messages?.[0]?.content || '',
@@ -200,7 +207,7 @@ export const ConversationNotificationBell = () => {
     // Fetch chatbot conversations with unread messages
     const { data: chatbots } = await supabase
       .from('chatbots')
-      .select('id, name')
+      .select('id, name, entity_id')
       .eq('user_id', user.id);
 
     if (chatbots) {
@@ -248,6 +255,8 @@ export const ConversationNotificationBell = () => {
                 id: conv.id,
                 type: 'chatbot',
                 chatbot_id: chatbot.id,
+                entity_id: chatbot.entity_id || undefined,
+                entity_name: entityNames.get(chatbot.entity_id) || 'Gestão não identificada',
                 chatbot_name: chatbot.name,
                 customer_name: conv.visitor_name || 'Visitante',
                 last_message: messages?.[0]?.content || '',
@@ -276,6 +285,8 @@ export const ConversationNotificationBell = () => {
           id: form.id,
           type: 'form',
           agent_id: form.agent_id || undefined,
+          entity_id: agents.find((agent: any) => agent.id === form.agent_id)?.entity_id || undefined,
+          entity_name: entityNames.get(agents.find((agent: any) => agent.id === form.agent_id)?.entity_id) || 'Gestão não identificada',
           agent_name: `Formulário • ${agentMap.get(form.agent_id || '') || 'Chat Online'}`,
           customer_name: form.name,
           last_message: form.subject ? `${form.subject}: ${form.message}` : form.message,
@@ -330,21 +341,21 @@ export const ConversationNotificationBell = () => {
           .update({ is_read: true })
           .eq('id', notification.id);
 
-        navigate(`/dashboard?tab=chat-online&agentId=${notification.agent_id}&agentView=forms`);
+        navigate(`/dashboard?entity=${notification.entity_id || ''}&tab=chat-online&agentId=${notification.agent_id}&agentView=forms`);
       } else if (notification.type === 'agent') {
         await supabase
           .from('agent_conversations')
           .update({ last_read_by_owner_at: new Date().toISOString() })
           .eq('id', notification.id);
         
-        navigate(`/dashboard?tab=chat-online&agentId=${notification.agent_id}&agentView=conversations&conversationId=${notification.id}`);
+        navigate(`/dashboard?entity=${notification.entity_id || ''}&tab=chat-online&agentId=${notification.agent_id}&agentView=conversations&conversationId=${notification.id}`);
       } else {
         await supabase
           .from('chatbot_conversations')
           .update({ last_read_by_owner_at: new Date().toISOString() })
           .eq('id', notification.id);
         
-        navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&chatbotView=conversations&conversationId=${notification.id}`);
+        navigate(`/dashboard?entity=${notification.entity_id || ''}&tab=chatbots&chatbotId=${notification.chatbot_id}&chatbotView=conversations&conversationId=${notification.id}`);
       }
 
       
@@ -440,6 +451,7 @@ export const ConversationNotificationBell = () => {
                           {notification.unread_count}
                         </Badge>
                       </div>
+                      <p className="text-xs text-primary font-medium">{notification.entity_name}</p>
                       <p className="text-sm font-medium text-muted-foreground">
                         {notification.customer_name}
                       </p>
