@@ -190,7 +190,7 @@ export const TaskDialog = ({
             block_id: formData.block_id,
             user_id: effectiveUserId,
             entity_id: entityId,
-            contact_id: userId,
+            contact_id: contactId || null,
             task_order: nextOrder,
             status: "pending",
             checklist: checklist as any
