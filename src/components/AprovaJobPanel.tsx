@@ -67,8 +67,9 @@ interface Comment {
   created_at: string;
 }
 
-export const AprovaJobPanel = () => {
+export const AprovaJobPanel = ({ entityId }: { entityId?: string } = {}) => {
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const { toast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -125,7 +126,7 @@ export const AprovaJobPanel = () => {
     const { data, error } = await supabase
       .from('aprova_job_clients')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -137,7 +138,7 @@ export const AprovaJobPanel = () => {
     const { data, error } = await supabase
       .from('aprova_job_jobs')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -147,7 +148,7 @@ export const AprovaJobPanel = () => {
           const { data: clientData } = await supabase
             .from('aprova_job_clients')
             .select('*')
-            .eq('id', job.client_id)
+            .eq('id', job.client_id).filter("entity_id", "eq", scopedEntityId)
             .single();
           return { ...job, client: clientData, media_urls: job.media_urls || [] } as Job;
         })
@@ -160,7 +161,7 @@ export const AprovaJobPanel = () => {
     const { data, error } = await supabase
       .from('aprova_job_notifications')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
       .order('created_at', { ascending: false })
       .limit(50);
 
@@ -196,7 +197,7 @@ export const AprovaJobPanel = () => {
     const { data, error } = await supabase
       .from('contacts')
       .select('name')
-      .eq('id', contactId)
+      .eq('id', contactId).filter("entity_id", "eq", scopedEntityId)
       .maybeSingle();
     if (error || !data?.name) return;
     const suggestedUsername = data.name
@@ -241,7 +242,7 @@ export const AprovaJobPanel = () => {
     const { error } = await supabase
       .from('aprova_job_clients')
       .insert({
-        user_id: user?.id,
+        user_id: user?.id, entity_id: scopedEntityId,
         name: clientForm.name,
         username: clientForm.username.toLowerCase().trim(),
         password_hash: passwordHash,
@@ -288,7 +289,7 @@ export const AprovaJobPanel = () => {
     const { error } = await supabase
       .from('aprova_job_clients')
       .update(updateData)
-      .eq('id', editingClient.id);
+      .eq('id', editingClient.id).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -306,7 +307,7 @@ export const AprovaJobPanel = () => {
     const { error } = await supabase
       .from('aprova_job_clients')
       .delete()
-      .eq('id', clientId);
+      .eq('id', clientId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -361,7 +362,7 @@ export const AprovaJobPanel = () => {
     const { error } = await supabase
       .from('aprova_job_jobs')
       .insert({
-        user_id: user?.id,
+        user_id: user?.id, entity_id: scopedEntityId,
         client_id: jobForm.client_id,
         title: jobForm.title,
         description: jobForm.description || null,
@@ -395,7 +396,7 @@ export const AprovaJobPanel = () => {
         due_date: jobForm.due_date || null,
         status: 'pending' // Reset status to pending when edited
       })
-      .eq('id', editingJob.id);
+      .eq('id', editingJob.id).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -431,7 +432,7 @@ export const AprovaJobPanel = () => {
     const { error } = await supabase
       .from('aprova_job_jobs')
       .delete()
-      .eq('id', jobId);
+      .eq('id', jobId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -466,7 +467,7 @@ export const AprovaJobPanel = () => {
     await supabase
       .from('aprova_job_notifications')
       .update({ is_read: true })
-      .eq('id', notificationId);
+      .eq('id', notificationId).filter("entity_id", "eq", scopedEntityId);
     
     fetchNotifications();
   };
@@ -475,7 +476,7 @@ export const AprovaJobPanel = () => {
     await supabase
       .from('aprova_job_notifications')
       .update({ is_read: true })
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
       .eq('is_read', false);
     
     fetchNotifications();
