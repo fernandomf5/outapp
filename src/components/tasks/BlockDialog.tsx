@@ -93,7 +93,7 @@ export const BlockDialog = ({
       
       if (block) {
         // Update
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("task_blocks")
           .update({
             name: formData.name,
