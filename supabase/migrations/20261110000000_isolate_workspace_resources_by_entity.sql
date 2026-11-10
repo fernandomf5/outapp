@@ -55,3 +55,43 @@ END $$;
 
 -- A primeira gestão de cada usuário é o destino de dados legados.
 -- Novas gestões não recebem cópias dos registros existentes.
+
+-- Propagate the management scope to child rows that inherit ownership from a parent resource.
+DO $$
+BEGIN
+  IF to_regclass('public.link_bio_links') IS NOT NULL AND to_regclass('public.link_bios') IS NOT NULL THEN
+    UPDATE public.link_bio_links child SET entity_id = parent.entity_id
+    FROM public.link_bios parent
+    WHERE child.bio_id = parent.id AND child.entity_id IS NULL;
+  END IF;
+  IF to_regclass('public.contract_history') IS NOT NULL AND to_regclass('public.contracts') IS NOT NULL THEN
+    UPDATE public.contract_history child SET entity_id = parent.entity_id
+    FROM public.contracts parent
+    WHERE child.contract_id = parent.id AND child.entity_id IS NULL;
+  END IF;
+  IF to_regclass('public.briefing_responses') IS NOT NULL AND to_regclass('public.briefings') IS NOT NULL THEN
+    UPDATE public.briefing_responses child SET entity_id = parent.entity_id
+    FROM public.briefings parent
+    WHERE child.briefing_id = parent.id AND child.entity_id IS NULL;
+  END IF;
+  IF to_regclass('public.funnel_stages') IS NOT NULL AND to_regclass('public.sales_funnels') IS NOT NULL THEN
+    UPDATE public.funnel_stages child SET entity_id = parent.entity_id
+    FROM public.sales_funnels parent
+    WHERE child.funnel_id = parent.id AND child.entity_id IS NULL;
+  END IF;
+  IF to_regclass('public.funnel_leads') IS NOT NULL AND to_regclass('public.sales_funnels') IS NOT NULL THEN
+    UPDATE public.funnel_leads child SET entity_id = parent.entity_id
+    FROM public.sales_funnels parent
+    WHERE child.funnel_id = parent.id AND child.entity_id IS NULL;
+  END IF;
+  IF to_regclass('public.funnel_lead_history') IS NOT NULL AND to_regclass('public.funnel_leads') IS NOT NULL THEN
+    UPDATE public.funnel_lead_history child SET entity_id = parent.entity_id
+    FROM public.funnel_leads parent
+    WHERE child.lead_id = parent.id AND child.entity_id IS NULL;
+  END IF;
+  IF to_regclass('public.aprova_job_comments') IS NOT NULL AND to_regclass('public.aprova_job_jobs') IS NOT NULL THEN
+    UPDATE public.aprova_job_comments child SET entity_id = parent.entity_id
+    FROM public.aprova_job_jobs parent
+    WHERE child.job_id = parent.id AND child.entity_id IS NULL;
+  END IF;
+END $$;
