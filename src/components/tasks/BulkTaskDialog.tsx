@@ -76,7 +76,7 @@ export const BulkTaskDialog = ({
     try {
       setLoading(true);
 
-      const { data: lastTask } = await supabase
+      const { data: lastTask } = await (supabase as any)
         .from("tasks")
         .select("task_order")
         .eq("block_id", blockId)
@@ -99,7 +99,7 @@ export const BulkTaskDialog = ({
         status: "pending",
       }));
 
-      const { error } = await supabase.from("tasks").insert(rows as any);
+      const { error } = await (supabase as any).from("tasks").insert(rows as any);
       if (error) throw error;
 
       toast.success(`${lines.length} tarefa(s) criada(s)`);
