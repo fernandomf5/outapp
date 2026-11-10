@@ -143,7 +143,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
       await (supabase as any).from("contract_history").insert({ contract_id: editing.id, event_type: "updated", description: "Contrato editado" });
       toast.success("Contrato atualizado");
     } else {
-      const { data, error } = await (supabase as any).from("contracts").insert({ ...form, user_id: user!.id }).select().single();
+      const { data, error } = await (supabase as any).from("contracts").insert({ ...form, user_id: user!.id, entity_id: scopedEntityId }).select().single();
       if (error) return toast.error(error.message);
       await (supabase as any).from("contract_history").insert({ contract_id: data.id, event_type: "created", description: "Contrato criado" });
       toast.success("Contrato criado");
