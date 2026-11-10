@@ -56,7 +56,7 @@ const AIAgentBuilder = () => {
 
   useEffect(() => {
     if (agentId && user) {
-      loadAgent(agentId).then(agent => {
+      loadAgent(agentId, entityId).then(agent => {
         if (entityId && (agent as any).entity_id !== entityId) throw new Error("Este chat pertence a outra gestão.");
         setAgentName(agent.name);
         setWelcomeMessage(agent.config?.welcomeMessage || "");
