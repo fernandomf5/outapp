@@ -83,7 +83,7 @@ export function BriefingResponsesPanel({ entityId }: { entityId?: string } = {})
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: briefingsData } = await supabase
+      const { data: briefingsData } = await (supabase as any)
         .from('briefings')
         .select('id, title, fields')
         .eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId);
@@ -92,7 +92,7 @@ export function BriefingResponsesPanel({ entityId }: { entityId?: string } = {})
 
       setBriefings(briefingsData.map(b => ({ id: b.id, title: b.title })));
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('briefing_responses')
         .select('*')
         .in('briefing_id', briefingsData.map(b => b.id)).filter('entity_id', 'eq', scopedEntityId)
@@ -175,7 +175,7 @@ export function BriefingResponsesPanel({ entityId }: { entityId?: string } = {})
     if (!deleteResponseId) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('briefing_responses')
         .delete()
         .eq('id', deleteResponseId);
