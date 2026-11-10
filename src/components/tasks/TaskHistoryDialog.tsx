@@ -33,6 +33,7 @@ interface TaskHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   effectiveUserId: string;
+  entityId: string;
   onChanged?: () => void;
 }
 
@@ -84,6 +85,7 @@ export const TaskHistoryDialog = ({
   open,
   onOpenChange,
   effectiveUserId,
+  entityId,
   onChanged,
 }: TaskHistoryDialogProps) => {
   const [loading, setLoading] = useState(true);
@@ -112,6 +114,7 @@ export const TaskHistoryDialog = ({
           .from("tasks")
           .select("*")
           .eq("user_id", effectiveUserId)
+          .filter("entity_id", "eq", entityId)
           .eq("archived", true)
           .order("updated_at", { ascending: false }),
         supabase
@@ -221,7 +224,7 @@ export const TaskHistoryDialog = ({
         return;
       }
 
-      const { error } = await supabase.from("tasks").delete().in("id", ids);
+      const { error } = await supabase.from("tasks").delete().in("id", ids).filter("entity_id", "eq", entityId);
       if (error) throw error;
 
       setTasks((prev) => prev.filter((t) => !ids.includes(t.id)));
@@ -237,7 +240,7 @@ export const TaskHistoryDialog = ({
 
   const handleDeleteTask = async (id: string) => {
     try {
-      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      const { error } = await supabase.from("tasks").delete().eq("id", id).filter("entity_id", "eq", entityId);
       if (error) throw error;
       setTasks((prev) => prev.filter((t) => t.id !== id));
       toast.success("Tarefa removida do histórico.");
