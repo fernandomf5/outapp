@@ -118,7 +118,7 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
 
   useEffect(() => {
     loadBusinesses();
-  }, [teamContext?.adminUserId]);
+  }, [teamContext?.adminUserId, initialBusinessId]);
 
   useEffect(() => {
     if (selectedBusinessId || (isConsolidatedView && selectedBusinessIds.length > 0)) {
@@ -139,6 +139,10 @@ export const FinancialManagementPanel = ({ teamContext, initialBusinessId, onBac
         .eq('user_id', targetUserId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
+
+      if (initialBusinessId) {
+        query = query.eq('id', initialBusinessId);
+      }
 
       if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
         query = query.in('id', teamContext.allowedIds);
