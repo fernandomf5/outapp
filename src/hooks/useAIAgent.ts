@@ -59,7 +59,7 @@ export const useAIAgent = () => {
       let result;
       if (agent.id) {
         // Update existing
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('ai_agents')
           .update(agentData)
           .eq('id', agent.id)
@@ -98,12 +98,13 @@ export const useAIAgent = () => {
     }
   }, [toast]);
 
-  const loadAgent = useCallback(async (agentId: string) => {
+  const loadAgent = useCallback(async (agentId: string, entityId?: string | null) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('ai_agents')
         .select('*')
         .eq('id', agentId)
+        .filter('entity_id', 'eq', entityId || '')
         .single();
 
       if (error) throw error;
