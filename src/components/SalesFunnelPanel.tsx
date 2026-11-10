@@ -475,7 +475,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         (supabase as any)
           .from('customers')
           .select('id, name, email, phone, company, category_id')
-          .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
+          .eq('user_id', user.id)
           .order('name'),
         (supabase as any)
           .from('customer_categories')
