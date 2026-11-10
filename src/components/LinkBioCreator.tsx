@@ -242,7 +242,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
   const fetchBios = async () => {
     if (!effectiveUserId) return;
 
-    let query = supabase
+    let query = (supabase as any)
       .from('link_bios')
       .select('*')
       .eq('user_id', effectiveUserId).filter("entity_id", "eq", scopedEntityId)
@@ -275,7 +275,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
   };
 
   const fetchLinks = async (bioId: string) => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('link_bio_links')
       .select('*')
       .eq('bio_id', bioId)
@@ -331,7 +331,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
 
     // Verificar se o username já existe (apenas ao criar novo)
     if (!selectedBio) {
-      const { data: existingBio } = await supabase
+      const { data: existingBio } = await (supabase as any)
         .from('link_bios')
         .select('id')
         .eq('username', cleanUsername)
@@ -378,7 +378,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
     };
 
     if (selectedBio) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('link_bios')
         .update(bioData)
         .eq('id', selectedBio.id).filter("entity_id", "eq", scopedEntityId);
@@ -397,7 +397,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
         await fetchBios();
       }
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('link_bios')
         .insert([bioData])
         .select()
@@ -425,7 +425,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
   const deleteBio = async (bioId: string) => {
     if (!confirm('Tem certeza que deseja excluir este bio?')) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('link_bios')
       .delete()
       .eq('id', bioId).filter("entity_id", "eq", scopedEntityId);
@@ -462,7 +462,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
       return;
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('link_bio_links')
       .insert([{
         bio_id: selectedBio.id,
@@ -494,7 +494,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
   };
 
   const deleteLink = async (linkId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('link_bio_links')
       .delete()
       .eq('id', linkId).filter("entity_id", "eq", scopedEntityId);
@@ -514,7 +514,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
   };
 
   const toggleLinkActive = async (linkId: string, currentStatus: boolean) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('link_bio_links')
       .update({ is_active: !currentStatus })
       .eq('id', linkId).filter("entity_id", "eq", scopedEntityId);
@@ -548,7 +548,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
       return;
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('link_bio_links')
       .update({
         title: editLinkTitle,
@@ -734,7 +734,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
       }));
 
       for (const update of updates) {
-        await supabase
+        await (supabase as any)
           .from('link_bio_links')
           .update({ position: update.position })
           .eq('id', update.id).filter("entity_id", "eq", scopedEntityId);
@@ -1017,7 +1017,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
                         
                         // Salvar automaticamente se já existe um bio
                         if (selectedBio) {
-                          await supabase
+                          await (supabase as any)
                             .from('link_bios')
                             .update({ music_url: publicUrl })
                             .eq('id', selectedBio.id).filter("entity_id", "eq", scopedEntityId);
@@ -1045,7 +1045,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
                           
                           // Salvar remoção automaticamente se já existe um bio
                           if (selectedBio) {
-                            await supabase
+                            await (supabase as any)
                               .from('link_bios')
                               .update({ music_url: "", music_autoplay: false })
                               .eq('id', selectedBio.id).filter("entity_id", "eq", scopedEntityId);
