@@ -103,21 +103,21 @@ function ModuleView({ item, entity, onBack }: { item: ToolItem; entity: Entity; 
   let content: React.ReactNode;
   switch (item.id) {
     case "financeiro": content = <Financial key={entity.id} initialBusinessId={entity.id} onBack={onBack} />; break;
-    case "tarefas": content = <Tasks />; break;
-    case "agenda": content = <Agenda />; break;
-    case "rotina": content = <Routine />; break;
+    case "tarefas": content = <Tasks entityId={entity.id} />; break;
+    case "agenda": content = <Agenda entityId={entity.id} />; break;
+    case "rotina": content = <Routine entityId={entity.id} />; break;
     case "chat-online": content = <ChatOnlineWorkspace entityId={entity.id} />; break;
-    case "linkbio": content = <LinkBio />; break;
-    case "briefing": content = <div className="hub-briefing"><Briefing /><h3>Respostas recebidas</h3><BriefingResponses /></div>; break;
-    case "mapa-mental": content = <MindMap />; break;
-    case "contratos": content = <Contracts />; break;
-    case "aprova-job": content = <Approva />; break;
+    case "linkbio": content = <LinkBio entityId={entity.id} />; break;
+    case "briefing": content = <div className="hub-briefing"><Briefing entityId={entity.id} /><h3>Respostas recebidas</h3><BriefingResponses entityId={entity.id} /></div>; break;
+    case "mapa-mental": content = <MindMap entityId={entity.id} />; break;
+    case "contratos": content = <Contracts entityId={entity.id} />; break;
+    case "aprova-job": content = <Approva entityId={entity.id} />; break;
     case "tools": content = <WhatsLink />; break;
-    case "floating-button": content = <Floating />; break;
-    case "shortlinks": content = <Shortlinks />; break;
-    case "qrcode": content = <QrCodes />; break;
-    case "scripts": content = <Scripts />; break;
-    case "funil-vendas": content = <Funnel />; break;
+    case "floating-button": content = <Floating entityId={entity.id} />; break;
+    case "shortlinks": content = <Shortlinks entityId={entity.id} />; break;
+    case "qrcode": content = <QrCodes entityId={entity.id} />; break;
+    case "scripts": content = <Scripts entityId={entity.id} />; break;
+    case "funil-vendas": content = <Funnel entityId={entity.id} />; break;
     default: content = null;
   }
   return (
