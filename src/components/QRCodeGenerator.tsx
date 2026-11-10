@@ -59,7 +59,7 @@ interface SocialMedia {
   linkedin: string;
 }
 
-export function QRCodeGenerator() {
+export function QRCodeGenerator({ entityId }: { entityId?: string } = {}) {
   const [text, setText] = useState('');
   const [size, setSize] = useState(256);
   const [fgColor, setFgColor] = useState('#000000');
@@ -100,6 +100,7 @@ export function QRCodeGenerator() {
   
   const { toast } = useToast();
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
 
   useEffect(() => {
     if (user) {
@@ -409,7 +410,7 @@ export function QRCodeGenerator() {
         show_social_media: showSocialMedia,
         social_media: socialMedia as any,
       })
-      .eq('id', editingId);
+      .eq('id', editingId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({
@@ -476,7 +477,7 @@ export function QRCodeGenerator() {
     const { data, error } = await supabase
       .from('saved_qr_codes')
       .insert({
-        user_id: user.id,
+        user_id: user.id, entity_id: scopedEntityId,
         name: qrName,
         content: text,
         size,
@@ -569,7 +570,7 @@ export function QRCodeGenerator() {
     const { error } = await supabase
       .from('saved_qr_codes')
       .delete()
-      .eq('id', qrToDelete);
+      .eq('id', qrToDelete).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({
