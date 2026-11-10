@@ -146,8 +146,9 @@ const themeOptions = [
   { value: 'pastel', label: 'Pastel', bg: '#fef9ef', text: '#2d3748', button: '#f687b3', buttonText: '#ffffff' },
 ];
 
-export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: string; allowedIds?: string[] } } = {}) {
+export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { adminUserId: string; allowedIds?: string[] }; entityId?: string } = {}) {
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const { toast } = useToast();
   const [bios, setBios] = useState<LinkBio[]>([]);
   const [selectedBioId, setSelectedBioId] = useState<string | null>(null);
@@ -244,7 +245,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
     let query = supabase
       .from('link_bios')
       .select('*')
-      .eq('user_id', effectiveUserId)
+      .eq('user_id', effectiveUserId).filter("entity_id", "eq", scopedEntityId)
       .order('created_at', { ascending: false });
 
     if (Array.isArray(allowedBioIds)) {
@@ -348,7 +349,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
     }
 
     const bioData = {
-      user_id: effectiveUserId,
+      user_id: effectiveUserId, entity_id: scopedEntityId,
       username: cleanUsername,
       display_name: displayName,
       bio: bioText,
@@ -380,7 +381,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
       const { error } = await supabase
         .from('link_bios')
         .update(bioData)
-        .eq('id', selectedBio.id);
+        .eq('id', selectedBio.id).filter("entity_id", "eq", scopedEntityId);
 
       if (error) {
         toast({
@@ -427,7 +428,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
     const { error } = await supabase
       .from('link_bios')
       .delete()
-      .eq('id', bioId);
+      .eq('id', bioId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({
@@ -496,7 +497,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
     const { error } = await supabase
       .from('link_bio_links')
       .delete()
-      .eq('id', linkId);
+      .eq('id', linkId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({
@@ -516,7 +517,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
     const { error } = await supabase
       .from('link_bio_links')
       .update({ is_active: !currentStatus })
-      .eq('id', linkId);
+      .eq('id', linkId).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({
@@ -555,7 +556,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
         icon: editLinkIcon,
         image_url: editLinkImage || null,
       })
-      .eq('id', editingLink.id);
+      .eq('id', editingLink.id).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({
@@ -736,7 +737,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
         await supabase
           .from('link_bio_links')
           .update({ position: update.position })
-          .eq('id', update.id);
+          .eq('id', update.id).filter("entity_id", "eq", scopedEntityId);
       }
 
       toast({
@@ -1019,7 +1020,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
                           await supabase
                             .from('link_bios')
                             .update({ music_url: publicUrl })
-                            .eq('id', selectedBio.id);
+                            .eq('id', selectedBio.id).filter("entity_id", "eq", scopedEntityId);
                           
                           await fetchBios();
                         }
@@ -1047,7 +1048,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
                             await supabase
                               .from('link_bios')
                               .update({ music_url: "", music_autoplay: false })
-                              .eq('id', selectedBio.id);
+                              .eq('id', selectedBio.id).filter("entity_id", "eq", scopedEntityId);
                             
                             await fetchBios();
                           }
