@@ -195,7 +195,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
         fetchEvents();
       }
     } else {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('agenda_events')
         .insert(eventData);
 
@@ -218,7 +218,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
   };
 
   const handleDeleteEvent = async (eventId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('agenda_events')
       .delete()
       .eq('id', eventId)
