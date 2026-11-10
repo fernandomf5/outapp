@@ -106,12 +106,14 @@ export function QRCodeGenerator({ entityId }: { entityId?: string } = {}) {
     if (user) {
       fetchSavedQRCodes();
     }
-  }, [user]);
+  }, [user, scopedEntityId]);
 
   const fetchSavedQRCodes = async () => {
     const { data, error } = await (supabase as any)
       .from('saved_qr_codes')
       .select('*')
+      .eq('user_id', user?.id)
+      .filter('entity_id', 'eq', scopedEntityId)
       .order('created_at', { ascending: false });
 
     if (!error && data) {

@@ -65,7 +65,7 @@ export const FloatingMultiButtonGenerator = ({ entityId }: { entityId?: string }
     if (user) {
       fetchSavedButtons();
     }
-  }, [user]);
+  }, [user, scopedEntityId]);
 
   const fetchSavedButtons = async () => {
     const { data, error } = await (supabase as any)

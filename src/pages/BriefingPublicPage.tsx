@@ -34,7 +34,7 @@ export default function BriefingPublicPage() {
     try {
       console.log('Fetching briefing with ID:', briefingId);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('briefings')
         .select('*')
         .eq('id', briefingId)
@@ -67,7 +67,7 @@ export default function BriefingPublicPage() {
       setUploadingFiles(prev => ({ ...prev, [fieldId]: true }));
       
       const fileExt = file.name.split('.').pop();
-      const fileName = `${briefingId}/${fieldId}/${Date.now()}.${fileExt}`;
+      const fileName = `${briefing?.entity_id || 'public'}/${briefingId}/${fieldId}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError, data } = await supabase.storage
         .from('briefing-files')
@@ -108,10 +108,11 @@ export default function BriefingPublicPage() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('briefing_responses')
         .insert([{
           briefing_id: briefingId,
+          entity_id: briefing?.entity_id,
           visitor_name: visitorName,
           responses: responses
         }]);
@@ -120,10 +121,11 @@ export default function BriefingPublicPage() {
 
       // Incrementar contador de respostas
       if (briefingId) {
-        await supabase
+        await (supabase as any)
           .from('briefings')
           .update({ responses_count: (briefing?.responses_count || 0) + 1 })
-          .eq('id', briefingId);
+          .eq('id', briefingId)
+          .filter('entity_id', 'eq', briefing?.entity_id || '');
       }
 
       // Enviar email se destination_email estiver configurado

@@ -143,7 +143,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
 
   useEffect(() => {
     fetchSavedMaps();
-  }, [user]);
+  }, [user, scopedEntityId]);
 
   const fetchSavedMaps = async () => {
     if (!user) return;
@@ -333,8 +333,9 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
           theme: currentTheme,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', currentMapId).filter("entity_id", "eq", scopedEntityId)
-        .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId);
+        .eq('id', currentMapId)
+        .eq('user_id', user.id)
+        .filter('entity_id', 'eq', scopedEntityId);
 
       if (error) {
         toast.error('Erro ao salvar o título do bloco');
@@ -452,7 +453,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
         autosaveTimerRef.current = null;
       }
     };
-  }, [nodes, currentTheme, currentMapId, mapName, user]);
+  }, [nodes, currentTheme, currentMapId, mapName, user, scopedEntityId]);
 
   const saveMap = async () => {
     if (!user) {

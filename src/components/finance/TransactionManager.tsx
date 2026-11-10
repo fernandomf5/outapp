@@ -232,6 +232,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
             .from('financial_transactions')
             .update({ order_index: index })
             .eq('id', idMap.get(id) || id)
+            .eq('business_id', businessId)
         )
       );
     } catch {
@@ -247,6 +248,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         .from('financial_bank_accounts')
         .select('current_balance')
         .eq('id', accountId)
+        .eq('business_id', businessId)
         .single();
 
       if (fetchError || !account) return;
@@ -256,7 +258,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       await supabase
         .from('financial_bank_accounts')
         .update({ current_balance: newBalance })
-        .eq('id', accountId);
+        .eq('id', accountId)
+        .eq('business_id', businessId);
     } catch (error) {
       console.error("Erro ao atualizar saldo:", error);
     }
@@ -337,13 +340,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               const { error: deleteError } = await supabase
                 .from('financial_transactions')
                 .delete()
-                .eq('installment_group_id', groupIdToRemove);
+                .eq('installment_group_id', groupIdToRemove)
+                .eq('business_id', businessId);
               if (deleteError) throw deleteError;
             } else {
               const { error: deleteError } = await supabase
                 .from('financial_transactions')
                 .delete()
-                .eq('id', editingTransactionId);
+                .eq('id', editingTransactionId)
+                .eq('business_id', businessId);
               if (deleteError) throw deleteError;
             }
           }
@@ -429,7 +434,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         const { error } = await supabase
           .from('financial_transactions')
           .update(transactionData as any)
-          .eq('id', editingTransactionId);
+          .eq('id', editingTransactionId)
+                .eq('business_id', businessId);
 
         if (error) throw error;
 
@@ -588,6 +594,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       .from('financial_transactions')
       .select('monthly_status')
       .eq('id', sourceId)
+      .eq('business_id', businessId)
       .maybeSingle();
     if (fetchError) throw fetchError;
 
@@ -600,7 +607,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     const { error } = await supabase
       .from('financial_transactions')
       .update({ monthly_status: nextMonthlyStatus } as any)
-      .eq('id', sourceId);
+      .eq('id', sourceId)
+      .eq('business_id', businessId);
     if (error) throw error;
   };
 
@@ -653,7 +661,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           status: 'cancelled',
         });
       } else {
-        const { error } = await supabase.from('financial_transactions').delete().eq('id', sourceIdOf(t));
+        const { error } = await supabase.from('financial_transactions').delete().eq('id', sourceIdOf(t)).eq('business_id', businessId);
         if (error) throw error;
       }
 
@@ -705,7 +713,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         const { error } = await supabase
           .from('financial_transactions')
           .update({ status: newStatus, bank_account_id: newBank })
-          .eq('id', sourceIdOf(t));
+          .eq('id', sourceIdOf(t))
+          .eq('business_id', businessId);
         if (error) throw error;
       }
 

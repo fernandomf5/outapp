@@ -441,6 +441,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         .from('funnel_stages')
         .select('*')
         .eq('funnel_id', funnelId)
+        .filter('entity_id', 'eq', scopedEntityId)
         .order('order_index', { ascending: true });
 
       if (error) throw error;
@@ -456,6 +457,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         .from('funnel_leads')
         .select('*')
         .eq('funnel_id', funnelId)
+        .filter('entity_id', 'eq', scopedEntityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -476,6 +478,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           .from('customers')
           .select('id, name, email, phone, company, category_id')
           .eq('user_id', user.id)
+          .filter('entity_id', 'eq', scopedEntityId)
           .order('name'),
         (supabase as any)
           .from('customer_categories')
@@ -579,6 +582,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           .from('funnel_leads')
           .insert({
             funnel_id: selectedFunnel.id,
+            entity_id: scopedEntityId,
             stage_id: targetStageId,
             name: customer.name,
             email: customer.email,
@@ -595,6 +599,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
             .from('funnel_lead_history')
             .insert({
               lead_id: newLead.id,
+              entity_id: scopedEntityId,
               to_stage_id: targetStageId,
               notes: 'Lead importado da Gestão de Clientes',
             });
@@ -643,6 +648,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           .from('funnel_leads')
           .insert({
             funnel_id: selectedFunnel.id,
+            entity_id: scopedEntityId,
             stage_id: targetStageId,
             name: customer.name,
             email: customer.email,
@@ -659,6 +665,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
             .from('funnel_lead_history')
             .insert({
               lead_id: newLead.id,
+              entity_id: scopedEntityId,
               to_stage_id: targetStageId,
               notes: `Lead importado da categoria "${categories.find(c => c.id === categoryId)?.name}"`,
             });
@@ -763,6 +770,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         .from('funnel_leads')
         .insert({
           funnel_id: selectedFunnel.id,
+          entity_id: scopedEntityId,
           stage_id: targetStageId,
           name: c.name,
           email: c.email,
@@ -776,6 +784,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
       if (!error && newLead) {
         await (supabase as any).from('funnel_lead_history').insert({
           lead_id: newLead.id,
+          entity_id: scopedEntityId,
           to_stage_id: targetStageId,
           notes: notesLabel,
         });
@@ -840,6 +849,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         .from('funnel_lead_history')
         .select('*')
         .eq('lead_id', leadId)
+        .filter('entity_id', 'eq', scopedEntityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -894,7 +904,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
         await (supabase as any)
           .from('funnel_stages')
-          .insert(defaultStages.map(s => ({ ...s, funnel_id: data.id })));
+          .insert(defaultStages.map(s => ({ ...s, funnel_id: data.id, entity_id: scopedEntityId })));
 
         toast.success('Funil criado com etapas padrão!');
         setSelectedFunnel(data);
@@ -965,6 +975,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           .from('funnel_stages')
           .insert({
             funnel_id: selectedFunnel.id,
+            entity_id: scopedEntityId,
             name: stageName,
             color: stageColor,
             order_index: maxOrder + 1,
@@ -1030,6 +1041,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     try {
       const leadData = {
         funnel_id: selectedFunnel.id,
+        entity_id: scopedEntityId,
         stage_id: stageId,
         name: leadName,
         email: leadEmail || null,
@@ -1064,6 +1076,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           .from('funnel_lead_history')
           .insert({
             lead_id: data.id,
+            entity_id: scopedEntityId,
             to_stage_id: stageId,
             notes: 'Lead criado',
           });
@@ -1150,6 +1163,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         .from('funnel_lead_history')
         .insert({
           lead_id: leadId,
+          entity_id: scopedEntityId,
           from_stage_id: oldStageId,
           to_stage_id: newStageId,
         });
@@ -1279,6 +1293,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
                   .from('funnel_leads')
                   .insert({
                     funnel_id: selectedFunnel.id,
+                    entity_id: scopedEntityId,
                     stage_id: firstStageId,
                     name: lead.name || 'Lead',
                     phone: lead.phone || null,
@@ -1294,6 +1309,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
                     .from('funnel_lead_history')
                     .insert({
                       lead_id: newLead.id,
+                      entity_id: scopedEntityId,
                       to_stage_id: firstStageId,
                       notes: 'Lead criado via OCR',
                     });

@@ -22,6 +22,7 @@ interface Client {
   access_token: string;
   primary_color?: string;
   secondary_color?: string;
+  entity_id: string;
 }
 
 interface Job {
@@ -34,6 +35,7 @@ interface Job {
   rejection_notes: string | null;
   due_date: string | null;
   created_at: string;
+  entity_id: string;
 }
 
 interface Comment {
@@ -41,6 +43,7 @@ interface Comment {
   is_from_client: boolean;
   content: string;
   created_at: string;
+  entity_id: string;
 }
 
 export default function AprovaJobClient() {
@@ -74,22 +77,32 @@ export default function AprovaJobClient() {
   }, [token]);
 
   useEffect(() => {
-    // Check if already logged in
-    const savedSession = sessionStorage.getItem(`aprova_job_${token}`);
-    if (savedSession) {
+    // Reuse only sessions that already carry the management scope.
+    // Older sessions are cleared so the client must log in again with a fresh scoped session.
+    const sessionKey = `aprova_job_${token}`;
+    const savedSession = sessionStorage.getItem(sessionKey);
+    if (!savedSession) return;
+
+    try {
       const session = JSON.parse(savedSession);
+      if (!session?.id || !session?.entity_id) {
+        sessionStorage.removeItem(sessionKey);
+        return;
+      }
       setClient(session);
       setIsLoggedIn(true);
-      fetchJobs(session.id);
+      fetchJobs(session.id, session.entity_id);
+    } catch {
+      sessionStorage.removeItem(sessionKey);
     }
   }, [token]);
 
   const checkAccess = async () => {
     setLoading(true);
     
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_clients')
-      .select('id, name, username, access_token, primary_color, secondary_color')
+      .select('id, name, username, access_token, primary_color, secondary_color, entity_id')
       .eq('access_token', token)
       .eq('is_active', true)
       .single();
@@ -121,9 +134,9 @@ export default function AprovaJobClient() {
     setLoginLoading(true);
     const passwordHash = await hashPassword(loginForm.password);
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_clients')
-      .select('id, name, username, access_token, primary_color, secondary_color')
+      .select('id, name, username, access_token, primary_color, secondary_color, entity_id')
       .eq('access_token', token)
       .eq('username', loginForm.username.toLowerCase().trim())
       .eq('password_hash', passwordHash)
@@ -137,15 +150,15 @@ export default function AprovaJobClient() {
     }
 
     // Update last login
-    await supabase
+    await (supabase as any)
       .from('aprova_job_clients')
       .update({ last_login_at: new Date().toISOString() })
-      .eq('id', data.id);
+      .eq('id', data.id).filter('entity_id', 'eq', data.entity_id);
 
     sessionStorage.setItem(`aprova_job_${token}`, JSON.stringify(data));
     setClient(data as Client);
     setIsLoggedIn(true);
-    fetchJobs(data.id);
+    fetchJobs(data.id, data.entity_id);
     setLoginLoading(false);
   };
 
@@ -157,11 +170,12 @@ export default function AprovaJobClient() {
     setLoginForm({ username: '', password: '' });
   };
 
-  const fetchJobs = async (clientId: string) => {
-    const { data, error } = await supabase
+  const fetchJobs = async (clientId: string, entityId: string) => {
+    const { data, error } = await (supabase as any)
       .from('aprova_job_jobs')
       .select('*')
       .eq('client_id', clientId)
+      .filter('entity_id', 'eq', entityId)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -169,11 +183,12 @@ export default function AprovaJobClient() {
     }
   };
 
-  const fetchJobComments = async (jobId: string) => {
-    const { data, error } = await supabase
+  const fetchJobComments = async (jobId: string, entityId: string) => {
+    const { data, error } = await (supabase as any)
       .from('aprova_job_comments')
       .select('*')
       .eq('job_id', jobId)
+      .filter('entity_id', 'eq', entityId)
       .order('created_at', { ascending: true });
 
     if (!error && data) {
@@ -184,16 +199,17 @@ export default function AprovaJobClient() {
   const openJob = (job: Job) => {
     setSelectedJob(job);
     setMediaIndex(0);
-    fetchJobComments(job.id);
+    fetchJobComments(job.id, job.entity_id);
   };
 
   const addComment = async () => {
     if (!selectedJob || !newComment.trim() || !client) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_comments')
       .insert({
         job_id: selectedJob.id,
+        entity_id: selectedJob.entity_id,
         client_id: client.id,
         is_from_client: true,
         content: newComment.trim()
@@ -205,7 +221,7 @@ export default function AprovaJobClient() {
     }
 
     setNewComment('');
-    fetchJobComments(selectedJob.id);
+    fetchJobComments(selectedJob.id, selectedJob.entity_id);
   };
 
   const openApprovalDialog = (action: 'approved' | 'revision' | 'rejected') => {
@@ -236,10 +252,11 @@ export default function AprovaJobClient() {
       updateData.rejection_notes = approvalNotes || null;
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_jobs')
       .update(updateData)
-      .eq('id', selectedJob.id);
+      .eq('id', selectedJob.id)
+      .filter('entity_id', 'eq', selectedJob.entity_id);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -258,7 +275,7 @@ export default function AprovaJobClient() {
 
     setShowApprovalDialog(false);
     setSelectedJob(null);
-    if (client) fetchJobs(client.id);
+    if (client) fetchJobs(client.id, client.entity_id);
     setSubmitting(false);
   };
 
@@ -267,7 +284,7 @@ export default function AprovaJobClient() {
 
     setSubmitting(true);
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_jobs')
       .update({
         status: 'pending',
@@ -275,7 +292,8 @@ export default function AprovaJobClient() {
         revision_notes: null,
         rejection_notes: null
       })
-      .eq('id', selectedJob.id);
+      .eq('id', selectedJob.id)
+      .filter('entity_id', 'eq', selectedJob.entity_id);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -289,7 +307,7 @@ export default function AprovaJobClient() {
     });
 
     setSelectedJob(null);
-    if (client) fetchJobs(client.id);
+    if (client) fetchJobs(client.id, client.entity_id);
     setSubmitting(false);
   };
 

@@ -207,7 +207,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
     if (effectiveUserId) {
       fetchBios();
     }
-  }, [effectiveUserId]);
+  }, [effectiveUserId, scopedEntityId]);
 
   useEffect(() => {
     if (selectedBio) {
@@ -279,6 +279,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
       .from('link_bio_links')
       .select('*')
       .eq('bio_id', bioId)
+      .filter('entity_id', 'eq', scopedEntityId)
       .order('position', { ascending: true });
 
     if (data) {
@@ -466,6 +467,7 @@ export function LinkBioCreator({ teamContext, entityId }: { teamContext?: { admi
       .from('link_bio_links')
       .insert([{
         bio_id: selectedBio.id,
+        entity_id: scopedEntityId,
         title: newLinkTitle,
         url: newLinkUrl,
         icon: newLinkIcon,

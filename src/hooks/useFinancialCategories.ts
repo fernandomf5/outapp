@@ -71,7 +71,9 @@ export const useFinancialCategories = (businessId?: string) => {
     id: string,
     values: { name: string; color: string; is_recurring?: boolean }
   ) => {
-    const { error } = await supabase.from("financial_categories").update(values as any).eq("id", id);
+    let query: any = supabase.from("financial_categories").update(values as any).eq("id", id);
+    if (businessId) query = query.eq("business_id", businessId);
+    const { error } = await query;
     if (error) {
       toast.error("Erro ao atualizar categoria");
       return;
@@ -81,7 +83,9 @@ export const useFinancialCategories = (businessId?: string) => {
   };
 
   const deleteCategory = async (id: string) => {
-    const { error } = await supabase.from("financial_categories").delete().eq("id", id);
+    let query: any = supabase.from("financial_categories").delete().eq("id", id);
+    if (businessId) query = query.eq("business_id", businessId);
+    const { error } = await query;
     if (error) {
       toast.error("Erro ao excluir categoria");
       return;
@@ -97,7 +101,7 @@ export const useFinancialCategories = (businessId?: string) => {
     });
     await Promise.all(
       orderedIds.map((id, index) =>
-        supabase.from("financial_categories").update({ order_index: index }).eq("id", id)
+        (() => { let query: any = supabase.from("financial_categories").update({ order_index: index }).eq("id", id); return businessId ? query.eq("business_id", businessId) : query; })()
       )
     );
   };

@@ -62,7 +62,8 @@ export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: Bank
         const { error } = await supabase
           .from('financial_bank_accounts')
           .update(accountData)
-          .eq('id', editingId);
+          .eq('id', editingId)
+          .eq('business_id', businessId);
         if (error) throw error;
         toast.success("Conta bancária atualizada!");
       } else {
@@ -103,7 +104,7 @@ export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: Bank
   const handleDelete = async () => {
     if (!accountToDelete) return;
     try {
-      const { error } = await supabase.from('financial_bank_accounts').delete().eq('id', accountToDelete.id);
+      const { error } = await supabase.from('financial_bank_accounts').delete().eq('id', accountToDelete.id).eq('business_id', businessId);
       if (error) throw error;
       toast.success("Conta removida");
       onRefresh();

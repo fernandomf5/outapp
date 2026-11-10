@@ -218,7 +218,7 @@ export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorP
 
   useEffect(() => {
     loadBriefings();
-  }, [teamContext]);
+  }, [teamContext, entityId]);
 
   const loadBriefings = async () => {
     try {
@@ -591,7 +591,7 @@ export function BriefingCreatorPanel({ teamContext, entityId }: BriefingCreatorP
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Criador de Briefing</h2>
           <p className="text-muted-foreground">Crie formulários personalizados para capturar informações</p>
-            <div className="mt-3"><ResourceAssignmentsButton resourceType="briefing" /></div>
+            <div className="mt-3"><ResourceAssignmentsButton resourceType="briefing" entityId={entityId} /></div>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
