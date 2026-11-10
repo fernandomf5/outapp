@@ -221,7 +221,7 @@ export default function AprovaJobClient() {
     }
 
     setNewComment('');
-    fetchJobComments(selectedJob.id);
+    fetchJobComments(selectedJob.id, selectedJob.entity_id);
   };
 
   const openApprovalDialog = (action: 'approved' | 'revision' | 'rejected') => {
