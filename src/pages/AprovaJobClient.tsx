@@ -77,13 +77,23 @@ export default function AprovaJobClient() {
   }, [token]);
 
   useEffect(() => {
-    // Check if already logged in
-    const savedSession = sessionStorage.getItem(`aprova_job_${token}`);
-    if (savedSession) {
+    // Reuse only sessions that already carry the management scope.
+    // Older sessions are cleared so the client must log in again with a fresh scoped session.
+    const sessionKey = `aprova_job_${token}`;
+    const savedSession = sessionStorage.getItem(sessionKey);
+    if (!savedSession) return;
+
+    try {
       const session = JSON.parse(savedSession);
+      if (!session?.id || !session?.entity_id) {
+        sessionStorage.removeItem(sessionKey);
+        return;
+      }
       setClient(session);
       setIsLoggedIn(true);
       fetchJobs(session.id, session.entity_id);
+    } catch {
+      sessionStorage.removeItem(sessionKey);
     }
   }, [token]);
 
