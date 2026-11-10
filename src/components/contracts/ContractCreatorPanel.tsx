@@ -276,7 +276,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2"><FileText className="h-6 w-6" /> Criador de Contratos</h2>
           <p className="text-muted-foreground text-sm">Crie, envie e assine contratos digitalmente.</p>
-            <div className="mt-3"><ResourceAssignmentsButton resourceType="contract" /></div>
+            <div className="mt-3"><ResourceAssignmentsButton resourceType="contract" entityId={entityId} /></div>
         </div>
         <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" /> Novo Contrato</Button>
       </div>
