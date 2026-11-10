@@ -312,6 +312,7 @@ export const TaskDialog = ({
               onChange={setContactId}
               label="Cadastro vinculado (opcional)"
               placeholder="Avulso (sem cadastro)"
+              entityId={entityId}
             />
           </div>
 
