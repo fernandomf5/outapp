@@ -197,7 +197,7 @@ export const AprovaJobPanel = ({ entityId }: { entityId?: string } = {}) => {
     const { data, error } = await (supabase as any)
       .from('contacts')
       .select('name')
-      .eq('id', contactId).filter("entity_id", "eq", scopedEntityId)
+      .eq('id', contactId)
       .maybeSingle();
     if (error || !data?.name) return;
     const suggestedUsername = data.name
