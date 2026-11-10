@@ -67,7 +67,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
     access_code: "",
   });
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { if (user) load(); }, [user?.id, scopedEntityId]);
 
   // Realtime: live status updates + popup when client signs
   useEffect(() => {
@@ -76,7 +76,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
       .channel(`contracts-rt-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "contracts", filter: `user_id=eq.${user.id}` },
+        { event: "UPDATE", schema: "public", table: "contracts", filter: `entity_id=eq.${scopedEntityId}` },
         (payload) => {
           const newRow: any = payload.new;
           const oldRow: any = payload.old;
@@ -101,7 +101,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id]);
+  }, [user?.id, scopedEntityId]);
 
   async function load() {
     if (!user) return;
@@ -140,12 +140,12 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
     if (editing) {
       const { error } = await (supabase as any).from("contracts").update(form).eq("id", editing.id).filter("entity_id", "eq", scopedEntityId);
       if (error) return toast.error(error.message);
-      await (supabase as any).from("contract_history").insert({ contract_id: editing.id, event_type: "updated", description: "Contrato editado" });
+      await (supabase as any).from("contract_history").insert({ contract_id: editing.id, entity_id: scopedEntityId, event_type: "updated", description: "Contrato editado" });
       toast.success("Contrato atualizado");
     } else {
       const { data, error } = await (supabase as any).from("contracts").insert({ ...form, user_id: user!.id, entity_id: scopedEntityId }).select().single();
       if (error) return toast.error(error.message);
-      await (supabase as any).from("contract_history").insert({ contract_id: data.id, event_type: "created", description: "Contrato criado" });
+      await (supabase as any).from("contract_history").insert({ contract_id: data.id, entity_id: scopedEntityId, event_type: "created", description: "Contrato criado" });
       toast.success("Contrato criado");
     }
     setEditorOpen(false);
@@ -174,7 +174,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
     };
     const { data, error } = await (supabase as any).from("contracts").insert(payload).select().single();
     if (error) return toast.error(error.message);
-    await (supabase as any).from("contract_history").insert({ contract_id: data.id, event_type: "created", description: "Contrato duplicado" });
+    await (supabase as any).from("contract_history").insert({ contract_id: data.id, entity_id: scopedEntityId, event_type: "created", description: "Contrato duplicado" });
     toast.success("Contrato duplicado");
     load();
   }
@@ -192,7 +192,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
       status: "sent",
     }).eq("id", c.id).filter("entity_id", "eq", scopedEntityId);
     if (error) return toast.error(error.message);
-    await (supabase as any).from("contract_history").insert({ contract_id: c.id, event_type: "reset", description: "Assinaturas zeradas para nova assinatura" });
+    await (supabase as any).from("contract_history").insert({ contract_id: c.id, entity_id: scopedEntityId, event_type: "reset", description: "Assinaturas zeradas para nova assinatura" });
     toast.success("Assinaturas zeradas. O cliente pode assinar novamente.");
     load();
   }
@@ -205,7 +205,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
     await navigator.clipboard.writeText(publicLink(c));
     if (c.status === "draft") {
       await (supabase as any).from("contracts").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", c.id).filter("entity_id", "eq", scopedEntityId);
-      await (supabase as any).from("contract_history").insert({ contract_id: c.id, event_type: "sent", description: "Link enviado" });
+      await (supabase as any).from("contract_history").insert({ contract_id: c.id, entity_id: scopedEntityId, event_type: "sent", description: "Link enviado" });
       load();
     }
     toast.success("Link copiado!");
@@ -213,7 +213,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
 
   async function openHistory(c: Contract) {
     setHistoryOpen(c);
-    const { data } = await (supabase as any).from("contract_history").select("*").eq("contract_id", c.id).order("created_at", { ascending: false });
+    const { data } = await (supabase as any).from("contract_history").select("*").eq("contract_id", c.id).filter("entity_id", "eq", scopedEntityId).order("created_at", { ascending: false });
     setHistory(data || []);
   }
 
@@ -262,7 +262,7 @@ export function ContractCreatorPanel({ entityId }: { entityId?: string } = {}) {
       status: "completed",
     }).eq("id", signOpen.id).filter("entity_id", "eq", scopedEntityId);
     if (error) return toast.error(error.message);
-    await (supabase as any).from("contract_history").insert({ contract_id: signOpen.id, event_type: "company_signed", description: `Empresa assinou (${companySigner})` });
+    await (supabase as any).from("contract_history").insert({ contract_id: signOpen.id, entity_id: scopedEntityId, event_type: "company_signed", description: `Empresa assinou (${companySigner})` });
     toast.success("Contrato assinado e concluído!");
     setSignOpen(null);
     setCompanySigner("");
