@@ -68,7 +68,7 @@ export const FloatingMultiButtonGenerator = ({ entityId }: { entityId?: string }
   }, [user]);
 
   const fetchSavedButtons = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("floating_buttons")
       .select("*")
       .eq("user_id", user?.id).filter("entity_id", "eq", scopedEntityId)
@@ -150,7 +150,7 @@ export const FloatingMultiButtonGenerator = ({ entityId }: { entityId?: string }
     };
 
     if (editingId) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("floating_buttons")
         .update({ ...configData, updated_at: new Date().toISOString() })
         .eq("id", editingId).filter("entity_id", "eq", scopedEntityId);
@@ -163,7 +163,7 @@ export const FloatingMultiButtonGenerator = ({ entityId }: { entityId?: string }
         fetchSavedButtons();
       }
     } else {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("floating_buttons")
         .insert(configData);
 
@@ -180,7 +180,7 @@ export const FloatingMultiButtonGenerator = ({ entityId }: { entityId?: string }
   };
 
   const deleteConfig = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("floating_buttons")
       .delete()
       .eq("id", id).filter("entity_id", "eq", scopedEntityId);
