@@ -275,7 +275,7 @@ export default function AprovaJobClient() {
 
     setShowApprovalDialog(false);
     setSelectedJob(null);
-    if (client) fetchJobs(client.id);
+    if (client) fetchJobs(client.id, client.entity_id);
     setSubmitting(false);
   };
 
@@ -307,7 +307,7 @@ export default function AprovaJobClient() {
     });
 
     setSelectedJob(null);
-    if (client) fetchJobs(client.id);
+    if (client) fetchJobs(client.id, client.entity_id);
     setSubmitting(false);
   };
 
