@@ -95,7 +95,7 @@ export function BriefingResponsesPanel({ entityId }: { entityId?: string } = {})
       const { data, error } = await (supabase as any)
         .from('briefing_responses')
         .select('*')
-        .in('briefing_id', briefingsData.map(b => b.id)).filter('entity_id', 'eq', scopedEntityId)
+        .in('briefing_id', briefingsData.map(b => b.id))
         .order('created_at', { ascending: false });
 
       if (error) throw error;
