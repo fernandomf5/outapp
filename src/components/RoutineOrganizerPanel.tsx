@@ -334,7 +334,6 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
           .eq('user_id', user.id)
           .filter('entity_id', 'eq', scopedEntityId)
           .eq('routine_id', activeRoutine.id)
-          .filter('entity_id', 'eq', scopedEntityId)
           .order('order_index'),
         (supabase as any)
           .from('routine_objectives')
@@ -453,7 +452,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       const remaining = routines.filter(r => r.id !== routineId);
       if (activeRoutine?.id === routineId) {
         // Activate the first remaining routine
-        await (supabase as any).from('routines').update({ is_active: true }).eq('id', remaining[0].id);
+        await (supabase as any).from('routines').update({ is_active: true }).eq('id', remaining[0].id).filter('entity_id', 'eq', scopedEntityId);
         remaining[0].is_active = true;
         setActiveRoutine(remaining[0]);
       }
@@ -628,7 +627,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
           .from('routine_completions')
           .delete()
           .eq('routine_item_id', item.id).filter('entity_id', 'eq', scopedEntityId)
-          .eq('completion_date', today).filter('entity_id', 'eq', scopedEntityId);
+          .eq('completion_date', today);
       }
       
       loadData();
@@ -707,7 +706,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       const { error } = await (supabase as any)
         .from('routine_objectives')
         .delete()
-        .eq('id', id);
+        .eq('id', id).filter('entity_id', 'eq', scopedEntityId);
         
       if (error) throw error;
       
@@ -831,7 +830,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
     try {
       await Promise.all(
         reordered.map((item, idx) =>
-          (supabase as any).from('routine_items').update({ order_index: idx }).eq('id', item.id)
+          (supabase as any).from('routine_items').update({ order_index: idx }).eq('id', item.id).filter('entity_id', 'eq', scopedEntityId)
         )
       );
     } catch (error) {
@@ -921,7 +920,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
 
   const handleDeleteTemplate = async (templateId: string) => {
     try {
-      const { error } = await (supabase as any).from('routine_templates').delete().eq('id', templateId);
+      const { error } = await (supabase as any).from('routine_templates').delete().eq('id', templateId).filter('entity_id', 'eq', scopedEntityId);
       if (error) throw error;
       toast.success('Modelo excluído');
       loadData();
