@@ -550,6 +550,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
         block={editingBlock}
         userId={userId}
         effectiveUserId={effectiveUserId}
+        entityId={entityId}
         onSuccess={fetchData}
       />
 
