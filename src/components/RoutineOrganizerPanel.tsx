@@ -480,8 +480,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       await (supabase as any)
         .from('routine_completions')
         .delete()
-        .eq('user_id', user.id);
-        .filter('entity_id', 'eq', scopedEntityId)
+        .eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId);
 
       // Update local state
       setRoutineItems(prev => prev.map(item => ({ ...item, is_completed: false })));
