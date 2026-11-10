@@ -150,7 +150,6 @@ export const TaskManagerContainer = ({ teamContext, entityId }: { teamContext?: 
         .from("registration_categories")
         .select("*")
         .eq("user_id", effectiveUserId)
-        .filter("entity_id", "eq", entityId)
         .order("name");
 
       if (error) throw error;
@@ -228,7 +227,6 @@ export const TaskManagerContainer = ({ teamContext, entityId }: { teamContext?: 
         .from("contacts")
         .select("id, name, email")
         .eq("registration_category_id", categoryId)
-        .filter("entity_id", "eq", entityId)
         .order("name");
 
       if (error) throw error;
