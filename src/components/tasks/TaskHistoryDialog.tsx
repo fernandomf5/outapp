@@ -104,7 +104,7 @@ export const TaskHistoryDialog = ({
   useEffect(() => {
     if (open && effectiveUserId) fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, effectiveUserId]);
+  }, [open, effectiveUserId, entityId]);
 
   const fetchAll = async () => {
     try {

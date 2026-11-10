@@ -160,7 +160,6 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
         .from("task_blocks")
         .select("*")
         .eq("user_id", effectiveUserId)
-        .eq("contact_id", userId)
         .filter("entity_id", "eq", entityId)
         .order("order_index");
 
@@ -172,9 +171,9 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
       let currentBlocks = blocksData || [];
       if (currentBlocks.length === 0) {
         const defaultBlocks = [
-          { name: "A fazer", color: "#94a3b8", order_index: 0, user_id: effectiveUserId, contact_id: userId, entity_id: entityId },
-          { name: "Em progresso", color: "#3b82f6", order_index: 1, user_id: effectiveUserId, contact_id: userId },
-          { name: "Concluído", color: "#22c55e", order_index: 2, user_id: effectiveUserId, contact_id: userId },
+          { name: "A fazer", color: "#94a3b8", order_index: 0, user_id: effectiveUserId, contact_id: null, entity_id: entityId },
+          { name: "Em progresso", color: "#3b82f6", order_index: 1, user_id: effectiveUserId, contact_id: null, entity_id: entityId },
+          { name: "Concluído", color: "#22c55e", order_index: 2, user_id: effectiveUserId, contact_id: null, entity_id: entityId },
         ];
         
         const { data: insertedBlocks, error: insertError } = await (supabase as any)
@@ -194,7 +193,6 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
         .from("tasks")
         .select("*")
         .eq("user_id", effectiveUserId)
-        .eq("contact_id", userId)
         .filter("entity_id", "eq", entityId)
         .eq("archived", false)
         .order("task_order");

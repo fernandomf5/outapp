@@ -43,6 +43,7 @@ export const BulkTaskDialog = ({
   blocks,
   userId,
   effectiveUserId,
+  entityId,
   onSuccess,
 }: BulkTaskDialogProps) => {
   const [blockId, setBlockId] = useState<string>("");
@@ -94,7 +95,7 @@ export const BulkTaskDialog = ({
         block_id: blockId,
         user_id: effectiveUserId,
         entity_id: entityId,
-        contact_id: userId,
+        contact_id: userId || null,
         task_order: startOrder + idx,
         status: "pending",
       }));
