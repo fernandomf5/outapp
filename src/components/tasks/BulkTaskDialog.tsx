@@ -33,6 +33,7 @@ interface BulkTaskDialogProps {
   blocks: Block[];
   userId: string;
   effectiveUserId: string;
+  entityId: string;
   onSuccess: () => void;
 }
 
@@ -79,6 +80,7 @@ export const BulkTaskDialog = ({
         .from("tasks")
         .select("task_order")
         .eq("block_id", blockId)
+        .filter("entity_id", "eq", entityId)
         .order("task_order", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -91,6 +93,7 @@ export const BulkTaskDialog = ({
         priority,
         block_id: blockId,
         user_id: effectiveUserId,
+        entity_id: entityId,
         contact_id: userId,
         task_order: startOrder + idx,
         status: "pending",
