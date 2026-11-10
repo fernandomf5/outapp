@@ -9,6 +9,7 @@ export const TaskManagerContainer = ({ teamContext, entityId }: { teamContext?: 
   const scopedEntityId = entityId || (typeof sessionStorage !== "undefined" ? sessionStorage.getItem("outapp_hub_entity") : null) || "";
   const { user } = useAuth();
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const effectiveUserId = teamContext?.adminUserId || user?.id || "";
 
   if (!scopedEntityId || !effectiveUserId) {
@@ -28,13 +29,14 @@ export const TaskManagerContainer = ({ teamContext, entityId }: { teamContext?: 
         onOpenChange={setHistoryOpen}
         effectiveUserId={effectiveUserId}
         entityId={scopedEntityId}
-        onChanged={() => window.dispatchEvent(new CustomEvent("outapp:refresh-tasks"))}
+        onChanged={() => setRefreshKey((value) => value + 1)}
       />
       <KanbanBoard
         entityId={scopedEntityId}
         userId=""
         userName="Gestão"
         teamContext={teamContext}
+        refreshKey={refreshKey}
       />
     </div>
   );
