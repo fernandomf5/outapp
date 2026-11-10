@@ -39,9 +39,10 @@ interface SavedButton {
 
 type ButtonStyle = 'circular' | 'dialog' | 'bubble';
 
-export const FloatingMultiButtonGenerator = () => {
+export const FloatingMultiButtonGenerator = ({ entityId }: { entityId?: string } = {}) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const [configName, setConfigName] = useState("");
   const [mainButtonText, setMainButtonText] = useState("Contato");
   const [mainButtonIcon, setMainButtonIcon] = useState("whatsapp");
@@ -70,7 +71,7 @@ export const FloatingMultiButtonGenerator = () => {
     const { data, error } = await supabase
       .from("floating_buttons")
       .select("*")
-      .eq("user_id", user?.id)
+      .eq("user_id", user?.id).filter("entity_id", "eq", scopedEntityId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -134,7 +135,7 @@ export const FloatingMultiButtonGenerator = () => {
 
     const generatedCode = generateCode();
     const configData = {
-      user_id: user?.id,
+      user_id: user?.id, entity_id: scopedEntityId,
       name: configName,
       main_button_text: mainButtonText,
       main_button_icon: mainButtonIcon,
@@ -152,7 +153,7 @@ export const FloatingMultiButtonGenerator = () => {
       const { error } = await supabase
         .from("floating_buttons")
         .update({ ...configData, updated_at: new Date().toISOString() })
-        .eq("id", editingId);
+        .eq("id", editingId).filter("entity_id", "eq", scopedEntityId);
 
       if (error) {
         toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
@@ -182,7 +183,7 @@ export const FloatingMultiButtonGenerator = () => {
     const { error } = await supabase
       .from("floating_buttons")
       .delete()
-      .eq("id", id);
+      .eq("id", id).filter("entity_id", "eq", scopedEntityId);
 
     if (error) {
       toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
