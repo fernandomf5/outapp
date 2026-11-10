@@ -407,8 +407,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId?: string 
       await (supabase as any)
         .from('routines')
         .update({ is_active: false })
-        .eq('user_id', user.id);
-        .filter('entity_id', 'eq', scopedEntityId)
+        .eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId);
 
       await (supabase as any)
         .from('routines')
