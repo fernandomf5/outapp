@@ -160,7 +160,7 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
     }
 
     setLoading(true);
-    let query = supabase
+    let query = (supabase as any)
       .from('ai_agents')
       .select('*')
       .eq('user_id', effectiveUserId)
@@ -185,28 +185,28 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
     if (agentIds.length === 0) return;
 
     // Buscar agendamentos pendentes
-    const { data: appointmentsData } = await supabase
+    const { data: appointmentsData } = await (supabase as any)
       .from('agent_appointments')
       .select('agent_id')
       .in('agent_id', agentIds)
       .eq('status', 'pending');
 
     // Buscar pedidos pendentes
-    const { data: ordersData } = await supabase
+    const { data: ordersData } = await (supabase as any)
       .from('agent_orders')
       .select('agent_id')
       .in('agent_id', agentIds)
       .eq('status', 'pending');
 
     // Buscar notificações não lidas
-    const { data: messagesData } = await supabase
+    const { data: messagesData } = await (supabase as any)
       .from('agent_notifications')
       .select('agent_id')
       .in('agent_id', agentIds)
       .eq('is_read', false);
 
     // Buscar mensagens de clientes ainda não lidas pelo dono do chat
-    const { data: conversationsData } = await supabase
+    const { data: conversationsData } = await (supabase as any)
       .from('agent_conversations')
       .select('id, agent_id, last_read_by_owner_at')
       .in('agent_id', agentIds)
@@ -221,7 +221,7 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
 
     let unreadCustomerMessages: { conversation_id: string; created_at: string }[] = [];
     if (conversationById.size > 0) {
-      const { data: msgs } = await supabase
+      const { data: msgs } = await (supabase as any)
         .from('agent_messages')
         .select('conversation_id, created_at')
         .in('conversation_id', Array.from(conversationById.keys()))
@@ -272,7 +272,7 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
   const handleDelete = async () => {
     if (!deletingId) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('ai_agents')
       .delete()
       .eq('id', deletingId).filter('entity_id', 'eq', entityId || '');
@@ -322,7 +322,7 @@ export const MyAIAgents = ({ onManage, teamContext, entityId }: MyAIAgentsProps 
     setAgents(reordered);
 
     const updates = reordered.map((agent, index) =>
-      supabase.from('ai_agents').update({ order_index: index } as any).eq('id', agent.id).filter('entity_id', 'eq', entityId || '')
+      (supabase as any).from('ai_agents').update({ order_index: index } as any).eq('id', agent.id).filter('entity_id', 'eq', entityId || '')
     );
     const results = await Promise.all(updates);
     const failed = results.find((r: any) => r.error);
