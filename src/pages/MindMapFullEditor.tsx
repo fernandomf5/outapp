@@ -67,6 +67,7 @@ export default function MindMapFullEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const activeEntityId = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null;
   const canvasRef = useRef<HTMLDivElement>(null);
   
   const [map, setMap] = useState<MindMap | null>(null);
@@ -91,8 +92,12 @@ export default function MindMapFullEditor() {
   }, [nodes]);
 
   useEffect(() => {
-    if (id) fetchMap();
-  }, [id]);
+    if (id && user?.id && activeEntityId) fetchMap();
+    else if (id && user?.id && !activeEntityId) {
+      toast.error('Abra este mapa a partir da gestão correspondente.');
+      navigate('/workspace');
+    }
+  }, [id, user?.id, activeEntityId]);
 
   const fetchMap = async () => {
     const editVersionAtRequest = nodeEditVersionRef.current;
@@ -100,6 +105,8 @@ export default function MindMapFullEditor() {
       .from('mind_maps')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user!.id)
+      .filter('entity_id', 'eq', activeEntityId)
       .single();
 
     if (error || !data) {
@@ -139,6 +146,7 @@ export default function MindMapFullEditor() {
       .update({ nodes: nodesToSave as any, theme: currentTheme, updated_at: new Date().toISOString() })
       .eq('id', map.id)
       .eq('user_id', user.id)
+      .filter('entity_id', 'eq', activeEntityId)
       .select('nodes')
       .single();
 
