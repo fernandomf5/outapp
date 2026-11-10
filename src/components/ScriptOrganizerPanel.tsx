@@ -126,7 +126,7 @@ export function ScriptOrganizerPanel({ entityId }: { entityId?: string } = {}) {
       fetchCategories();
       fetchScripts();
     }
-  }, [user]);
+  }, [user, scopedEntityId]);
 
 
   const fetchCategories = async () => {
