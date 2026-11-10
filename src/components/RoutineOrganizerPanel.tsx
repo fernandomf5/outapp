@@ -199,7 +199,8 @@ function SortableRoutineItem({ item, onToggleComplete, onEdit, onDelete }: {
   );
 }
 
-export default function RoutineOrganizerPanel({ entityId }: { entityId: string }) {
+export default function RoutineOrganizerPanel({ entityId }: { entityId?: string } = {}) {
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const { user } = useAuth();
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>([]);
   const [objectives, setObjectives] = useState<RoutineObjective[]>([]);
@@ -263,13 +264,13 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
     if (user) {
       loadRoutines();
     }
-  }, [user, entityId]);
+  }, [user, scopedEntityId]);
 
   useEffect(() => {
     if (activeRoutine) {
       loadRoutineData();
     }
-  }, [activeRoutine, entityId]);
+  }, [activeRoutine, scopedEntityId]);
 
   const loadRoutines = async () => {
     if (!user) return;
@@ -280,7 +281,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
         .from('routines')
         .select('*')
         .eq('user_id', user.id)
-        .filter('entity_id', 'eq', entityId)
+        .filter('entity_id', 'eq', scopedEntityId)
         .order('created_at');
 
       if (routinesData && routinesData.length > 0) {
@@ -292,7 +293,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
         const { data: newRoutine } = await supabase
           .from('routines')
           .insert({ user_id: user.id,
-          entity_id: entityId, name: 'Minha Rotina', is_active: true })
+          entity_id: scopedEntityId, name: 'Minha Rotina', is_active: true })
           .select()
           .single();
 
@@ -331,7 +332,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
           .select('*')
           .eq('user_id', user.id)
           .eq('routine_id', activeRoutine.id)
-          .filter('entity_id', 'eq', entityId)
+          .filter('entity_id', 'eq', scopedEntityId)
           .order('order_index'),
         supabase
           .from('routine_objectives')
@@ -406,7 +407,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
       await supabase
         .from('routines')
         .update({ is_active: true })
-        .eq('id', routine.id).filter('entity_id', 'eq', entityId);
+        .eq('id', routine.id).filter('entity_id', 'eq', scopedEntityId);
 
       setActiveRoutine(routine);
       setRoutines(prev => prev.map(r => ({ ...r, is_active: r.id === routine.id })));
@@ -423,7 +424,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
       await supabase
         .from('routines')
         .update({ name: renameRoutineName.trim() })
-        .eq('id', activeRoutine.id).filter('entity_id', 'eq', entityId);
+        .eq('id', activeRoutine.id).filter('entity_id', 'eq', scopedEntityId);
 
       setActiveRoutine(prev => prev ? { ...prev, name: renameRoutineName.trim() } : null);
       setRoutines(prev => prev.map(r => r.id === activeRoutine.id ? { ...r, name: renameRoutineName.trim() } : r));
@@ -442,7 +443,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
     }
 
     try {
-      await (supabase as any).from('routines').delete().eq('id', routineId).filter('entity_id', 'eq', entityId);
+      await (supabase as any).from('routines').delete().eq('id', routineId).filter('entity_id', 'eq', scopedEntityId);
       
       const remaining = routines.filter(r => r.id !== routineId);
       if (activeRoutine?.id === routineId) {
@@ -542,7 +543,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
       const { error: updateError } = await supabase
         .from('routine_items')
         .update({ ...commonData, day_of_week: selectedDays[0] })
-        .eq('id', editingItem.id).filter('entity_id', 'eq', entityId);
+        .eq('id', editingItem.id).filter('entity_id', 'eq', scopedEntityId);
         
       if (updateError) throw updateError;
 
@@ -551,7 +552,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
       if (newDays.length > 0) {
         const newItems = newDays.map(day => ({
           user_id: user!.id,
-          entity_id: entityId,
+          entity_id: scopedEntityId,
           routine_id: activeRoutine?.id,
           ...commonData,
           day_of_week: day
@@ -577,7 +578,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
       const { error } = await supabase
         .from('routine_items')
         .delete()
-        .eq('id', id).filter('entity_id', 'eq', entityId);
+        .eq('id', id).filter('entity_id', 'eq', scopedEntityId);
         
       if (error) throw error;
       
@@ -601,7 +602,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
           is_completed: isCompleted,
           completed_at: isCompleted ? new Date().toISOString() : null
         })
-        .eq('id', item.id).filter('entity_id', 'eq', entityId);
+        .eq('id', item.id).filter('entity_id', 'eq', scopedEntityId);
         
       if (updateError) throw updateError;
       
@@ -618,8 +619,8 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
         await supabase
           .from('routine_completions')
           .delete()
-          .eq('routine_item_id', item.id).filter('entity_id', 'eq', entityId)
-          .eq('completion_date', today).filter('entity_id', 'eq', entityId);
+          .eq('routine_item_id', item.id).filter('entity_id', 'eq', scopedEntityId)
+          .eq('completion_date', today).filter('entity_id', 'eq', scopedEntityId);
       }
       
       loadData();
@@ -678,7 +679,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
           target_value: objectiveFormData.target_value,
           color: objectiveFormData.color
         })
-        .eq('id', editingObjective.id).filter('entity_id', 'eq', entityId);
+        .eq('id', editingObjective.id).filter('entity_id', 'eq', scopedEntityId);
         
       if (error) throw error;
       
@@ -726,7 +727,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
           is_completed: isCompleted,
           completed_at: isCompleted ? new Date().toISOString() : null
         })
-        .eq('id', objective.id).filter('entity_id', 'eq', entityId);
+        .eq('id', objective.id).filter('entity_id', 'eq', scopedEntityId);
         
       if (error) throw error;
       
@@ -876,7 +877,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
 
     try {
       // Delete existing items for this routine
-      await (supabase as any).from('routine_items').delete().eq('user_id', user.id).filter('entity_id', 'eq', entityId).eq('routine_id', activeRoutine?.id).filter('entity_id', 'eq', entityId);
+      await (supabase as any).from('routine_items').delete().eq('user_id', user.id).filter('entity_id', 'eq', scopedEntityId).eq('routine_id', activeRoutine?.id).filter('entity_id', 'eq', scopedEntityId);
 
       // Insert template items
       const newItems = (template.items as any[]).map((item, idx) => ({
@@ -933,7 +934,7 @@ export default function RoutineOrganizerPanel({ entityId }: { entityId: string }
 
     try {
       for (const targetDay of copyToDays) {
-        await (supabase as any).from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine?.id).eq('day_of_week', targetDay).filter('entity_id', 'eq', entityId);
+        await (supabase as any).from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine?.id).eq('day_of_week', targetDay).filter('entity_id', 'eq', scopedEntityId);
       }
 
       const newItems = copyToDays.flatMap(targetDay =>
