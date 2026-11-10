@@ -109,7 +109,7 @@ export function QRCodeGenerator({ entityId }: { entityId?: string } = {}) {
   }, [user]);
 
   const fetchSavedQRCodes = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('saved_qr_codes')
       .select('*')
       .order('created_at', { ascending: false });
@@ -391,7 +391,7 @@ export function QRCodeGenerator({ entityId }: { entityId?: string } = {}) {
   const saveExistingQRCode = async () => {
     if (!user || !editingId) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('saved_qr_codes')
       .update({
         content: text,
@@ -474,7 +474,7 @@ export function QRCodeGenerator({ entityId }: { entityId?: string } = {}) {
       return;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('saved_qr_codes')
       .insert({
         user_id: user.id, entity_id: scopedEntityId,
@@ -567,7 +567,7 @@ export function QRCodeGenerator({ entityId }: { entityId?: string } = {}) {
       return;
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('saved_qr_codes')
       .delete()
       .eq('id', qrToDelete).filter("entity_id", "eq", scopedEntityId);
