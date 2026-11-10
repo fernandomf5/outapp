@@ -35,6 +35,7 @@ interface Props {
   resourceType: string;
   /** Optional: restrict the dialog to a single resource */
   resourceId?: string;
+  entityId?: string;
   label?: string;
   variant?: "default" | "outline" | "ghost" | "secondary";
   size?: "default" | "sm" | "icon";
@@ -58,6 +59,7 @@ interface ContactOption {
 export function ResourceAssignmentsButton({
   resourceType,
   resourceId,
+  entityId,
   label = "Atribuir a cadastro",
   variant = "outline",
   size = "sm",
@@ -80,12 +82,28 @@ export function ResourceAssignmentsButton({
       if (!open || !user?.id || !def) return;
       setLoading(true);
 
-      const resourceQuery = supabase
+      let resourceQuery: any = supabase
         .from(def.table as any)
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(300);
+      let contactsQuery: any = supabase
+        .from("contacts")
+        .select("id, name, company, registration_category_id")
+        .eq("user_id", user.id)
+        .order("name")
+        .limit(1000);
+      let categoriesQuery: any = supabase
+        .from("registration_categories")
+        .select("id, name")
+        .eq("user_id", user.id)
+        .order("name");
+      if (entityId) {
+        resourceQuery = resourceQuery.filter("entity_id", "eq", entityId);
+        contactsQuery = contactsQuery.filter("entity_id", "eq", entityId);
+        categoriesQuery = categoriesQuery.filter("entity_id", "eq", entityId);
+      }
 
       const [{ data: resourceRows }, { data: linkRows }, { data: cts }, { data: cats }] =
         await Promise.all([
@@ -95,17 +113,8 @@ export function ResourceAssignmentsButton({
             .select("id, contact_id, resource_id")
             .eq("user_id", user.id)
             .eq("resource_type", resourceType),
-          supabase
-            .from("contacts")
-            .select("id, name, company, registration_category_id")
-            .eq("user_id", user.id)
-            .order("name")
-            .limit(1000),
-          supabase
-            .from("registration_categories")
-            .select("id, name")
-            .eq("user_id", user.id)
-            .order("name"),
+          contactsQuery,
+          categoriesQuery,
         ]);
 
       let mapped = ((resourceRows || []) as any[]).map((r) => ({
@@ -126,7 +135,7 @@ export function ResourceAssignmentsButton({
       setLoading(false);
     };
     load();
-  }, [open, user?.id, resourceType, resourceId, def]);
+  }, [open, user?.id, resourceType, resourceId, entityId, def]);
 
   const grouped = useMemo(
     () =>
