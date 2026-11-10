@@ -142,7 +142,7 @@ export const TaskManagerContainer = ({ teamContext, entityId }: { teamContext?: 
 
   useEffect(() => {
     fetchCategories();
-  }, [effectiveUserId, entityId]);
+  }, [effectiveUserId, scopedEntityId]);
 
   const fetchCategories = async () => {
     try {
@@ -395,7 +395,7 @@ export const TaskManagerContainer = ({ teamContext, entityId }: { teamContext?: 
 
       {view === "kanban" && selectedUser && (
         <KanbanBoard 
-          entityId={entityId}
+          entityId={scopedEntityId}
           userId={selectedUser.id} 
           userName={selectedUser.name} 
           teamContext={teamContext}
