@@ -76,9 +76,7 @@ export function BriefingResponsesPanel({ entityId }: { entityId?: string } = {})
 
   useEffect(() => {
     loadResponses();
-  }, []);
-
-  const loadResponses = async () => {
+  }, [scopedEntityId]); = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
