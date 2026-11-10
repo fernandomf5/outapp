@@ -78,11 +78,12 @@ interface Block {
 interface KanbanBoardProps {
   userId: string;
   userName: string;
+  entityId: string;
   teamContext?: any;
   refreshKey?: number;
 }
 
-export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: KanbanBoardProps) => {
+export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityId }: KanbanBoardProps) => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -149,7 +150,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
         container.removeEventListener('scroll', handleScroll);
       }
     };
-  }, [userId, effectiveUserId, refreshKey]);
+  }, [userId, effectiveUserId, refreshKey, entityId]);
 
   const fetchData = async () => {
     try {
@@ -160,6 +161,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
         .select("*")
         .eq("user_id", effectiveUserId)
         .eq("contact_id", userId)
+        .filter("entity_id", "eq", entityId)
         .order("order_index");
 
       if (blocksError) {
@@ -170,7 +172,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
       let currentBlocks = blocksData || [];
       if (currentBlocks.length === 0) {
         const defaultBlocks = [
-          { name: "A fazer", color: "#94a3b8", order_index: 0, user_id: effectiveUserId, contact_id: userId },
+          { name: "A fazer", color: "#94a3b8", order_index: 0, user_id: effectiveUserId, contact_id: userId, entity_id: entityId },
           { name: "Em progresso", color: "#3b82f6", order_index: 1, user_id: effectiveUserId, contact_id: userId },
           { name: "Concluído", color: "#22c55e", order_index: 2, user_id: effectiveUserId, contact_id: userId },
         ];
@@ -193,6 +195,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
         .select("*")
         .eq("user_id", effectiveUserId)
         .eq("contact_id", userId)
+        .filter("entity_id", "eq", entityId)
         .eq("archived", false)
         .order("task_order");
 
@@ -288,6 +291,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
         id: t.id,
         title: t.title, // Required field
         user_id: effectiveUserId, // Required field
+        entity_id: entityId,
         block_id: t.block_id,
         task_order: t.task_order,
         updated_at: new Date().toISOString()
@@ -323,7 +327,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
       const { error } = await supabase
         .from("tasks")
         .update({ archived: true, archived_at: new Date().toISOString() } as any)
-        .eq("id", pendingTaskDelete.id);
+        .eq("id", pendingTaskDelete.id).filter("entity_id", "eq", entityId);
       if (error) throw error;
       setTasks(tasks.filter(t => t.id !== pendingTaskDelete.id));
       toast.success("Tarefa guardada no histórico");
@@ -365,7 +369,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
     }
 
     try {
-      const { error } = await supabase.from("task_blocks").delete().eq("id", pendingDelete.id);
+      const { error } = await supabase.from("task_blocks").delete().eq("id", pendingDelete.id).filter("entity_id", "eq", entityId);
       if (error) throw error;
       setBlocks(blocks.filter(b => b.id !== pendingDelete.id));
       toast.success("Bloco removido");
@@ -384,7 +388,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey }: Kanba
       const { error } = await supabase
         .from("tasks")
         .update({ checklist: checklist as any, updated_at: new Date().toISOString() })
-        .eq("id", taskId);
+        .eq("id", taskId).filter("entity_id", "eq", entityId);
       if (error) throw error;
     } catch (error) {
       console.error("Error updating checklist:", error);
