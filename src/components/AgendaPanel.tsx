@@ -75,7 +75,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
   const fetchEvents = useCallback(async () => {
     if (!user) return;
     
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('agenda_events')
       .select('*')
       .eq('user_id', user.id)
@@ -174,7 +174,7 @@ export function AgendaPanel({ teamContext, entityId }: AgendaPanelProps) {
     };
 
     if (editingEvent) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('agenda_events')
         .update(eventData)
         .eq('id', editingEvent.id)
