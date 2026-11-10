@@ -143,7 +143,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
 
   useEffect(() => {
     fetchSavedMaps();
-  }, [user]);
+  }, [user, scopedEntityId]);
 
   const fetchSavedMaps = async () => {
     if (!user) return;
@@ -452,7 +452,7 @@ export const MindMapCreatorPanel = ({ entityId }: { entityId?: string } = {}) =>
         autosaveTimerRef.current = null;
       }
     };
-  }, [nodes, currentTheme, currentMapId, mapName, user]);
+  }, [nodes, currentTheme, currentMapId, mapName, user, scopedEntityId]);
 
   const saveMap = async () => {
     if (!user) {
