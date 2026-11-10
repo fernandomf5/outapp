@@ -342,7 +342,7 @@ export const KanbanBoard = ({ userId, userName, teamContext, refreshKey, entityI
     if (!pendingTaskDelete) return;
     try {
       setTaskDeleteLoading(true);
-      const { error } = await (supabase as any).from("tasks").delete().eq("id", pendingTaskDelete.id);
+      const { error } = await (supabase as any).from("tasks").delete().eq("id", pendingTaskDelete.id).filter("entity_id", "eq", entityId);
       if (error) throw error;
       setTasks(tasks.filter(t => t.id !== pendingTaskDelete.id));
       toast.success("Tarefa excluída definitivamente");
