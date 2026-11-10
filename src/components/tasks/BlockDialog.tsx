@@ -127,7 +127,7 @@ export const BlockDialog = ({
             logo_url: formData.logo_url,
             user_id: effectiveUserId,
             entity_id: entityId,
-            contact_id: userId,
+            contact_id: userId || null,
             order_index: nextOrder
           } as any);
         
