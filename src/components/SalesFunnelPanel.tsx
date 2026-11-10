@@ -385,7 +385,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
       }));
 
       for (const update of updates) {
-        await supabase
+        await (supabase as any)
           .from('funnel_stages')
           .update({ order_index: update.order_index })
           .eq('id', update.id).filter("entity_id", "eq", scopedEntityId);
@@ -415,7 +415,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
   const loadFunnels = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('sales_funnels')
         .select('*')
         .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
@@ -437,7 +437,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
   const loadStages = async (funnelId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('funnel_stages')
         .select('*')
         .eq('funnel_id', funnelId)
@@ -452,7 +452,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
   const loadLeads = async (funnelId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('funnel_leads')
         .select('*')
         .eq('funnel_id', funnelId)
@@ -472,12 +472,12 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     
     try {
       const [customersRes, categoriesRes] = await Promise.all([
-        supabase
+        (supabase as any)
           .from('customers')
           .select('id, name, email, phone, company, category_id')
           .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name'),
-        supabase
+        (supabase as any)
           .from('customer_categories')
           .select('id, name, color')
           .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
@@ -575,7 +575,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
       let importedCount = 0;
 
       for (const customer of customersToImport) {
-        const { data: newLead, error } = await supabase
+        const { data: newLead, error } = await (supabase as any)
           .from('funnel_leads')
           .insert({
             funnel_id: selectedFunnel.id,
@@ -591,7 +591,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           .single();
 
         if (!error && newLead) {
-          await supabase
+          await (supabase as any)
             .from('funnel_lead_history')
             .insert({
               lead_id: newLead.id,
@@ -639,7 +639,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
       let importedCount = 0;
 
       for (const customer of categoryCustomers) {
-        const { data: newLead, error } = await supabase
+        const { data: newLead, error } = await (supabase as any)
           .from('funnel_leads')
           .insert({
             funnel_id: selectedFunnel.id,
@@ -655,7 +655,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           .single();
 
         if (!error && newLead) {
-          await supabase
+          await (supabase as any)
             .from('funnel_lead_history')
             .insert({
               lead_id: newLead.id,
@@ -685,12 +685,12 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     setLoadingContacts(true);
     try {
       const [contactsRes, categoriesRes] = await Promise.all([
-        supabase
+        (supabase as any)
           .from('contacts')
           .select('id, name, email, phone, company, registration_category_id')
           .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name'),
-        supabase
+        (supabase as any)
           .from('registration_categories')
           .select('id, name, color')
           .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
@@ -759,7 +759,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     }
     let importedCount = 0;
     for (const c of toImport) {
-      const { data: newLead, error } = await supabase
+      const { data: newLead, error } = await (supabase as any)
         .from('funnel_leads')
         .insert({
           funnel_id: selectedFunnel.id,
@@ -836,7 +836,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
   const loadLeadHistory = async (leadId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('funnel_lead_history')
         .select('*')
         .eq('lead_id', leadId)
@@ -858,7 +858,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
     try {
       if (editingFunnel) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('sales_funnels')
           .update({
             name: funnelName,
@@ -870,7 +870,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         if (error) throw error;
         toast.success('Funil atualizado!');
       } else {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('sales_funnels')
           .insert({
             user_id: user?.id, entity_id: scopedEntityId,
@@ -892,7 +892,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           { name: 'Fechamento', color: '#22c55e', order_index: 4 },
         ];
 
-        await supabase
+        await (supabase as any)
           .from('funnel_stages')
           .insert(defaultStages.map(s => ({ ...s, funnel_id: data.id })));
 
@@ -913,7 +913,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     if (!confirm('Excluir este funil e todos os dados associados?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('sales_funnels')
         .delete()
         .eq('id', id).filter("entity_id", "eq", scopedEntityId);
@@ -949,7 +949,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
     try {
       if (editingStage) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('funnel_stages')
           .update({
             name: stageName,
@@ -961,7 +961,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         toast.success('Etapa atualizada!');
       } else {
         const maxOrder = Math.max(...stages.map(s => s.order_index), -1);
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('funnel_stages')
           .insert({
             funnel_id: selectedFunnel.id,
@@ -993,7 +993,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     if (!confirm('Excluir esta etapa?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('funnel_stages')
         .delete()
         .eq('id', id).filter("entity_id", "eq", scopedEntityId);
@@ -1043,7 +1043,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
       };
 
       if (editingLead) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('funnel_leads')
           .update(leadData)
           .eq('id', editingLead.id).filter("entity_id", "eq", scopedEntityId);
@@ -1051,7 +1051,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         if (error) throw error;
         toast.success('Lead atualizado!');
       } else {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('funnel_leads')
           .insert(leadData)
           .select()
@@ -1060,7 +1060,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         if (error) throw error;
 
         // Create initial history
-        await supabase
+        await (supabase as any)
           .from('funnel_lead_history')
           .insert({
             lead_id: data.id,
@@ -1084,7 +1084,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     if (!confirm('Excluir este lead?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('funnel_leads')
         .delete()
         .eq('id', id).filter("entity_id", "eq", scopedEntityId);
@@ -1138,7 +1138,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     ));
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('funnel_leads')
         .update({ stage_id: newStageId })
         .eq('id', leadId).filter("entity_id", "eq", scopedEntityId);
@@ -1146,7 +1146,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
       if (error) throw error;
 
       // Record history
-      await supabase
+      await (supabase as any)
         .from('funnel_lead_history')
         .insert({
           lead_id: leadId,
@@ -1275,7 +1275,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
             let addedCount = 0;
             for (const lead of extractedLeads) {
               if (lead.name || lead.phone || lead.email) {
-                const { data: newLead, error: insertError } = await supabase
+                const { data: newLead, error: insertError } = await (supabase as any)
                   .from('funnel_leads')
                   .insert({
                     funnel_id: selectedFunnel.id,
@@ -1290,7 +1290,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
                   .single();
 
                 if (!insertError && newLead) {
-                  await supabase
+                  await (supabase as any)
                     .from('funnel_lead_history')
                     .insert({
                       lead_id: newLead.id,
