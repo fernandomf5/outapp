@@ -96,6 +96,7 @@ export function BriefingResponsesPanel({ entityId }: { entityId?: string } = {})
         .from('briefing_responses')
         .select('*')
         .in('briefing_id', briefingsData.map(b => b.id))
+        .filter('entity_id', 'eq', scopedEntityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -178,7 +179,8 @@ export function BriefingResponsesPanel({ entityId }: { entityId?: string } = {})
       const { error } = await (supabase as any)
         .from('briefing_responses')
         .delete()
-        .eq('id', deleteResponseId);
+        .eq('id', deleteResponseId)
+        .filter('entity_id', 'eq', scopedEntityId);
 
       if (error) throw error;
 
