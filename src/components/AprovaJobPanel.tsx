@@ -114,7 +114,7 @@ export const AprovaJobPanel = ({ entityId }: { entityId?: string } = {}) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, scopedEntityId]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -175,6 +175,7 @@ export const AprovaJobPanel = ({ entityId }: { entityId?: string } = {}) => {
       .from('aprova_job_comments')
       .select('*')
       .eq('job_id', jobId)
+      .filter('entity_id', 'eq', scopedEntityId)
       .order('created_at', { ascending: true });
 
     if (!error && data) {
@@ -198,6 +199,7 @@ export const AprovaJobPanel = ({ entityId }: { entityId?: string } = {}) => {
       .from('contacts')
       .select('name')
       .eq('id', contactId)
+      .filter('entity_id', 'eq', scopedEntityId)
       .maybeSingle();
     if (error || !data?.name) return;
     const suggestedUsername = data.name
@@ -450,6 +452,7 @@ export const AprovaJobPanel = ({ entityId }: { entityId?: string } = {}) => {
       .from('aprova_job_comments')
       .insert({
         job_id: selectedJob.id,
+        entity_id: scopedEntityId,
         is_from_client: false,
         content: newComment.trim()
       });
