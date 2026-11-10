@@ -37,7 +37,7 @@ export const LinkShortener = ({ entityId }: { entityId?: string } = {}) => {
   }, [user]);
 
   const fetchLinks = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("short_links")
       .select("*")
       .eq("user_id", user?.id).filter("entity_id", "eq", scopedEntityId)
@@ -80,7 +80,7 @@ export const LinkShortener = ({ entityId }: { entityId?: string } = {}) => {
     if (customSlug.trim()) {
       finalShortCode = sanitizeSlug(customSlug.trim());
       
-      const { data: existing } = await supabase
+      const { data: existing } = await (supabase as any)
         .from("short_links")
         .select("id")
         .eq("short_code", finalShortCode)
@@ -138,7 +138,7 @@ export const LinkShortener = ({ entityId }: { entityId?: string } = {}) => {
   };
 
   const toggleActive = async (id: string, currentStatus: boolean) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("short_links")
       .update({ is_active: !currentStatus })
       .eq("id", id).filter("entity_id", "eq", scopedEntityId);
