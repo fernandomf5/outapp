@@ -131,7 +131,7 @@ export const ConversationNotificationBell = () => {
 
     // Fetch agent conversations with unread messages
     const { data: agents } = await supabase
-      .from('ai_agents')
+      .from('ai_agents' as any)
       .select('id, name, entity_id')
       .eq('user_id', user.id);
 
@@ -206,7 +206,7 @@ export const ConversationNotificationBell = () => {
 
     // Fetch chatbot conversations with unread messages
     const { data: chatbots } = await supabase
-      .from('chatbots')
+      .from('chatbots' as any)
       .select('id, name, entity_id')
       .eq('user_id', user.id);
 
