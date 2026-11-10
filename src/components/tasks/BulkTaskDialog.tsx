@@ -43,6 +43,7 @@ export const BulkTaskDialog = ({
   blocks,
   userId,
   effectiveUserId,
+  entityId,
   onSuccess,
 }: BulkTaskDialogProps) => {
   const [blockId, setBlockId] = useState<string>("");
