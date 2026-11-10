@@ -37,8 +37,8 @@ export default function ContractPublicView() {
     }
     setAuthorized(true);
     setSignerName(contract.client_name || "");
-    await supabase.from("contracts").update({ views_count: (contract.views_count || 0) + 1 }).eq("id", contract.id);
-    await supabase.from("contract_history").insert({ contract_id: contract.id, event_type: "viewed", description: "Cliente visualizou o contrato" });
+    await (supabase as any).from("contracts").update({ views_count: (contract.views_count || 0) + 1 }).eq("id", contract.id).filter("entity_id", "eq", contract.entity_id);
+    await (supabase as any).from("contract_history").insert({ contract_id: contract.id, entity_id: contract.entity_id, event_type: "viewed", description: "Cliente visualizou o contrato" });
   }
 
   async function sign() {
@@ -50,10 +50,10 @@ export default function ContractPublicView() {
       client_signer_name: signerName,
       client_signed_at: new Date().toISOString(),
       status: "signed_by_client",
-    }).eq("id", contract.id);
+    }).eq("id", contract.id).filter("entity_id", "eq", contract.entity_id);
     setSigning(false);
     if (error) return toast.error(error.message);
-    await supabase.from("contract_history").insert({ contract_id: contract.id, event_type: "client_signed", description: `Cliente assinou (${signerName})` });
+    await (supabase as any).from("contract_history").insert({ contract_id: contract.id, entity_id: contract.entity_id, event_type: "client_signed", description: `Cliente assinou (${signerName})` });
     toast.success("Assinatura registrada!");
     load();
   }
