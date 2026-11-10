@@ -100,7 +100,7 @@ export default function AprovaJobClient() {
   const checkAccess = async () => {
     setLoading(true);
     
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_clients')
       .select('id, name, username, access_token, primary_color, secondary_color, entity_id')
       .eq('access_token', token)
@@ -134,7 +134,7 @@ export default function AprovaJobClient() {
     setLoginLoading(true);
     const passwordHash = await hashPassword(loginForm.password);
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_clients')
       .select('id, name, username, access_token, primary_color, secondary_color, entity_id')
       .eq('access_token', token)
@@ -150,7 +150,7 @@ export default function AprovaJobClient() {
     }
 
     // Update last login
-    await supabase
+    await (supabase as any)
       .from('aprova_job_clients')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', data.id).filter('entity_id', 'eq', data.entity_id);
@@ -171,7 +171,7 @@ export default function AprovaJobClient() {
   };
 
   const fetchJobs = async (clientId: string, entityId: string) => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_jobs')
       .select('*')
       .eq('client_id', clientId)
@@ -184,7 +184,7 @@ export default function AprovaJobClient() {
   };
 
   const fetchJobComments = async (jobId: string, entityId: string) => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('aprova_job_comments')
       .select('*')
       .eq('job_id', jobId)
@@ -205,7 +205,7 @@ export default function AprovaJobClient() {
   const addComment = async () => {
     if (!selectedJob || !newComment.trim() || !client) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_comments')
       .insert({
         job_id: selectedJob.id,
@@ -252,7 +252,7 @@ export default function AprovaJobClient() {
       updateData.rejection_notes = approvalNotes || null;
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_jobs')
       .update(updateData)
       .eq('id', selectedJob.id)
@@ -284,7 +284,7 @@ export default function AprovaJobClient() {
 
     setSubmitting(true);
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('aprova_job_jobs')
       .update({
         status: 'pending',
