@@ -4,7 +4,7 @@ DO $$
 DECLARE
   t text;
   tables text[] := ARRAY[
-    'registration_categories','contacts','tasks','task_blocks','agenda_events',
+    'registration_categories','contacts','briefings','briefing_responses','tasks','task_blocks','agenda_events',
     'routines','routine_items','routine_objectives','routine_completions','routine_templates',
     'ai_agents','chatbots','link_bios','link_bio_links','mind_maps','contracts','contract_history',
     'aprova_job_clients','aprova_job_jobs','aprova_job_notifications','aprova_job_comments',
