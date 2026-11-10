@@ -147,7 +147,7 @@ export const TaskDialog = ({
       
       if (task) {
         // Update
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tasks")
           .update({
             title: formData.title,
