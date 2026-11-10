@@ -282,8 +282,9 @@ function DroppableStageColumn({ stage, leads, children, onAddLead }: {
   );
 }
 
-export default function SalesFunnelPanel() {
+export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {}) {
   const { user } = useAuth();
+  const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [funnels, setFunnels] = useState<SalesFunnel[]>([]);
   const [selectedFunnel, setSelectedFunnel] = useState<SalesFunnel | null>(null);
@@ -387,7 +388,7 @@ export default function SalesFunnelPanel() {
         await supabase
           .from('funnel_stages')
           .update({ order_index: update.order_index })
-          .eq('id', update.id);
+          .eq('id', update.id).filter("entity_id", "eq", scopedEntityId);
       }
 
       toast.success('Ordem das etapas atualizada!');
@@ -417,7 +418,7 @@ export default function SalesFunnelPanel() {
       const { data, error } = await supabase
         .from('sales_funnels')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.id).filter("entity_id", "eq", scopedEntityId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -474,12 +475,12 @@ export default function SalesFunnelPanel() {
         supabase
           .from('customers')
           .select('id, name, email, phone, company, category_id')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name'),
         supabase
           .from('customer_categories')
           .select('id, name, color')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name')
       ]);
 
@@ -687,12 +688,12 @@ export default function SalesFunnelPanel() {
         supabase
           .from('contacts')
           .select('id, name, email, phone, company, registration_category_id')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name'),
         supabase
           .from('registration_categories')
           .select('id, name, color')
-          .eq('user_id', user.id)
+          .eq('user_id', user.id).filter("entity_id", "eq", scopedEntityId)
           .order('name'),
       ]);
       if (contactsRes.error) throw contactsRes.error;
@@ -773,7 +774,7 @@ export default function SalesFunnelPanel() {
         .select()
         .single();
       if (!error && newLead) {
-        await supabase.from('funnel_lead_history').insert({
+        await (supabase as any).from('funnel_lead_history').insert({
           lead_id: newLead.id,
           to_stage_id: targetStageId,
           notes: notesLabel,
@@ -864,7 +865,7 @@ export default function SalesFunnelPanel() {
             description: funnelDescription || null,
             color: funnelColor,
           })
-          .eq('id', editingFunnel.id);
+          .eq('id', editingFunnel.id).filter("entity_id", "eq", scopedEntityId);
 
         if (error) throw error;
         toast.success('Funil atualizado!');
@@ -872,7 +873,7 @@ export default function SalesFunnelPanel() {
         const { data, error } = await supabase
           .from('sales_funnels')
           .insert({
-            user_id: user?.id,
+            user_id: user?.id, entity_id: scopedEntityId,
             name: funnelName,
             description: funnelDescription || null,
             color: funnelColor,
@@ -915,7 +916,7 @@ export default function SalesFunnelPanel() {
       const { error } = await supabase
         .from('sales_funnels')
         .delete()
-        .eq('id', id);
+        .eq('id', id).filter("entity_id", "eq", scopedEntityId);
 
       if (error) throw error;
       
@@ -954,7 +955,7 @@ export default function SalesFunnelPanel() {
             name: stageName,
             color: stageColor,
           })
-          .eq('id', editingStage.id);
+          .eq('id', editingStage.id).filter("entity_id", "eq", scopedEntityId);
 
         if (error) throw error;
         toast.success('Etapa atualizada!');
@@ -995,7 +996,7 @@ export default function SalesFunnelPanel() {
       const { error } = await supabase
         .from('funnel_stages')
         .delete()
-        .eq('id', id);
+        .eq('id', id).filter("entity_id", "eq", scopedEntityId);
 
       if (error) throw error;
       
@@ -1045,7 +1046,7 @@ export default function SalesFunnelPanel() {
         const { error } = await supabase
           .from('funnel_leads')
           .update(leadData)
-          .eq('id', editingLead.id);
+          .eq('id', editingLead.id).filter("entity_id", "eq", scopedEntityId);
 
         if (error) throw error;
         toast.success('Lead atualizado!');
@@ -1086,7 +1087,7 @@ export default function SalesFunnelPanel() {
       const { error } = await supabase
         .from('funnel_leads')
         .delete()
-        .eq('id', id);
+        .eq('id', id).filter("entity_id", "eq", scopedEntityId);
 
       if (error) throw error;
       
@@ -1140,7 +1141,7 @@ export default function SalesFunnelPanel() {
       const { error } = await supabase
         .from('funnel_leads')
         .update({ stage_id: newStageId })
-        .eq('id', leadId);
+        .eq('id', leadId).filter("entity_id", "eq", scopedEntityId);
 
       if (error) throw error;
 
