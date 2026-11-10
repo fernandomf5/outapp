@@ -23,6 +23,8 @@ interface ContactPickerProps {
   label?: string;
   placeholder?: string;
   disabled?: boolean;
+  /** Restrict contacts and categories to the selected Gestão Livre management. */
+  entityId?: string;
 }
 
 const NONE = "__none__";
@@ -37,6 +39,7 @@ export function ContactPicker({
   label = "Atribuir a um cadastro (opcional)",
   placeholder = "Avulso (sem cadastro)",
   disabled,
+  entityId,
 }: ContactPickerProps) {
   const { user } = useAuth();
   const [contacts, setContacts] = useState<ContactOption[]>([]);
@@ -45,24 +48,27 @@ export function ContactPicker({
   useEffect(() => {
     const load = async () => {
       if (!user?.id) return;
-      const [{ data: cats }, { data: cts }] = await Promise.all([
-        supabase
-          .from("registration_categories")
-          .select("id, name")
-          .eq("user_id", user.id)
-          .order("name"),
-        supabase
-          .from("contacts")
-          .select("id, name, company, registration_category_id")
-          .eq("user_id", user.id)
-          .order("name")
-          .limit(1000),
-      ]);
+      let categoriesQuery: any = supabase
+        .from("registration_categories")
+        .select("id, name")
+        .eq("user_id", user.id)
+        .order("name");
+      let contactsQuery: any = supabase
+        .from("contacts")
+        .select("id, name, company, registration_category_id")
+        .eq("user_id", user.id)
+        .order("name")
+        .limit(1000);
+      if (entityId) {
+        categoriesQuery = categoriesQuery.filter("entity_id", "eq", entityId);
+        contactsQuery = contactsQuery.filter("entity_id", "eq", entityId);
+      }
+      const [{ data: cats }, { data: cts }] = await Promise.all([categoriesQuery, contactsQuery]);
       setCategories((cats || []) as CategoryOption[]);
       setContacts((cts || []) as ContactOption[]);
     };
     load();
-  }, [user?.id]);
+  }, [user?.id, entityId]);
 
   const grouped = categories
     .map((cat) => ({
