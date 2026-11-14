@@ -13,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2, ChevronDown, ChevronUp, Users, Folder, FolderOpen, Search, UserPlus, Archive } from 'lucide-react';
+import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, MessageCircle, Camera, Loader2, ChevronDown, ChevronUp, Users, Folder, FolderOpen, Search, UserPlus, Archive } from 'lucide-react';
 import FunnelChart from './FunnelChart';
 import LeadLibraryPanel, { type LeadLibrarySource } from './LeadLibraryPanel';
 
@@ -81,6 +81,21 @@ interface LeadHistory {
   notes: string | null;
   created_at: string;
 }
+
+// Open a conversation without modifying the lead or triggering a Kanban drag.
+const getLeadWhatsAppUrl = (phone: string | null): string | null => {
+  if (!phone) return null;
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('00')) digits = digits.slice(2);
+  if (digits.length === 10 || digits.length === 11) digits = '55' + digits;
+  if (digits.length < 12 || digits.length > 15) return null;
+  return `https://wa.me/${digits}`;
+};
+
+const openLeadWhatsApp = (phone: string | null) => {
+  const url = getLeadWhatsAppUrl(phone);
+  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+};
 
 // Sortable Stage Item Component
 function SortableStageItem({ stage, leadsCount, onEdit, onDelete }: {
@@ -177,8 +192,8 @@ function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView, onArchive }
           <span className="font-medium text-sm line-clamp-1">{lead.name}</span>
         </div>
         <div className="flex gap-1 flex-shrink-0">
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onView(lead); }}>
-            <Eye className="h-3 w-3" />
+          <Button variant="ghost" size="icon" title="Ver detalhes" aria-label={`Ver detalhes de ${lead.name}`} className="h-7 w-7" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onView(lead); }}>
+            <Eye className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onEdit(lead); }}>
             <Pencil className="h-3 w-3" />
@@ -190,6 +205,17 @@ function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView, onArchive }
             <Trash2 className="h-3 w-3" />
           </Button>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mt-3 mb-2">
+        <Button variant="outline" size="sm" className="w-full h-8 text-xs" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onView(lead); }}>
+          <Eye className="w-3.5 h-3.5 mr-1" />
+          Ver detalhes
+        </Button>
+        <Button variant="outline" size="sm" className="w-full h-8 text-xs" disabled={!getLeadWhatsAppUrl(lead.phone)} title={!getLeadWhatsAppUrl(lead.phone) ? 'Cadastre um telefone válido para conversar' : 'Conversar no WhatsApp'} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); openLeadWhatsApp(lead.phone); }}>
+          <MessageCircle className="w-3.5 h-3.5 mr-1" />
+          WhatsApp
+        </Button>
       </div>
 
       {lead.company && (
@@ -1847,7 +1873,11 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex-wrap gap-2">
+            <Button variant="outline" disabled={!getLeadWhatsAppUrl(viewingLead?.phone ?? null)} title={!getLeadWhatsAppUrl(viewingLead?.phone ?? null) ? 'Cadastre um telefone válido para conversar' : 'Conversar no WhatsApp'} onClick={() => openLeadWhatsApp(viewingLead?.phone ?? null)}>
+              <MessageCircle className="w-4 h-4 mr-1" />
+              WhatsApp
+            </Button>
             <Button variant="outline" onClick={() => setShowLeadDetailDialog(false)}>Fechar</Button>
             <Button onClick={() => { setShowLeadDetailDialog(false); if (viewingLead) openEditLead(viewingLead); }}>
               <Edit className="w-4 h-4 mr-1" />
