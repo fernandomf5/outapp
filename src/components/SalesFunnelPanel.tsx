@@ -353,7 +353,66 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
   const [leadPriority, setLeadPriority] = useState<string>('medium');
   const [leadExpectedDate, setLeadExpectedDate] = useState('');
   const [leadTags, setLeadTags] = useState('');
+  const [leadFolder, setLeadFolder] = useState('none');
+  const [leadFolders, setLeadFolders] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadingLeadFolders, setLoadingLeadFolders] = useState(false);
+  const [savingLead, setSavingLead] = useState(false);
   
+  // Folder selection uses the existing independent lead library.
+  const loadLeadFolders = async (leadId?: string) => {
+    if (!user?.id) return;
+    setLoadingLeadFolders(true);
+    setLeadFolder('none');
+    try {
+      const { data: folders, error } = await (supabase as any)
+        .from('lead_library_folders').select('id,name')
+        .eq('user_id', user.id).order('name');
+      if (error) throw error;
+      setLeadFolders(folders || []);
+      if (leadId) {
+        const { data: existing, error: existingError } = await (supabase as any)
+          .from('lead_library_contacts').select('folder_id')
+          .eq('user_id', user.id).eq('source_lead_id', leadId).maybeSingle();
+        if (existingError) throw existingError;
+        if (existing?.folder_id) setLeadFolder(existing.folder_id);
+      }
+    } catch (error) {
+      console.error('Error loading lead folders:', error);
+      toast.error('Não foi possível carregar as pastas de leads');
+    } finally {
+      setLoadingLeadFolders(false);
+    }
+  };
+
+  const saveLeadInFolder = async (leadId: string, lead: {
+    name: string; email: string | null; phone: string | null;
+    company: string | null; notes: string | null; tags: string[] | null;
+  }, stageId: string) => {
+    if (leadFolder === 'none' || !user?.id) return;
+    const { data: previous, error: lookupError } = await (supabase as any)
+      .from('lead_library_contacts').select('id')
+      .eq('user_id', user.id).eq('source_lead_id', leadId).maybeSingle();
+    if (lookupError) throw lookupError;
+    const snapshot = {
+      folder_id: leadFolder,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      company: lead.company,
+      notes: lead.notes,
+      tags: lead.tags,
+      source_funnel_name: selectedFunnel?.name || null,
+      source_stage_name: stages.find(stage => stage.id === stageId)?.name || null,
+      updated_at: new Date().toISOString(),
+    };
+    const result = previous
+      ? await (supabase as any).from('lead_library_contacts')
+          .update(snapshot).eq('id', previous.id).eq('user_id', user.id)
+      : await (supabase as any).from('lead_library_contacts')
+          .insert({ ...snapshot, user_id: user.id, source_lead_id: leadId });
+    if (result.error) throw result.error;
+  };
+
   // Drag state
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
@@ -878,19 +937,19 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
       toast.error('Nome do lead é obrigatório');
       return;
     }
-
     const stageId = editingLead?.stage_id || preAddStageId || stages[0]?.id;
     if (!stageId) {
       toast.error('Crie pelo menos uma etapa primeiro');
       return;
     }
-
+    if (savingLead || loadingLeadFolders) return;
+    setSavingLead(true);
     try {
       const leadData = {
         funnel_id: selectedFunnel.id,
         entity_id: scopedEntityId,
         stage_id: stageId,
-        name: leadName,
+        name: leadName.trim(),
         email: leadEmail || null,
         phone: leadPhone || null,
         company: leadCompany || null,
@@ -898,45 +957,45 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         notes: leadNotes || null,
         priority: leadPriority,
         expected_close_date: leadExpectedDate || null,
-        tags: leadTags ? leadTags.split(',').map(t => t.trim()) : null,
+        tags: leadTags ? leadTags.split(',').map(t => t.trim()).filter(Boolean) : null,
       };
 
+      let savedLeadId: string;
       if (editingLead) {
         const { error } = await (supabase as any)
-          .from('funnel_leads')
-          .update(leadData)
-          .eq('id', editingLead.id).filter("entity_id", "eq", scopedEntityId);
-
+          .from('funnel_leads').update(leadData)
+          .eq('id', editingLead.id).filter('entity_id', 'eq', scopedEntityId);
         if (error) throw error;
-        toast.success('Lead atualizado!');
+        savedLeadId = editingLead.id;
       } else {
         const { data, error } = await (supabase as any)
-          .from('funnel_leads')
-          .insert(leadData)
-          .select()
-          .single();
-
+          .from('funnel_leads').insert(leadData).select().single();
         if (error) throw error;
-
-        // Create initial history
-        await (supabase as any)
-          .from('funnel_lead_history')
-          .insert({
-            lead_id: data.id,
-            entity_id: scopedEntityId,
-            to_stage_id: stageId,
-            notes: 'Lead criado',
-          });
-
-        toast.success('Lead criado!');
+        savedLeadId = data.id;
+        await (supabase as any).from('funnel_lead_history').insert({
+          lead_id: savedLeadId,
+          entity_id: scopedEntityId,
+          to_stage_id: stageId,
+          notes: 'Lead criado',
+        });
       }
 
-      loadLeads(selectedFunnel.id);
+      try {
+        await saveLeadInFolder(savedLeadId, leadData, stageId);
+        toast.success(editingLead ? 'Lead atualizado!' : 'Lead criado!');
+      } catch (folderError) {
+        console.error('Error saving lead to folder:', folderError);
+        toast.warning('Lead salvo no funil, mas não foi possível vinculá-lo à pasta. Edite o lead e tente novamente.');
+      }
+
+      void loadLeads(selectedFunnel.id);
       resetLeadForm();
       setShowLeadDialog(false);
     } catch (error) {
       console.error('Error saving lead:', error);
       toast.error('Erro ao salvar lead');
+    } finally {
+      setSavingLead(false);
     }
   };
 
@@ -969,6 +1028,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     setLeadPriority('medium');
     setLeadExpectedDate('');
     setLeadTags('');
+    setLeadFolder('none');
     setEditingLead(null);
     setPreAddStageId(null);
   };
@@ -1062,12 +1122,14 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
     setLeadPriority(lead.priority);
     setLeadExpectedDate(lead.expected_close_date || '');
     setLeadTags(lead.tags?.join(', ') || '');
+    void loadLeadFolders(lead.id);
     setShowLeadDialog(true);
   };
 
   const openAddLeadToStage = (stageId: string) => {
     resetLeadForm();
     setPreAddStageId(stageId);
+    void loadLeadFolders();
     setShowLeadDialog(true);
   };
 
@@ -1378,7 +1440,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
             )}
             {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
           </Button>
-          <Dialog open={showLeadDialog} onOpenChange={(open) => { setShowLeadDialog(open); if (!open) resetLeadForm(); }}>
+          <Dialog open={showLeadDialog} onOpenChange={(open) => { setShowLeadDialog(open); if (open && !editingLead) void loadLeadFolders(); if (!open) resetLeadForm(); }}>
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="w-4 h-4 mr-1" />
@@ -1436,11 +1498,26 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
                     <Label>Observações</Label>
                     <Textarea value={leadNotes} onChange={(e) => setLeadNotes(e.target.value)} placeholder="Anotações sobre o lead..." />
                   </div>
+                  <div className="col-span-2 space-y-1.5 rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <Label htmlFor="lead-folder">Adicionar ao controle de leads e pastas</Label>
+                    <Select value={leadFolder} onValueChange={setLeadFolder} disabled={loadingLeadFolders}>
+                      <SelectTrigger id="lead-folder">
+                        <SelectValue placeholder={loadingLeadFolders ? 'Carregando pastas...' : 'Selecione uma pasta'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Não adicionar a uma pasta</SelectItem>
+                        {leadFolders.map(folder => (
+                          <SelectItem key={folder.id} value={folder.id}>{folder.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">O lead continuará no Kanban. Para criar pastas, utilize Controle de leads e pastas.</p>
+                  </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => { setShowLeadDialog(false); resetLeadForm(); }}>Cancelar</Button>
-                <Button onClick={handleSaveLead}>{editingLead ? 'Salvar' : 'Criar Lead'}</Button>
+                <Button onClick={handleSaveLead} disabled={savingLead || loadingLeadFolders}>{savingLead ? 'Salvando...' : editingLead ? 'Salvar' : 'Criar Lead'}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
