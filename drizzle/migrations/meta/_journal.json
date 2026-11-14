@@ -169,6 +169,13 @@
       "when": 1794657736744,
       "tag": "0023_tighten_agent_chat_inserts",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794662449137,
+      "tag": "0024_scope_public_inserts_and_pin_queue_functions",
+      "breakpoints": true
     }
   ]
 }
