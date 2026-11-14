@@ -162,6 +162,13 @@
       "when": 1794657643061,
       "tag": "0022_tighten_permissive_rls_and_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794657736744,
+      "tag": "0023_tighten_agent_chat_inserts",
+      "breakpoints": true
     }
   ]
 }
