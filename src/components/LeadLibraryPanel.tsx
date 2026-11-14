@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -64,62 +64,77 @@ export default function LeadLibraryPanel({ source, sourceFunnelName, sourceStage
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Query only the selected folder instead of fetching the entire lead library.
-  // Guard against rejected or stalled requests so the interface never spins forever.
-  const refresh = useCallback(async () => {
-    if (!user?.id) { setLoading(false); return; }
+  const requestId = useRef(0);
+  const currentFolder = useRef(filterFolder);
+  currentFolder.current = filterFolder;
+
+  // A folder change starts one explicit fetch, rather than recreating an effect
+  // every time the selected folder or returned folder list changes.
+  const refresh = useCallback(async (folderId?: string) => {
+    const userId = user?.id;
+    if (!userId) { setLoading(false); return; }
+    const targetFolder = folderId ?? currentFolder.current;
+    const request = ++requestId.current;
     setLoading(true);
     setLoadError(null);
-    try {
-      const withTimeout = async <T,>(promise: PromiseLike<T>): Promise<T> => {
-        let timer: ReturnType<typeof setTimeout> | undefined;
-        try {
-          return await Promise.race([
-            Promise.resolve(promise),
-            new Promise<never>((_, reject) => {
-              timer = setTimeout(() => reject(new Error('Tempo limite excedido ao consultar os leads. Tente novamente.')), 15000);
-            }),
-          ]);
-        } finally {
-          if (timer) clearTimeout(timer);
-        }
-      };
 
-      const folderResult = await withTimeout(db.from('lead_library_folders')
-        .select('id,name').eq('user_id', user.id).order('name'));
-      if (folderResult.error) throw folderResult.error;
-      const availableFolders: FolderRecord[] = folderResult.data || [];
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    try {
+      const foldersResult = await db.from('lead_library_folders')
+        .select('id,name').eq('user_id', userId).order('name')
+        .abortSignal(controller.signal);
+      if (foldersResult.error) throw foldersResult.error;
+      const availableFolders: FolderRecord[] = foldersResult.data || [];
+      if (request !== requestId.current) return;
       setFolders(availableFolders);
 
-      const activeFolder = filterFolder !== 'all' && availableFolders.some(folder => folder.id === filterFolder)
-        ? filterFolder : 'all';
-      if (activeFolder !== filterFolder) setFilterFolder('all');
+      // Do not overwrite the selected folder when another request is in flight.
+      const validFolder = targetFolder === 'all' || availableFolders.some(folder => folder.id === targetFolder);
+      const selected = validFolder ? targetFolder : 'all';
+      if (!validFolder) {
+        currentFolder.current = 'all';
+        setFilterFolder('all');
+      }
 
-      let contactQuery = db.from('lead_library_contacts')
+      let query = db.from('lead_library_contacts')
         .select('id,folder_id,name,email,phone,company,notes,tags,created_at')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(activeFolder === 'all' ? 1000 : 1000);
-      if (activeFolder !== 'all') contactQuery = contactQuery.eq('folder_id', activeFolder);
-      const contactResult = await withTimeout(contactQuery);
-      if (contactResult.error) throw contactResult.error;
-      setContacts(contactResult.data || []);
+        .limit(1000)
+        .abortSignal(controller.signal);
+      if (selected !== 'all') query = query.eq('folder_id', selected);
+      const result = await query;
+      if (result.error) throw result.error;
+      if (request === requestId.current) setContacts(result.data || []);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Não foi possível carregar os leads.';
+      if (request !== requestId.current) return;
+      const message = controller.signal.aborted
+        ? 'A consulta demorou demais. Verifique sua conexão e tente novamente.'
+        : error instanceof Error ? error.message : 'Não foi possível carregar os leads da pasta.';
       setLoadError(message);
       setContacts([]);
       toast.error(message);
     } finally {
-      setLoading(false);
+      clearTimeout(timeout);
+      if (request === requestId.current) setLoading(false);
     }
-  }, [user?.id, filterFolder]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (open || source) void refresh();
+    return () => { requestId.current += 1; };
   }, [open, source?.id, refresh]);
+
   useEffect(() => {
     if (source) { setSelectedFolder(''); setRemoveAfterSaving(false); }
   }, [source?.id]);
+
+  const changeFolder = (id: string) => {
+    currentFolder.current = id;
+    setFilterFolder(id);
+    void refresh(id);
+  };
 
   const createFolder = async () => {
     const name = folderName.trim();
@@ -184,7 +199,7 @@ export default function LeadLibraryPanel({ source, sourceFunnelName, sourceStage
     if (!folder || !window.confirm('Excluir a pasta "' + folder.name + '" e todos os contatos armazenados nela?')) return;
     const { error } = await db.from('lead_library_folders').delete().eq('id', folder.id).eq('user_id', user?.id);
     if (error) toast.error(error.message);
-    else { setFilterFolder('all'); toast.success('Pasta excluída.'); await refresh(); }
+    else { currentFolder.current = 'all'; setFilterFolder('all'); toast.success('Pasta excluída.'); await refresh('all'); }
   };
 
   const shown = contacts.filter(c =>
@@ -246,7 +261,7 @@ export default function LeadLibraryPanel({ source, sourceFunnelName, sourceStage
               <Button onClick={createFolder} disabled={!folderName.trim()}><FolderPlus className="w-4 h-4 mr-2" />Nova pasta</Button>
             </div>
             <div className="flex flex-wrap gap-2 items-center">
-              <Select value={filterFolder} onValueChange={setFilterFolder}>
+              <Select value={filterFolder} onValueChange={changeFolder}>
                 <SelectTrigger className="w-[210px]"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="all">Todas as pastas</SelectItem>{folders.map(folder => <SelectItem key={folder.id} value={folder.id}>{folder.name}</SelectItem>)}</SelectContent>
               </Select>
@@ -258,7 +273,7 @@ export default function LeadLibraryPanel({ source, sourceFunnelName, sourceStage
             </div>
             <p className="text-xs text-muted-foreground">{shown.length} contatos encontrados. Antes de enviar campanhas, verifique a base legal e os pedidos de descadastro (LGPD).</p>
             <div className="border rounded-lg divide-y max-h-[400px] overflow-y-auto">
-              {loading ? <p className="p-5 text-sm" role="status">Carregando leads...</p> : loadError ? <div className="p-5 space-y-2"><p className="text-sm text-destructive">{loadError}</p><Button size="sm" variant="outline" onClick={() => void refresh()}>Tentar novamente</Button></div> : shown.length === 0 ? <p className="p-5 text-sm text-muted-foreground">Nenhum lead salvo. Envie um contato do funil ou crie uma pasta.</p> : shown.map(contact => (
+              {loading ? <div className="flex items-center justify-between gap-3 p-5"><p className="text-sm" role="status">Carregando leads...</p><Button size="sm" variant="ghost" onClick={() => { requestId.current += 1; setLoading(false); setLoadError('Consulta interrompida. Tente novamente.'); }}>Cancelar</Button></div> : loadError ? <div className="p-5 space-y-2"><p className="text-sm text-destructive">{loadError}</p><Button size="sm" variant="outline" onClick={() => void refresh()}>Tentar novamente</Button></div> : shown.length === 0 ? <p className="p-5 text-sm text-muted-foreground">Nenhum lead salvo. Envie um contato do funil ou crie uma pasta.</p> : shown.map(contact => (
                 <div key={contact.id} className="p-3 flex items-center gap-3 justify-between">
                   <div className="min-w-0">
                     <p className="font-medium text-sm">{contact.name}</p>
