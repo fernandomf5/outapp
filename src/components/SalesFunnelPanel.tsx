@@ -146,9 +146,9 @@ function SortableStageItem({ stage, leadsCount, onEdit, onDelete }: {
   );
 }
 
-// Draggable Lead Card Component
-function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView, onArchive }: { 
-  lead: FunnelLead; 
+// Lead cards use a restrained layout and keep drag interactions on the handle only.
+function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView, onArchive }: {
+  lead: FunnelLead;
   stages: FunnelStage[];
   onEdit: (lead: FunnelLead) => void;
   onDelete: (id: string) => void;
@@ -163,92 +163,89 @@ function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView, onArchive }
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     zIndex: isDragging ? 1000 : 1,
-    opacity: isDragging ? 0.8 : 1,
+    opacity: isDragging ? 0.75 : 1,
   } : undefined;
 
-  const priorityColors = {
-    low: 'bg-green-500/20 text-green-600 border-green-500/30',
-    medium: 'bg-yellow-500/20 text-yellow-600 border-yellow-500/30',
-    high: 'bg-red-500/20 text-red-600 border-red-500/30',
+  const priorityLabels: Record<string, string> = { low: 'Baixa', medium: 'Média', high: 'Alta' };
+  const priorityStyles: Record<string, string> = {
+    low: 'bg-muted text-muted-foreground',
+    medium: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+    high: 'bg-red-500/10 text-red-700 dark:text-red-400',
   };
-
-  const priorityLabels = {
-    low: 'Baixa',
-    medium: 'Média',
-    high: 'Alta',
-  };
+  const whatsappUrl = getLeadWhatsAppUrl(lead.phone);
+  const initials = lead.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-card border rounded-lg p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? 'ring-2 ring-primary' : ''}`}
-      {...attributes}
-      {...listeners}
+      className={`group relative rounded-xl border border-border/70 bg-card p-3.5 shadow-sm transition-colors hover:border-primary/30 hover:shadow-md ${isDragging ? 'ring-2 ring-primary/30 shadow-lg' : ''}`}
     >
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2">
-          <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          <span className="font-medium text-sm line-clamp-1">{lead.name}</span>
+      <div className="flex items-start gap-2.5">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-semibold text-primary" aria-hidden="true">
+          {initials}
         </div>
-        <div className="flex gap-1 flex-shrink-0">
-          <Button variant="ghost" size="icon" title="Ver detalhes" aria-label={`Ver detalhes de ${lead.name}`} className="h-7 w-7" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onView(lead); }}>
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onEdit(lead); }}>
-            <Pencil className="h-3 w-3" />
-          </Button>
-          <Button variant="ghost" size="icon" title="Enviar para lista de leads" className="h-6 w-6" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onArchive(lead); }}>
-            <Archive className="h-3 w-3" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(lead.id); }}>
-            <Trash2 className="h-3 w-3" />
-          </Button>
+        <div className="min-w-0 flex-1">
+          <button type="button" onClick={() => onView(lead)} className="block max-w-full truncate text-left text-sm font-semibold text-foreground hover:text-primary" title={lead.name}>
+            {lead.name}
+          </button>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{lead.company || lead.phone || 'Contato sem empresa'}</p>
         </div>
+        <button
+          type="button"
+          className="touch-none cursor-grab rounded-md p-1 text-muted-foreground/70 hover:bg-muted hover:text-foreground active:cursor-grabbing"
+          aria-label={`Arrastar ${lead.name}`}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-3 mb-2">
-        <Button variant="outline" size="sm" className="w-full h-8 text-xs" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onView(lead); }}>
-          <Eye className="w-3.5 h-3.5 mr-1" />
-          Ver detalhes
-        </Button>
-        <Button variant="outline" size="sm" className="w-full h-8 text-xs" disabled={!getLeadWhatsAppUrl(lead.phone)} title={!getLeadWhatsAppUrl(lead.phone) ? 'Cadastre um telefone válido para conversar' : 'Conversar no WhatsApp'} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); openLeadWhatsApp(lead.phone); }}>
-          <MessageCircle className="w-3.5 h-3.5 mr-1" />
-          WhatsApp
-        </Button>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <span className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${priorityStyles[lead.priority] || priorityStyles.medium}`}>
+          {priorityLabels[lead.priority] || 'Média'}
+        </span>
+        {lead.tags?.slice(0, 2).map((tag, index) => (
+          <span key={index} className="max-w-[100px] truncate rounded-md bg-muted/80 px-2 py-0.5 text-[11px] text-muted-foreground" title={tag}>{tag}</span>
+        ))}
+        {(lead.tags?.length || 0) > 2 && <span className="text-[11px] text-muted-foreground">+{lead.tags!.length - 2}</span>}
       </div>
 
-      {lead.company && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-          <Building className="w-3 h-3" />
-          <span className="truncate">{lead.company}</span>
+      <div className="mt-3 flex items-end justify-between gap-2 border-t border-border/60 pt-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Valor da oportunidade</p>
+          <p className="mt-0.5 truncate text-sm font-semibold tabular-nums text-foreground">
+            R$ {(lead.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </p>
         </div>
-      )}
-
-      {lead.value > 0 && (
-        <div className="flex items-center gap-1.5 text-xs font-medium text-primary mb-1">
-          <DollarSign className="w-3 h-3" />
-          <span>R$ {lead.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between mt-2">
-        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${priorityColors[lead.priority]}`}>
-          {priorityLabels[lead.priority]}
-        </Badge>
         {lead.expected_close_date && (
-          <span className="text-[10px] text-muted-foreground">
+          <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground" title="Previsão de fechamento">
+            <Calendar className="h-3 w-3" />
             {format(new Date(lead.expected_close_date), 'dd/MM/yy')}
           </span>
         )}
+      </div>
+
+      <div className="mt-3 flex items-center gap-1.5">
+        <Button variant="outline" size="sm" className="h-8 min-w-0 flex-1 rounded-lg px-2 text-xs font-medium" onClick={() => onView(lead)}>
+          <Eye className="mr-1.5 h-3.5 w-3.5" />Detalhes
+        </Button>
+        <Button variant="outline" size="sm" className="h-8 min-w-0 flex-1 rounded-lg border-primary/20 px-2 text-xs font-medium text-primary hover:bg-primary/5 hover:text-primary" disabled={!whatsappUrl} title={whatsappUrl ? 'Conversar pelo WhatsApp' : 'Cadastre um telefone válido'} onClick={() => openLeadWhatsApp(lead.phone)}>
+          <MessageCircle className="mr-1.5 h-3.5 w-3.5" />WhatsApp
+        </Button>
+      </div>
+      <div className="mt-2 flex justify-end gap-0.5 border-t border-border/50 pt-1.5">
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Editar lead" aria-label={`Editar ${lead.name}`} onClick={() => onEdit(lead)}><Pencil className="h-3.5 w-3.5" /></Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Enviar para lista de leads" aria-label={`Arquivar ${lead.name}`} onClick={() => onArchive(lead)}><Archive className="h-3.5 w-3.5" /></Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="Excluir lead" aria-label={`Excluir ${lead.name}`} onClick={() => onDelete(lead.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
       </div>
     </div>
   );
 }
 
-// Droppable Stage Column Component
-function DroppableStageColumn({ stage, leads, children, onAddLead }: { 
-  stage: FunnelStage; 
+function DroppableStageColumn({ stage, leads, children, onAddLead }: {
+  stage: FunnelStage;
   leads: FunnelLead[];
   children: React.ReactNode;
   onAddLead: () => void;
@@ -261,50 +258,28 @@ function DroppableStageColumn({ stage, leads, children, onAddLead }: {
   const totalValue = leads.reduce((acc, lead) => acc + (lead.value || 0), 0);
 
   return (
-    <div
+    <section
       ref={setNodeRef}
-      className={`flex flex-col min-w-[290px] max-w-[290px] rounded-xl border-2 backdrop-blur-sm shadow-lg transition-all duration-300 ${isOver ? 'scale-[1.02] shadow-2xl ring-2 ring-primary/40' : 'hover:shadow-xl'}`}
-      style={{
-        background: `linear-gradient(180deg, ${stage.color}14 0%, hsl(var(--card)) 60%)`,
-        borderColor: isOver ? stage.color : stage.color + '55',
-      }}
+      aria-label={`Etapa ${stage.name}`}
+      className={`flex min-h-[300px] w-[294px] shrink-0 flex-col overflow-hidden rounded-xl border bg-muted/30 transition-colors ${isOver ? 'border-primary bg-primary/5' : 'border-border/70'}`}
     >
-      <div
-        className="p-3 rounded-t-xl relative overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${stage.color}33, ${stage.color}10)`,
-          borderBottom: `2px solid ${stage.color}55`,
-        }}
-      >
-        <div className="absolute top-0 left-0 right-0 h-1" style={{ background: stage.color }} />
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full ring-2 ring-background shadow" style={{ backgroundColor: stage.color, boxShadow: `0 0 12px ${stage.color}` }} />
-            <span className="font-bold text-sm tracking-tight">{stage.name}</span>
-          </div>
-          <Badge
-            className="text-xs font-bold border-0 text-white shadow"
-            style={{ backgroundColor: stage.color }}
-          >
-            {leads.length}
-          </Badge>
+      <div className="border-b border-border/60 px-3.5 py-3.5">
+        <div className="flex items-center gap-2.5">
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: stage.color }} />
+          <h4 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground" title={stage.name}>{stage.name}</h4>
+          <span className="rounded-md bg-background px-2 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground">{leads.length}</span>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold" style={{ color: stage.color }}>
-            R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </span>
-          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-background/60" onClick={onAddLead}>
-            <Plus className="w-3 h-3 mr-1" />
-            Add
+        <div className="mt-2.5 flex items-center justify-between gap-2">
+          <span className="truncate text-xs font-medium tabular-nums text-muted-foreground">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+          <Button variant="ghost" size="sm" className="h-7 shrink-0 rounded-md px-2 text-xs text-primary hover:bg-primary/10 hover:text-primary" onClick={onAddLead}>
+            <Plus className="mr-1 h-3.5 w-3.5" />Adicionar
           </Button>
         </div>
       </div>
-      <ScrollArea className="flex-1 p-2" style={{ maxHeight: 'calc(100vh - 400px)' }}>
-        <div className="space-y-2">
-          {children}
-        </div>
+      <ScrollArea className="min-h-0 flex-1 px-2.5 py-3" style={{ maxHeight: 'min(65vh, 720px)' }}>
+        <div className="space-y-2.5">{children}</div>
       </ScrollArea>
-    </div>
+    </section>
   );
 }
 
@@ -1396,10 +1371,11 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         onChange={handleImageUpload}
       />
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 border-b border-border/60 pb-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Funil de Vendas</h2>
-          <p className="text-muted-foreground text-sm">Gerencie seus leads e acompanhe a jornada de vendas</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">Organizador de funil e Kanban</p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Funil de vendas</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Acompanhe cada oportunidade do primeiro contato ao fechamento.</p>
             <div className="mt-3"><ResourceAssignmentsButton resourceType="sales_funnel" /></div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -1468,53 +1444,25 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Overview: quiet, consistent metrics */}
       {selectedFunnel && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Total de Leads</p>
-                  <p className="text-2xl font-bold">{totalLeads}</p>
-                </div>
-                <User className="w-8 h-8 text-primary/50" />
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {[
+            { label: 'Leads no funil', value: String(totalLeads), icon: Users },
+            { label: 'Valor em negociação', value: `R$ ${totalValue.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`, icon: DollarSign },
+            { label: 'Etapas do processo', value: String(stages.length), icon: BarChart3 },
+            { label: 'Alta prioridade', value: String(highPriorityLeads), icon: Tag },
+          ].map(metric => (
+            <div key={metric.label} className="flex items-start justify-between gap-2 rounded-xl border border-border/70 bg-card px-4 py-4 shadow-sm">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">{metric.label}</p>
+                <p className="mt-2 truncate text-xl font-semibold tracking-tight tabular-nums text-foreground" title={metric.value}>{metric.value}</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Valor Total</p>
-                  <p className="text-2xl font-bold">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}</p>
-                </div>
-                <DollarSign className="w-8 h-8 text-green-500/50" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <metric.icon className="h-4 w-4" />
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Etapas</p>
-                  <p className="text-2xl font-bold">{stages.length}</p>
-                </div>
-                <ArrowRight className="w-8 h-8 text-blue-500/50" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Alta Prioridade</p>
-                  <p className="text-2xl font-bold">{highPriorityLeads}</p>
-                </div>
-                <Tag className="w-8 h-8 text-red-500/50" />
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          ))}
         </div>
       )}
 
@@ -1663,22 +1611,22 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
       {/* Kanban Board */}
       {selectedFunnel ? (
-        <div className="rounded-2xl border bg-gradient-to-br from-card via-card to-muted/20 p-4 shadow-xl">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-primary to-primary/40" />
-              <h3 className="text-base font-bold tracking-tight">Quadro Kanban</h3>
-              <Badge variant="outline" className="ml-2">{leads.length} leads</Badge>
+        <div className="min-w-0 overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-4 py-3.5">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Quadro de oportunidades</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">Arraste pelo ícone para avançar um lead entre etapas.</p>
             </div>
+            <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">{leads.length} {leads.length === 1 ? 'lead' : 'leads'}</span>
           </div>
-          <div className="overflow-x-auto pb-2">
+          <div className="overflow-x-auto bg-muted/10 p-3 sm:p-4">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
-              <div className="flex gap-4" style={{ minWidth: stages.length * 306 }}>
+              <div className="flex w-max min-w-full items-start gap-3">
                 {stages.map((stage) => {
                   const stageLeads = leads.filter(l => l.stage_id === stage.id);
                   return (
@@ -1700,8 +1648,9 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
                         />
                       ))}
                       {stageLeads.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground text-xs italic">
-                          Arraste leads para cá
+                        <div className="rounded-lg border border-dashed border-border/80 bg-background/50 px-4 py-8 text-center">
+                          <p className="text-xs font-medium text-muted-foreground">Nenhum lead nesta etapa</p>
+                          <button type="button" onClick={() => openAddLeadToStage(stage.id)} className="mt-2 text-xs font-medium text-primary hover:underline">Adicionar lead</button>
                         </div>
                       )}
                     </DroppableStageColumn>
@@ -1710,10 +1659,8 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
               </div>
               <DragOverlay>
                 {activeDragId ? (
-                  <div className="bg-card border-2 border-primary rounded-lg p-3 shadow-2xl opacity-95">
-                    <span className="font-medium text-sm">
-                      {leads.find(l => l.id === activeDragId)?.name}
-                    </span>
+                  <div className="w-[280px] rounded-xl border border-primary/40 bg-card p-3 shadow-lg">
+                    <span className="text-sm font-semibold text-foreground">{leads.find(l => l.id === activeDragId)?.name}</span>
                   </div>
                 ) : null}
               </DragOverlay>
@@ -1721,16 +1668,11 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           </div>
         </div>
       ) : (
-        <Card className="p-12">
-          <div className="text-center">
-            <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum funil selecionado</h3>
-            <p className="text-muted-foreground mb-4">Crie seu primeiro funil de vendas para começar</p>
-            <Button onClick={() => setShowFunnelDialog(true)}>
-              <Plus className="w-4 h-4 mr-1" />
-              Criar Funil
-            </Button>
-          </div>
+        <Card className="p-10 text-center">
+          <BarChart3 className="mx-auto mb-3 h-9 w-9 text-muted-foreground" />
+          <h3 className="text-base font-semibold">Nenhum funil selecionado</h3>
+          <p className="mb-4 mt-1 text-sm text-muted-foreground">Crie seu primeiro funil de vendas para começar.</p>
+          <Button onClick={() => setShowFunnelDialog(true)}><Plus className="mr-1.5 h-4 w-4" />Criar funil</Button>
         </Card>
       )}
 
