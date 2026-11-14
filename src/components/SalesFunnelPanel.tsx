@@ -227,12 +227,25 @@ function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView, onArchive }
         )}
       </div>
 
-      <div className="mt-3 flex items-center gap-1.5">
-        <Button variant="outline" size="sm" className="h-8 min-w-0 flex-1 rounded-lg px-2 text-xs font-medium" onClick={() => onView(lead)}>
-          <Eye className="mr-1.5 h-3.5 w-3.5" />Detalhes
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 w-full rounded-lg border-border bg-muted/60 px-2 text-xs font-semibold text-foreground shadow-none transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+          onClick={() => onView(lead)}
+        >
+          <Eye className="mr-1.5 h-4 w-4 shrink-0" />
+          Ver detalhes
         </Button>
-        <Button variant="outline" size="sm" className="h-8 min-w-0 flex-1 rounded-lg border-primary/20 px-2 text-xs font-medium text-primary hover:bg-primary/5 hover:text-primary" disabled={!whatsappUrl} title={whatsappUrl ? 'Conversar pelo WhatsApp' : 'Cadastre um telefone válido'} onClick={() => openLeadWhatsApp(lead.phone)}>
-          <MessageCircle className="mr-1.5 h-3.5 w-3.5" />WhatsApp
+        <Button
+          size="sm"
+          className="h-9 w-full rounded-lg border border-emerald-700/20 bg-emerald-600 px-2 text-xs font-semibold text-white shadow-sm shadow-emerald-800/10 transition-colors hover:bg-emerald-700 hover:text-white focus-visible:ring-2 focus-visible:ring-emerald-500/40 disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none dark:bg-emerald-600 dark:hover:bg-emerald-500"
+          disabled={!whatsappUrl}
+          title={whatsappUrl ? 'Conversar pelo WhatsApp' : 'Cadastre um telefone válido'}
+          onClick={() => openLeadWhatsApp(lead.phone)}
+        >
+          <MessageCircle className="mr-1.5 h-4 w-4 shrink-0" />
+          WhatsApp
         </Button>
       </div>
       <div className="mt-2 flex justify-end gap-0.5 border-t border-border/50 pt-1.5">
@@ -1816,7 +1829,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
             </div>
           )}
           <DialogFooter className="flex-wrap gap-2">
-            <Button variant="outline" disabled={!getLeadWhatsAppUrl(viewingLead?.phone ?? null)} title={!getLeadWhatsAppUrl(viewingLead?.phone ?? null) ? 'Cadastre um telefone válido para conversar' : 'Conversar no WhatsApp'} onClick={() => openLeadWhatsApp(viewingLead?.phone ?? null)}>
+            <Button className="bg-emerald-600 font-semibold text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:bg-muted disabled:text-muted-foreground" disabled={!getLeadWhatsAppUrl(viewingLead?.phone ?? null)} title={!getLeadWhatsAppUrl(viewingLead?.phone ?? null) ? 'Cadastre um telefone válido para conversar' : 'Conversar no WhatsApp'} onClick={() => openLeadWhatsApp(viewingLead?.phone ?? null)}>
               <MessageCircle className="w-4 h-4 mr-1" />
               WhatsApp
             </Button>
