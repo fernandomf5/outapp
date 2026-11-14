@@ -56,6 +56,7 @@ const MAIN_TOOLS: ToolItem[] = [
 ];
 
 const UTILITY_TOOLS: ToolItem[] = [
+  { id: "funil-vendas", title: "CRM completo", description: "Funil, Kanban e controle de leads", icon: LayoutGrid, color: "green", gate: "sales_funnel" },
   { id: "chat-online", title: "Chat online para seu negócio", description: "Crie e gerencie seu atendimento", icon: MessageCircleMore, color: "cyan", gate: "ai_agent" },
   { id: "linkbio", title: "Link na bio", description: "Uma página para todos os seus links", icon: Link2, color: "purple", gate: "link_bio" },
   { id: "briefing", title: "Criador de briefing", description: "Formulários para seus projetos", icon: ClipboardCheck, color: "pink", gate: "briefing_creator" },
@@ -67,7 +68,6 @@ const UTILITY_TOOLS: ToolItem[] = [
   { id: "shortlinks", title: "Encurtador de links", description: "Links compactos e práticos", icon: Link2, color: "cyan", gate: "link_shortener" },
   { id: "qrcode", title: "Criador de QR Code", description: "Gere códigos personalizados", icon: QrCode, color: "amber", gate: "qrcode_generator" },
   { id: "scripts", title: "Organizador de script", description: "Estruture suas ideias e conteúdos", icon: FilePenLine, color: "cyan", gate: "script_organizer" },
-  { id: "funil-vendas", title: "Organizador de funil e kanban", description: "Etapas, leads e oportunidades", icon: LayoutGrid, color: "pink", gate: "sales_funnel" },
 ];
 
 const ALL_TOOLS = [...MAIN_TOOLS, ...UTILITY_TOOLS];
