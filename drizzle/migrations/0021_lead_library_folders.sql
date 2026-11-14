@@ -1,52 +1,53 @@
--- Lead library independent of the sales funnel lifecycle.
-CREATE TABLE public.lead_library_folders (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  name text NOT NULL CHECK (char_length(btrim(name)) BETWEEN 1 AND 100),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (id, user_id),
-  UNIQUE (user_id, name)
-);
-
-CREATE TABLE public.lead_library_contacts (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  folder_id uuid NOT NULL,
-  source_lead_id uuid REFERENCES public.funnel_leads(id) ON DELETE SET NULL,
-  source_funnel_name text,
-  source_stage_name text,
-  name text NOT NULL,
-  email text,
-  phone text,
-  company text,
-  notes text,
-  tags text[],
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT lead_library_folder_owner_fk FOREIGN KEY (folder_id, user_id)
-    REFERENCES public.lead_library_folders(id, user_id) ON DELETE CASCADE
-);
-
-CREATE UNIQUE INDEX lead_library_source_unique
- ON public.lead_library_contacts(user_id, source_lead_id) WHERE source_lead_id IS NOT NULL;
-CREATE INDEX lead_library_contacts_folder_idx ON public.lead_library_contacts(user_id, folder_id);
-CREATE INDEX lead_library_folders_user_idx ON public.lead_library_folders(user_id);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.lead_library_folders TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.lead_library_contacts TO authenticated;
-GRANT ALL ON public.lead_library_folders, public.lead_library_contacts TO service_role;
-ALTER TABLE public.lead_library_folders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lead_library_contacts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY lead_library_folders_select ON public.lead_library_folders FOR SELECT TO authenticated USING (auth.uid() = user_id);
-CREATE POLICY lead_library_folders_insert ON public.lead_library_folders FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
-CREATE POLICY lead_library_folders_update ON public.lead_library_folders FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY lead_library_folders_delete ON public.lead_library_folders FOR DELETE TO authenticated USING (auth.uid() = user_id);
-CREATE POLICY lead_library_contacts_select ON public.lead_library_contacts FOR SELECT TO authenticated USING (auth.uid() = user_id);
-CREATE POLICY lead_library_contacts_insert ON public.lead_library_contacts FOR INSERT TO authenticated
- WITH CHECK (auth.uid() = user_id AND (source_lead_id IS NULL OR EXISTS (
-   SELECT 1 FROM public.funnel_leads fl JOIN public.sales_funnels sf ON sf.id = fl.funnel_id
-   WHERE fl.id = source_lead_id AND sf.user_id = auth.uid()
- )));
-CREATE POLICY lead_library_contacts_update ON public.lead_library_contacts FOR UPDATE TO authenticated
- USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY lead_library_contacts_delete ON public.lead_library_contacts FOR DELETE TO authenticated USING (auth.uid() = user_id);
+-- -- Lead library independent of the sales funnel lifecycle.
+-- CREATE TABLE public.lead_library_folders (
+--   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+--   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+--   name text NOT NULL CHECK (char_length(btrim(name)) BETWEEN 1 AND 100),
+--   created_at timestamptz NOT NULL DEFAULT now(),
+--   UNIQUE (id, user_id),
+--   UNIQUE (user_id, name)
+-- );
+-- 
+-- CREATE TABLE public.lead_library_contacts (
+--   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+--   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+--   folder_id uuid NOT NULL,
+--   source_lead_id uuid REFERENCES public.funnel_leads(id) ON DELETE SET NULL,
+--   source_funnel_name text,
+--   source_stage_name text,
+--   name text NOT NULL,
+--   email text,
+--   phone text,
+--   company text,
+--   notes text,
+--   tags text[],
+--   created_at timestamptz NOT NULL DEFAULT now(),
+--   updated_at timestamptz NOT NULL DEFAULT now(),
+--   CONSTRAINT lead_library_folder_owner_fk FOREIGN KEY (folder_id, user_id)
+--     REFERENCES public.lead_library_folders(id, user_id) ON DELETE CASCADE
+-- );
+-- 
+-- CREATE UNIQUE INDEX lead_library_source_unique
+--  ON public.lead_library_contacts(user_id, source_lead_id) WHERE source_lead_id IS NOT NULL;
+-- CREATE INDEX lead_library_contacts_folder_idx ON public.lead_library_contacts(user_id, folder_id);
+-- CREATE INDEX lead_library_folders_user_idx ON public.lead_library_folders(user_id);
+-- 
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON public.lead_library_folders TO authenticated;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON public.lead_library_contacts TO authenticated;
+-- GRANT ALL ON public.lead_library_folders, public.lead_library_contacts TO service_role;
+-- ALTER TABLE public.lead_library_folders ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.lead_library_contacts ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY lead_library_folders_select ON public.lead_library_folders FOR SELECT TO authenticated USING (auth.uid() = user_id);
+-- CREATE POLICY lead_library_folders_insert ON public.lead_library_folders FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+-- CREATE POLICY lead_library_folders_update ON public.lead_library_folders FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+-- CREATE POLICY lead_library_folders_delete ON public.lead_library_folders FOR DELETE TO authenticated USING (auth.uid() = user_id);
+-- CREATE POLICY lead_library_contacts_select ON public.lead_library_contacts FOR SELECT TO authenticated USING (auth.uid() = user_id);
+-- CREATE POLICY lead_library_contacts_insert ON public.lead_library_contacts FOR INSERT TO authenticated
+--  WITH CHECK (auth.uid() = user_id AND (source_lead_id IS NULL OR EXISTS (
+--    SELECT 1 FROM public.funnel_leads fl JOIN public.sales_funnels sf ON sf.id = fl.funnel_id
+--    WHERE fl.id = source_lead_id AND sf.user_id = auth.uid()
+--  )));
+-- CREATE POLICY lead_library_contacts_update ON public.lead_library_contacts FOR UPDATE TO authenticated
+--  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+-- CREATE POLICY lead_library_contacts_delete ON public.lead_library_contacts FOR DELETE TO authenticated USING (auth.uid() = user_id);
+SELECT 1; -- already applied directly; statements commented out
