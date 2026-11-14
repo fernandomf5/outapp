@@ -1219,7 +1219,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
       {/* Header: title and controls have their own aligned rows */}
       <div className="space-y-4 border-b border-border/60 pb-5">
         <div className="min-w-0">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">Organizador de funil e Kanban</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">CRM completo</p>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Funil de vendas</h2>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">Acompanhe cada oportunidade do primeiro contato ao fechamento.</p>
         </div>
