@@ -484,6 +484,7 @@ export type Database = {
           created_at: string
           description: string | null
           end_date: string | null
+          entity_id: string | null
           id: string
           reminder_minutes: number | null
           reminder_repeat_minutes: number
@@ -499,6 +500,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          entity_id?: string | null
           id?: string
           reminder_minutes?: number | null
           reminder_repeat_minutes?: number
@@ -514,6 +516,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          entity_id?: string | null
           id?: string
           reminder_minutes?: number | null
           reminder_repeat_minutes?: number
@@ -523,7 +526,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agenda_events_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_access_requests: {
         Row: {
@@ -1396,6 +1407,7 @@ export type Database = {
           config: Json
           created_at: string
           description: string | null
+          entity_id: string | null
           id: string
           is_active: boolean
           name: string
@@ -1413,6 +1425,7 @@ export type Database = {
           config?: Json
           created_at?: string
           description?: string | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -1430,6 +1443,7 @@ export type Database = {
           config?: Json
           created_at?: string
           description?: string | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
@@ -1441,6 +1455,13 @@ export type Database = {
           whatsapp_connection_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ai_agents_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ai_agents_whatsapp_connection_id_fkey"
             columns: ["whatsapp_connection_id"]
@@ -1455,6 +1476,7 @@ export type Database = {
           access_token: string
           contact_id: string | null
           created_at: string | null
+          entity_id: string | null
           id: string
           is_active: boolean | null
           last_login_at: string | null
@@ -1470,6 +1492,7 @@ export type Database = {
           access_token?: string
           contact_id?: string | null
           created_at?: string | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean | null
           last_login_at?: string | null
@@ -1485,6 +1508,7 @@ export type Database = {
           access_token?: string
           contact_id?: string | null
           created_at?: string | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean | null
           last_login_at?: string | null
@@ -1504,6 +1528,13 @@ export type Database = {
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "aprova_job_clients_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
         ]
       }
       aprova_job_comments: {
@@ -1511,6 +1542,7 @@ export type Database = {
           client_id: string | null
           content: string
           created_at: string | null
+          entity_id: string | null
           id: string
           is_from_client: boolean | null
           job_id: string
@@ -1519,6 +1551,7 @@ export type Database = {
           client_id?: string | null
           content: string
           created_at?: string | null
+          entity_id?: string | null
           id?: string
           is_from_client?: boolean | null
           job_id: string
@@ -1527,6 +1560,7 @@ export type Database = {
           client_id?: string | null
           content?: string
           created_at?: string | null
+          entity_id?: string | null
           id?: string
           is_from_client?: boolean | null
           job_id?: string
@@ -1537,6 +1571,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "aprova_job_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprova_job_comments_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
             referencedColumns: ["id"]
           },
           {
@@ -1555,6 +1596,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           due_date: string | null
+          entity_id: string | null
           id: string
           media_urls: Json | null
           rejection_notes: string | null
@@ -1570,6 +1612,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           due_date?: string | null
+          entity_id?: string | null
           id?: string
           media_urls?: Json | null
           rejection_notes?: string | null
@@ -1585,6 +1628,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           due_date?: string | null
+          entity_id?: string | null
           id?: string
           media_urls?: Json | null
           rejection_notes?: string | null
@@ -1602,12 +1646,20 @@ export type Database = {
             referencedRelation: "aprova_job_clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "aprova_job_jobs_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
         ]
       }
       aprova_job_notifications: {
         Row: {
           client_id: string | null
           created_at: string | null
+          entity_id: string | null
           id: string
           is_read: boolean | null
           job_id: string | null
@@ -1618,6 +1670,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           created_at?: string | null
+          entity_id?: string | null
           id?: string
           is_read?: boolean | null
           job_id?: string | null
@@ -1628,6 +1681,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           created_at?: string | null
+          entity_id?: string | null
           id?: string
           is_read?: boolean | null
           job_id?: string | null
@@ -1641,6 +1695,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "aprova_job_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprova_job_notifications_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
             referencedColumns: ["id"]
           },
           {
@@ -1710,6 +1771,7 @@ export type Database = {
         Row: {
           briefing_id: string
           created_at: string
+          entity_id: string | null
           id: string
           responses: Json
           visitor_company: string | null
@@ -1720,6 +1782,7 @@ export type Database = {
         Insert: {
           briefing_id: string
           created_at?: string
+          entity_id?: string | null
           id?: string
           responses?: Json
           visitor_company?: string | null
@@ -1730,6 +1793,7 @@ export type Database = {
         Update: {
           briefing_id?: string
           created_at?: string
+          entity_id?: string | null
           id?: string
           responses?: Json
           visitor_company?: string | null
@@ -1745,6 +1809,13 @@ export type Database = {
             referencedRelation: "briefings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "briefing_responses_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
         ]
       }
       briefings: {
@@ -1755,6 +1826,7 @@ export type Database = {
           description: string | null
           destination_email: string | null
           destination_whatsapp: string | null
+          entity_id: string | null
           field_background_color: string | null
           fields: Json
           id: string
@@ -1779,6 +1851,7 @@ export type Database = {
           description?: string | null
           destination_email?: string | null
           destination_whatsapp?: string | null
+          entity_id?: string | null
           field_background_color?: string | null
           fields?: Json
           id?: string
@@ -1803,6 +1876,7 @@ export type Database = {
           description?: string | null
           destination_email?: string | null
           destination_whatsapp?: string | null
+          entity_id?: string | null
           field_background_color?: string | null
           fields?: Json
           id?: string
@@ -1820,7 +1894,15 @@ export type Database = {
           use_steps?: boolean | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "briefings_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       builder_pages: {
         Row: {
@@ -3059,6 +3141,7 @@ export type Database = {
           description: string | null
           enable_auto_reply: boolean | null
           enable_queue: boolean | null
+          entity_id: string | null
           id: string
           is_active: boolean
           name: string
@@ -3074,6 +3157,7 @@ export type Database = {
           description?: string | null
           enable_auto_reply?: boolean | null
           enable_queue?: boolean | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -3089,6 +3173,7 @@ export type Database = {
           description?: string | null
           enable_auto_reply?: boolean | null
           enable_queue?: boolean | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
@@ -3097,6 +3182,13 @@ export type Database = {
           whatsapp_connection_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chatbots_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chatbots_whatsapp_connection_id_fkey"
             columns: ["whatsapp_connection_id"]
@@ -4204,6 +4296,7 @@ export type Database = {
           custom_fields: Json
           document: string | null
           email: string | null
+          entity_id: string | null
           id: string
           last_contact_at: string | null
           market_area: string | null
@@ -4230,6 +4323,7 @@ export type Database = {
           custom_fields?: Json
           document?: string | null
           email?: string | null
+          entity_id?: string | null
           id?: string
           last_contact_at?: string | null
           market_area?: string | null
@@ -4256,6 +4350,7 @@ export type Database = {
           custom_fields?: Json
           document?: string | null
           email?: string | null
+          entity_id?: string | null
           id?: string
           last_contact_at?: string | null
           market_area?: string | null
@@ -4281,6 +4376,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contacts_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contacts_registration_category_id_fkey"
             columns: ["registration_category_id"]
             isOneToOne: false
@@ -4294,6 +4396,7 @@ export type Database = {
           contract_id: string
           created_at: string
           description: string | null
+          entity_id: string | null
           event_type: string
           id: string
           metadata: Json | null
@@ -4302,6 +4405,7 @@ export type Database = {
           contract_id: string
           created_at?: string
           description?: string | null
+          entity_id?: string | null
           event_type: string
           id?: string
           metadata?: Json | null
@@ -4310,6 +4414,7 @@ export type Database = {
           contract_id?: string
           created_at?: string
           description?: string | null
+          entity_id?: string | null
           event_type?: string
           id?: string
           metadata?: Json | null
@@ -4320,6 +4425,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_history_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -4343,6 +4455,7 @@ export type Database = {
           company_signer_name: string | null
           content: string
           created_at: string
+          entity_id: string | null
           id: string
           public_slug: string
           sent_at: string | null
@@ -4370,6 +4483,7 @@ export type Database = {
           company_signer_name?: string | null
           content?: string
           created_at?: string
+          entity_id?: string | null
           id?: string
           public_slug?: string
           sent_at?: string | null
@@ -4397,6 +4511,7 @@ export type Database = {
           company_signer_name?: string | null
           content?: string
           created_at?: string
+          entity_id?: string | null
           id?: string
           public_slug?: string
           sent_at?: string | null
@@ -4406,7 +4521,15 @@ export type Database = {
           user_id?: string
           views_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contracts_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversion_events: {
         Row: {
@@ -4770,6 +4893,7 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          entity_id: string | null
           id: string
           name: string
           updated_at: string
@@ -4778,6 +4902,7 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
+          entity_id?: string | null
           id?: string
           name: string
           updated_at?: string
@@ -4786,12 +4911,21 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
+          entity_id?: string | null
           id?: string
           name?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customer_categories_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customer_contracts: {
         Row: {
@@ -5096,6 +5230,7 @@ export type Database = {
           created_at: string
           document: string | null
           email: string | null
+          entity_id: string | null
           id: string
           last_contact_at: string | null
           name: string
@@ -5121,6 +5256,7 @@ export type Database = {
           created_at?: string
           document?: string | null
           email?: string | null
+          entity_id?: string | null
           id?: string
           last_contact_at?: string | null
           name: string
@@ -5146,6 +5282,7 @@ export type Database = {
           created_at?: string
           document?: string | null
           email?: string | null
+          entity_id?: string | null
           id?: string
           last_contact_at?: string | null
           name?: string
@@ -5174,6 +5311,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "customer_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
             referencedColumns: ["id"]
           },
           {
@@ -5912,6 +6056,7 @@ export type Database = {
           created_at: string
           dialog_subtitle: string | null
           dialog_title: string | null
+          entity_id: string | null
           generated_code: string | null
           id: string
           main_button_color: string
@@ -5929,6 +6074,7 @@ export type Database = {
           created_at?: string
           dialog_subtitle?: string | null
           dialog_title?: string | null
+          entity_id?: string | null
           generated_code?: string | null
           id?: string
           main_button_color?: string
@@ -5946,6 +6092,7 @@ export type Database = {
           created_at?: string
           dialog_subtitle?: string | null
           dialog_title?: string | null
+          entity_id?: string | null
           generated_code?: string | null
           id?: string
           main_button_color?: string
@@ -5958,11 +6105,20 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "floating_buttons_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       funnel_lead_history: {
         Row: {
           created_at: string
+          entity_id: string | null
           from_stage_id: string | null
           id: string
           lead_id: string
@@ -5971,6 +6127,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          entity_id?: string | null
           from_stage_id?: string | null
           id?: string
           lead_id: string
@@ -5979,6 +6136,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          entity_id?: string | null
           from_stage_id?: string | null
           id?: string
           lead_id?: string
@@ -5986,6 +6144,13 @@ export type Database = {
           to_stage_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "funnel_lead_history_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "funnel_lead_history_from_stage_id_fkey"
             columns: ["from_stage_id"]
@@ -6014,6 +6179,7 @@ export type Database = {
           company: string | null
           created_at: string
           email: string | null
+          entity_id: string | null
           expected_close_date: string | null
           funnel_id: string
           id: string
@@ -6030,6 +6196,7 @@ export type Database = {
           company?: string | null
           created_at?: string
           email?: string | null
+          entity_id?: string | null
           expected_close_date?: string | null
           funnel_id: string
           id?: string
@@ -6046,6 +6213,7 @@ export type Database = {
           company?: string | null
           created_at?: string
           email?: string | null
+          entity_id?: string | null
           expected_close_date?: string | null
           funnel_id?: string
           id?: string
@@ -6059,6 +6227,13 @@ export type Database = {
           value?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "funnel_leads_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "funnel_leads_funnel_id_fkey"
             columns: ["funnel_id"]
@@ -6079,6 +6254,7 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string
+          entity_id: string | null
           funnel_id: string
           id: string
           name: string
@@ -6088,6 +6264,7 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string
+          entity_id?: string | null
           funnel_id: string
           id?: string
           name: string
@@ -6097,6 +6274,7 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string
+          entity_id?: string | null
           funnel_id?: string
           id?: string
           name?: string
@@ -6104,6 +6282,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "funnel_stages_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "funnel_stages_funnel_id_fkey"
             columns: ["funnel_id"]
@@ -6434,6 +6619,93 @@ export type Database = {
           },
         ]
       }
+      lead_library_contacts: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          folder_id: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          source_funnel_name: string | null
+          source_lead_id: string | null
+          source_stage_name: string | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          folder_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          source_funnel_name?: string | null
+          source_lead_id?: string | null
+          source_stage_name?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          folder_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          source_funnel_name?: string | null
+          source_lead_id?: string | null
+          source_stage_name?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_library_contacts_source_lead_id_fkey"
+            columns: ["source_lead_id"]
+            isOneToOne: false
+            referencedRelation: "funnel_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_library_folder_owner_fk"
+            columns: ["folder_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "lead_library_folders"
+            referencedColumns: ["id", "user_id"]
+          },
+        ]
+      }
+      lead_library_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       link_bio_clicks: {
         Row: {
           bio_id: string | null
@@ -6490,6 +6762,7 @@ export type Database = {
           bio_id: string
           clicks: number | null
           created_at: string
+          entity_id: string | null
           icon: string | null
           id: string
           image_url: string | null
@@ -6503,6 +6776,7 @@ export type Database = {
           bio_id: string
           clicks?: number | null
           created_at?: string
+          entity_id?: string | null
           icon?: string | null
           id?: string
           image_url?: string | null
@@ -6516,6 +6790,7 @@ export type Database = {
           bio_id?: string
           clicks?: number | null
           created_at?: string
+          entity_id?: string | null
           icon?: string | null
           id?: string
           image_url?: string | null
@@ -6531,6 +6806,13 @@ export type Database = {
             columns: ["bio_id"]
             isOneToOne: false
             referencedRelation: "link_bios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "link_bio_links_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -6556,6 +6838,7 @@ export type Database = {
           custom_domain: string | null
           custom_slug: string | null
           display_name: string | null
+          entity_id: string | null
           gradient_color1: string | null
           gradient_color2: string | null
           hover_animation: string | null
@@ -6591,6 +6874,7 @@ export type Database = {
           custom_domain?: string | null
           custom_slug?: string | null
           display_name?: string | null
+          entity_id?: string | null
           gradient_color1?: string | null
           gradient_color2?: string | null
           hover_animation?: string | null
@@ -6626,6 +6910,7 @@ export type Database = {
           custom_domain?: string | null
           custom_slug?: string | null
           display_name?: string | null
+          entity_id?: string | null
           gradient_color1?: string | null
           gradient_color2?: string | null
           hover_animation?: string | null
@@ -6641,7 +6926,15 @@ export type Database = {
           user_id?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "link_bios_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       manual_dispatcher_lists: {
         Row: {
@@ -7841,6 +8134,7 @@ export type Database = {
           created_at: string
           description: string | null
           edges: Json
+          entity_id: string | null
           id: string
           name: string
           nodes: Json
@@ -7852,6 +8146,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           edges?: Json
+          entity_id?: string | null
           id?: string
           name: string
           nodes?: Json
@@ -7863,6 +8158,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           edges?: Json
+          entity_id?: string | null
           id?: string
           name?: string
           nodes?: Json
@@ -7870,7 +8166,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mind_maps_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organization_table_cells: {
         Row: {
@@ -8969,6 +9273,7 @@ export type Database = {
           color: string | null
           created_at: string
           custom_schema: Json
+          entity_id: string | null
           entity_kind: string
           icon: string | null
           id: string
@@ -8985,6 +9290,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           custom_schema?: Json
+          entity_id?: string | null
           entity_kind?: string
           icon?: string | null
           id?: string
@@ -9001,6 +9307,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           custom_schema?: Json
+          entity_id?: string | null
           entity_kind?: string
           icon?: string | null
           id?: string
@@ -9013,12 +9320,21 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "registration_categories_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       routine_completions: {
         Row: {
           completed_at: string
           completion_date: string
+          entity_id: string | null
           id: string
           objective_id: string | null
           routine_item_id: string | null
@@ -9027,6 +9343,7 @@ export type Database = {
         Insert: {
           completed_at?: string
           completion_date: string
+          entity_id?: string | null
           id?: string
           objective_id?: string | null
           routine_item_id?: string | null
@@ -9035,12 +9352,20 @@ export type Database = {
         Update: {
           completed_at?: string
           completion_date?: string
+          entity_id?: string | null
           id?: string
           objective_id?: string | null
           routine_item_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "routine_completions_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "routine_completions_objective_id_fkey"
             columns: ["objective_id"]
@@ -9065,6 +9390,7 @@ export type Database = {
           day_of_week: number
           description: string | null
           end_time: string | null
+          entity_id: string | null
           id: string
           is_completed: boolean | null
           is_recurring: boolean | null
@@ -9083,6 +9409,7 @@ export type Database = {
           day_of_week: number
           description?: string | null
           end_time?: string | null
+          entity_id?: string | null
           id?: string
           is_completed?: boolean | null
           is_recurring?: boolean | null
@@ -9101,6 +9428,7 @@ export type Database = {
           day_of_week?: number
           description?: string | null
           end_time?: string | null
+          entity_id?: string | null
           id?: string
           is_completed?: boolean | null
           is_recurring?: boolean | null
@@ -9113,6 +9441,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "routine_items_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "routine_items_routine_id_fkey"
             columns: ["routine_id"]
@@ -9130,6 +9465,7 @@ export type Database = {
           current_value: number | null
           day_of_week: number | null
           description: string | null
+          entity_id: string | null
           id: string
           is_completed: boolean | null
           objective_type: string
@@ -9147,6 +9483,7 @@ export type Database = {
           current_value?: number | null
           day_of_week?: number | null
           description?: string | null
+          entity_id?: string | null
           id?: string
           is_completed?: boolean | null
           objective_type?: string
@@ -9164,6 +9501,7 @@ export type Database = {
           current_value?: number | null
           day_of_week?: number | null
           description?: string | null
+          entity_id?: string | null
           id?: string
           is_completed?: boolean | null
           objective_type?: string
@@ -9176,6 +9514,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "routine_objectives_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "routine_objectives_routine_id_fkey"
             columns: ["routine_id"]
             isOneToOne: false
@@ -9187,6 +9532,7 @@ export type Database = {
       routine_templates: {
         Row: {
           created_at: string
+          entity_id: string | null
           id: string
           items: Json
           name: string
@@ -9195,6 +9541,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          entity_id?: string | null
           id?: string
           items?: Json
           name: string
@@ -9203,17 +9550,27 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          entity_id?: string | null
           id?: string
           items?: Json
           name?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "routine_templates_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       routines: {
         Row: {
           created_at: string
+          entity_id: string | null
           id: string
           is_active: boolean
           name: string
@@ -9222,6 +9579,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          entity_id?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -9230,19 +9588,29 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          entity_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "routines_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales_funnels: {
         Row: {
           color: string | null
           created_at: string
           description: string | null
+          entity_id: string | null
           id: string
           is_active: boolean | null
           name: string
@@ -9253,6 +9621,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean | null
           name: string
@@ -9263,13 +9632,22 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sales_funnels_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_calculations: {
         Row: {
@@ -9307,6 +9685,7 @@ export type Database = {
           content: string
           corner_radius: number | null
           created_at: string
+          entity_id: string | null
           fg_color: string | null
           id: string
           logo_size: number | null
@@ -9329,6 +9708,7 @@ export type Database = {
           content: string
           corner_radius?: number | null
           created_at?: string
+          entity_id?: string | null
           fg_color?: string | null
           id?: string
           logo_size?: number | null
@@ -9351,6 +9731,7 @@ export type Database = {
           content?: string
           corner_radius?: number | null
           created_at?: string
+          entity_id?: string | null
           fg_color?: string | null
           id?: string
           logo_size?: number | null
@@ -9365,7 +9746,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "saved_qr_codes_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_receipts: {
         Row: {
@@ -9418,6 +9807,7 @@ export type Database = {
           category_id: string | null
           content: string
           created_at: string | null
+          entity_id: string | null
           id: string
           is_favorite: boolean | null
           platform: string | null
@@ -9436,6 +9826,7 @@ export type Database = {
           category_id?: string | null
           content?: string
           created_at?: string | null
+          entity_id?: string | null
           id?: string
           is_favorite?: boolean | null
           platform?: string | null
@@ -9454,6 +9845,7 @@ export type Database = {
           category_id?: string | null
           content?: string
           created_at?: string | null
+          entity_id?: string | null
           id?: string
           is_favorite?: boolean | null
           platform?: string | null
@@ -9488,6 +9880,13 @@ export type Database = {
             referencedRelation: "script_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "saved_scripts_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
         ]
       }
       script_categories: {
@@ -9495,6 +9894,7 @@ export type Database = {
           business_id: string | null
           color: string | null
           created_at: string | null
+          entity_id: string | null
           icon: string | null
           id: string
           name: string
@@ -9506,6 +9906,7 @@ export type Database = {
           business_id?: string | null
           color?: string | null
           created_at?: string | null
+          entity_id?: string | null
           icon?: string | null
           id?: string
           name: string
@@ -9517,6 +9918,7 @@ export type Database = {
           business_id?: string | null
           color?: string | null
           created_at?: string | null
+          entity_id?: string | null
           icon?: string | null
           id?: string
           name?: string
@@ -9532,6 +9934,13 @@ export type Database = {
             referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "script_categories_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
         ]
       }
       short_links: {
@@ -9539,6 +9948,7 @@ export type Database = {
           clicks: number
           created_at: string
           custom_name: string | null
+          entity_id: string | null
           id: string
           is_active: boolean
           original_url: string
@@ -9550,6 +9960,7 @@ export type Database = {
           clicks?: number
           created_at?: string
           custom_name?: string | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean
           original_url: string
@@ -9561,6 +9972,7 @@ export type Database = {
           clicks?: number
           created_at?: string
           custom_name?: string | null
+          entity_id?: string | null
           id?: string
           is_active?: boolean
           original_url?: string
@@ -9568,7 +9980,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "short_links_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       simple_members_areas: {
         Row: {
@@ -10068,6 +10488,7 @@ export type Database = {
           color: string
           contact_id: string | null
           created_at: string
+          entity_id: string | null
           id: string
           logo_url: string | null
           name: string
@@ -10081,6 +10502,7 @@ export type Database = {
           color?: string
           contact_id?: string | null
           created_at?: string
+          entity_id?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -10094,6 +10516,7 @@ export type Database = {
           color?: string
           contact_id?: string | null
           created_at?: string
+          entity_id?: string | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -10121,6 +10544,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_blocks_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -10231,6 +10661,7 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string | null
+          entity_id: string | null
           id: string
           priority: string
           request_date: string | null
@@ -10252,6 +10683,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          entity_id?: string | null
           id?: string
           priority?: string
           request_date?: string | null
@@ -10273,6 +10705,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          entity_id?: string | null
           id?: string
           priority?: string
           request_date?: string | null
@@ -10309,6 +10742,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
             referencedColumns: ["id"]
           },
         ]
