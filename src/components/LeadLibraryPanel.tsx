@@ -62,25 +62,64 @@ export default function LeadLibraryPanel({ source, sourceFunnelName, sourceStage
   const [removeAfterSaving, setRemoveAfterSaving] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
+  // Query only the selected folder instead of fetching the entire lead library.
+  // Guard against rejected or stalled requests so the interface never spins forever.
   const refresh = useCallback(async () => {
-    if (!user) return;
+    if (!user?.id) { setLoading(false); return; }
     setLoading(true);
-    const [folderResult, contactResult] = await Promise.all([
-      db.from('lead_library_folders').select('id,name').eq('user_id', user.id).order('name'),
-      db.from('lead_library_contacts').select('id,folder_id,name,email,phone,company,notes,tags,created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10000),
-    ]);
-    if (folderResult.error || contactResult.error) {
-      toast.error('Não foi possível carregar a lista. Verifique se a migração do banco foi aplicada.');
-    } else {
-      setFolders(folderResult.data || []);
-      setContacts(contactResult.data || []);
-    }
-    setLoading(false);
-  }, [user]);
+    setLoadError(null);
+    try {
+      const withTimeout = async <T,>(promise: PromiseLike<T>): Promise<T> => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          return await Promise.race([
+            Promise.resolve(promise),
+            new Promise<never>((_, reject) => {
+              timer = setTimeout(() => reject(new Error('Tempo limite excedido ao consultar os leads. Tente novamente.')), 15000);
+            }),
+          ]);
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      };
 
-  useEffect(() => { if (open || source) void refresh(); }, [open, source, refresh]);
-  useEffect(() => { if (source) { setSelectedFolder(''); setRemoveAfterSaving(false); } }, [source?.id]);
+      const folderResult = await withTimeout(db.from('lead_library_folders')
+        .select('id,name').eq('user_id', user.id).order('name'));
+      if (folderResult.error) throw folderResult.error;
+      const availableFolders: FolderRecord[] = folderResult.data || [];
+      setFolders(availableFolders);
+
+      const activeFolder = filterFolder !== 'all' && availableFolders.some(folder => folder.id === filterFolder)
+        ? filterFolder : 'all';
+      if (activeFolder !== filterFolder) setFilterFolder('all');
+
+      let contactQuery = db.from('lead_library_contacts')
+        .select('id,folder_id,name,email,phone,company,notes,tags,created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(activeFolder === 'all' ? 1000 : 1000);
+      if (activeFolder !== 'all') contactQuery = contactQuery.eq('folder_id', activeFolder);
+      const contactResult = await withTimeout(contactQuery);
+      if (contactResult.error) throw contactResult.error;
+      setContacts(contactResult.data || []);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Não foi possível carregar os leads.';
+      setLoadError(message);
+      setContacts([]);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id, filterFolder]);
+
+  useEffect(() => {
+    if (open || source) void refresh();
+  }, [open, source?.id, refresh]);
+  useEffect(() => {
+    if (source) { setSelectedFolder(''); setRemoveAfterSaving(false); }
+  }, [source?.id]);
 
   const createFolder = async () => {
     const name = folderName.trim();
@@ -165,7 +204,7 @@ export default function LeadLibraryPanel({ source, sourceFunnelName, sourceStage
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}><Archive className="h-4 w-4 mr-2" />Lista de Leads</Button>
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)}><Archive className="h-4 w-4 mr-2" />Controle de leads e pastas</Button>
       <Dialog open={Boolean(source)} onOpenChange={opened => { if (!opened) onCloseSource(); }}>
         <DialogContent>
           <DialogHeader>
@@ -198,7 +237,7 @@ export default function LeadLibraryPanel({ source, sourceFunnelName, sourceStage
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Lista de Leads</DialogTitle>
+            <DialogTitle>Controle de leads e pastas</DialogTitle>
             <DialogDescription>Biblioteca independente dos funis. Organize os contatos por pasta e exporte CSV para campanhas autorizadas.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -219,7 +258,7 @@ export default function LeadLibraryPanel({ source, sourceFunnelName, sourceStage
             </div>
             <p className="text-xs text-muted-foreground">{shown.length} contatos encontrados. Antes de enviar campanhas, verifique a base legal e os pedidos de descadastro (LGPD).</p>
             <div className="border rounded-lg divide-y max-h-[400px] overflow-y-auto">
-              {loading ? <p className="p-5 text-sm">Carregando...</p> : shown.length === 0 ? <p className="p-5 text-sm text-muted-foreground">Nenhum lead salvo. Envie um contato do funil ou crie uma pasta.</p> : shown.map(contact => (
+              {loading ? <p className="p-5 text-sm" role="status">Carregando leads...</p> : loadError ? <div className="p-5 space-y-2"><p className="text-sm text-destructive">{loadError}</p><Button size="sm" variant="outline" onClick={() => void refresh()}>Tentar novamente</Button></div> : shown.length === 0 ? <p className="p-5 text-sm text-muted-foreground">Nenhum lead salvo. Envie um contato do funil ou crie uma pasta.</p> : shown.map(contact => (
                 <div key={contact.id} className="p-3 flex items-center gap-3 justify-between">
                   <div className="min-w-0">
                     <p className="font-medium text-sm">{contact.name}</p>
