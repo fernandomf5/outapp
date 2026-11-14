@@ -1216,16 +1216,19 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
         className="hidden"
         onChange={handleImageUpload}
       />
-      {/* Header */}
-      <div className="flex flex-col gap-4 border-b border-border/60 pb-5 lg:flex-row lg:items-center lg:justify-between">
-        <div>
+      {/* Header: title and controls have their own aligned rows */}
+      <div className="space-y-4 border-b border-border/60 pb-5">
+        <div className="min-w-0">
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">Organizador de funil e Kanban</p>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Funil de vendas</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Acompanhe cada oportunidade do primeiro contato ao fechamento.</p>
-            <div className="mt-3"><ResourceAssignmentsButton resourceType="sales_funnel" /></div>
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">Acompanhe cada oportunidade do primeiro contato ao fechamento.</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <LeadLibraryPanel
+        <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex shrink-0 items-center [&_button]:h-9 [&_button]:whitespace-nowrap">
+            <ResourceAssignmentsButton resourceType="sales_funnel" entityId={scopedEntityId || undefined} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 [&_button]:whitespace-nowrap">
+            <LeadLibraryPanel
             source={archiveLead}
             sourceFunnelName={selectedFunnel?.name}
             sourceStageName={stages.find(stage => stage.id === archiveLead?.stage_id)?.name}
@@ -1239,7 +1242,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
               setSelectedFunnel(funnel || null);
             }}
           >
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="h-9 w-full min-w-[180px] sm:w-[220px]">
               <SelectValue placeholder="Selecione um funil" />
             </SelectTrigger>
             <SelectContent>
@@ -1255,8 +1258,8 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
           </Select>
           <Dialog open={showFunnelDialog} onOpenChange={(open) => { setShowFunnelDialog(open); if (!open) resetFunnelForm(); }}>
             <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-1" />
+              <Button size="sm" className="h-9 gap-1.5 px-3 font-medium">
+                <Plus className="h-4 w-4 shrink-0" />
                 Novo Funil
               </Button>
             </DialogTrigger>
@@ -1287,6 +1290,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </div>
 
