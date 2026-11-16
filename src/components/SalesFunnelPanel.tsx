@@ -13,8 +13,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, MessageCircle, Camera, Loader2, ChevronDown, ChevronUp, Users, Folder, FolderOpen, Search, UserPlus, Archive } from 'lucide-react';
+import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronLeft, ChevronRight, Filter, BarChart3, Eye, History, Pencil, MessageCircle, Camera, Loader2, ChevronDown, ChevronUp, Users, Folder, FolderOpen, Search, UserPlus, Archive } from 'lucide-react';
 import FunnelChart from './FunnelChart';
+import './sales-funnel-scroll.css';
 import LeadLibraryPanel, { type LeadLibrarySource } from './LeadLibraryPanel';
 
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from '@dnd-kit/core';
@@ -274,7 +275,7 @@ function DroppableStageColumn({ stage, leads, children, onAddLead }: {
     <section
       ref={setNodeRef}
       aria-label={`Etapa ${stage.name}`}
-      className={`flex min-h-[300px] w-[294px] shrink-0 flex-col overflow-hidden rounded-xl border bg-muted/30 transition-colors ${isOver ? 'border-primary bg-primary/5' : 'border-border/70'}`}
+      className={`flex min-h-[300px] w-[min(294px,calc(100vw-64px))] shrink-0 flex-col overflow-hidden rounded-xl border bg-muted/30 transition-colors ${isOver ? 'border-primary bg-primary/5' : 'border-border/70'}`}
     >
       <div className="border-b border-border/60 px-3.5 py-3.5">
         <div className="flex items-center gap-2.5">
@@ -289,9 +290,15 @@ function DroppableStageColumn({ stage, leads, children, onAddLead }: {
           </Button>
         </div>
       </div>
-      <ScrollArea className="min-h-0 flex-1 px-2.5 py-3" style={{ maxHeight: 'min(65vh, 720px)' }}>
+      <div
+        className="crm-funnel-stage-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-2.5 py-3"
+        style={{ maxHeight: 'clamp(280px, 62dvh, 620px)' }}
+        role="region"
+        aria-label={`Leads da etapa ${stage.name}`}
+        tabIndex={0}
+      >
         <div className="space-y-2.5">{children}</div>
-      </ScrollArea>
+      </div>
     </section>
   );
 }
@@ -300,6 +307,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
   const { user } = useAuth();
   const scopedEntityId = entityId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('outapp_hub_entity') : null) || '';
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const boardScrollRef = useRef<HTMLDivElement>(null);
   const [funnels, setFunnels] = useState<SalesFunnel[]>([]);
   const [selectedFunnel, setSelectedFunnel] = useState<SalesFunnel | null>(null);
   const [stages, setStages] = useState<FunnelStage[]>([]);
@@ -1270,7 +1278,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 max-w-full space-y-4">
       <input
         type="file"
         ref={fileInputRef}
@@ -1530,7 +1538,7 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
 
       {/* Kanban Board */}
       {selectedFunnel ? (
-        <div className="min-w-0 overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+        <div className="crm-funnel-board w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-4 py-3.5">
             <div>
               <h3 className="text-sm font-semibold text-foreground">Quadro de oportunidades</h3>
@@ -1538,14 +1546,20 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
             </div>
             <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">{leads.length} {leads.length === 1 ? 'lead' : 'leads'}</span>
           </div>
-          <div className="overflow-x-auto bg-muted/10 p-3 sm:p-4">
+          <div
+            ref={boardScrollRef}
+            className="crm-funnel-horizontal-scroll w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain bg-muted/10 p-3 sm:p-4"
+            role="region"
+            aria-label="Etapas do funil de vendas. Role horizontalmente para acessar todas as colunas."
+            tabIndex={0}
+          >
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
-              <div className="flex w-max min-w-full items-start gap-3">
+              <div className="flex w-max min-w-full items-start gap-3 pb-1">
                 {stages.map((stage) => {
                   const stageLeads = leads.filter(l => l.stage_id === stage.id);
                   return (
@@ -1584,6 +1598,17 @@ export default function SalesFunnelPanel({ entityId }: { entityId?: string } = {
                 ) : null}
               </DragOverlay>
             </DndContext>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 px-3 py-2 sm:px-4">
+            <p className="text-xs text-muted-foreground">Arraste para os lados ou use as setas para navegar pelas etapas.</p>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" className="h-8 gap-1" onClick={() => boardScrollRef.current?.scrollBy({ left: -320, behavior: 'smooth' })} aria-label="Ver etapas anteriores">
+                <ChevronLeft className="h-4 w-4" /> Anterior
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="h-8 gap-1" onClick={() => boardScrollRef.current?.scrollBy({ left: 320, behavior: 'smooth' })} aria-label="Ver próximas etapas">
+                Próximas <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
