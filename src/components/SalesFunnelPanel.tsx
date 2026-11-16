@@ -275,7 +275,7 @@ function DroppableStageColumn({ stage, leads, children, onAddLead }: {
     <section
       ref={setNodeRef}
       aria-label={`Etapa ${stage.name}`}
-      className={`flex min-h-[300px] w-[min(294px,calc(100vw-64px))] shrink-0 flex-col overflow-hidden rounded-xl border bg-muted/30 transition-colors ${isOver ? 'border-primary bg-primary/5' : 'border-border/70'}`}
+      className={`flex min-h-[300px] crm-funnel-stage-column shrink-0 flex-col overflow-hidden rounded-xl border bg-muted/30 transition-colors ${isOver ? 'border-primary bg-primary/5' : 'border-border/70'}`}
     >
       <div className="border-b border-border/60 px-3.5 py-3.5">
         <div className="flex items-center gap-2.5">
