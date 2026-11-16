@@ -4,6 +4,9 @@
   min-width: 0;
   max-width: 100%;
 }
+.crm-funnel-stage-column {
+  width: min(294px, calc(100vw - 64px));
+}
 .crm-funnel-horizontal-scroll {
   min-width: 0;
   max-width: 100%;
